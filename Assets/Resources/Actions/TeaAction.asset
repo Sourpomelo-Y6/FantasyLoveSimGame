@@ -1,0 +1,75 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1f41d3cf9d66ee149ad7663c5cd19c24, type: 3}
+  m_Name: TeaAction
+  m_EditorClassIdentifier: 
+  actionId: Tea
+  displayName: "\u304A\u8336"
+  executionType: 0
+  resultMessage: "\u30D2\u30ED\u30A4\u30F3\u3068\u4E00\u7DD2\u306B\u304A\u8336\u3092\u98F2\u307F\u307E\u3057\u305F\u3002\u3086\u3063\u304F\u308A\u8A71\u305B\u305F\u6C17\u304C\u3057\u307E\u3059\u3002"
+  unavailableMessage: "\u4ECA\u306F\u3053\u306E\u884C\u52D5\u306F\u3067\u304D\u307E\u305B\u3093\u3002"
+  useHeroineNameAsSpeaker: 1
+  affectionChange: 2
+  advanceTime: 1
+  reactions:
+  - reactionId: Tea_Rainy
+    resultMessage: "\u96E8\u97F3\u3092\u805E\u304D\u306A\u304C\u3089\u3001\u30D2\u30ED\u30A4\u30F3\u3068\u6E29\u304B\u3044\u304A\u8336\u3092\u98F2\u307F\u307E\u3057\u305F\u3002\u843D\u3061\u7740\u3044\u305F\u6642\u9593\u306B\u306A\u308A\u307E\u3057\u305F\u3002"
+    useHeroineNameAsSpeaker: 1
+    affectionChange: 3
+    advanceTime: 1
+    priority: 50
+    minAffection: 0
+    maxAffection: 100
+    anyTimeSlot: 1
+    allowedTimeSlots: 
+    anyWeather: 0
+    allowedWeathers: 02000000
+    anySeason: 1
+    allowedSeasons: 
+  - reactionId: Tea_Storm
+    resultMessage: "\u5916\u306F\u5D50\u3067\u3059\u304C\u3001\u5BA4\u5185\u3067\u30D2\u30ED\u30A4\u30F3\u3068\u304A\u8336\u3092\u98F2\u307F\u307E\u3057\u305F\u3002\u5C11\u3057\u5B89\u5FC3\u3057\u305F\u3088\u3046\u3067\u3059\u3002"
+    useHeroineNameAsSpeaker: 1
+    affectionChange: 3
+    advanceTime: 1
+    priority: 60
+    minAffection: 0
+    maxAffection: 100
+    anyTimeSlot: 1
+    allowedTimeSlots: 
+    anyWeather: 0
+    allowedWeathers: 03000000
+    anySeason: 1
+    allowedSeasons: 
+  - reactionId: Tea_Night
+    resultMessage: "\u591C\u306B\u6E29\u304B\u3044\u304A\u8336\u3092\u98F2\u307F\u306A\u304C\u3089\u3001\u9759\u304B\u306B\u904E\u3054\u3057\u307E\u3057\u305F\u3002\u30D2\u30ED\u30A4\u30F3\u3082\u7A4F\u3084\u304B\u306A\u8868\u60C5\u3067\u3059\u3002"
+    useHeroineNameAsSpeaker: 1
+    affectionChange: 3
+    advanceTime: 1
+    priority: 20
+    minAffection: 0
+    maxAffection: 100
+    anyTimeSlot: 0
+    allowedTimeSlots: 02000000
+    anyWeather: 1
+    allowedWeathers: 
+    anySeason: 1
+    allowedSeasons: 
+  sortOrder: 40
+  isEnabled: 1
+  anyTimeSlot: 1
+  allowedTimeSlots: 
+  anyWeather: 1
+  allowedWeathers: 
+  anySeason: 1
+  allowedSeasons: 
+  minAffection: 0
+  maxAffection: 100

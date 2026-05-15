@@ -1,0 +1,38 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cb5097099197776438840c7469e425ca, type: 3}
+  m_Name: Love_HighAffection_001
+  m_EditorClassIdentifier: 
+  conversationId: Love_HighAffection_001
+  genre: 3
+  type: 1
+  heroineLine: "\u6700\u8FD1\u3001\u3042\u306A\u305F\u306E\u3053\u3068\u3092\u8003\u3048\u308B\u6642\u9593\u304C\u5897\u3048\u305F\u6C17\u304C\u3057\u307E\u3059\u3002\u3042\u306A\u305F\u306F\u2026\u2026\u79C1\u306E\u3053\u3068\u3092\u3069\u3046\u601D\u3063\u3066\u3044\u307E\u3059\u304B\uFF1F"
+  choices:
+  - choiceText: "\u5927\u5207\u306A\u4EBA\u3060\u3068\u601D\u3063\u3066\u3044\u308B"
+    responseText: "\u2026\u2026\u305D\u3093\u306A\u3075\u3046\u306B\u8A00\u308F\u308C\u305F\u3089\u3001\u5B09\u3057\u304F\u3066\u56F0\u3063\u3066\u3057\u307E\u3044\u307E\u3059\u3002"
+    affectionChange: 8
+  - choiceText: "\u4E00\u7DD2\u306B\u3044\u308B\u3068\u5B89\u5FC3\u3059\u308B"
+    responseText: "\u79C1\u3082\u3067\u3059\u3002\u3042\u306A\u305F\u306E\u96A3\u306F\u3001\u4E0D\u601D\u8B70\u3068\u843D\u3061\u7740\u304D\u307E\u3059\u3002"
+    affectionChange: 5
+  - choiceText: "\u307E\u3060\u5206\u304B\u3089\u306A\u3044"
+    responseText: "\u305D\u3046\u3001\u3067\u3059\u304B\u2026\u2026\u3067\u3082\u3001\u6025\u304C\u306A\u304F\u3066\u3082\u3044\u3044\u3067\u3059\u3088\u306D\u3002"
+    affectionChange: 1
+  priority: 0
+  showOnce: 0
+  minAffection: 50
+  maxAffection: 100
+  anyTimeSlot: 1
+  allowedTimeSlots: 
+  anySeason: 1
+  allowedSeasons: 
+  anyWeather: 1
+  allowedWeathers: 

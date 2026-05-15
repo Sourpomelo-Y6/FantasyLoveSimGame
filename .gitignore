@@ -1,0 +1,44 @@
+# Large generated TextMeshPro font asset
+Assets/Fonts/NotoSansJP-VariableFont_wght SDF.asset
+Assets/Fonts/NotoSansJP-VariableFont_wght SDF.asset.meta
+
+# Unity generated folders
+Library/
+Logs/
+Temp/
+Obj/
+obj/
+Build/
+Builds/
+UserSettings/
+
+# IDE / editor state
+.vs/
+.idea/
+.vscode/
+
+# Local environment and tooling
+venv/
+.python-version
+.codex/
+.agents/
+
+# Generated project files
+*.csproj
+*.sln
+*.user
+*.userprefs
+*.pidb
+*.booproj
+*.suo
+*.tmp
+*.csproj.user
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Unity cache files
+*.log
+*.asset.meta~
+*.meta~
