@@ -36,6 +36,7 @@ This project is licensed under the MIT License. See [LICENSE](LICENSE) for detai
 1. Unity Hub でこのフォルダをプロジェクトとして開く
 2. `Assets/Scenes/MainScene.unity` を開く
 3. Play ボタンで実行する
+4. Unity で日本語フォントを使える状態にして、`Assets/Fonts/NotoSansJP-VariableFont_wght.ttf` と `Assets/Fonts/NotoSansJP-VariableFont_wght SDF.asset` を再設定する
 
 ## 注意
 
