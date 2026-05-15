@@ -37,6 +37,11 @@ This project is licensed under the MIT License. See [LICENSE](LICENSE) for detai
 2. `Assets/Scenes/MainScene.unity` を開く
 3. Play ボタンで実行する
 
+## 注意
+
+- 日本語アセットの一部はファイルサイズが大きいため、GitHub へそのままコミットできない場合があります
+- セットアップ時に不足があれば、`Docs/Images` や `Assets/Images` 配下の画像を個別に追加してください
+
 ## 操作
 
 - 画面下の行動ボタンを押す
