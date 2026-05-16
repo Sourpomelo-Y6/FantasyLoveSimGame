@@ -1062,7 +1062,7 @@ public class GameManager : MonoBehaviour
         choiceButtonArea.SetActive(false);
         outfitPanel.SetActive(false);
 
-        speakerNameText.text = success ? heroineStatus.HeroineName : "ƒVƒXƒeƒ€";
+        speakerNameText.text = heroineStatus.HeroineName;
         dialogueText.text = message;
 
         flowState = ConversationFlowState.ShowingActionResult;

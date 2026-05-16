@@ -15,6 +15,13 @@ public class OutfitData : ScriptableObject
     public bool isUnlockedByDefault = true;
     public int requiredAffection = 0;
 
+    [Header("Messages")]
+    [TextArea(2, 4)]
+    public string lockedMessage = "‚»‚ê‚Í‚Ü‚¾­‚µ’p‚¸‚©‚µ‚¢‚æ‚¤‚Å‚·B";
+
+    [TextArea(2, 4)]
+    public string changedMessage = "";
+
     [Header("Suitability")]
     public bool anySeason = true;
     public List<Season> suitableSeasons = new List<Season>();

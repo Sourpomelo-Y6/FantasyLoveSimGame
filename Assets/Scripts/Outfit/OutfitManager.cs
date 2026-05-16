@@ -95,7 +95,15 @@ public class OutfitManager : MonoBehaviour
 
         if (!CanWearOutfit(outfit))
         {
-            message = "「" + outfit.displayName + "」は、まだ少し恥ずかしいようです。";
+            if (!string.IsNullOrEmpty(outfit.lockedMessage))
+            {
+                message = outfit.lockedMessage;
+            }
+            else
+            {
+                message = "「" + outfit.displayName + "」は、まだ少し恥ずかしいようです。";
+            }
+
             return false;
         }
 
@@ -107,7 +115,15 @@ public class OutfitManager : MonoBehaviour
             heroineImage.color = Color.white;
         }
 
-        message = "ヒロインは「" + outfit.displayName + "」に着替えました。";
+        if (!string.IsNullOrEmpty(outfit.changedMessage))
+        {
+            message = outfit.changedMessage;
+        }
+        else
+        {
+            message = "ヒロインは「" + outfit.displayName + "」に着替えました。";
+        }
+
         return true;
     }
 
