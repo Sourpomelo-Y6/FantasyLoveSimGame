@@ -21,6 +21,7 @@ public class GameManager : MonoBehaviour
     [SerializeField] private HeroineStatus heroineStatus;
     [SerializeField] private SaveManager saveManager;
     [SerializeField] private OutfitManager outfitManager;
+    [SerializeField] private OutfitPreferenceManager outfitPreferenceManager;
 
     [Header("Status")]
     [SerializeField] private TMP_Text dayText;
@@ -84,7 +85,12 @@ public class GameManager : MonoBehaviour
     [SerializeField] private Transform outfitButtonParent;
     [SerializeField] private Button outfitButtonPrefab;
 
-
+    [Header("Outfit Reaction UI")]
+    [SerializeField] private GameObject outfitReactionPanel;
+    [SerializeField] private Button praiseOutfitButton;
+    [SerializeField] private Button dislikeOutfitButton;
+    [SerializeField] private Button boredOutfitButton;
+    [SerializeField] private Button changeOutfitButton;
 
     public void OnTalkStart()
     {
@@ -110,6 +116,11 @@ public class GameManager : MonoBehaviour
         CreateActionButtons();
         CreateOutfitButtons();
 
+        praiseOutfitButton.onClick.AddListener(() => OnClickOutfitReaction(OutfitReactionType.Praise));
+        dislikeOutfitButton.onClick.AddListener(() => OnClickOutfitReaction(OutfitReactionType.Dislike));
+        boredOutfitButton.onClick.AddListener(() => OnClickOutfitReaction(OutfitReactionType.Bored));
+        changeOutfitButton.onClick.AddListener(() => OnClickOutfitReaction(OutfitReactionType.Change));
+
         nextButton.onClick.AddListener(OnClickNext);
         endingButton.onClick.AddListener(OnClickEnding);
 
@@ -117,6 +128,7 @@ public class GameManager : MonoBehaviour
         genreButtonArea.SetActive(false);
         choiceButtonArea.SetActive(false);
         outfitPanel.SetActive(false);
+        outfitReactionPanel.SetActive(false);
         nextButton.gameObject.SetActive(false);
         endingButton.gameObject.SetActive(false);
 
@@ -236,6 +248,7 @@ public class GameManager : MonoBehaviour
         genreButtonArea.SetActive(false);
         choiceButtonArea.SetActive(false);
         outfitPanel.SetActive(false);
+        outfitReactionPanel.SetActive(false);
         nextButton.gameObject.SetActive(false);
 
         List<ConversationData> candidates = conversations.FindAll(conversation =>
@@ -421,6 +434,7 @@ public class GameManager : MonoBehaviour
         choiceButtonArea.SetActive(false);
         genreButtonArea.SetActive(false);
         outfitPanel.SetActive(false);
+        outfitReactionPanel.SetActive(false);
         actionButtonArea.SetActive(true);
 
         speakerNameText.text = heroineStatus.HeroineName;
@@ -517,9 +531,10 @@ public class GameManager : MonoBehaviour
         flowState = ConversationFlowState.Idle;
 
         choiceButtonArea.SetActive(false);
-        outfitPanel.SetActive(false);
         nextButton.gameObject.SetActive(false);
         genreButtonArea.SetActive(false);
+        outfitPanel.SetActive(false);
+        outfitReactionPanel.SetActive(false);
         actionButtonArea.SetActive(true);
 
         speakerNameText.text = heroineStatus.HeroineName;
@@ -532,6 +547,7 @@ public class GameManager : MonoBehaviour
         genreButtonArea.SetActive(false);
         choiceButtonArea.SetActive(false);
         outfitPanel.SetActive(false);
+        outfitReactionPanel.SetActive(false);
         nextButton.gameObject.SetActive(false);
 
         currentConversation = null;
@@ -576,6 +592,8 @@ public class GameManager : MonoBehaviour
             saveData.currentOutfitId = "";
         }
 
+        saveData.outfitPreferences = outfitPreferenceManager.CreateSaveData();
+
         saveData.shownConversationIds = new List<string>(shownConversationIds);
 
         saveManager.Save(saveData);
@@ -604,7 +622,9 @@ public class GameManager : MonoBehaviour
         );
 
         heroineStatus.SetAffection(saveData.affection);
-        
+
+        outfitPreferenceManager.SetPreferences(saveData.outfitPreferences);
+
         if (!string.IsNullOrEmpty(saveData.currentOutfitId))
         {
             string outfitMessage;
@@ -629,6 +649,7 @@ public class GameManager : MonoBehaviour
         nextButton.gameObject.SetActive(false);
         genreButtonArea.SetActive(false);
         outfitPanel.SetActive(false);
+        outfitReactionPanel.SetActive(false);
         actionButtonArea.SetActive(true);
 
         currentConversation = null;
@@ -646,6 +667,7 @@ public class GameManager : MonoBehaviour
         genreButtonArea.SetActive(false);
         choiceButtonArea.SetActive(false);
         outfitPanel.SetActive(false);
+        outfitReactionPanel.SetActive(false);
 
         speakerNameText.text = speakerName;
         dialogueText.text = message;
@@ -669,6 +691,7 @@ public class GameManager : MonoBehaviour
         genreButtonArea.SetActive(false);
         choiceButtonArea.SetActive(false);
         outfitPanel.SetActive(false);
+        outfitReactionPanel.SetActive(false);
 
         speakerNameText.text = "システム";
         dialogueText.text = message;
@@ -777,6 +800,12 @@ public class GameManager : MonoBehaviour
             return;
         }
 
+        if (action.executionType == ActionExecutionType.OpenOutfitReactionPanel)
+        {
+            OpenOutfitReactionPanel(action);
+            return;
+        }
+
         if (action.executionType == ActionExecutionType.SimpleAction)
         {
             ExecuteActionData(action);
@@ -790,7 +819,7 @@ public class GameManager : MonoBehaviour
         genreButtonArea.SetActive(false);
         choiceButtonArea.SetActive(false);
         outfitPanel.SetActive(true);
-        nextButton.gameObject.SetActive(false);
+        outfitReactionPanel.SetActive(false);
 
         speakerNameText.text = "システム";
 
@@ -863,7 +892,8 @@ public class GameManager : MonoBehaviour
         actionButtonArea.SetActive(false);
         genreButtonArea.SetActive(true);
         choiceButtonArea.SetActive(false);
-        nextButton.gameObject.SetActive(false);
+        outfitPanel.SetActive(false);
+        outfitReactionPanel.SetActive(false);
 
         speakerNameText.text = "システム";
 
@@ -1070,4 +1100,79 @@ public class GameManager : MonoBehaviour
 
         RefreshUI();
     }
+
+    private void OpenOutfitReactionPanel(ActionData action)
+    {
+        actionButtonArea.SetActive(false);
+        genreButtonArea.SetActive(false);
+        choiceButtonArea.SetActive(false);
+        outfitPanel.SetActive(false);
+        outfitReactionPanel.SetActive(true);
+        nextButton.gameObject.SetActive(false);
+
+        speakerNameText.text = "システム";
+
+        if (outfitManager.CurrentOutfit == null)
+        {
+            dialogueText.text = "まだ衣装を着ていません。";
+        }
+        else if (string.IsNullOrEmpty(action.resultMessage))
+        {
+            dialogueText.text = "今の衣装について、どう反応しますか？";
+        }
+        else
+        {
+            dialogueText.text = action.resultMessage + "\n現在の衣装：" + outfitManager.CurrentOutfit.displayName;
+        }
+
+        flowState = ConversationFlowState.Idle;
+    }
+
+    private void OnClickOutfitReaction(OutfitReactionType reactionType)
+    {
+        if (reactionType == OutfitReactionType.Change)
+        {
+            OpenOutfitPanelForChange();
+            return;
+        }
+
+        OutfitData currentOutfit = outfitManager.CurrentOutfit;
+
+        string message = outfitPreferenceManager.ApplyReaction(
+            currentOutfit,
+            reactionType,
+            heroineStatus
+        );
+
+        actionButtonArea.SetActive(false);
+        genreButtonArea.SetActive(false);
+        choiceButtonArea.SetActive(false);
+        outfitPanel.SetActive(false);
+        outfitReactionPanel.SetActive(false);
+
+        speakerNameText.text = heroineStatus.HeroineName;
+        dialogueText.text = message;
+
+        RefreshUI();
+
+        flowState = ConversationFlowState.ShowingActionResult;
+        nextButton.gameObject.SetActive(true);
+    }
+
+    private void OpenOutfitPanelForChange()
+    {
+        actionButtonArea.SetActive(false);
+        genreButtonArea.SetActive(false);
+        choiceButtonArea.SetActive(false);
+        outfitReactionPanel.SetActive(false);
+        outfitPanel.SetActive(true);
+        nextButton.gameObject.SetActive(false);
+
+        speakerNameText.text = "システム";
+        dialogueText.text = "変更する衣装を選んでください。";
+
+        flowState = ConversationFlowState.Idle;
+    }
+
+
 }

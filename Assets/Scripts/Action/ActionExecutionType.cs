@@ -2,5 +2,6 @@ public enum ActionExecutionType
 {
     SimpleAction,
     OpenConversationGenres,
-    OpenOutfitPanel
+    OpenOutfitPanel,
+    OpenOutfitReactionPanel
 }

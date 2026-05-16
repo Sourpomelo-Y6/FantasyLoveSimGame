@@ -14,5 +14,7 @@ public class SaveData
 
     public string currentOutfitId;
 
+    public List<OutfitPreference> outfitPreferences = new List<OutfitPreference>();
+
     public List<string> shownConversationIds = new List<string>();
 }

@@ -7,6 +7,9 @@ public class OutfitManager : MonoBehaviour
     [Header("Managers")]
     [SerializeField] private HeroineStatus heroineStatus;
 
+    [Header("Preference")]
+    [SerializeField] private OutfitPreferenceManager outfitPreferenceManager;
+
     [Header("View")]
     [SerializeField] private Image heroineImage;
 
@@ -108,6 +111,11 @@ public class OutfitManager : MonoBehaviour
         }
 
         currentOutfit = outfit;
+
+        if (outfitPreferenceManager != null)
+        {
+            outfitPreferenceManager.RegisterWear(outfit.outfitId);
+        }
 
         if (heroineImage != null && outfit.heroineSprite != null)
         {
