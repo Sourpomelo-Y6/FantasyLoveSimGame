@@ -20,8 +20,10 @@ This project is licensed under the MIT License. See [LICENSE](LICENSE) for detai
 
 - 画面下の行動ボタンから `会話` / `休む` / `散歩` / `お茶` / `贈り物` を選べる
 - `会話` からは `Daily` / `Food` / `Adventure` / `Love` のジャンル会話に進める
+- `贈り物` 以外に、着替えた衣装への反応を選ぶ `褒める` / `嫌う` / `退屈` / `着替える` の導線がある
 - 会話は `Next` ボタンで進行し、必要に応じて選択肢を選ぶ
 - 行動と会話の結果は ScriptableObject のデータで管理している
+- 衣装ごとの好みや反応履歴を保存し、衣装評価に反映している
 - 時間経過と日数進行がある
 - 好感度が一定値に達するとエンディングが解放される
 
@@ -65,8 +67,10 @@ This project is licensed under the MIT License. See [LICENSE](LICENSE) for detai
 
 - [`Assets/Scripts/Core/GameManager.cs`](Assets/Scripts/Core/GameManager.cs): 会話、行動、好感度、時間進行、UI 更新の制御
 - [`Assets/Scripts/Action/`](Assets/Scripts/Action): 行動データの型定義
+- [`Assets/Scripts/Outfit/`](Assets/Scripts/Outfit): 衣装データ、衣装反応、衣装評価の管理
 - [`Assets/Scripts/Conversation/`](Assets/Scripts/Conversation): 会話データの型定義
 - [`Assets/Resources/Actions/`](Assets/Resources/Actions): 行動データ本体
+- [`Assets/Resources/Outfits/`](Assets/Resources/Outfits): 衣装データ本体
 - [`Assets/Resources/Conversations/`](Assets/Resources/Conversations): 会話データ本体
 - [`Assets/Scenes/MainScene.unity`](Assets/Scenes/MainScene.unity): メインシーン
 - [`Packages/manifest.json`](Packages/manifest.json): 利用パッケージ
@@ -76,5 +80,6 @@ This project is licensed under the MIT License. See [LICENSE](LICENSE) for detai
 - 画面上の日本語テキストは TextMeshPro のフォント資産を利用しています
 - 会話データと行動データは ScriptableObject として分離されています
 - 行動には条件付き反応を持たせられるので、時間帯や天候で結果を変えやすいです
+- 衣装は着用時に保存され、衣装反応パネルから評価を付けられるようになっています
 - 背景ズーム用の `BackgroundZoom` を使って、会話や窓を見る演出を切り替えています
 - このプロジェクトは試作段階のため、今後 UI や会話データを拡張しやすい構成になっています

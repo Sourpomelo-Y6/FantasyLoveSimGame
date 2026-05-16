@@ -15,6 +15,8 @@
 - `Simple` は `Next` を押すと好感度が増加して会話が終了する
 - `Choice` は `Next` で選択肢表示に進み、3 つまでの選択肢から 1 つを選ぶ
 - 行動は ScriptableObject ベースで、時間帯・天候・季節・好感度に応じて反応を切り替えられる
+- 衣装には着用後の反応を付けられ、`褒める` / `嫌う` / `退屈` / `着替える` の選択肢で評価を更新できる
+- 衣装評価の履歴はセーブデータに保存される
 - 会話や行動のたびに時間が進み、一定数で日付が進む
 - 好感度が `100` に達すると `Ending` ボタンが表示される
 
@@ -70,6 +72,7 @@
 - `currentConversation`
 - 会話データの一覧
 - 行動データの一覧
+- 衣装評価の保存データ
 
 ### 管理している UI
 
@@ -80,6 +83,7 @@
 - 行動ボタン
 - ジャンルボタン
 - 選択肢ボタン
+- 衣装反応パネル
 - `Next` ボタン
 - エンディングボタン
 
@@ -92,6 +96,7 @@
 - 会話データと行動データを読み込む
 - 各ボタンにイベントを設定する
 - 行動ボタン、ジャンルボタン、選択肢領域を初期化する
+- 衣装反応パネルを閉じる
 - `Next` ボタンを非表示にする
 - 初期メッセージを表示する
 - UI を更新する
@@ -104,6 +109,7 @@
 - `isEnabled` や好感度、時間帯、天候、季節の条件を確認する
 - 条件に合う場合は `ExecuteActionData()` で結果を表示する
 - `OpenConversationGenres()` の場合はジャンルボタンを表示する
+- `OpenOutfitReactionPanel()` の場合は衣装反応パネルを表示する
 - 条件に合わない場合は `unavailableMessage` を表示する
 
 ### 3. 会話開始
@@ -162,6 +168,15 @@
 
 `OnClickEnding()` は現状、固定のエンド文を表示するだけです。
 
+### 10. 衣装評価
+
+`OutfitManager` と `OutfitPreferenceManager` が衣装の着用と反応を管理します。
+
+- 衣装を着ると、その `outfitId` の着用回数が増える
+- 衣装反応パネルで `褒める` / `嫌う` / `退屈` を選ぶと、衣装ごとの評価値と回数が更新される
+- `着替える` を選ぶと衣装選択に戻る
+- 衣装評価は `SaveData.outfitPreferences` に保存・復元される
+
 ## Inspector で必要な参照
 
 `GameManager` の `SerializeField` は、Unity の Inspector で必ず割り当てる必要があります。
@@ -213,6 +228,16 @@
 
 - `actionResourcePath`
 - `conversationResourcePath`
+
+### Outfit
+
+- `outfitManager`
+- `outfitPreferenceManager`
+- `outfitReactionPanel`
+- `praiseOutfitButton`
+- `dislikeOutfitButton`
+- `boredOutfitButton`
+- `changeOutfitButton`
 
 ### Save / Load Buttons
 
