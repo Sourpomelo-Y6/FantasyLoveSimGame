@@ -17,6 +17,8 @@ MonoBehaviour:
   heroineSprite: {fileID: 21300000, guid: 3a96e21edc0a10546af05bd496fc8636, type: 3}
   isUnlockedByDefault: 1
   requiredAffection: 0
+  lockedMessage: 
+  changedMessage: "\u3044\u3064\u3082\u306E\u670D\u306B\u7740\u66FF\u3048\u307E\u3057\u305F\u3002"
   anySeason: 1
   suitableSeasons: 
   anyWeather: 1
