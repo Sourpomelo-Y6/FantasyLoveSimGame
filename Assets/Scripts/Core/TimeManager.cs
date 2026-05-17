@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System;
+using UnityEngine;
 
 public class TimeManager : MonoBehaviour
 {
@@ -19,6 +20,8 @@ public class TimeManager : MonoBehaviour
     public Weekday CurrentWeekday => currentWeekday;
     public Season CurrentSeason => currentSeason;
     public Weather CurrentWeather => currentWeather;
+
+    public event Action OnDayChanged;
 
     public void AdvanceTime()
     {
@@ -55,6 +58,11 @@ public class TimeManager : MonoBehaviour
         AdvanceWeekday();
         UpdateSeason();
         RandomizeWeather();
+
+        if (OnDayChanged != null)
+        {
+            OnDayChanged.Invoke();
+        }
     }
 
     private void AdvanceWeekday()
@@ -78,7 +86,7 @@ public class TimeManager : MonoBehaviour
     private void RandomizeWeather()
     {
         // 季節ごとに少しだけ天気の出方を変える
-        int randomValue = Random.Range(0, 100);
+        int randomValue = UnityEngine.Random.Range(0, 100);
 
         if (currentSeason == Season.Spring)
         {

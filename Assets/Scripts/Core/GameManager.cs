@@ -135,6 +135,7 @@ public class GameManager : MonoBehaviour
         saveButton.onClick.AddListener(SaveGame);
         loadButton.onClick.AddListener(LoadGame);
 
+        timeManager.OnDayChanged += OnDayChanged;
 
         outfitManager.WearDefaultOutfit();
         speakerNameText.text = heroineStatus.HeroineName;
@@ -1172,6 +1173,40 @@ public class GameManager : MonoBehaviour
         dialogueText.text = "ïœçXÇ∑ÇÈàﬂëïÇëIÇÒÇ≈Ç≠ÇæÇ≥Ç¢ÅB";
 
         flowState = ConversationFlowState.Idle;
+    }
+
+    private void OnDayChanged()
+    {
+        AutoChooseOutfitOnNewDay();
+    }
+
+    private void AutoChooseOutfitOnNewDay()
+    {
+        if (outfitManager == null)
+        {
+            return;
+        }
+
+        string message;
+        bool success = outfitManager.AutoChooseOutfitForToday(out message);
+
+        if (!success)
+        {
+            return;
+        }
+
+        speakerNameText.text = heroineStatus.HeroineName;
+        dialogueText.text = message;
+
+        RefreshUI();
+    }
+
+    private void OnDestroy()
+    {
+        if (timeManager != null)
+        {
+            timeManager.OnDayChanged -= OnDayChanged;
+        }
     }
 
 

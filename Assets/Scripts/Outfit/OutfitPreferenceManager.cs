@@ -151,4 +151,22 @@ public class OutfitPreferenceManager : MonoBehaviour
 
         return saveList;
     }
+
+    public OutfitPreference FindPreference(string outfitId)
+    {
+        if (string.IsNullOrEmpty(outfitId))
+        {
+            return null;
+        }
+
+        foreach (OutfitPreference preference in preferences)
+        {
+            if (preference.outfitId == outfitId)
+            {
+                return preference;
+            }
+        }
+
+        return null;
+    }
 }
