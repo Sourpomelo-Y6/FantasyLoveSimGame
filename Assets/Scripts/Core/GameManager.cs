@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
+using System.Collections;
 
 public class GameManager : MonoBehaviour
 {
@@ -13,7 +14,8 @@ public class GameManager : MonoBehaviour
         WaitingChoice,
         ShowingResponse,
         ShowingSimple,
-        ShowingActionResult
+        ShowingActionResult,
+        ShowingGoodNight
     }
 
     [Header("Managers")]
@@ -35,6 +37,10 @@ public class GameManager : MonoBehaviour
     [Header("Dialogue")]
     [SerializeField] private TMP_Text speakerNameText;
     [SerializeField] private TMP_Text dialogueText;
+
+    [Header("Fade")]
+    [SerializeField] private Image fadeImage;
+    [SerializeField] private float fadeDuration = 1.5f;
 
     [Header("Action Buttons")]
     [SerializeField] private GameObject actionButtonArea;
@@ -72,12 +78,21 @@ public class GameManager : MonoBehaviour
 
     private ConversationData currentConversation;
 
+    private bool pendingAdvanceTime = false;
+    private bool pendingGoodNight = false;
+    private bool isFading = false;
+
     private readonly HashSet<string> shownConversationIds = new HashSet<string>();
 
     [Header("Save / Load Buttons")]
     [SerializeField] private Button saveButton;
     [SerializeField] private Button loadButton;
 
+
+    [Header("Background")]
+    [SerializeField] private Image backgroundImage;
+    [SerializeField] private Sprite dayBackgroundSprite;
+    [SerializeField] private Sprite nightBackgroundSprite;
     [SerializeField] private BackgroundZoom backgroundZoom;
 
     [Header("Outfit UI")]
@@ -91,6 +106,32 @@ public class GameManager : MonoBehaviour
     [SerializeField] private Button dislikeOutfitButton;
     [SerializeField] private Button boredOutfitButton;
     [SerializeField] private Button changeOutfitButton;
+
+
+    private void UpdateBackgroundByTime()
+    {
+        if (backgroundImage == null)
+        {
+            return;
+        }
+
+        if (timeManager.CurrentTimeSlot == TimeSlot.Night ||
+            timeManager.CurrentTimeSlot == TimeSlot.LateNight)
+        {
+            if (nightBackgroundSprite != null)
+            {
+                backgroundImage.sprite = nightBackgroundSprite;
+            }
+
+            return;
+        }
+
+        if (dayBackgroundSprite != null)
+        {
+            backgroundImage.sprite = dayBackgroundSprite;
+        }
+        OnTalkStart();
+    }
 
     public void OnTalkStart()
     {
@@ -115,6 +156,8 @@ public class GameManager : MonoBehaviour
         CreateGenreButtons();
         CreateActionButtons();
         CreateOutfitButtons();
+
+        SetFadeAlpha(0f);
 
         praiseOutfitButton.onClick.AddListener(() => OnClickOutfitReaction(OutfitReactionType.Praise));
         dislikeOutfitButton.onClick.AddListener(() => OnClickOutfitReaction(OutfitReactionType.Dislike));
@@ -402,6 +445,11 @@ public class GameManager : MonoBehaviour
 
     private void OnClickNext()
     {
+        if (isFading)
+        {
+            return;
+        }
+
         if (flowState == ConversationFlowState.ShowingQuestion)
         {
             ShowChoices();
@@ -425,10 +473,37 @@ public class GameManager : MonoBehaviour
             FinishActionResult();
             return;
         }
+
+        if (flowState == ConversationFlowState.ShowingGoodNight)
+        {
+            StartCoroutine(FadeToBlackAndNextMorning());
+            return;
+        }
     }
 
     private void FinishActionResult()
     {
+        if (pendingGoodNight)
+        {
+            pendingGoodNight = false;
+
+            speakerNameText.text = heroineStatus.HeroineName;
+            dialogueText.text = "もう夜も遅いですね。おやすみなさい。また明日。";
+
+            flowState = ConversationFlowState.ShowingGoodNight;
+
+            actionButtonArea.SetActive(false);
+            genreButtonArea.SetActive(false);
+            choiceButtonArea.SetActive(false);
+            outfitPanel.SetActive(false);
+            outfitReactionPanel.SetActive(false);
+
+            nextButton.gameObject.SetActive(true);
+            return;
+        }
+
+        pendingAdvanceTime = false;
+
         flowState = ConversationFlowState.Idle;
 
         nextButton.gameObject.SetActive(false);
@@ -511,6 +586,13 @@ public class GameManager : MonoBehaviour
     {
         heroineStatus.AddAffection(2);
 
+        if (IsNightBeforeAdvance())
+        {
+            RefreshUI();
+            ShowGoodNightBeforeNextDay();
+            return;
+        }
+
         timeManager.AdvanceTime();
         RefreshUI();
 
@@ -519,6 +601,13 @@ public class GameManager : MonoBehaviour
 
     private void FinishChoiceConversation()
     {
+        if (IsNightBeforeAdvance())
+        {
+            RefreshUI();
+            ShowGoodNightBeforeNextDay();
+            return;
+        }
+
         timeManager.AdvanceTime();
         RefreshUI();
 
@@ -570,6 +659,8 @@ public class GameManager : MonoBehaviour
         affectionRankText.text = heroineStatus.GetAffectionRankName();
 
         endingButton.gameObject.SetActive(heroineStatus.CanEnding());
+
+        UpdateBackgroundByTime();
     }
 
     public void SaveGame()
@@ -662,7 +753,12 @@ public class GameManager : MonoBehaviour
         RefreshUI();
     }
 
-    private void ExecuteSimpleAction(string speakerName, string message, int affectionChange, bool advanceTime)
+    private void ExecuteSimpleAction(
+        string speakerName,
+        string message,
+        int affectionChange,
+        bool advanceTime,
+        string actionId)
     {
         actionButtonArea.SetActive(false);
         genreButtonArea.SetActive(false);
@@ -675,9 +771,13 @@ public class GameManager : MonoBehaviour
 
         heroineStatus.AddAffection(affectionChange);
 
-        if (advanceTime)
+        pendingAdvanceTime = advanceTime;
+        pendingGoodNight = advanceTime && ShouldShowGoodNightBeforeAdvance(actionId);
+
+        if (advanceTime && !pendingGoodNight)
         {
             timeManager.AdvanceTime();
+            pendingAdvanceTime = false;
         }
 
         RefreshUI();
@@ -922,9 +1022,10 @@ public class GameManager : MonoBehaviour
 
             ExecuteSimpleAction(
                 reactionSpeakerName,
-                reaction.resultMessage,
-                reaction.affectionChange,
-                reaction.advanceTime
+                action.resultMessage,
+                action.affectionChange,
+                action.advanceTime,
+                action.actionId
             );
 
             return;
@@ -938,7 +1039,8 @@ public class GameManager : MonoBehaviour
             defaultSpeakerName,
             action.resultMessage,
             action.affectionChange,
-            action.advanceTime
+            action.advanceTime,
+            action.actionId
         );
     }
 
@@ -1207,6 +1309,112 @@ public class GameManager : MonoBehaviour
         {
             timeManager.OnDayChanged -= OnDayChanged;
         }
+    }
+
+    private void SetFadeAlpha(float alpha)
+    {
+        if (fadeImage == null)
+        {
+            return;
+        }
+
+        Color color = fadeImage.color;
+        color.a = alpha;
+        fadeImage.color = color;
+    }
+
+    private IEnumerator FadeToBlackAndNextMorning()
+    {
+        isFading = true;
+
+        actionButtonArea.SetActive(false);
+        genreButtonArea.SetActive(false);
+        choiceButtonArea.SetActive(false);
+        outfitPanel.SetActive(false);
+        outfitReactionPanel.SetActive(false);
+        nextButton.gameObject.SetActive(false);
+
+        float timer = 0f;
+
+        while (timer < fadeDuration)
+        {
+            timer += Time.deltaTime;
+            float alpha = Mathf.Clamp01(timer / fadeDuration);
+            SetFadeAlpha(alpha);
+            yield return null;
+        }
+
+        SetFadeAlpha(1f);
+
+        // ここで夜 → 翌朝へ進む
+        timeManager.AdvanceTime();
+        RefreshUI();
+
+        yield return new WaitForSeconds(0.4f);
+
+        timer = 0f;
+
+        while (timer < fadeDuration)
+        {
+            timer += Time.deltaTime;
+            float alpha = 1f - Mathf.Clamp01(timer / fadeDuration);
+            SetFadeAlpha(alpha);
+            yield return null;
+        }
+
+        SetFadeAlpha(0f);
+
+        speakerNameText.text = heroineStatus.HeroineName;
+        dialogueText.text = "おはようございます。今日もよろしくお願いしますね。";
+
+        flowState = ConversationFlowState.Idle;
+
+        actionButtonArea.SetActive(true);
+        genreButtonArea.SetActive(false);
+        choiceButtonArea.SetActive(false);
+        outfitPanel.SetActive(false);
+        outfitReactionPanel.SetActive(false);
+        nextButton.gameObject.SetActive(false);
+
+        isFading = false;
+    }
+
+    private bool ShouldShowGoodNightBeforeAdvance(string actionId)
+    {
+        if (timeManager.CurrentTimeSlot != TimeSlot.Night)
+        {
+            return false;
+        }
+
+        // 夜に「休む」を選んだ場合は、すでに休む行動そのものなので、おやすみ会話を省略する
+        //if (actionId == "Rest")
+        //{
+        //    return false;
+        //}
+
+        return true;
+    }
+
+    private bool IsNightBeforeAdvance()
+    {
+        return timeManager.CurrentTimeSlot == TimeSlot.Night ||
+               timeManager.CurrentTimeSlot == TimeSlot.LateNight;
+    }
+
+    private void ShowGoodNightBeforeNextDay()
+    {
+        speakerNameText.text = heroineStatus.HeroineName;
+        dialogueText.text = "もう夜も遅いですね。おやすみなさい。また明日。";
+
+        flowState = ConversationFlowState.ShowingGoodNight;
+
+        actionButtonArea.SetActive(false);
+        genreButtonArea.SetActive(false);
+        choiceButtonArea.SetActive(false);
+        outfitPanel.SetActive(false);
+        outfitReactionPanel.SetActive(false);
+
+        nextButton.gameObject.SetActive(true);
     }
 
 

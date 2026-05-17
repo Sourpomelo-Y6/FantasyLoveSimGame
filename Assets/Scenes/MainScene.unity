@@ -893,6 +893,7 @@ RectTransform:
   - {fileID: 968371923}
   - {fileID: 1723073667}
   - {fileID: 2080740230}
+  - {fileID: 659468581}
   m_Father: {fileID: 0}
   m_RootOrder: 2
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -2200,6 +2201,82 @@ MonoBehaviour:
   m_hasFontAssetChanged: 0
   m_baseMaterial: {fileID: 0}
   m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
+--- !u!1 &659468580
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 659468581}
+  - component: {fileID: 659468583}
+  - component: {fileID: 659468582}
+  m_Layer: 5
+  m_Name: FadeImage
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!224 &659468581
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 659468580}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 301452998}
+  m_RootOrder: 13
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 1, y: 1}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 0, y: 0}
+  m_Pivot: {x: 0.5, y: 0.5}
+--- !u!114 &659468582
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 659468580}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_Material: {fileID: 0}
+  m_Color: {r: 0, g: 0, b: 0, a: 1}
+  m_RaycastTarget: 0
+  m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
+  m_Maskable: 1
+  m_OnCullStateChanged:
+    m_PersistentCalls:
+      m_Calls: []
+  m_Sprite: {fileID: 0}
+  m_Type: 0
+  m_PreserveAspect: 0
+  m_FillCenter: 1
+  m_FillMethod: 4
+  m_FillAmount: 1
+  m_FillClockwise: 1
+  m_FillOrigin: 0
+  m_UseSpriteMesh: 0
+  m_PixelsPerUnitMultiplier: 1
+--- !u!222 &659468583
+CanvasRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 659468580}
+  m_CullTransparentMesh: 1
 --- !u!1 &668649732
 GameObject:
   m_ObjectHideFlags: 0
@@ -4113,6 +4190,8 @@ MonoBehaviour:
   affectionRankText: {fileID: 1660944962}
   speakerNameText: {fileID: 1303067653}
   dialogueText: {fileID: 360591824}
+  fadeImage: {fileID: 659468582}
+  fadeDuration: 1.5
   actionButtonArea: {fileID: 968371922}
   actionButtonParent: {fileID: 968371923}
   actionButtonPrefab: {fileID: 4333548976540708065, guid: 11e28f4afc8b17542990719af34fbcb8, type: 3}
@@ -4129,6 +4208,9 @@ MonoBehaviour:
   conversationResourcePath: Conversations
   saveButton: {fileID: 1211694032}
   loadButton: {fileID: 554093483}
+  backgroundImage: {fileID: 300472610}
+  dayBackgroundSprite: {fileID: 21300000, guid: 37e19fb809d5dcf4187d92d32500d0c7, type: 3}
+  nightBackgroundSprite: {fileID: 21300000, guid: 66034da371868de48af04c708827c99c, type: 3}
   backgroundZoom: {fileID: 1702788056}
   outfitPanel: {fileID: 1723073666}
   outfitButtonParent: {fileID: 1723073667}
@@ -5770,6 +5852,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   heroineStatus: {fileID: 507334145}
+  timeManager: {fileID: 1382933335}
   outfitPreferenceManager: {fileID: 1954279209}
   heroineImage: {fileID: 559065451}
   outfitResourcePath: Outfits
