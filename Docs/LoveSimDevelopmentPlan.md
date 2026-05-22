@@ -118,6 +118,7 @@ public class ActionData : ScriptableObject
 - `BackgroundZoom` は会話開始時の演出用
 - 行動の一部は `OpenConversationGenres` のように会話導線へ分岐する
 - 予定パネルは `OpenSchedulePanel` で開く
+- 予定パネルは戻るボタンで閉じる運用にしている
 - 衣装反応は `OpenOutfitReactionPanel` で専用パネルに切り替える
 - `Next` ボタンは会話結果、行動結果、選択肢表示の進行を兼ねる
 
