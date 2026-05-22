@@ -43,8 +43,26 @@ public class TitleManager : MonoBehaviour
 
     private void OnClickContinue()
     {
+        ContinueFromSelectedSlot();
+    }
+
+    public void ContinueFromSelectedSlot()
+    {
         GameStartSettings.ShouldLoadOnStart = true;
         SceneManager.LoadScene(mainSceneName);
+    }
+
+    public void ContinueFromSelectedSlot(int slotIndex)
+    {
+        SelectSaveSlot(slotIndex);
+
+        if (!HasSaveDataInSlot(GameStartSettings.SelectedSaveSlotIndex))
+        {
+            RefreshContinueButton();
+            return;
+        }
+
+        ContinueFromSelectedSlot();
     }
 
     public void SelectSaveSlot(int slotIndex)
@@ -57,6 +75,16 @@ public class TitleManager : MonoBehaviour
         saveManager.SetCurrentSlotIndex(slotIndex);
         GameStartSettings.SelectedSaveSlotIndex = saveManager.CurrentSlotIndex;
         RefreshContinueButton();
+    }
+
+    public bool HasSaveDataInSlot(int slotIndex)
+    {
+        return saveManager != null && saveManager.HasSaveData(slotIndex);
+    }
+
+    public int GetSaveSlotCount()
+    {
+        return saveManager != null ? saveManager.SaveSlotCount : 0;
     }
 
     private void OnClickQuit()

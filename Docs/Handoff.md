@@ -277,8 +277,13 @@
 - `GameManager.SaveGameToSlot(int slotIndex)` で指定スロットに保存する
 - `GameManager.LoadGameFromSlot(int slotIndex)` で指定スロットから読み込む
 - `GameManager.SelectSaveSlot(int slotIndex)` で現在の対象スロットを切り替える
+- `GameManager.HasSaveDataInSlot(int slotIndex)` で指定スロットにデータがあるか確認する
 - `TitleManager.SelectSaveSlot(int slotIndex)` はタイトル画面のスロット選択 UI から呼ぶ想定
+- `TitleManager.ContinueFromSelectedSlot(int slotIndex)` はタイトル画面のロード用スロットボタンから呼ぶ想定
+- `TitleManager.HasSaveDataInSlot(int slotIndex)` でタイトル画面からスロット状態を確認する
+- `TitleManager.GetSaveSlotCount()` で実際のスロット数を取得する
 - `slot 0` は従来の `save.json` を使い、既存セーブとの互換を保つ
+- `SaveLoadPanel` は `TitleScene` と `MainScene` に同じ prefab を置いて使う共通 UI 制御用スクリプト
 
 ### 参照漏れ時の症状
 
@@ -300,7 +305,7 @@
 - 会話データと行動データは ScriptableObject 化されているが、一覧の登録は Inspector 依存
 - エンディングは 1 パターンのみ
 - 分岐による永続状態はない
-- セーブスロット選択 UI は未作成
+- セーブスロット UI の共通制御コードはあるが、prefab 作成とシーン配置は未作成
 
 ## 変更しやすいポイント
 
@@ -334,7 +339,33 @@
 ### セーブスロット UI を作る
 
 UI デザインは手作業で行う方針です。
-ボタンや選択 UI から `TitleManager.SelectSaveSlot(int)`、`GameManager.SaveGameToSlot(int)`、`GameManager.LoadGameFromSlot(int)` を呼ぶように接続します。
+シーンを増やさず、同じ `SaveLoadPanel` prefab を `TitleScene` と `MainScene` の両方に置く方針です。
+
+共通 prefab の想定構成:
+
+- ルートに `SaveLoadPanel` をアタッチする
+- `Save Manager` に同じシーンの `SaveManager` を割り当てる
+- `Panel Root` に表示・非表示したいパネル本体を割り当てる
+- `Close Button` に閉じるボタンを割り当てる
+- `Slot Buttons` にスロットボタンを順番に割り当てる
+- `Slot Labels` に各スロットの TMP ラベルを順番に割り当てる
+- `Auto Wire Slot Buttons` を有効にすると、配列順で `SelectSlot(0..)` が自動接続される
+
+`TitleScene` 側の接続:
+
+- `Title Manager` にシーン上の `TitleManager` を割り当てる
+- `Game Manager` は空のままでよい
+- ロード表示ボタンから `SaveLoadPanel.OpenLoad()` を呼ぶ
+- タイトルでは保存しないため `OpenSave()` は使わない
+
+`MainScene` 側の接続:
+
+- `Game Manager` にシーン上の `GameManager` を割り当てる
+- `Title Manager` は空のままでよい
+- セーブ表示ボタンから `SaveLoadPanel.OpenSave()` を呼ぶ
+- ロード表示ボタンから `SaveLoadPanel.OpenLoad()` を呼ぶ
+
+この構成にすると、見た目と階層は同じ prefab で管理し、動作だけを `TitleManager` / `GameManager` の参照で切り替えられます。
 
 ## 追加開発の優先候補
 
