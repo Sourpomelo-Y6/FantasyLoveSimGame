@@ -38,6 +38,7 @@ public class GameManager : MonoBehaviour
     [Header("Schedule UI")]
     [SerializeField] private TextMeshProUGUI todayScheduleText;
     [SerializeField] private TextMeshProUGUI tomorrowScheduleText;
+    [SerializeField] private GameObject schedulePanel;
 
     [Header("Dialogue")]
     [SerializeField] private TMP_Text speakerNameText;
@@ -112,6 +113,14 @@ public class GameManager : MonoBehaviour
     [SerializeField] private Button boredOutfitButton;
     [SerializeField] private Button changeOutfitButton;
 
+
+    private void Update()
+    {
+        if (Input.GetKeyDown(KeyCode.P))
+        {
+            schedulePanel.SetActive(true);
+        }
+    }
 
     private void UpdateBackgroundByTime()
     {
@@ -652,7 +661,7 @@ public class GameManager : MonoBehaviour
         dialogueText.text = "好感度MAXエンドです。あなたと過ごした日々を、私は忘れません。";
     }
 
-    private void RefreshUI()
+    public void RefreshUI()
     {
         dayText.text = "Day " + timeManager.Day;
         timeText.text = timeManager.GetTimeSlotDisplayName();

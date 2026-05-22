@@ -53,6 +53,7 @@ public class ScheduleManager : MonoBehaviour
             Debug.Log("¡“ú‚Ì—\’èF" + GetTodayScheduleDisplayName());
             Debug.Log("–¾“ú‚Ì—\’èF" + GetTomorrowScheduleDisplayName());
         }
+
     }
 
     private void HandleDayChanged()
