@@ -29,6 +29,14 @@ public class OutfitData : ScriptableObject
     public bool anyWeather = true;
     public List<Weather> suitableWeathers = new List<Weather>();
 
+    [Header("Outfit Trait")]
+    public bool isWarmOutfit = false;
+    public bool isLightOutfit = false;
+    public bool isRainOutfit = false;
+    public bool isSnowOutfit = false;
+    public bool isIndoorOutfit = false;
+    public bool isOutdoorOutfit = false;
+
     [Header("Display")]
     public int sortOrder = 0;
     public bool isEnabled = true;

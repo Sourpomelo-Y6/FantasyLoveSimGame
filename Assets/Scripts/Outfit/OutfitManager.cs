@@ -275,6 +275,7 @@ public class OutfitManager : MonoBehaviour
     {
         int weight = 10;
 
+        // プレイヤーの評価
         if (outfitPreferenceManager != null)
         {
             OutfitPreference preference = outfitPreferenceManager.FindPreference(outfit.outfitId);
@@ -286,25 +287,44 @@ public class OutfitManager : MonoBehaviour
             }
         }
 
+        // 同じ服ばかりを少し避ける
         if (currentOutfit != null && currentOutfit.outfitId == outfit.outfitId)
         {
-            weight -= 2;
+            weight -= 3;
         }
 
-        if (!IsSuitableForCurrentSeason(outfit))
+        // 季節適性
+        if (IsSuitableForCurrentSeason(outfit))
         {
-            weight -= 2;
+            weight += 8;
+        }
+        else
+        {
+            weight -= 8;
         }
 
-        if (!IsSuitableForCurrentWeather(outfit))
+        // 天気適性
+        if (IsSuitableForCurrentWeather(outfit))
         {
-            weight -= 2;
+            weight += 8;
         }
+        else
+        {
+            weight -= 8;
+        }
+
+        // 詳細な季節補正
+        weight += CalculateSeasonTraitBonus(outfit);
+
+        // 詳細な天気補正
+        weight += CalculateWeatherTraitBonus(outfit);
 
         if (weight < 1)
         {
             weight = 1;
         }
+
+        Debug.Log("Outfit Weight: " + outfit.displayName + " = " + weight);
 
         return weight;
     }
@@ -357,6 +377,152 @@ public class OutfitManager : MonoBehaviour
         }
 
         return outfit.suitableWeathers.Contains(timeManager.CurrentWeather);
+    }
+
+    private int CalculateSeasonTraitBonus(OutfitData outfit)
+    {
+        if (timeManager == null || outfit == null)
+        {
+            return 0;
+        }
+
+        int bonus = 0;
+
+        if (timeManager.CurrentSeason == Season.Summer)
+        {
+            if (outfit.isLightOutfit)
+            {
+                bonus += 10;
+            }
+
+            if (outfit.isWarmOutfit)
+            {
+                bonus -= 15;
+            }
+        }
+
+        if (timeManager.CurrentSeason == Season.Winter)
+        {
+            if (outfit.isWarmOutfit)
+            {
+                bonus += 10;
+            }
+
+            if (outfit.isLightOutfit)
+            {
+                bonus -= 15;
+            }
+        }
+
+        if (timeManager.CurrentSeason == Season.Spring)
+        {
+            if (outfit.isOutdoorOutfit)
+            {
+                bonus += 3;
+            }
+
+            if (outfit.isWarmOutfit)
+            {
+                bonus -= 2;
+            }
+        }
+
+        if (timeManager.CurrentSeason == Season.Autumn)
+        {
+            if (outfit.isWarmOutfit)
+            {
+                bonus += 3;
+            }
+
+            if (outfit.isLightOutfit)
+            {
+                bonus -= 3;
+            }
+        }
+
+        return bonus;
+    }
+
+    private int CalculateWeatherTraitBonus(OutfitData outfit)
+    {
+        if (timeManager == null || outfit == null)
+        {
+            return 0;
+        }
+
+        int bonus = 0;
+
+        if (timeManager.CurrentWeather == Weather.Sunny)
+        {
+            if (outfit.isOutdoorOutfit)
+            {
+                bonus += 4;
+            }
+        }
+
+        if (timeManager.CurrentWeather == Weather.Cloudy)
+        {
+            if (outfit.isOutdoorOutfit)
+            {
+                bonus += 2;
+            }
+        }
+
+        if (timeManager.CurrentWeather == Weather.Rainy)
+        {
+            if (outfit.isRainOutfit)
+            {
+                bonus += 15;
+            }
+
+            if (outfit.isOutdoorOutfit && !outfit.isRainOutfit)
+            {
+                bonus -= 8;
+            }
+
+            if (outfit.isIndoorOutfit)
+            {
+                bonus += 4;
+            }
+        }
+
+        if (timeManager.CurrentWeather == Weather.Storm)
+        {
+            if (outfit.isRainOutfit)
+            {
+                bonus += 10;
+            }
+
+            if (outfit.isIndoorOutfit)
+            {
+                bonus += 10;
+            }
+
+            if (outfit.isOutdoorOutfit && !outfit.isRainOutfit)
+            {
+                bonus -= 15;
+            }
+        }
+
+        if (timeManager.CurrentWeather == Weather.Snow)
+        {
+            if (outfit.isSnowOutfit)
+            {
+                bonus += 15;
+            }
+
+            if (outfit.isWarmOutfit)
+            {
+                bonus += 8;
+            }
+
+            if (outfit.isLightOutfit)
+            {
+                bonus -= 20;
+            }
+        }
+
+        return bonus;
     }
 
 
