@@ -35,6 +35,10 @@ public class GameManager : MonoBehaviour
     [SerializeField] private TMP_Text affectionText;
     [SerializeField] private TMP_Text affectionRankText;
 
+    [Header("Schedule UI")]
+    [SerializeField] private TextMeshProUGUI todayScheduleText;
+    [SerializeField] private TextMeshProUGUI tomorrowScheduleText;
+
     [Header("Dialogue")]
     [SerializeField] private TMP_Text speakerNameText;
     [SerializeField] private TMP_Text dialogueText;
@@ -660,6 +664,8 @@ public class GameManager : MonoBehaviour
         affectionRankText.text = heroineStatus.GetAffectionRankName();
 
         endingButton.gameObject.SetActive(heroineStatus.CanEnding());
+
+        UpdateScheduleStatusUI();
 
         UpdateBackgroundByTime();
     }
@@ -1423,5 +1429,23 @@ public class GameManager : MonoBehaviour
         nextButton.gameObject.SetActive(true);
     }
 
+    private void UpdateScheduleStatusUI()
+    {
+        if (scheduleManager == null)
+        {
+            return;
+        }
 
+        if (todayScheduleText != null)
+        {
+            todayScheduleText.text =
+                "ç°ì˙ÇÃó\íËÅF" + scheduleManager.GetTodayScheduleDisplayName();
+        }
+
+        if (tomorrowScheduleText != null)
+        {
+            tomorrowScheduleText.text =
+                "ñæì˙ÇÃó\íËÅF" + scheduleManager.GetTomorrowScheduleDisplayName();
+        }
+    }
 }
