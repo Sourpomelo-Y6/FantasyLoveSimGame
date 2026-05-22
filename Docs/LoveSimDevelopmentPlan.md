@@ -122,6 +122,32 @@ public class ActionData : ScriptableObject
 - 衣装反応は `OpenOutfitReactionPanel` で専用パネルに切り替える
 - `Next` ボタンは会話結果、行動結果、選択肢表示の進行を兼ねる
 
+### 案2: `ScheduleType -> ActionId` 変換表
+
+これは「予定を翌日に自動実行する」ための提案で、まだ実装していない。
+`ActionId` は既存の `ActionData` と分けて、予約実行専用の内部 ID として扱う想定。
+
+| `ScheduleType` | Proposed `ActionId` | 現在の既存行動への近いフォールバック | 用途 |
+| ---- | ---- | ---- | ---- |
+| `None` | `None` | なし | 自動実行しない |
+| `SoloForest` | `AutoWalkForest` | `Walk` | 森への散歩や探索 |
+| `SoloCave` | `AutoWalkCave` | `Walk` | 洞窟への探索 |
+| `SoloLake` | `AutoWalkLake` | `Walk` | 湖への散歩 |
+| `SoloShopping` | `AutoWalkShopping` | `Walk` | 街への買い物や外出 |
+| `DuoForest` | `AutoDuoForest` | `Talk` | 二人で森林デート |
+| `DuoCave` | `AutoDuoCave` | `Talk` | 二人で洞窟デート |
+| `DuoLake` | `AutoDuoLake` | `Talk` | 二人で湖デート |
+| `DuoShopping` | `AutoDuoShopping` | `Talk` | 二人で買い物デート |
+| `StayHome` | `AutoStayHome` | `Rest` | 家で過ごす日 |
+
+この方式にすると、翌日の開始時に `ScheduleType` を見て自動で行動イベントへ変換できる。
+いまの実装に足すなら、次の順で進めるのがよい。
+
+1. `ScheduleType -> ActionId` の変換関数を追加する
+2. 翌日開始時に自動実行のイベントを発火する
+3. 自動実行後に通常の行動 UI へ戻す
+4. 必要なら `ScheduleType` ごとの専用メッセージを追加する
+
 ## 優先度の高い改善候補
 
 1. 行動の反応パターン追加
