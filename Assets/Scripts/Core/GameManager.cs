@@ -933,6 +933,12 @@ public class GameManager : MonoBehaviour
             ExecuteActionData(action);
             return;
         }
+
+        if (action.executionType == ActionExecutionType.OpenSchedulePanel)
+        {
+            OpenSchedulePanel();
+            return;
+        }
     }
 
     private void OpenOutfitPanel(ActionData action)
@@ -1457,4 +1463,17 @@ public class GameManager : MonoBehaviour
                 "–¾“ú‚Ì—\’èF" + scheduleManager.GetTomorrowScheduleDisplayName();
         }
     }
+
+    public void OpenSchedulePanel()
+    {
+        if (schedulePanel == null)
+        {
+            Debug.LogWarning("SchedulePanel ‚ªİ’è‚³‚ê‚Ä‚¢‚Ü‚¹‚ñB");
+            return;
+        }
+
+        schedulePanel.SetActive(true);
+    }
+
+
 }
