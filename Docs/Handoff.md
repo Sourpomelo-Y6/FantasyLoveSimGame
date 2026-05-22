@@ -32,6 +32,13 @@
 - URP 2D
 - TextMeshPro
 
+## 作業分担ルール
+
+- UI デザイン、Unity シーン編集、Inspector の参照設定は手作業で行う
+- コード側の実装、データ構造、仕様メモ、ドキュメント更新は Codex が担当してよい
+- UI 追加が必要な機能では、先に必要な `SerializeField` や接続ポイントを整理し、Unity 上の配置や見た目は手作業で反映する
+- Unity ファイルを書き換える必要がある場合は、事前に作業範囲を確認する
+
 ## 主要ファイル
 
 - [`Assets/Scripts/Core/GameManager.cs`](../Assets/Scripts/Core/GameManager.cs): ゲーム進行の中心ロジック
