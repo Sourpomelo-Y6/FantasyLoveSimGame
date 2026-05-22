@@ -419,21 +419,78 @@ public class GameManager : MonoBehaviour
             return null;
         }
 
-        int highestPriority = candidates[0].priority;
+        int highestScore = GetConversationSelectionScore(candidates[0]);
 
         for (int i = 1; i < candidates.Count; i++)
         {
-            if (candidates[i].priority > highestPriority)
+            int candidateScore = GetConversationSelectionScore(candidates[i]);
+
+            if (candidateScore > highestScore)
             {
-                highestPriority = candidates[i].priority;
+                highestScore = candidateScore;
             }
         }
 
         List<ConversationData> highestCandidates = candidates.FindAll(
-            conversation => conversation.priority == highestPriority
+            conversation => GetConversationSelectionScore(conversation) == highestScore
         );
 
         return highestCandidates[UnityEngine.Random.Range(0, highestCandidates.Count)];
+    }
+
+    private int GetConversationSelectionScore(ConversationData conversation)
+    {
+        if (conversation == null)
+        {
+            return int.MinValue;
+        }
+
+        int score = conversation.priority;
+
+        if (scheduleManager == null)
+        {
+            return score;
+        }
+
+        if (scheduleManager.IsTodayHomeSchedule())
+        {
+            switch (conversation.genre)
+            {
+                case ConversationGenre.Daily:
+                    score += 8;
+                    break;
+                case ConversationGenre.Food:
+                    score += 4;
+                    break;
+                case ConversationGenre.Love:
+                    score += 3;
+                    break;
+                case ConversationGenre.Adventure:
+                    score -= 6;
+                    break;
+            }
+        }
+
+        if (scheduleManager.IsTodayDuoSchedule())
+        {
+            switch (conversation.genre)
+            {
+                case ConversationGenre.Love:
+                    score += 10;
+                    break;
+                case ConversationGenre.Food:
+                    score += 4;
+                    break;
+                case ConversationGenre.Daily:
+                    score += 2;
+                    break;
+                case ConversationGenre.Adventure:
+                    score += 1;
+                    break;
+            }
+        }
+
+        return score;
     }
 
     private void RegisterShownConversation(ConversationData conversation)
@@ -1012,7 +1069,27 @@ public class GameManager : MonoBehaviour
             }
         }
 
+        if (IsTodayHomeActionRestricted(action))
+        {
+            return false;
+        }
+
         return true;
+    }
+
+    private bool IsTodayHomeActionRestricted(ActionData action)
+    {
+        if (scheduleManager == null || action == null)
+        {
+            return false;
+        }
+
+        if (!scheduleManager.IsTodayHomeSchedule())
+        {
+            return false;
+        }
+
+        return action.actionId == "Walk";
     }
 
     private void OpenConversationGenres(ActionData action)
@@ -1274,6 +1351,8 @@ public class GameManager : MonoBehaviour
             heroineStatus
         );
 
+        message = ApplyScheduleOutfitReactionBonus(reactionType, message);
+
         actionButtonArea.SetActive(false);
         genreButtonArea.SetActive(false);
         choiceButtonArea.SetActive(false);
@@ -1287,6 +1366,34 @@ public class GameManager : MonoBehaviour
 
         flowState = ConversationFlowState.ShowingActionResult;
         nextButton.gameObject.SetActive(true);
+    }
+
+    private string ApplyScheduleOutfitReactionBonus(OutfitReactionType reactionType, string message)
+    {
+        if (scheduleManager == null || !scheduleManager.IsTodayDuoSchedule())
+        {
+            return message;
+        }
+
+        if (reactionType == OutfitReactionType.Praise)
+        {
+            heroineStatus.AddAffection(1);
+            return message + "\nDuo schedule bonus: praise feels stronger today.";
+        }
+
+        if (reactionType == OutfitReactionType.Dislike)
+        {
+            heroineStatus.AddAffection(-1);
+            return message + "\nDuo schedule penalty: the reaction lands harder today.";
+        }
+
+        if (reactionType == OutfitReactionType.Bored)
+        {
+            heroineStatus.AddAffection(-1);
+            return message + "\nDuo schedule penalty: boredom is less welcome today.";
+        }
+
+        return message;
     }
 
     private void OpenOutfitPanelForChange()

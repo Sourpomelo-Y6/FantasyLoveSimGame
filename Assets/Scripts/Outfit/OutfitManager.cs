@@ -11,6 +11,9 @@ public class OutfitManager : MonoBehaviour
     [Header("Preference")]
     [SerializeField] private OutfitPreferenceManager outfitPreferenceManager;
 
+    [Header("Schedule")]
+    [SerializeField] private ScheduleManager scheduleManager;
+
     [Header("View")]
     [SerializeField] private Image heroineImage;
 
@@ -27,6 +30,11 @@ public class OutfitManager : MonoBehaviour
     private void Awake()
     {
         LoadOutfitsFromResources();
+
+        if (scheduleManager == null)
+        {
+            scheduleManager = FindObjectOfType<ScheduleManager>();
+        }
     }
 
     private void LoadOutfitsFromResources()
@@ -437,6 +445,54 @@ public class OutfitManager : MonoBehaviour
             if (outfit.isLightOutfit)
             {
                 bonus -= 3;
+            }
+        }
+
+        return bonus;
+    }
+
+    private int CalculateScheduleTraitBonus(OutfitData outfit)
+    {
+        if (scheduleManager == null || outfit == null)
+        {
+            return 0;
+        }
+
+        int bonus = 0;
+
+        if (scheduleManager.IsTodayHomeSchedule())
+        {
+            if (outfit.isIndoorOutfit)
+            {
+                bonus += 10;
+            }
+
+            if (outfit.isWarmOutfit)
+            {
+                bonus += 3;
+            }
+
+            if (outfit.isOutdoorOutfit)
+            {
+                bonus -= 12;
+            }
+        }
+
+        if (scheduleManager.IsTodayDuoSchedule())
+        {
+            if (outfit.isOutdoorOutfit)
+            {
+                bonus += 8;
+            }
+
+            if (outfit.isLightOutfit)
+            {
+                bonus += 2;
+            }
+
+            if (outfit.isIndoorOutfit)
+            {
+                bonus += 2;
             }
         }
 
