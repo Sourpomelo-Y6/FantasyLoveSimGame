@@ -38,15 +38,21 @@ public class ScheduleManager : MonoBehaviour
     private void Update()
     {
         //デバック
-        //if (Input.GetKeyDown(KeyCode.Alpha1))
-        //{
-        //    SetTomorrowSchedule(ScheduleType.DuoLake);
-        //}
+        if (Input.GetKeyDown(KeyCode.Alpha1))
+        {
+            SetTomorrowSchedule(ScheduleType.DuoLake);
+        }
 
-        //if (Input.GetKeyDown(KeyCode.Alpha2))
-        //{
-        //    AdvanceScheduleToToday();
-        //}
+        if (Input.GetKeyDown(KeyCode.Alpha2))
+        {
+            AdvanceScheduleToToday();
+        }
+
+        if (Input.GetKeyDown(KeyCode.Alpha3))
+        {
+            Debug.Log("今日の予定：" + GetTodayScheduleDisplayName());
+            Debug.Log("明日の予定：" + GetTomorrowScheduleDisplayName());
+        }
     }
 
     private void HandleDayChanged()

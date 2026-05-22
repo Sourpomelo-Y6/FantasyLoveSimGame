@@ -3962,6 +3962,53 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 7
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &1317669023
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1317669025}
+  - component: {fileID: 1317669024}
+  m_Layer: 0
+  m_Name: ScheduleManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1317669024
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1317669023}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f6664f1abe55dbe48acef271e3e96781, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  todaySchedule: 0
+  tomorrowSchedule: 0
+  timeManager: {fileID: 1382933335}
+--- !u!4 &1317669025
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1317669023}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 546.8144, y: 250.76996, z: -2.510451}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_RootOrder: 11
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1382933334
 GameObject:
   m_ObjectHideFlags: 0
@@ -4181,6 +4228,7 @@ MonoBehaviour:
   saveManager: {fileID: 1309631651}
   outfitManager: {fileID: 2013305973}
   outfitPreferenceManager: {fileID: 1954279209}
+  scheduleManager: {fileID: 1317669024}
   dayText: {fileID: 838330780}
   timeText: {fileID: 1614415375}
   weekdayText: {fileID: 1850683001}

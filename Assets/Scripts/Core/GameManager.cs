@@ -24,6 +24,7 @@ public class GameManager : MonoBehaviour
     [SerializeField] private SaveManager saveManager;
     [SerializeField] private OutfitManager outfitManager;
     [SerializeField] private OutfitPreferenceManager outfitPreferenceManager;
+    [SerializeField] private ScheduleManager scheduleManager;
 
     [Header("Status")]
     [SerializeField] private TMP_Text dayText;
@@ -688,6 +689,9 @@ public class GameManager : MonoBehaviour
 
         saveData.shownConversationIds = new List<string>(shownConversationIds);
 
+        saveData.todaySchedule = scheduleManager.TodaySchedule;
+        saveData.tomorrowSchedule = scheduleManager.TomorrowSchedule;
+
         saveManager.Save(saveData);
 
         speakerNameText.text = "ƒVƒXƒeƒ€";
@@ -736,6 +740,8 @@ public class GameManager : MonoBehaviour
                 shownConversationIds.Add(conversationId);
             }
         }
+
+        scheduleManager.SetScheduleState(saveData.todaySchedule, saveData.tomorrowSchedule);
 
         choiceButtonArea.SetActive(false);
         nextButton.gameObject.SetActive(false);
