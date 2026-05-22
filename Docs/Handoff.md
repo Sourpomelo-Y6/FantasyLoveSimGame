@@ -288,6 +288,8 @@
 - `slot 0` は従来の `save.json` を使い、既存セーブとの互換を保つ
 - `SaveLoadPanel` は `TitleScene` と `MainScene` に同じ prefab を置いて使う共通 UI 制御用スクリプト
 - `SaveLoadPanel` は開いたモードに応じて背景色とタイトルを切り替える
+- 保存済みスロットのラベルは `Slot 1 / Day 3 / Affection 42` のように日数と好感度を表示する
+- スロット一覧表示では `SaveManager.LoadPreview(int slotIndex)` でセーブデータを読み、現在選択中スロットは変更しない
 - `MainScene` でスロットからロードした後は `SaveLoadPanel.Close()` でパネルを閉じる
 
 ### 参照漏れ時の症状

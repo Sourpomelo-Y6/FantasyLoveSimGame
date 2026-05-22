@@ -17,8 +17,8 @@ public class SaveLoadPanel : MonoBehaviour
 
     [SerializeField] private Color saveBackgroundColor = Color.blue;
     [SerializeField] private Color loadBackgroundColor = new Color(1f, 0.39f, 0.2f, 0.78f);
-    [SerializeField] private string saveTitle = "ÉZÅ[Éu";
-    [SerializeField] private string loadTitle = "ÉçÅ[Éh";
+    [SerializeField] private string saveTitle = "„Çª„Éº„Éñ";
+    [SerializeField] private string loadTitle = "„É≠„Éº„Éâ";
 
     [Header("Slot Buttons")]
     [SerializeField] private Button[] slotButtons;
@@ -30,6 +30,7 @@ public class SaveLoadPanel : MonoBehaviour
     [SerializeField] private string saveSlotLabelFormat = "Slot {0}";
     [SerializeField] private string emptySlotSuffix = " / Empty";
     [SerializeField] private string savedSlotSuffix = " / Saved";
+    [SerializeField] private string savedSlotDetailFormat = " / Day {0} / Affection {1}";
 
     private SaveLoadPanelMode currentMode = SaveLoadPanelMode.Load;
 
@@ -64,8 +65,7 @@ public class SaveLoadPanel : MonoBehaviour
         RefreshSlots();
     }
 
-
-  public void OpenLoad()
+    public void OpenLoad()
     {
         currentMode = SaveLoadPanelMode.Load;
         ApplyModeVisuals();
@@ -129,7 +129,8 @@ public class SaveLoadPanel : MonoBehaviour
 
             if (slotLabels != null && i < slotLabels.Length && slotLabels[i] != null)
             {
-                slotLabels[i].text = CreateSlotLabel(i, hasSaveData);
+                SaveData saveData = hasSaveData ? GetSavePreview(i) : null;
+                slotLabels[i].text = CreateSlotLabel(i, hasSaveData, saveData);
             }
         }
     }
@@ -208,6 +209,16 @@ public class SaveLoadPanel : MonoBehaviour
         return false;
     }
 
+    private SaveData GetSavePreview(int slotIndex)
+    {
+        if (saveManager != null)
+        {
+            return saveManager.LoadPreview(slotIndex);
+        }
+
+        return null;
+    }
+
     private int GetSlotCount()
     {
         if (saveManager != null)
@@ -223,9 +234,20 @@ public class SaveLoadPanel : MonoBehaviour
         return Mathf.Max(0, slotCount);
     }
 
-    private string CreateSlotLabel(int slotIndex, bool hasSaveData)
+    private string CreateSlotLabel(int slotIndex, bool hasSaveData, SaveData saveData)
     {
         string label = string.Format(saveSlotLabelFormat, slotIndex + 1);
-        return label + (hasSaveData ? savedSlotSuffix : emptySlotSuffix);
+
+        if (!hasSaveData)
+        {
+            return label + emptySlotSuffix;
+        }
+
+        if (saveData == null)
+        {
+            return label + savedSlotSuffix;
+        }
+
+        return label + string.Format(savedSlotDetailFormat, saveData.day, saveData.affection);
     }
 }

@@ -97,6 +97,7 @@ This project is licensed under the MIT License. See [LICENSE](LICENSE) for detai
 - 予定は `ScheduleManager` で管理され、保存データにも反映されています
 - 予定の保存と復元は動作確認済みです
 - セーブスロットは `SaveManager.saveSlotCount` で管理し、現在は4スロットです
+- 保存済みスロットには日数と好感度の概要が表示されます
 - `slot 0` は従来の `save.json` を使うため、既存セーブとの互換を保っています
 - 背景ズーム用の `BackgroundZoom` を使って、会話や窓を見る演出を切り替えています
 - このプロジェクトは試作段階のため、今後 UI や会話データを拡張しやすい構成になっています

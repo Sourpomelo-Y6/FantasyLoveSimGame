@@ -77,6 +77,21 @@ public class SaveManager : MonoBehaviour
         return saveData;
     }
 
+    public SaveData LoadPreview(int slotIndex)
+    {
+        slotIndex = NormalizeSlotIndex(slotIndex);
+
+        string savePath = GetSavePath(slotIndex);
+
+        if (!File.Exists(savePath))
+        {
+            return null;
+        }
+
+        string json = File.ReadAllText(savePath);
+        return JsonUtility.FromJson<SaveData>(json);
+    }
+
     public bool HasSaveData()
     {
         return HasSaveData(currentSlotIndex);

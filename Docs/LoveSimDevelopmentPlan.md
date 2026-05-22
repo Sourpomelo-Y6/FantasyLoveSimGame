@@ -132,6 +132,7 @@ public class ActionData : ScriptableObject
 - `TitleScene` の `ContinueButton` は `SaveLoadPanel.OpenLoad()` でロード用スロット選択を開く
 - `MainScene` の `SaveButton` / `LoadButton` は `SaveLoadPanel.OpenSave()` / `OpenLoad()` でスロット選択を開く
 - `SaveLoadPanel` はセーブ時に青背景・`セーブ`、ロード時にオレンジ背景・`ロード` に切り替える
+- 保存済みスロットは `Day` と `Affection` をラベルに表示する
 - `MainScene` でロードした後は `SaveLoadPanel` を閉じる
 
 ### 案2: `ScheduleType -> ActionId` 変換表
