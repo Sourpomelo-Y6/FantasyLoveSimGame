@@ -12,8 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1f41d3cf9d66ee149ad7663c5cd19c24, type: 3}
   m_Name: ScheduleAction
   m_EditorClassIdentifier: 
-  actionId: 
-  displayName: 
+  actionId: Schedule
+  displayName: "\u30B9\u30B1\u30B8\u30E5\u30FC\u30EB"
   executionType: 4
   resultMessage: 
   unavailableMessage: "\u4ECA\u306F\u3053\u306E\u884C\u52D5\u306F\u3067\u304D\u307E\u305B\u3093\u3002"
@@ -21,7 +21,7 @@ MonoBehaviour:
   affectionChange: 0
   advanceTime: 1
   reactions: []
-  sortOrder: 0
+  sortOrder: 70
   isEnabled: 1
   anyTimeSlot: 1
   allowedTimeSlots: 
