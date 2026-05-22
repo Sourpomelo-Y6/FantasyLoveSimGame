@@ -13,7 +13,7 @@ This project is licensed under the MIT License. See [LICENSE](LICENSE) for detai
 
 ## 制作メモ
 
-- ソースコードの作成には Codex `gpt-5.4` を使用しました
+- ソースコードの作成には Codex `gpt-5.4` / `gpt-5.5` を使用しました
 - 画像の作成には ChatGPT Images 2.0 と Stable Diffusion を使用しました
 
 ## 概要
