@@ -12,6 +12,13 @@ public class SaveLoadPanel : MonoBehaviour
     [Header("Panel")]
     [SerializeField] private GameObject panelRoot;
     [SerializeField] private Button closeButton;
+    [SerializeField] private Image backgroundImage;
+    [SerializeField] private TextMeshProUGUI titleText;
+
+    [SerializeField] private Color saveBackgroundColor = Color.blue;
+    [SerializeField] private Color loadBackgroundColor = new Color(1f, 0.39f, 0.2f, 0.78f);
+    [SerializeField] private string saveTitle = "セーブ";
+    [SerializeField] private string loadTitle = "ロード";
 
     [Header("Slot Buttons")]
     [SerializeField] private Button[] slotButtons;
@@ -52,15 +59,35 @@ public class SaveLoadPanel : MonoBehaviour
     public void OpenSave()
     {
         currentMode = SaveLoadPanelMode.Save;
+        ApplyModeVisuals();
         PanelRoot.SetActive(true);
         RefreshSlots();
     }
 
-    public void OpenLoad()
+
+  public void OpenLoad()
     {
         currentMode = SaveLoadPanelMode.Load;
+        ApplyModeVisuals();
         PanelRoot.SetActive(true);
         RefreshSlots();
+    }
+
+    private void ApplyModeVisuals()
+    {
+        if (backgroundImage != null)
+        {
+            backgroundImage.color = currentMode == SaveLoadPanelMode.Save
+                ? saveBackgroundColor
+                : loadBackgroundColor;
+        }
+
+        if (titleText != null)
+        {
+            titleText.text = currentMode == SaveLoadPanelMode.Save
+                ? saveTitle
+                : loadTitle;
+        }
     }
 
     public void Close()
@@ -148,6 +175,7 @@ public class SaveLoadPanel : MonoBehaviour
         if (gameManager != null)
         {
             gameManager.LoadGameFromSlot(slotIndex);
+            Close();
             return;
         }
 

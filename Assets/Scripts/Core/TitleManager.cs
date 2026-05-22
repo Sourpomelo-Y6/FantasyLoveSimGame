@@ -18,7 +18,7 @@ public class TitleManager : MonoBehaviour
     private void Start()
     {
         newGameButton.onClick.AddListener(OnClickNewGame);
-        continueButton.onClick.AddListener(OnClickContinue);
+        //continueButton.onClick.AddListener(OnClickContinue);
         quitButton.onClick.AddListener(OnClickQuit);
 
         RefreshContinueButton();

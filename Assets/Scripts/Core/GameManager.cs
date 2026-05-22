@@ -189,8 +189,8 @@ public class GameManager : MonoBehaviour
         nextButton.gameObject.SetActive(false);
         endingButton.gameObject.SetActive(false);
 
-        saveButton.onClick.AddListener(SaveGame);
-        loadButton.onClick.AddListener(LoadGame);
+        //saveButton.onClick.AddListener(SaveGame);
+        //loadButton.onClick.AddListener(LoadGame);
 
         timeManager.OnDayChanged += OnDayChanged;
 
