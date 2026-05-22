@@ -28,6 +28,7 @@
 | メイン画面 | `MainScene` |
 | 会話 | `Daily` / `Food` / `Adventure` / `Love` |
 | 日常行動 | `会話` / `休む` / `散歩` / `お茶` / `贈り物` |
+| 予定システム | 予定パネルで翌日の予定を選択し、保存・復元できる |
 | 選択肢会話 | 2〜3択で好感度変化 |
 | 行動反応 | 天候・時間帯・季節・好感度で差分を切り替え |
 | 衣装システム | 着用中の衣装に対する反応と評価を保存 |
@@ -43,9 +44,8 @@
 
 そのうえで、以下を段階的に追加します。
 
-1. 予定システム
-2. ミニゲーム
-3. エンディング分岐
+1. ミニゲーム
+2. エンディング分岐
 
 着せ替えと衣装評価は、いまの実装で導線と保存が入っているため、今後は評価の種類追加や UI の整理を中心に詰めるとよいです。
 
@@ -63,6 +63,7 @@ Canvas
 │   ├── AffectionText
 │   ├── WeatherText
 │   └── SeasonText
+├── SchedulePanel
 ├── DialoguePanel
 │   ├── SpeakerNameText
 │   ├── DialogueText
@@ -116,6 +117,7 @@ public class ActionData : ScriptableObject
 - `GameManager` は状態管理と UI 反映をまとめている
 - `BackgroundZoom` は会話開始時の演出用
 - 行動の一部は `OpenConversationGenres` のように会話導線へ分岐する
+- 予定パネルは `OpenSchedulePanel` で開く
 - 衣装反応は `OpenOutfitReactionPanel` で専用パネルに切り替える
 - `Next` ボタンは会話結果、行動結果、選択肢表示の進行を兼ねる
 

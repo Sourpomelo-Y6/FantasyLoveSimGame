@@ -10,6 +10,7 @@
 ### 現在の特徴
 
 - 行動ボタンは `会話` / `休む` / `散歩` / `お茶` / `贈り物`
+- 予定パネルから翌日の予定を設定できる
 - 会話ジャンルは `Daily` / `Food` / `Adventure` / `Love`
 - 会話には `Simple` と `Choice` の 2 種類がある
 - `Simple` は `Next` を押すと好感度が増加して会話が終了する
@@ -17,6 +18,7 @@
 - 行動は ScriptableObject ベースで、時間帯・天候・季節・好感度に応じて反応を切り替えられる
 - 衣装には着用後の反応を付けられ、`褒める` / `嫌う` / `退屈` / `着替える` の選択肢で評価を更新できる
 - 衣装評価の履歴はセーブデータに保存される
+- 予定の状態はセーブデータに保存される
 - 会話や行動のたびに時間が進み、一定数で日付が進む
 - 好感度が `100` に達すると `Ending` ボタンが表示される
 
@@ -32,7 +34,9 @@
 - [`Assets/Scripts/Core/BackgroundZoom.cs`](../Assets/Scripts/Core/BackgroundZoom.cs): 背景ズーム演出
 - [`Assets/Scripts/Action/`](../Assets/Scripts/Action): 行動データ型の定義
 - [`Assets/Scripts/Conversation/`](../Assets/Scripts/Conversation): 会話データ型の定義
+- [`Assets/Scripts/Schedule/`](../Assets/Scripts/Schedule): 予定管理と予定パネル制御
 - [`Assets/Resources/Actions/`](../Assets/Resources/Actions): 行動データの実体
+- [`Assets/Resources/Actions/ScheduleAction.asset`](../Assets/Resources/Actions/ScheduleAction.asset): 予定パネルを開く行動アセット
 - [`Assets/Resources/Conversations/`](../Assets/Resources/Conversations): 会話データの実体
 - [`Assets/Scenes/MainScene.unity`](../Assets/Scenes/MainScene.unity): メインシーン
 - [`Packages/manifest.json`](../Packages/manifest.json): パッケージ一覧
@@ -73,6 +77,7 @@
 - 会話データの一覧
 - 行動データの一覧
 - 衣装評価の保存データ
+- 予定の保存データ
 
 ### 管理している UI
 
@@ -84,6 +89,8 @@
 - ジャンルボタン
 - 選択肢ボタン
 - 衣装反応パネル
+- 予定パネル
+- 予定表示テキスト
 - `Next` ボタン
 - エンディングボタン
 
@@ -97,6 +104,7 @@
 - 各ボタンにイベントを設定する
 - 行動ボタン、ジャンルボタン、選択肢領域を初期化する
 - 衣装反応パネルを閉じる
+- 予定の表示を UI に反映する
 - `Next` ボタンを非表示にする
 - 初期メッセージを表示する
 - UI を更新する
@@ -110,6 +118,7 @@
 - 条件に合う場合は `ExecuteActionData()` で結果を表示する
 - `OpenConversationGenres()` の場合はジャンルボタンを表示する
 - `OpenOutfitReactionPanel()` の場合は衣装反応パネルを表示する
+- `OpenSchedulePanel()` の場合は予定パネルを表示する
 - 条件に合わない場合は `unavailableMessage` を表示する
 
 ### 3. 会話開始
@@ -239,6 +248,13 @@
 - `boredOutfitButton`
 - `changeOutfitButton`
 
+### Schedule
+
+- `scheduleManager`
+- `schedulePanel`
+- `todayScheduleText`
+- `tomorrowScheduleText`
+
 ### Save / Load Buttons
 
 - `saveButton`
@@ -273,6 +289,10 @@
 `ActionData` アセットを `Assets/Resources/Actions/` に追加すればよいです。
 行動の反応を増やすなら `ActionReactionData` を使います。
 
+### 予定を増やす
+
+予定の種類を増やすなら `ScheduleType` を更新し、`SchedulePanel` と `ScheduleManager` の表示や選択肢を合わせて修正します。
+
 ### 会話を増やす
 
 `ConversationData` アセットを追加して、`Assets/Resources/Conversations/` に配置すればよいです。
@@ -301,6 +321,7 @@
 - `choiceButtonArea` の初期状態が想定どおりか
 - `nextButton` が割り当て済みか
 - `actionButtonParent` と `actionButtonPrefab` が割り当て済みか
+- `scheduleManager` と `schedulePanel` が割り当て済みか
 - `actionResourcePath` が `Actions` になっているか
 - `conversationResourcePath` が `Conversations` になっているか
 - `Assets/Scenes/MainScene.unity` を開いているか
