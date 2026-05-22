@@ -12,16 +12,22 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 552de0da1663dc54c9de2fcb5ddcca32, type: 3}
   m_Name: SummarOutfit
   m_EditorClassIdentifier: 
-  outfitId: 
-  displayName: 
-  heroineSprite: {fileID: 0}
+  outfitId: Summer
+  displayName: "\u590F\u306E\u670D"
+  heroineSprite: {fileID: 21300000, guid: 4693a29a1e5a3c149b5e35f01130017e, type: 3}
   isUnlockedByDefault: 1
   requiredAffection: 0
   lockedMessage: "\u305D\u308C\u306F\u307E\u3060\u5C11\u3057\u6065\u305A\u304B\u3057\u3044\u3088\u3046\u3067\u3059\u3002"
-  changedMessage: 
-  anySeason: 1
-  suitableSeasons: 
+  changedMessage: "\u300C\u4ECA\u65E5\u306F\u5C11\u3057\u6DBC\u3057\u305D\u3046\u306A\u670D\u306B\u3057\u307E\u3057\u305F\u3002\u6691\u3044\u65E5\u306B\u306F\u3053\u306E\u65B9\u304C\u697D\u3067\u3059\u306D\u300D"
+  anySeason: 0
+  suitableSeasons: 01000000
   anyWeather: 1
   suitableWeathers: 
-  sortOrder: 0
+  isWarmOutfit: 0
+  isLightOutfit: 1
+  isRainOutfit: 0
+  isSnowOutfit: 0
+  isIndoorOutfit: 0
+  isOutdoorOutfit: 1
+  sortOrder: 60
   isEnabled: 1

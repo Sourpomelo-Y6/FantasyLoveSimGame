@@ -23,5 +23,11 @@ MonoBehaviour:
   suitableSeasons: 
   anyWeather: 0
   suitableWeathers: 0200000003000000
-  sortOrder: 60
+  isWarmOutfit: 0
+  isLightOutfit: 0
+  isRainOutfit: 1
+  isSnowOutfit: 0
+  isIndoorOutfit: 0
+  isOutdoorOutfit: 1
+  sortOrder: 90
   isEnabled: 1

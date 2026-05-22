@@ -1943,7 +1943,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0, y: 0}
+  m_AnchoredPosition: {x: 0, y: -30}
   m_SizeDelta: {x: 1024, y: 1024}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &559065451
@@ -3996,7 +3996,7 @@ MonoBehaviour:
   currentWeekday: 1
   currentSeason: 0
   currentWeather: 0
-  daysPerSeason: 30
+  daysPerSeason: 1
 --- !u!4 &1382933336
 Transform:
   m_ObjectHideFlags: 0
@@ -4848,8 +4848,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -620, y: 80}
-  m_SizeDelta: {x: 360, y: 420}
+  m_AnchoredPosition: {x: -620, y: 120}
+  m_SizeDelta: {x: 360, y: 660}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1723073668
 MonoBehaviour:

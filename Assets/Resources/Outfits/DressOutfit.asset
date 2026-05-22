@@ -24,5 +24,11 @@ MonoBehaviour:
   suitableSeasons: 
   anyWeather: 1
   suitableWeathers: 
+  isWarmOutfit: 0
+  isLightOutfit: 0
+  isRainOutfit: 0
+  isSnowOutfit: 0
+  isIndoorOutfit: 1
+  isOutdoorOutfit: 0
   sortOrder: 40
   isEnabled: 1
