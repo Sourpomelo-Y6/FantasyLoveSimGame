@@ -4,6 +4,10 @@ using System.Collections.Generic;
 [Serializable]
 public class SaveData
 {
+    public int saveVersion = 1;
+    public int saveSlotIndex;
+    public string savedAt;
+
     public int day;
     public TimeSlot currentTimeSlot;
     public Weekday currentWeekday;

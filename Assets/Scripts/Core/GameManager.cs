@@ -738,7 +738,17 @@ public class GameManager : MonoBehaviour
 
     public void SaveGame()
     {
+        SaveGameToSlot(GameStartSettings.SelectedSaveSlotIndex);
+    }
+
+    public void SaveGameToSlot(int slotIndex)
+    {
+        SelectSaveSlot(slotIndex);
+
         SaveData saveData = new SaveData();
+
+        saveData.saveSlotIndex = GameStartSettings.SelectedSaveSlotIndex;
+        saveData.savedAt = DateTime.Now.ToString("o");
 
         saveData.day = timeManager.Day;
         saveData.currentTimeSlot = timeManager.CurrentTimeSlot;
@@ -764,7 +774,7 @@ public class GameManager : MonoBehaviour
         saveData.todaySchedule = scheduleManager.TodaySchedule;
         saveData.tomorrowSchedule = scheduleManager.TomorrowSchedule;
 
-        saveManager.Save(saveData);
+        saveManager.Save(saveData, GameStartSettings.SelectedSaveSlotIndex);
 
         speakerNameText.text = "システム";
         dialogueText.text = "セーブしました。";
@@ -772,7 +782,14 @@ public class GameManager : MonoBehaviour
 
     public void LoadGame()
     {
-        SaveData saveData = saveManager.Load();
+        LoadGameFromSlot(GameStartSettings.SelectedSaveSlotIndex);
+    }
+
+    public void LoadGameFromSlot(int slotIndex)
+    {
+        SelectSaveSlot(slotIndex);
+
+        SaveData saveData = saveManager.Load(GameStartSettings.SelectedSaveSlotIndex);
 
         if (saveData == null)
         {
@@ -829,6 +846,22 @@ public class GameManager : MonoBehaviour
         dialogueText.text = "ロードしました。";
 
         RefreshUI();
+    }
+
+    public void SelectSaveSlot(int slotIndex)
+    {
+        if (saveManager == null)
+        {
+            return;
+        }
+
+        saveManager.SetCurrentSlotIndex(slotIndex);
+        GameStartSettings.SelectedSaveSlotIndex = saveManager.CurrentSlotIndex;
+    }
+
+    public bool HasSaveDataInSlot(int slotIndex)
+    {
+        return saveManager != null && saveManager.HasSaveData(slotIndex);
     }
 
     private void ExecuteSimpleAction(

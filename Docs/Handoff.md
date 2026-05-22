@@ -271,6 +271,15 @@
 - `saveButton`
 - `loadButton`
 
+### Save Slots
+
+- `SaveManager.saveSlotCount` で利用するスロット数を設定する
+- `GameManager.SaveGameToSlot(int slotIndex)` で指定スロットに保存する
+- `GameManager.LoadGameFromSlot(int slotIndex)` で指定スロットから読み込む
+- `GameManager.SelectSaveSlot(int slotIndex)` で現在の対象スロットを切り替える
+- `TitleManager.SelectSaveSlot(int slotIndex)` はタイトル画面のスロット選択 UI から呼ぶ想定
+- `slot 0` は従来の `save.json` を使い、既存セーブとの互換を保つ
+
 ### 参照漏れ時の症状
 
 - ボタンを押しても反応しない
@@ -291,7 +300,7 @@
 - 会話データと行動データは ScriptableObject 化されているが、一覧の登録は Inspector 依存
 - エンディングは 1 パターンのみ
 - 分岐による永続状態はない
-- 進行はプレイセッション中のみ保持される
+- セーブスロット選択 UI は未作成
 
 ## 変更しやすいポイント
 
@@ -322,13 +331,18 @@
 - 特定会話の達成有無
 - 日数
 
+### セーブスロット UI を作る
+
+UI デザインは手作業で行う方針です。
+ボタンや選択 UI から `TitleManager.SelectSaveSlot(int)`、`GameManager.SaveGameToSlot(int)`、`GameManager.LoadGameFromSlot(int)` を呼ぶように接続します。
+
 ## 追加開発の優先候補
 
 1. 会話データの分類ルール整理
 2. 行動データの反応パターン追加
 3. スチル表示と回想の導線追加
 4. 立ち絵切り替えと表情差分の整理
-5. セーブデータの複数化
+5. セーブスロット UI の追加
 6. 予定を行動へ変換する
 7. セーブ/ロードの強化
 8. エンディング分岐の追加

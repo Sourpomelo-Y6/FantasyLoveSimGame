@@ -47,6 +47,18 @@ public class TitleManager : MonoBehaviour
         SceneManager.LoadScene(mainSceneName);
     }
 
+    public void SelectSaveSlot(int slotIndex)
+    {
+        if (saveManager == null)
+        {
+            return;
+        }
+
+        saveManager.SetCurrentSlotIndex(slotIndex);
+        GameStartSettings.SelectedSaveSlotIndex = saveManager.CurrentSlotIndex;
+        RefreshContinueButton();
+    }
+
     private void OnClickQuit()
     {
 #if UNITY_EDITOR
