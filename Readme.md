@@ -27,6 +27,7 @@ This project is licensed under the MIT License. See [LICENSE](LICENSE) for detai
 - 行動と会話の結果は ScriptableObject のデータで管理している
 - 衣装ごとの好みや反応履歴を保存し、衣装評価に反映している
 - 予定の状態もセーブ/ロードで保存している
+- セーブ/ロードは4つのスロットから選択できる
 - 時間経過と日数進行がある
 - 好感度が一定値に達するとエンディングが解放される
 
@@ -57,6 +58,9 @@ This project is licensed under the MIT License. See [LICENSE](LICENSE) for detai
 - 会話文が表示されたら `Next` ボタンで進める
 - 選択肢が出たら、表示された選択肢ボタンを押してから `Next` ボタンで確定する
 - `休む` / `散歩` / `お茶` / `贈り物` はそのまま実行され、結果表示後に `Next` で戻る
+- タイトル画面の `Continue` からロード用スロット選択を開く
+- メイン画面の `Save` / `Load` からセーブロード用スロット選択を開く
+- セーブ時は青いパネル、ロード時はオレンジのパネルで表示される
 - 好感度が `100` に達すると `Ending` ボタンが表示される
 
 ## ゲームの流れ
@@ -71,6 +75,8 @@ This project is licensed under the MIT License. See [LICENSE](LICENSE) for detai
 ## 主なファイル
 
 - [`Assets/Scripts/Core/GameManager.cs`](Assets/Scripts/Core/GameManager.cs): 会話、行動、好感度、時間進行、UI 更新の制御
+- [`Assets/Scripts/Core/SaveLoadPanel.cs`](Assets/Scripts/Core/SaveLoadPanel.cs): セーブロードスロット UI の制御
+- [`Assets/Prefabs/SaveLoadPanel.prefab`](Assets/Prefabs/SaveLoadPanel.prefab): タイトル画面とメイン画面で共用するセーブロード UI
 - [`Assets/Scripts/Action/`](Assets/Scripts/Action): 行動データの型定義
 - [`Assets/Scripts/Outfit/`](Assets/Scripts/Outfit): 衣装データ、衣装反応、衣装評価の管理
 - [`Assets/Scripts/Schedule/`](Assets/Scripts/Schedule): 予定データと予定パネルの制御
@@ -90,5 +96,7 @@ This project is licensed under the MIT License. See [LICENSE](LICENSE) for detai
 - 衣装は着用時に保存され、衣装反応パネルから評価を付けられるようになっています
 - 予定は `ScheduleManager` で管理され、保存データにも反映されています
 - 予定の保存と復元は動作確認済みです
+- セーブスロットは `SaveManager.saveSlotCount` で管理し、現在は4スロットです
+- `slot 0` は従来の `save.json` を使うため、既存セーブとの互換を保っています
 - 背景ズーム用の `BackgroundZoom` を使って、会話や窓を見る演出を切り替えています
 - このプロジェクトは試作段階のため、今後 UI や会話データを拡張しやすい構成になっています

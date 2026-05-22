@@ -47,7 +47,7 @@
 1. スチル表示
 2. スチル回想
 3. 立ち絵変更
-4. セーブスロット UI の追加
+4. セーブスロット UI の調整
 5. ミニゲーム
 6. エンディング分岐
 
@@ -127,7 +127,12 @@ public class ActionData : ScriptableObject
 - 衣装反応は `OpenOutfitReactionPanel` で専用パネルに切り替える
 - `Next` ボタンは会話結果、行動結果、選択肢表示の進行を兼ねる
 - セーブデータは複数スロット対応済みで、`slot 0` は従来の `save.json` を使う
-- スロット選択 UI は手作業で作り、`SaveGameToSlot` / `LoadGameFromSlot` / `SelectSaveSlot` に接続する
+- セーブロード UI は `Assets/Prefabs/SaveLoadPanel.prefab` として作成済み
+- `TitleScene` と `MainScene` の `SaveManager.saveSlotCount` は `4`
+- `TitleScene` の `ContinueButton` は `SaveLoadPanel.OpenLoad()` でロード用スロット選択を開く
+- `MainScene` の `SaveButton` / `LoadButton` は `SaveLoadPanel.OpenSave()` / `OpenLoad()` でスロット選択を開く
+- `SaveLoadPanel` はセーブ時に青背景・`セーブ`、ロード時にオレンジ背景・`ロード` に切り替える
+- `MainScene` でロードした後は `SaveLoadPanel` を閉じる
 
 ### 案2: `ScheduleType -> ActionId` 変換表
 
@@ -161,7 +166,7 @@ public class ActionData : ScriptableObject
 2. 会話データの整理と命名規則の統一
 3. スチル表示と回想の導線追加
 4. 立ち絵切り替えと表情差分の整理
-5. セーブスロット UI の追加
+5. セーブスロット UI の調整
 6. セーブ/ロードの補強
 7. UI の視認性改善
 8. エンディングの分岐追加

@@ -270,10 +270,13 @@
 
 - `saveButton`
 - `loadButton`
+- `MainScene` では `SaveButton` から `SaveLoadPanel.OpenSave()`、`LoadButton` から `SaveLoadPanel.OpenLoad()` を呼ぶ
+- `GameManager.Start()` の即セーブ・即ロード接続は使わず、セーブロードパネル経由で操作する
 
 ### Save Slots
 
 - `SaveManager.saveSlotCount` で利用するスロット数を設定する
+- 現在の `TitleScene` / `MainScene` は `saveSlotCount = 4`
 - `GameManager.SaveGameToSlot(int slotIndex)` で指定スロットに保存する
 - `GameManager.LoadGameFromSlot(int slotIndex)` で指定スロットから読み込む
 - `GameManager.SelectSaveSlot(int slotIndex)` で現在の対象スロットを切り替える
@@ -284,6 +287,8 @@
 - `TitleManager.GetSaveSlotCount()` で実際のスロット数を取得する
 - `slot 0` は従来の `save.json` を使い、既存セーブとの互換を保つ
 - `SaveLoadPanel` は `TitleScene` と `MainScene` に同じ prefab を置いて使う共通 UI 制御用スクリプト
+- `SaveLoadPanel` は開いたモードに応じて背景色とタイトルを切り替える
+- `MainScene` でスロットからロードした後は `SaveLoadPanel.Close()` でパネルを閉じる
 
 ### 参照漏れ時の症状
 
@@ -291,6 +296,8 @@
 - UI 更新時に `NullReferenceException` が出る
 - 選択肢表示が出ない
 - `Next` ボタンが出ない、または進行しない
+- スロットラベルが変わらない場合は `SaveLoadPanel.slotLabels` の割り当て漏れを確認する
+- 4つ目のスロットボタンが押せない場合は `SaveManager.saveSlotCount` が `4` になっているか確認する
 
 ## UI 実装上の前提
 
@@ -305,7 +312,7 @@
 - 会話データと行動データは ScriptableObject 化されているが、一覧の登録は Inspector 依存
 - エンディングは 1 パターンのみ
 - 分岐による永続状態はない
-- セーブスロット UI の共通制御コードはあるが、prefab 作成とシーン配置は未作成
+- セーブスロット UI は prefab 化済みで、`TitleScene` と `MainScene` に配置済み
 
 ## 変更しやすいポイント
 
@@ -336,27 +343,33 @@
 - 特定会話の達成有無
 - 日数
 
-### セーブスロット UI を作る
+### セーブスロット UI
 
-UI デザインは手作業で行う方針です。
-シーンを増やさず、同じ `SaveLoadPanel` prefab を `TitleScene` と `MainScene` の両方に置く方針です。
+UI デザインは手作業で行っています。
+シーンを増やさず、同じ `Assets/Prefabs/SaveLoadPanel.prefab` を `TitleScene` と `MainScene` の両方に置く構成です。
 
-共通 prefab の想定構成:
+共通 prefab の構成:
 
 - ルートに `SaveLoadPanel` をアタッチする
 - `Save Manager` に同じシーンの `SaveManager` を割り当てる
 - `Panel Root` に表示・非表示したいパネル本体を割り当てる
 - `Close Button` に閉じるボタンを割り当てる
+- `Background Image` に背景色を切り替える `Image` を割り当てる
+- `Title Text` に `SaveLoadTitleText` を割り当てる
+- `Save Background Color` は青系、`Load Background Color` はオレンジ系
+- `Save Title` は `セーブ`、`Load Title` は `ロード`
 - `Slot Buttons` にスロットボタンを順番に割り当てる
 - `Slot Labels` に各スロットの TMP ラベルを順番に割り当てる
 - `Auto Wire Slot Buttons` を有効にすると、配列順で `SelectSlot(0..)` が自動接続される
+- 現在は `SlotButton_0` から `SlotButton_3` までの4スロット
 
 `TitleScene` 側の接続:
 
 - `Title Manager` にシーン上の `TitleManager` を割り当てる
 - `Game Manager` は空のままでよい
-- ロード表示ボタンから `SaveLoadPanel.OpenLoad()` を呼ぶ
+- `ContinueButton` から `SaveLoadPanel.OpenLoad()` を呼ぶ
 - タイトルでは保存しないため `OpenSave()` は使わない
+- `TitleManager.Start()` の `continueButton.onClick.AddListener(OnClickContinue)` は使わず、Inspector の OnClick でロードパネルを開く
 
 `MainScene` 側の接続:
 
@@ -364,6 +377,8 @@ UI デザインは手作業で行う方針です。
 - `Title Manager` は空のままでよい
 - セーブ表示ボタンから `SaveLoadPanel.OpenSave()` を呼ぶ
 - ロード表示ボタンから `SaveLoadPanel.OpenLoad()` を呼ぶ
+- `SaveManager.saveSlotCount` は `4`
+- ロード後は `SaveLoadPanel` が自動で閉じる
 
 この構成にすると、見た目と階層は同じ prefab で管理し、動作だけを `TitleManager` / `GameManager` の参照で切り替えられます。
 
@@ -373,7 +388,7 @@ UI デザインは手作業で行う方針です。
 2. 行動データの反応パターン追加
 3. スチル表示と回想の導線追加
 4. 立ち絵切り替えと表情差分の整理
-5. セーブスロット UI の追加
+5. セーブスロット UI の調整
 6. 予定を行動へ変換する
 7. セーブ/ロードの強化
 8. エンディング分岐の追加
