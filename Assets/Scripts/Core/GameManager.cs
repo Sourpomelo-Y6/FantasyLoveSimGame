@@ -75,6 +75,11 @@ public class GameManager : MonoBehaviour
 
     private List<ActionData> actions = new List<ActionData>();
 
+    [Header("Scheduled Event Data")]
+    [SerializeField] private string scheduledEventResourcePath = "ScheduledEvents";
+
+    private List<ScheduledEventData> scheduledEvents = new List<ScheduledEventData>();
+
     [Header("Conversation Data")]
     [SerializeField] private string conversationResourcePath = "Conversations";
 
@@ -200,6 +205,7 @@ public class GameManager : MonoBehaviour
     {
         LoadConversationsFromResources();
         LoadActionsFromResources();
+        LoadScheduledEventsFromResources();
 
         CreateGenreButtons();
         CreateActionButtons();
@@ -993,6 +999,30 @@ public class GameManager : MonoBehaviour
         }
     }
 
+    private void LoadScheduledEventsFromResources()
+    {
+        ScheduledEventData[] loadedScheduledEvents =
+            Resources.LoadAll<ScheduledEventData>(scheduledEventResourcePath);
+
+        scheduledEvents = new List<ScheduledEventData>(loadedScheduledEvents);
+
+        Debug.Log("Loaded Scheduled Events: " + scheduledEvents.Count);
+
+        foreach (ScheduledEventData scheduledEvent in scheduledEvents)
+        {
+            Debug.Log(
+                "Scheduled Event: " +
+                scheduledEvent.name +
+                " / Schedule: " +
+                scheduledEvent.scheduleType +
+                " / ActionId: " +
+                scheduledEvent.actionId +
+                " / Trigger: " +
+                scheduledEvent.triggerTimeSlot
+            );
+        }
+    }
+
     private void CreateActionButtons()
     {
         if (actionButtonParent == null)
@@ -1698,6 +1728,41 @@ public class GameManager : MonoBehaviour
     }
 
     private ScheduledEventDefinition GetScheduledEventDefinition(ScheduleType scheduleType)
+    {
+        ScheduledEventDefinition dataDefinition = GetScheduledEventDefinitionFromData(scheduleType);
+
+        if (dataDefinition != null)
+        {
+            return dataDefinition;
+        }
+
+        return GetDefaultScheduledEventDefinition(scheduleType);
+    }
+
+    private ScheduledEventDefinition GetScheduledEventDefinitionFromData(ScheduleType scheduleType)
+    {
+        if (scheduledEvents == null)
+        {
+            return null;
+        }
+
+        foreach (ScheduledEventData scheduledEvent in scheduledEvents)
+        {
+            if (scheduledEvent == null)
+            {
+                continue;
+            }
+
+            if (scheduledEvent.scheduleType == scheduleType)
+            {
+                return scheduledEvent.ToDefinition();
+            }
+        }
+
+        return null;
+    }
+
+    private ScheduledEventDefinition GetDefaultScheduledEventDefinition(ScheduleType scheduleType)
     {
         switch (scheduleType)
         {

@@ -1,0 +1,21 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5ac16e23f2d74cbc95fb90043442f56d, type: 3}
+  m_Name: AutoWalkForest
+  m_EditorClassIdentifier: 
+  scheduleType: 1
+  actionId: AutoWalkForest
+  triggerTimeSlot: 1
+  allowOutfitChangeBeforeStart: 1
+  preparationMessage: 今日は昼に森へ出かける予定です。出発までに服装を整えられます。
+  eventMessage: 森の中をゆっくり歩きました。木漏れ日の下で、少し気持ちが軽くなります。
+  affectionChange: 1

@@ -1,0 +1,21 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5ac16e23f2d74cbc95fb90043442f56d, type: 3}
+  m_Name: AutoDuoForest
+  m_EditorClassIdentifier: 
+  scheduleType: 5
+  actionId: AutoDuoForest
+  triggerTimeSlot: 1
+  allowOutfitChangeBeforeStart: 1
+  preparationMessage: 今日は昼に二人で森へ行く予定です。出発前に衣装を見直せます。
+  eventMessage: 二人で森を歩きました。並んで歩く時間が、いつもより少し近く感じられます。
+  affectionChange: 3

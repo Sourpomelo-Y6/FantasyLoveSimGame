@@ -48,7 +48,9 @@
 - [`Assets/Scripts/Action/`](../Assets/Scripts/Action): 行動データ型の定義
 - [`Assets/Scripts/Conversation/`](../Assets/Scripts/Conversation): 会話データ型の定義
 - [`Assets/Scripts/Schedule/`](../Assets/Scripts/Schedule): 予定管理と予定パネル制御
-- [`Assets/Scripts/Schedule/ScheduledEventDefinition.cs`](../Assets/Scripts/Schedule/ScheduledEventDefinition.cs): 予定イベントの発動時刻とメッセージ定義
+- [`Assets/Scripts/Schedule/ScheduledEventData.cs`](../Assets/Scripts/Schedule/ScheduledEventData.cs): 予定イベントの ScriptableObject 定義
+- [`Assets/Scripts/Schedule/ScheduledEventDefinition.cs`](../Assets/Scripts/Schedule/ScheduledEventDefinition.cs): 実行時に使う予定イベント定義
+- [`Assets/Resources/ScheduledEvents/`](../Assets/Resources/ScheduledEvents): 予定イベントデータの実体
 - [`Assets/Resources/Actions/`](../Assets/Resources/Actions): 行動データの実体
 - [`Assets/Resources/Actions/ScheduleAction.asset`](../Assets/Resources/Actions/ScheduleAction.asset): 予定パネルを開く行動アセット
 - [`Assets/Resources/Conversations/`](../Assets/Resources/Conversations): 会話データの実体
@@ -334,10 +336,13 @@
 
 ### 予定を行動へ変換する
 
-案2は `ScheduleType -> ScheduledEventDefinition` の変換として実装済みです。
+案2は `ScheduledEventData -> ScheduledEventDefinition` の変換として実装済みです。
 翌日開始時は準備メッセージだけを表示し、予定イベント本体は `triggerTimeSlot` に到達した後で発動します。
 イベント直前には `allowOutfitChangeBeforeStart` を見て、既存の選択肢ボタンで `このまま出発` / `着替える` を表示します。
 現在は昼発動の固定メッセージ中心ですが、今後は予定ごとに昼・夜などの発動時間を拡張できます。
+
+予定イベントを増やす場合は、`Assets/Resources/ScheduledEvents/` に `ScheduledEventData` アセットを追加します。
+同じ `ScheduleType` のアセットがある場合、`GameManager` はそのデータを優先し、アセットがない場合だけコード内の既定定義へフォールバックします。
 
 ### 会話を増やす
 
