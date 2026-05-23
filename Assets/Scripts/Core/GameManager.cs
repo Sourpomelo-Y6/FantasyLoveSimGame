@@ -87,6 +87,7 @@ public class GameManager : MonoBehaviour
     private bool pendingAdvanceTime = false;
     private bool pendingGoodNight = false;
     private bool isFading = false;
+    private string dayStartMessage = "";
 
     private readonly HashSet<string> shownConversationIds = new HashSet<string>();
 
@@ -575,6 +576,11 @@ public class GameManager : MonoBehaviour
 
         pendingAdvanceTime = false;
 
+        if (TryStartScheduledEvent())
+        {
+            return;
+        }
+
         flowState = ConversationFlowState.Idle;
 
         nextButton.gameObject.SetActive(false);
@@ -667,6 +673,11 @@ public class GameManager : MonoBehaviour
         timeManager.AdvanceTime();
         RefreshUI();
 
+        if (TryStartScheduledEvent())
+        {
+            return;
+        }
+
         FinishConversationWithoutTimeAdvance();
     }
 
@@ -681,6 +692,11 @@ public class GameManager : MonoBehaviour
 
         timeManager.AdvanceTime();
         RefreshUI();
+
+        if (TryStartScheduledEvent())
+        {
+            return;
+        }
 
         FinishConversationWithoutTimeAdvance();
     }
@@ -773,6 +789,7 @@ public class GameManager : MonoBehaviour
 
         saveData.todaySchedule = scheduleManager.TodaySchedule;
         saveData.tomorrowSchedule = scheduleManager.TomorrowSchedule;
+        saveData.todayScheduleEventExecuted = scheduleManager.TodayScheduleEventExecuted;
 
         saveManager.Save(saveData, GameStartSettings.SelectedSaveSlotIndex);
 
@@ -830,7 +847,11 @@ public class GameManager : MonoBehaviour
             }
         }
 
-        scheduleManager.SetScheduleState(saveData.todaySchedule, saveData.tomorrowSchedule);
+        scheduleManager.SetScheduleState(
+            saveData.todaySchedule,
+            saveData.tomorrowSchedule,
+            saveData.todayScheduleEventExecuted
+        );
 
         choiceButtonArea.SetActive(false);
         nextButton.gameObject.SetActive(false);
@@ -846,6 +867,7 @@ public class GameManager : MonoBehaviour
         dialogueText.text = "ロードしました。";
 
         RefreshUI();
+        TryStartScheduledEvent();
     }
 
     public void SelectSaveSlot(int slotIndex)
@@ -1446,14 +1468,39 @@ public class GameManager : MonoBehaviour
 
     private void OnDayChanged()
     {
-        AutoChooseOutfitOnNewDay();
+        dayStartMessage = BuildDayStartMessage();
     }
 
-    private void AutoChooseOutfitOnNewDay()
+    private string BuildDayStartMessage()
+    {
+        List<string> messages = new List<string>();
+        string outfitMessage = AutoChooseOutfitOnNewDay();
+
+        if (!string.IsNullOrEmpty(outfitMessage))
+        {
+            messages.Add(outfitMessage);
+        }
+
+        string scheduleMessage = CreateScheduledEventPreparationMessage();
+
+        if (!string.IsNullOrEmpty(scheduleMessage))
+        {
+            messages.Add(scheduleMessage);
+        }
+
+        if (messages.Count == 0)
+        {
+            return "";
+        }
+
+        return string.Join("\n", messages);
+    }
+
+    private string AutoChooseOutfitOnNewDay()
     {
         if (outfitManager == null)
         {
-            return;
+            return "";
         }
 
         string message;
@@ -1461,13 +1508,182 @@ public class GameManager : MonoBehaviour
 
         if (!success)
         {
-            return;
+            return "";
         }
 
+        RefreshUI();
+        return message;
+    }
+
+    private string CreateScheduledEventPreparationMessage()
+    {
+        if (scheduleManager == null)
+        {
+            return "";
+        }
+
+        ScheduledEventDefinition scheduledEvent = GetScheduledEventDefinition(scheduleManager.TodaySchedule);
+
+        if (scheduledEvent == null)
+        {
+            return "";
+        }
+
+        return scheduledEvent.PreparationMessage;
+    }
+
+    private bool TryStartScheduledEvent()
+    {
+        if (scheduleManager == null)
+        {
+            return false;
+        }
+
+        if (scheduleManager.TodayScheduleEventExecuted)
+        {
+            return false;
+        }
+
+        ScheduledEventDefinition scheduledEvent = GetScheduledEventDefinition(scheduleManager.TodaySchedule);
+
+        if (scheduledEvent == null)
+        {
+            return false;
+        }
+
+        if (timeManager.CurrentTimeSlot != scheduledEvent.TriggerTimeSlot)
+        {
+            return false;
+        }
+
+        scheduleManager.MarkTodayScheduleEventExecuted();
+        heroineStatus.AddAffection(scheduledEvent.AffectionChange);
+        currentConversation = null;
+        pendingAdvanceTime = false;
+        pendingGoodNight = false;
+
+        actionButtonArea.SetActive(false);
+        genreButtonArea.SetActive(false);
+        choiceButtonArea.SetActive(false);
+        outfitPanel.SetActive(false);
+        outfitReactionPanel.SetActive(false);
+
         speakerNameText.text = heroineStatus.HeroineName;
-        dialogueText.text = message;
+        dialogueText.text = scheduledEvent.EventMessage;
+
+        flowState = ConversationFlowState.ShowingActionResult;
+        nextButton.gameObject.SetActive(true);
 
         RefreshUI();
+        return true;
+    }
+
+    private ScheduledEventDefinition GetScheduledEventDefinition(ScheduleType scheduleType)
+    {
+        switch (scheduleType)
+        {
+            case ScheduleType.SoloForest:
+                return new ScheduledEventDefinition(
+                    ScheduleType.SoloForest,
+                    "AutoWalkForest",
+                    TimeSlot.Noon,
+                    true,
+                    "今日は昼に森へ出かける予定です。出発までに服装を整えられます。",
+                    "森の中をゆっくり歩きました。木漏れ日の下で、少し気持ちが軽くなります。",
+                    1
+                );
+
+            case ScheduleType.SoloCave:
+                return new ScheduledEventDefinition(
+                    ScheduleType.SoloCave,
+                    "AutoWalkCave",
+                    TimeSlot.Noon,
+                    true,
+                    "今日は昼に洞窟へ向かう予定です。動きやすい服にしておくとよさそうです。",
+                    "洞窟の入口まで足を運びました。ひんやりした空気に、少し冒険の気配を感じます。",
+                    1
+                );
+
+            case ScheduleType.SoloLake:
+                return new ScheduledEventDefinition(
+                    ScheduleType.SoloLake,
+                    "AutoWalkLake",
+                    TimeSlot.Noon,
+                    true,
+                    "今日は昼に湖へ行く予定です。水辺に合う服を選ぶ余裕があります。",
+                    "湖畔で静かな時間を過ごしました。水面を眺めていると、心が落ち着きます。",
+                    1
+                );
+
+            case ScheduleType.SoloShopping:
+                return new ScheduledEventDefinition(
+                    ScheduleType.SoloShopping,
+                    "AutoWalkShopping",
+                    TimeSlot.Noon,
+                    true,
+                    "今日は昼に買い物へ行く予定です。街に出る服を選んでおけます。",
+                    "街で買い物をしました。店先を見て回るだけでも、少し気分が華やぎます。",
+                    1
+                );
+
+            case ScheduleType.DuoForest:
+                return new ScheduledEventDefinition(
+                    ScheduleType.DuoForest,
+                    "AutoDuoForest",
+                    TimeSlot.Noon,
+                    true,
+                    "今日は昼に二人で森へ行く予定です。出発前に衣装を見直せます。",
+                    "二人で森を歩きました。並んで歩く時間が、いつもより少し近く感じられます。",
+                    3
+                );
+
+            case ScheduleType.DuoCave:
+                return new ScheduledEventDefinition(
+                    ScheduleType.DuoCave,
+                    "AutoDuoCave",
+                    TimeSlot.Noon,
+                    true,
+                    "今日は昼に二人で洞窟へ行く予定です。動きやすい服装がよさそうです。",
+                    "二人で洞窟へ向かいました。暗がりで声を掛け合うたび、距離が少し縮まります。",
+                    3
+                );
+
+            case ScheduleType.DuoLake:
+                return new ScheduledEventDefinition(
+                    ScheduleType.DuoLake,
+                    "AutoDuoLake",
+                    TimeSlot.Noon,
+                    true,
+                    "今日は昼に二人で湖へ行く予定です。水辺に合う服を選ぶ時間があります。",
+                    "二人で湖を眺めました。穏やかな水音の中で、会話も自然と柔らかくなります。",
+                    3
+                );
+
+            case ScheduleType.DuoShopping:
+                return new ScheduledEventDefinition(
+                    ScheduleType.DuoShopping,
+                    "AutoDuoShopping",
+                    TimeSlot.Noon,
+                    true,
+                    "今日は昼に二人で買い物へ行く予定です。街歩きの服を選んでおけます。",
+                    "二人で買い物に出かけました。選んだものを見せ合う時間が、楽しい思い出になります。",
+                    3
+                );
+
+            case ScheduleType.StayHome:
+                return new ScheduledEventDefinition(
+                    ScheduleType.StayHome,
+                    "AutoStayHome",
+                    TimeSlot.Noon,
+                    true,
+                    "今日は家で過ごす予定です。くつろげる服に着替えてもよさそうです。",
+                    "家でゆっくり過ごしました。落ち着いた時間の中で、自然に会話が続きます。",
+                    2
+                );
+
+            default:
+                return null;
+        }
     }
 
     private void OnDestroy()
@@ -1532,7 +1748,15 @@ public class GameManager : MonoBehaviour
         SetFadeAlpha(0f);
 
         speakerNameText.text = heroineStatus.HeroineName;
-        dialogueText.text = "おはようございます。今日もよろしくお願いしますね。";
+        if (string.IsNullOrEmpty(dayStartMessage))
+        {
+            dialogueText.text = "おはようございます。今日もよろしくお願いしますね。";
+        }
+        else
+        {
+            dialogueText.text = "おはようございます。今日もよろしくお願いしますね。\n" + dayStartMessage;
+            dayStartMessage = "";
+        }
 
         flowState = ConversationFlowState.Idle;
 

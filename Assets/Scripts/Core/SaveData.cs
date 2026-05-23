@@ -24,4 +24,5 @@ public class SaveData
 
     public ScheduleType todaySchedule;
     public ScheduleType tomorrowSchedule;
+    public bool todayScheduleEventExecuted;
 }

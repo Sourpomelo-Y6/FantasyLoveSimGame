@@ -137,29 +137,31 @@ public class ActionData : ScriptableObject
 
 ### 案2: `ScheduleType -> ActionId` 変換表
 
-これは「予定を翌日に自動実行する」ための提案で、まだ実装していない。
-`ActionId` は既存の `ActionData` と分けて、予約実行専用の内部 ID として扱う想定。
+これは「予定を翌日に自動実行する」ための仕組みで、現在は準備フェーズ付きで実装済み。
+`ActionId` は既存の `ActionData` と分けて、予約実行専用の内部 ID として扱っている。
+翌朝は予定の準備メッセージだけを表示し、イベント本体は `triggerTimeSlot` に到達した時点で発動する。
 
-| `ScheduleType` | Proposed `ActionId` | 現在の既存行動への近いフォールバック | 用途 |
+| `ScheduleType` | `ActionId` | 現在の発動時間 | 用途 |
 | ---- | ---- | ---- | ---- |
 | `None` | `None` | なし | 自動実行しない |
-| `SoloForest` | `AutoWalkForest` | `Walk` | 森への散歩や探索 |
-| `SoloCave` | `AutoWalkCave` | `Walk` | 洞窟への探索 |
-| `SoloLake` | `AutoWalkLake` | `Walk` | 湖への散歩 |
-| `SoloShopping` | `AutoWalkShopping` | `Walk` | 街への買い物や外出 |
-| `DuoForest` | `AutoDuoForest` | `Talk` | 二人で森林デート |
-| `DuoCave` | `AutoDuoCave` | `Talk` | 二人で洞窟デート |
-| `DuoLake` | `AutoDuoLake` | `Talk` | 二人で湖デート |
-| `DuoShopping` | `AutoDuoShopping` | `Talk` | 二人で買い物デート |
-| `StayHome` | `AutoStayHome` | `Rest` | 家で過ごす日 |
+| `SoloForest` | `AutoWalkForest` | 昼 | 森への散歩や探索 |
+| `SoloCave` | `AutoWalkCave` | 昼 | 洞窟への探索 |
+| `SoloLake` | `AutoWalkLake` | 昼 | 湖への散歩 |
+| `SoloShopping` | `AutoWalkShopping` | 昼 | 街への買い物や外出 |
+| `DuoForest` | `AutoDuoForest` | 昼 | 二人で森林デート |
+| `DuoCave` | `AutoDuoCave` | 昼 | 二人で洞窟デート |
+| `DuoLake` | `AutoDuoLake` | 昼 | 二人で湖デート |
+| `DuoShopping` | `AutoDuoShopping` | 昼 | 二人で買い物デート |
+| `StayHome` | `AutoStayHome` | 昼 | 家で過ごす日 |
 
-この方式にすると、翌日の開始時に `ScheduleType` を見て自動で行動イベントへ変換できる。
-いまの実装に足すなら、次の順で進めるのがよい。
+この方式では、翌日の開始時に `ScheduleType` を見て準備メッセージを表示し、指定時間帯にイベント本体へ変換する。
+現在の実装は次の構成。
 
-1. `ScheduleType -> ActionId` の変換関数を追加する
-2. 翌日開始時に自動実行のイベントを発火する
-3. 自動実行後に通常の行動 UI へ戻す
-4. 必要なら `ScheduleType` ごとの専用メッセージを追加する
+1. `ScheduleType -> ScheduledEventDefinition` の変換関数を使う
+2. 翌日開始時に準備メッセージを表示する
+3. `triggerTimeSlot` に到達したら予定イベント本体を表示する
+4. 発動済み状態をセーブデータに保存し、ロード後の二重発火を避ける
+5. 今後は `triggerTimeSlot` を昼・夜で分けたり、イベント直前の着替え確認を追加できる
 
 ## 優先度の高い改善候補
 

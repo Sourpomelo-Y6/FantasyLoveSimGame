@@ -5,6 +5,7 @@ public class ScheduleManager : MonoBehaviour
     [Header("Schedule State")]
     [SerializeField] private ScheduleType todaySchedule = ScheduleType.None;
     [SerializeField] private ScheduleType tomorrowSchedule = ScheduleType.None;
+    [SerializeField] private bool todayScheduleEventExecuted = false;
 
     [Header("References")]
     [SerializeField] private TimeManager timeManager;
@@ -17,6 +18,11 @@ public class ScheduleManager : MonoBehaviour
     public ScheduleType TomorrowSchedule
     {
         get { return tomorrowSchedule; }
+    }
+
+    public bool TodayScheduleEventExecuted
+    {
+        get { return todayScheduleEventExecuted; }
     }
 
     private void OnEnable()
@@ -77,14 +83,26 @@ public class ScheduleManager : MonoBehaviour
     {
         todaySchedule = tomorrowSchedule;
         tomorrowSchedule = ScheduleType.None;
+        todayScheduleEventExecuted = false;
 
         Debug.Log("今日の予定：" + GetScheduleDisplayName(todaySchedule));
     }
 
     public void SetScheduleState(ScheduleType today, ScheduleType tomorrow)
     {
+        SetScheduleState(today, tomorrow, false);
+    }
+
+    public void SetScheduleState(ScheduleType today, ScheduleType tomorrow, bool eventExecuted)
+    {
         todaySchedule = today;
         tomorrowSchedule = tomorrow;
+        todayScheduleEventExecuted = eventExecuted;
+    }
+
+    public void MarkTodayScheduleEventExecuted()
+    {
+        todayScheduleEventExecuted = true;
     }
 
     public static string GetScheduleDisplayName(ScheduleType scheduleType)

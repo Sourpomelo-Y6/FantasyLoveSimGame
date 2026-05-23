@@ -22,7 +22,8 @@
 - 予定の状態はセーブデータに保存される
 - 予定の保存と復元は確認済み
 - 予定が行動制限、会話候補、衣装自動選択に影響する
-- 予定を翌日の具体行動に変換する案2は未実装
+- 予定を翌日の具体イベントに変換する案2は、準備フェーズ付きで実装済み
+- 翌朝は今日の予定と着替え可能な準備メッセージを表示し、予定イベント本体は指定された時間帯に発動する
 - 会話や行動のたびに時間が進み、一定数で日付が進む
 - 好感度が `100` に達すると `Ending` ボタンが表示される
 
@@ -46,6 +47,7 @@
 - [`Assets/Scripts/Action/`](../Assets/Scripts/Action): 行動データ型の定義
 - [`Assets/Scripts/Conversation/`](../Assets/Scripts/Conversation): 会話データ型の定義
 - [`Assets/Scripts/Schedule/`](../Assets/Scripts/Schedule): 予定管理と予定パネル制御
+- [`Assets/Scripts/Schedule/ScheduledEventDefinition.cs`](../Assets/Scripts/Schedule/ScheduledEventDefinition.cs): 予定イベントの発動時刻とメッセージ定義
 - [`Assets/Resources/Actions/`](../Assets/Resources/Actions): 行動データの実体
 - [`Assets/Resources/Actions/ScheduleAction.asset`](../Assets/Resources/Actions/ScheduleAction.asset): 予定パネルを開く行動アセット
 - [`Assets/Resources/Conversations/`](../Assets/Resources/Conversations): 会話データの実体
@@ -329,8 +331,9 @@
 
 ### 予定を行動へ変換する
 
-案2を実装するなら、`ScheduleType -> ActionId` の変換表を作り、翌日開始時に自動実行する処理を `GameManager` に足します。
-変換の設計案は `Docs/LoveSimDevelopmentPlan.md` の案2を参照してください。
+案2は `ScheduleType -> ScheduledEventDefinition` の変換として実装済みです。
+翌日開始時は準備メッセージだけを表示し、予定イベント本体は `triggerTimeSlot` に到達した後で発動します。
+現在は昼発動の固定メッセージ中心ですが、今後は予定ごとに昼・夜などの発動時間や着替え導線を拡張できます。
 
 ### 会話を増やす
 
