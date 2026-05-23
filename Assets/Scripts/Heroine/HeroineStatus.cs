@@ -3,7 +3,7 @@ using UnityEngine;
 public class HeroineStatus : MonoBehaviour
 {
     [Header("Basic")]
-    [SerializeField] private string heroineName = "ƒqƒƒCƒ“";
+    [SerializeField] private string heroineName = "ãƒ’ãƒ­ã‚¤ãƒ³";
 
     [Header("Affection")]
     [SerializeField] private int affection = 0;
@@ -34,30 +34,30 @@ public class HeroineStatus : MonoBehaviour
     {
         if (affection >= 100)
         {
-            return "DŠ´“xMAX";
+            return "å¥½æ„Ÿåº¦MAX";
         }
 
         if (affection >= 80)
         {
-            return "‚©‚È‚èe–§";
+            return "ã‹ãªã‚Šè¦ªå¯†";
         }
 
         if (affection >= 60)
         {
-            return "‹C‚É‚È‚é‘Šè";
+            return "æ°—ã«ãªã‚‹ç›¸æ‰‹";
         }
 
         if (affection >= 40)
         {
-            return "’‡‚Ì—Ç‚¢—Fl";
+            return "ä»²ã®è‰¯ã„å‹äºº";
         }
 
         if (affection >= 20)
         {
-            return "—Fl";
+            return "å‹äºº";
         }
 
-        return "’m‚è‡‚¢";
+        return "çŸ¥ã‚Šåˆã„";
     }
 
     private void ClampAffection()

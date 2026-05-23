@@ -17,7 +17,7 @@ public class OutfitData : ScriptableObject
 
     [Header("Messages")]
     [TextArea(2, 4)]
-    public string lockedMessage = "‚»‚ê‚Í‚Ü‚¾­‚µ’p‚¸‚©‚µ‚¢‚æ‚¤‚Å‚·B";
+    public string lockedMessage = "ãã‚Œã¯ã¾ã å°‘ã—æ¥ãšã‹ã—ã„ã‚ˆã†ã§ã™ã€‚";
 
     [TextArea(2, 4)]
     public string changedMessage = "";
