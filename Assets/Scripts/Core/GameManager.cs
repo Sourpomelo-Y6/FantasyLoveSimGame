@@ -92,6 +92,10 @@ public class GameManager : MonoBehaviour
     private bool startPendingScheduledEventAfterOutfitMessage = false;
     private bool returnToScheduledEventPromptAfterOutfitMessage = false;
 
+    private const string SystemSpeakerName = "SYSTEM";
+    private const string ScheduleSpeakerName = "予定";
+    private const string OutfitSpeakerName = "衣装";
+
     private readonly HashSet<string> shownConversationIds = new HashSet<string>();
 
     [Header("Save / Load Buttons")]
@@ -166,6 +170,32 @@ public class GameManager : MonoBehaviour
         backgroundZoom.ResetZoom();
     }
 
+    private void ShowDialogue(string speakerName, string message)
+    {
+        speakerNameText.text = speakerName;
+        dialogueText.text = message;
+    }
+
+    private void ShowHeroineDialogue(string message)
+    {
+        ShowDialogue(heroineStatus.HeroineName, message);
+    }
+
+    private void ShowSystemDialogue(string message)
+    {
+        ShowDialogue(SystemSpeakerName, message);
+    }
+
+    private void ShowScheduleDialogue(string message)
+    {
+        ShowDialogue(ScheduleSpeakerName, message);
+    }
+
+    private void ShowOutfitDialogue(string message)
+    {
+        ShowDialogue(OutfitSpeakerName, message);
+    }
+
     private void Start()
     {
         LoadConversationsFromResources();
@@ -199,8 +229,7 @@ public class GameManager : MonoBehaviour
         timeManager.OnDayChanged += OnDayChanged;
 
         outfitManager.WearDefaultOutfit();
-        speakerNameText.text = heroineStatus.HeroineName;
-        dialogueText.text = "今日は何を話しましょうか？";
+        ShowHeroineDialogue("今日は何を話しましょうか？");
 
         OnTalkStart();
         //background.localScale = new Vector3(1.3f, 1.3f, 1f);
@@ -321,8 +350,7 @@ public class GameManager : MonoBehaviour
 
         if (candidates.Count == 0)
         {
-            speakerNameText.text = "システム";
-            dialogueText.text = "現在の条件に合う会話データがありません。";
+            ShowSystemDialogue("現在の条件に合う会話データがありません。");
 
             flowState = ConversationFlowState.ShowingSimple;
             nextButton.gameObject.SetActive(true);
@@ -333,8 +361,7 @@ public class GameManager : MonoBehaviour
 
         RegisterShownConversation(currentConversation);
 
-        speakerNameText.text = heroineStatus.HeroineName;
-        dialogueText.text = currentConversation.heroineLine;
+        ShowHeroineDialogue(currentConversation.heroineLine);
 
         if (currentConversation.type == ConversationType.Simple)
         {
@@ -562,8 +589,7 @@ public class GameManager : MonoBehaviour
         {
             pendingGoodNight = false;
 
-            speakerNameText.text = heroineStatus.HeroineName;
-            dialogueText.text = "もう夜も遅いですね。おやすみなさい。また明日。";
+            ShowHeroineDialogue("もう夜も遅いですね。おやすみなさい。また明日。");
 
             flowState = ConversationFlowState.ShowingGoodNight;
 
@@ -607,8 +633,7 @@ public class GameManager : MonoBehaviour
         outfitReactionPanel.SetActive(false);
         actionButtonArea.SetActive(true);
 
-        speakerNameText.text = heroineStatus.HeroineName;
-        dialogueText.text = "次は何をしましょうか？";
+        ShowHeroineDialogue("次は何をしましょうか？");
     }
 
     private void ShowChoices()
@@ -621,8 +646,7 @@ public class GameManager : MonoBehaviour
 
         if (currentConversation.choices == null || currentConversation.choices.Count == 0)
         {
-            speakerNameText.text = "システム";
-            dialogueText.text = "選択肢タイプですが、Choices が設定されていません。";
+            ShowSystemDialogue("選択肢タイプですが、Choices が設定されていません。");
 
             flowState = ConversationFlowState.ShowingSimple;
             nextButton.gameObject.SetActive(true);
@@ -665,8 +689,7 @@ public class GameManager : MonoBehaviour
     {
         choiceButtonArea.SetActive(false);
 
-        speakerNameText.text = heroineStatus.HeroineName;
-        dialogueText.text = choice.responseText;
+        ShowHeroineDialogue(choice.responseText);
 
         heroineStatus.AddAffection(choice.affectionChange);
 
@@ -731,8 +754,7 @@ public class GameManager : MonoBehaviour
         outfitReactionPanel.SetActive(false);
         actionButtonArea.SetActive(true);
 
-        speakerNameText.text = heroineStatus.HeroineName;
-        dialogueText.text = "次は何をしましょうか？";
+        ShowHeroineDialogue("次は何をしましょうか？");
     }
 
     private void OnClickEnding()
@@ -747,8 +769,7 @@ public class GameManager : MonoBehaviour
         currentConversation = null;
         flowState = ConversationFlowState.Idle;
 
-        speakerNameText.text = heroineStatus.HeroineName;
-        dialogueText.text = "好感度MAXエンドです。あなたと過ごした日々を、私は忘れません。";
+        ShowHeroineDialogue("好感度MAXエンドです。あなたと過ごした日々を、私は忘れません。");
     }
 
     public void RefreshUI()
@@ -810,8 +831,7 @@ public class GameManager : MonoBehaviour
 
         saveManager.Save(saveData, GameStartSettings.SelectedSaveSlotIndex);
 
-        speakerNameText.text = "システム";
-        dialogueText.text = "セーブしました。";
+        ShowSystemDialogue("セーブしました。");
     }
 
     public void LoadGame()
@@ -827,8 +847,7 @@ public class GameManager : MonoBehaviour
 
         if (saveData == null)
         {
-            speakerNameText.text = "システム";
-            dialogueText.text = "セーブデータがありません。";
+            ShowSystemDialogue("セーブデータがありません。");
             return;
         }
 
@@ -880,8 +899,7 @@ public class GameManager : MonoBehaviour
         currentConversation = null;
         flowState = ConversationFlowState.Idle;
 
-        speakerNameText.text = "システム";
-        dialogueText.text = "ロードしました。";
+        ShowSystemDialogue("ロードしました。");
 
         RefreshUI();
         TryStartScheduledEvent();
@@ -916,8 +934,7 @@ public class GameManager : MonoBehaviour
         outfitPanel.SetActive(false);
         outfitReactionPanel.SetActive(false);
 
-        speakerNameText.text = speakerName;
-        dialogueText.text = message;
+        ShowDialogue(speakerName, message);
 
         heroineStatus.AddAffection(affectionChange);
 
@@ -944,8 +961,7 @@ public class GameManager : MonoBehaviour
         outfitPanel.SetActive(false);
         outfitReactionPanel.SetActive(false);
 
-        speakerNameText.text = "システム";
-        dialogueText.text = message;
+        ShowSystemDialogue(message);
 
         flowState = ConversationFlowState.ShowingActionResult;
         nextButton.gameObject.SetActive(true);
@@ -1078,15 +1094,13 @@ public class GameManager : MonoBehaviour
         outfitPanel.SetActive(true);
         outfitReactionPanel.SetActive(false);
 
-        speakerNameText.text = "システム";
-
         if (string.IsNullOrEmpty(action.resultMessage))
         {
-            dialogueText.text = "着替える衣装を選んでください。";
+            ShowOutfitDialogue("着替える衣装を選んでください。");
         }
         else
         {
-            dialogueText.text = action.resultMessage;
+            ShowOutfitDialogue(action.resultMessage);
         }
 
         flowState = ConversationFlowState.Idle;
@@ -1172,15 +1186,13 @@ public class GameManager : MonoBehaviour
         outfitPanel.SetActive(false);
         outfitReactionPanel.SetActive(false);
 
-        speakerNameText.text = "システム";
-
         if (string.IsNullOrEmpty(action.resultMessage))
         {
-            dialogueText.text = "話したい話題を選んでください。";
+            ShowSystemDialogue("話したい話題を選んでください。");
         }
         else
         {
-            dialogueText.text = action.resultMessage;
+            ShowSystemDialogue(action.resultMessage);
         }
 
         flowState = ConversationFlowState.Idle;
@@ -1194,7 +1206,7 @@ public class GameManager : MonoBehaviour
         {
             string reactionSpeakerName = reaction.useHeroineNameAsSpeaker
                 ? heroineStatus.HeroineName
-                : "システム";
+                : SystemSpeakerName;
 
             ExecuteSimpleAction(
                 reactionSpeakerName,
@@ -1209,7 +1221,7 @@ public class GameManager : MonoBehaviour
 
         string defaultSpeakerName = action.useHeroineNameAsSpeaker
             ? heroineStatus.HeroineName
-            : "システム";
+            : SystemSpeakerName;
 
         ExecuteSimpleAction(
             defaultSpeakerName,
@@ -1371,8 +1383,7 @@ public class GameManager : MonoBehaviour
         choiceButtonArea.SetActive(false);
         outfitPanel.SetActive(false);
 
-        speakerNameText.text = heroineStatus.HeroineName;
-        dialogueText.text = message;
+        ShowHeroineDialogue(message);
 
         if (pendingScheduledEvent != null)
         {
@@ -1403,19 +1414,17 @@ public class GameManager : MonoBehaviour
         outfitReactionPanel.SetActive(true);
         nextButton.gameObject.SetActive(false);
 
-        speakerNameText.text = "システム";
-
         if (outfitManager.CurrentOutfit == null)
         {
-            dialogueText.text = "まだ衣装を着ていません。";
+            ShowOutfitDialogue("まだ衣装を着ていません。");
         }
         else if (string.IsNullOrEmpty(action.resultMessage))
         {
-            dialogueText.text = "今の衣装について、どう反応しますか？";
+            ShowOutfitDialogue("今の衣装について、どう反応しますか？");
         }
         else
         {
-            dialogueText.text = action.resultMessage + "\n現在の衣装：" + outfitManager.CurrentOutfit.displayName;
+            ShowOutfitDialogue(action.resultMessage + "\n現在の衣装：" + outfitManager.CurrentOutfit.displayName);
         }
 
         flowState = ConversationFlowState.Idle;
@@ -1445,8 +1454,7 @@ public class GameManager : MonoBehaviour
         outfitPanel.SetActive(false);
         outfitReactionPanel.SetActive(false);
 
-        speakerNameText.text = heroineStatus.HeroineName;
-        dialogueText.text = message;
+        ShowHeroineDialogue(message);
 
         RefreshUI();
 
@@ -1491,8 +1499,7 @@ public class GameManager : MonoBehaviour
         outfitPanel.SetActive(true);
         nextButton.gameObject.SetActive(false);
 
-        speakerNameText.text = "システム";
-        dialogueText.text = "変更する衣装を選んでください。";
+        ShowOutfitDialogue("変更する衣装を選んでください。");
 
         flowState = ConversationFlowState.Idle;
     }
@@ -1617,11 +1624,11 @@ public class GameManager : MonoBehaviour
         outfitPanel.SetActive(false);
         outfitReactionPanel.SetActive(false);
 
-        speakerNameText.text = "システム";
-        dialogueText.text =
+        ShowScheduleDialogue(
             "そろそろ" +
             ScheduleManager.GetScheduleDisplayName(scheduledEvent.ScheduleType) +
-            "の時間です。衣装を確認しますか？";
+            "の時間です。衣装を確認しますか？"
+        );
 
         SetupScheduledEventPromptButton(choiceButton1, "このまま出発", () => StartScheduledEvent(scheduledEvent));
         SetupScheduledEventPromptButton(choiceButton2, "着替える", OpenOutfitPanelForScheduledEvent);
@@ -1655,8 +1662,7 @@ public class GameManager : MonoBehaviour
         outfitPanel.SetActive(true);
         nextButton.gameObject.SetActive(false);
 
-        speakerNameText.text = "システム";
-        dialogueText.text = "出発前に衣装を選んでください。";
+        ShowOutfitDialogue("出発前に衣装を選んでください。");
 
         flowState = ConversationFlowState.Idle;
     }
@@ -1683,8 +1689,7 @@ public class GameManager : MonoBehaviour
         outfitPanel.SetActive(false);
         outfitReactionPanel.SetActive(false);
 
-        speakerNameText.text = heroineStatus.HeroineName;
-        dialogueText.text = scheduledEvent.EventMessage;
+        ShowHeroineDialogue(scheduledEvent.EventMessage);
 
         flowState = ConversationFlowState.ShowingActionResult;
         nextButton.gameObject.SetActive(true);
@@ -1861,14 +1866,13 @@ public class GameManager : MonoBehaviour
 
         SetFadeAlpha(0f);
 
-        speakerNameText.text = heroineStatus.HeroineName;
         if (string.IsNullOrEmpty(dayStartMessage))
         {
-            dialogueText.text = "おはようございます。今日もよろしくお願いしますね。";
+            ShowHeroineDialogue("おはようございます。今日もよろしくお願いしますね。");
         }
         else
         {
-            dialogueText.text = "おはようございます。今日もよろしくお願いしますね。\n" + dayStartMessage;
+            ShowScheduleDialogue("今日の予定です。\n" + dayStartMessage);
             dayStartMessage = "";
         }
 
@@ -1908,8 +1912,7 @@ public class GameManager : MonoBehaviour
 
     private void ShowGoodNightBeforeNextDay()
     {
-        speakerNameText.text = heroineStatus.HeroineName;
-        dialogueText.text = "もう夜も遅いですね。おやすみなさい。また明日。";
+        ShowHeroineDialogue("もう夜も遅いですね。おやすみなさい。また明日。");
 
         flowState = ConversationFlowState.ShowingGoodNight;
 
