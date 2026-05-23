@@ -140,6 +140,7 @@ public class ActionData : ScriptableObject
 これは「予定を翌日に自動実行する」ための仕組みで、現在は準備フェーズ付きで実装済み。
 `ActionId` は既存の `ActionData` と分けて、予約実行専用の内部 ID として扱っている。
 翌朝は予定の準備メッセージだけを表示し、イベント本体は `triggerTimeSlot` に到達した時点で発動する。
+イベント直前には、必要に応じて `このまま出発` / `着替える` を選べる。
 
 | `ScheduleType` | `ActionId` | 現在の発動時間 | 用途 |
 | ---- | ---- | ---- | ---- |
@@ -159,9 +160,9 @@ public class ActionData : ScriptableObject
 
 1. `ScheduleType -> ScheduledEventDefinition` の変換関数を使う
 2. 翌日開始時に準備メッセージを表示する
-3. `triggerTimeSlot` に到達したら予定イベント本体を表示する
+3. `triggerTimeSlot` に到達したら衣装確認を挟む
 4. 発動済み状態をセーブデータに保存し、ロード後の二重発火を避ける
-5. 今後は `triggerTimeSlot` を昼・夜で分けたり、イベント直前の着替え確認を追加できる
+5. 今後は `triggerTimeSlot` を昼・夜で分けたり、予定ごとの専用演出を追加できる
 
 ## 優先度の高い改善候補
 

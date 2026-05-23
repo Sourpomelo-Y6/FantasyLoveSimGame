@@ -88,6 +88,9 @@ public class GameManager : MonoBehaviour
     private bool pendingGoodNight = false;
     private bool isFading = false;
     private string dayStartMessage = "";
+    private ScheduledEventDefinition pendingScheduledEvent;
+    private bool startPendingScheduledEventAfterOutfitMessage = false;
+    private bool returnToScheduledEventPromptAfterOutfitMessage = false;
 
     private readonly HashSet<string> shownConversationIds = new HashSet<string>();
 
@@ -575,6 +578,20 @@ public class GameManager : MonoBehaviour
         }
 
         pendingAdvanceTime = false;
+
+        if (startPendingScheduledEventAfterOutfitMessage)
+        {
+            startPendingScheduledEventAfterOutfitMessage = false;
+            StartScheduledEvent(pendingScheduledEvent);
+            return;
+        }
+
+        if (returnToScheduledEventPromptAfterOutfitMessage)
+        {
+            returnToScheduledEventPromptAfterOutfitMessage = false;
+            ShowScheduledEventOutfitPrompt(pendingScheduledEvent);
+            return;
+        }
 
         if (TryStartScheduledEvent())
         {
@@ -1357,6 +1374,20 @@ public class GameManager : MonoBehaviour
         speakerNameText.text = heroineStatus.HeroineName;
         dialogueText.text = message;
 
+        if (pendingScheduledEvent != null)
+        {
+            if (success)
+            {
+                startPendingScheduledEventAfterOutfitMessage = true;
+                returnToScheduledEventPromptAfterOutfitMessage = false;
+            }
+            else
+            {
+                startPendingScheduledEventAfterOutfitMessage = false;
+                returnToScheduledEventPromptAfterOutfitMessage = true;
+            }
+        }
+
         flowState = ConversationFlowState.ShowingActionResult;
         nextButton.gameObject.SetActive(true);
 
@@ -1556,8 +1587,92 @@ public class GameManager : MonoBehaviour
             return false;
         }
 
+        if (scheduledEvent.AllowOutfitChangeBeforeStart)
+        {
+            ShowScheduledEventOutfitPrompt(scheduledEvent);
+            return true;
+        }
+
+        StartScheduledEvent(scheduledEvent);
+        return true;
+    }
+
+    private void ShowScheduledEventOutfitPrompt(ScheduledEventDefinition scheduledEvent)
+    {
+        if (scheduledEvent == null)
+        {
+            return;
+        }
+
+        pendingScheduledEvent = scheduledEvent;
+        startPendingScheduledEventAfterOutfitMessage = false;
+        returnToScheduledEventPromptAfterOutfitMessage = false;
+        currentConversation = null;
+        pendingAdvanceTime = false;
+        pendingGoodNight = false;
+
+        actionButtonArea.SetActive(false);
+        genreButtonArea.SetActive(false);
+        choiceButtonArea.SetActive(true);
+        outfitPanel.SetActive(false);
+        outfitReactionPanel.SetActive(false);
+
+        speakerNameText.text = "システム";
+        dialogueText.text =
+            "そろそろ" +
+            ScheduleManager.GetScheduleDisplayName(scheduledEvent.ScheduleType) +
+            "の時間です。衣装を確認しますか？";
+
+        SetupScheduledEventPromptButton(choiceButton1, "このまま出発", () => StartScheduledEvent(scheduledEvent));
+        SetupScheduledEventPromptButton(choiceButton2, "着替える", OpenOutfitPanelForScheduledEvent);
+        choiceButton3.gameObject.SetActive(false);
+
+        RefreshUI();
+        flowState = ConversationFlowState.Idle;
+        nextButton.gameObject.SetActive(false);
+    }
+
+    private void SetupScheduledEventPromptButton(Button button, string label, UnityEngine.Events.UnityAction action)
+    {
+        button.gameObject.SetActive(true);
+
+        TMP_Text buttonText = button.GetComponentInChildren<TMP_Text>();
+        if (buttonText != null)
+        {
+            buttonText.text = label;
+        }
+
+        button.onClick.RemoveAllListeners();
+        button.onClick.AddListener(action);
+    }
+
+    private void OpenOutfitPanelForScheduledEvent()
+    {
+        actionButtonArea.SetActive(false);
+        genreButtonArea.SetActive(false);
+        choiceButtonArea.SetActive(false);
+        outfitReactionPanel.SetActive(false);
+        outfitPanel.SetActive(true);
+        nextButton.gameObject.SetActive(false);
+
+        speakerNameText.text = "システム";
+        dialogueText.text = "出発前に衣装を選んでください。";
+
+        flowState = ConversationFlowState.Idle;
+    }
+
+    private void StartScheduledEvent(ScheduledEventDefinition scheduledEvent)
+    {
+        if (scheduledEvent == null)
+        {
+            return;
+        }
+
         scheduleManager.MarkTodayScheduleEventExecuted();
         heroineStatus.AddAffection(scheduledEvent.AffectionChange);
+        pendingScheduledEvent = null;
+        startPendingScheduledEventAfterOutfitMessage = false;
+        returnToScheduledEventPromptAfterOutfitMessage = false;
         currentConversation = null;
         pendingAdvanceTime = false;
         pendingGoodNight = false;
@@ -1575,7 +1690,6 @@ public class GameManager : MonoBehaviour
         nextButton.gameObject.SetActive(true);
 
         RefreshUI();
-        return true;
     }
 
     private ScheduledEventDefinition GetScheduledEventDefinition(ScheduleType scheduleType)
