@@ -100,4 +100,5 @@ This project is licensed under the MIT License. See [LICENSE](LICENSE) for detai
 - 保存済みスロットには日数と好感度の概要が表示されます
 - `slot 0` は従来の `save.json` を使うため、既存セーブとの互換を保っています
 - 背景ズーム用の `BackgroundZoom` を使って、会話や窓を見る演出を切り替えています
+- 話者ラベルは `SYSTEM` / `予定` / `衣装` / ヒロイン名に分けていますが、メッセージ表示自体は共通なので、今後は表示スタイルの分離も検討しています
 - このプロジェクトは試作段階のため、今後 UI や会話データを拡張しやすい構成になっています
