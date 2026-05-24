@@ -72,6 +72,7 @@ Unity Editor で `MainScene` を直接開いて再生した場合は、開発確
 ゲーム開始イベント中は `SaveLoadPanel` を閉じた状態に保ち、`Save` / `Load` を表示しない。
 `GameEventData` の `DayStart` は翌朝メッセージに混ぜて自動再生し、`Manual` は `GameManager.TryStartManualGameEvent(string eventId)` で明示起動する。
 開発時の確認用に、`GameManager` の `debugManualGameEventId` を `F7` で起動する入口もある。
+テスト用の手動イベントとして `TestManualEvent` を用意しており、`debugManualGameEventId` に設定すると `F7` で繰り返し再生できる。
 解放後の実効果は `StatusAbilityData.effectType` で分岐し、`StatusAbilityKind` は表示種別や旧データ互換の分類として使う。
 `effectType` が `UseAbilityKind` の場合は従来通り `StatusAbilityKind` から衣装確認能力を推測し、`None` の場合は効果なし能力として `abilityId` の取得済み状態だけを保存する。
 これにより、テスト用能力や将来の表示カテゴリを追加しても、実効果の有無をデータ側で明示できる。
@@ -122,6 +123,7 @@ Canvas
 タイトルから新規ゲームを開始した直後の導入や、今後の汎用イベントは `GameEventData` で管理する。
 `Assets/Resources/GameEvents/` に置き、`triggerType` で `GameStart` / `DayStart` / `Manual` を分ける。
 ページごとに話者、メッセージ、必要ならスチルを持ち、`showOnce` は `shownGameEventIds` でセーブデータに保存する。
+`TestManualEvent` は `Manual` / `showOnce=false` の確認用イベントで、システム・ヒロイン・予定・衣装の話者表示とスチル表示をまとめて確認するために使う。
 
 ### ActionData
 
