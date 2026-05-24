@@ -149,8 +149,13 @@ public class GameManager : MonoBehaviour
     private ScheduledEventDefinition pendingScheduledEvent;
     private bool startPendingScheduledEventAfterOutfitMessage = false;
     private bool returnToScheduledEventPromptAfterOutfitMessage = false;
-    private Sprite dialogueSequencePreviousBackgroundSprite;
-    private bool dialogueSequenceHasBackgroundOverride = false;
+    private Image dialogueSequenceStillImageTarget;
+    private Sprite dialogueSequencePreviousStillSprite;
+    private bool dialogueSequenceHasStillSpriteOverride = false;
+    private bool dialogueSequencePreviousStillPreserveAspect = false;
+    private bool dialogueSequenceHasStillPreserveAspectOverride = false;
+    private bool dialogueSequencePreviousStillImageActive = false;
+    private bool dialogueSequenceHasStillImageActiveOverride = false;
     private bool dialogueSequenceIsActive = false;
     private bool dialogueSequenceHidHeroineImage = false;
     private bool dialogueSequenceHidSaveLoadButtons = false;
@@ -177,6 +182,9 @@ public class GameManager : MonoBehaviour
     [SerializeField] private Sprite dayBackgroundSprite;
     [SerializeField] private Sprite nightBackgroundSprite;
     [SerializeField] private BackgroundZoom backgroundZoom;
+
+    [Header("Event Still")]
+    [SerializeField] private Image eventStillImage;
 
     [Header("Outfit UI")]
     [SerializeField] private GameObject outfitPanel;
@@ -270,15 +278,34 @@ public class GameManager : MonoBehaviour
         string message,
         Sprite stillSprite)
     {
-        if (stillSprite != null && backgroundImage != null)
+        if (stillSprite != null)
         {
-            if (!dialogueSequenceHasBackgroundOverride)
+            Image stillImage = GetDialogueStillImage();
+            if (stillImage != null)
             {
-                dialogueSequencePreviousBackgroundSprite = backgroundImage.sprite;
-                dialogueSequenceHasBackgroundOverride = true;
-            }
+                if (!dialogueSequenceHasStillSpriteOverride)
+                {
+                    dialogueSequenceStillImageTarget = stillImage;
+                    dialogueSequencePreviousStillSprite = stillImage.sprite;
+                    dialogueSequenceHasStillSpriteOverride = true;
+                }
 
-            backgroundImage.sprite = stillSprite;
+                if (!dialogueSequenceHasStillPreserveAspectOverride)
+                {
+                    dialogueSequencePreviousStillPreserveAspect = stillImage.preserveAspect;
+                    dialogueSequenceHasStillPreserveAspectOverride = true;
+                }
+
+                if (!dialogueSequenceHasStillImageActiveOverride)
+                {
+                    dialogueSequencePreviousStillImageActive = stillImage.gameObject.activeSelf;
+                    dialogueSequenceHasStillImageActiveOverride = true;
+                }
+
+                stillImage.gameObject.SetActive(true);
+                stillImage.sprite = stillSprite;
+                stillImage.preserveAspect = true;
+            }
 
             if (!dialogueSequenceHidHeroineImage &&
                 outfitManager != null &&
@@ -311,13 +338,30 @@ public class GameManager : MonoBehaviour
 
     private void ResetDialogueSequenceState()
     {
-        if (dialogueSequenceHasBackgroundOverride && backgroundImage != null)
+        if (dialogueSequenceHasStillSpriteOverride && dialogueSequenceStillImageTarget != null)
         {
-            backgroundImage.sprite = dialogueSequencePreviousBackgroundSprite;
+            dialogueSequenceStillImageTarget.sprite = dialogueSequencePreviousStillSprite;
         }
 
-        dialogueSequencePreviousBackgroundSprite = null;
-        dialogueSequenceHasBackgroundOverride = false;
+        dialogueSequencePreviousStillSprite = null;
+        dialogueSequenceHasStillSpriteOverride = false;
+
+        if (dialogueSequenceHasStillPreserveAspectOverride && dialogueSequenceStillImageTarget != null)
+        {
+            dialogueSequenceStillImageTarget.preserveAspect = dialogueSequencePreviousStillPreserveAspect;
+        }
+
+        dialogueSequencePreviousStillPreserveAspect = false;
+        dialogueSequenceHasStillPreserveAspectOverride = false;
+
+        if (dialogueSequenceHasStillImageActiveOverride && dialogueSequenceStillImageTarget != null)
+        {
+            dialogueSequenceStillImageTarget.gameObject.SetActive(dialogueSequencePreviousStillImageActive);
+        }
+
+        dialogueSequencePreviousStillImageActive = false;
+        dialogueSequenceHasStillImageActiveOverride = false;
+        dialogueSequenceStillImageTarget = null;
 
         if (dialogueSequenceHidHeroineImage && outfitManager != null)
         {
@@ -345,6 +389,16 @@ public class GameManager : MonoBehaviour
         {
             loadButton.gameObject.SetActive(visible);
         }
+    }
+
+    private Image GetDialogueStillImage()
+    {
+        if (eventStillImage != null)
+        {
+            return eventStillImage;
+        }
+
+        return backgroundImage;
     }
 
     private DialogueSpeakerType GetSpeakerTypeForName(string speakerName)
@@ -498,6 +552,10 @@ public class GameManager : MonoBehaviour
         nextButton.gameObject.SetActive(false);
         endingButton.gameObject.SetActive(false);
         SetSaveLoadButtonsVisible(false);
+        if (eventStillImage != null)
+        {
+            eventStillImage.gameObject.SetActive(false);
+        }
 
         //saveButton.onClick.AddListener(SaveGame);
         //loadButton.onClick.AddListener(LoadGame);
