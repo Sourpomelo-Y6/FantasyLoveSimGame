@@ -45,6 +45,7 @@
 - 詳細ステータス画面は `StatusDetailPanel`、能力項目は `StatusAbilityKind`、画面の対象切り替えは `StatusDetailRole` で扱う
 - 詳細ステータス画面の入口として `StatusDetailAction` を用意し、行動一覧から開けるようにしている
 - タイトルから新規ゲームを開始した直後は、`GameEventData` の `GameStart` イベントを再生してからメイン画面を始める。`GameEventData` は `Assets/Resources/GameEvents/` に置き、ページ単位で話者・メッセージ・スチルを持てる
+- Unity Editor で `MainScene` を直接開いて再生した場合は、`GameStartSettings.ShouldPlayGameStartEvent` の初期値が `false` のため開始イベントは発生しない
 - `GameEventData.showOnce` はセーブデータの `shownGameEventIds` で管理する
 - `StatusDetailPanel` の画面部品は Unity 上で手作業配置し、Inspector で参照を割り当てる
 - 必須参照は `panelRoot`、各 `TextMeshProUGUI`、各 `Button`、`abilityListParent`、`abilityButtonPrefab`、`abilityAcquirePanel` 周辺
