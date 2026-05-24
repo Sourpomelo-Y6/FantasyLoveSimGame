@@ -25,6 +25,19 @@ public class StatusDetailPanel : MonoBehaviour
     [SerializeField] private Button abilityAcquireButton;
     [SerializeField] private Button abilityAcquireBackButton;
 
+    [Header("Ability Lists")]
+    [SerializeField] private StatusAbilityKind[] playerAbilityKinds =
+    {
+        StatusAbilityKind.ConditionalOutfitPrompt,
+        StatusAbilityKind.HiddenOutfitPrompt
+    };
+
+    [SerializeField] private StatusAbilityKind[] heroineAbilityKinds =
+    {
+        StatusAbilityKind.ConditionalOutfitPrompt,
+        StatusAbilityKind.HiddenOutfitPrompt
+    };
+
     [Header("Labels")]
     [SerializeField] private string playerTitle = "プレイヤー詳細ステータス";
     [SerializeField] private string heroineTitle = "ヒロイン詳細ステータス";
@@ -191,8 +204,16 @@ public class StatusDetailPanel : MonoBehaviour
 
         ClearAbilityList();
 
-        CreateAbilityButton(StatusAbilityKind.ConditionalOutfitPrompt);
-        CreateAbilityButton(StatusAbilityKind.HiddenOutfitPrompt);
+        StatusAbilityKind[] abilityKinds = GetCurrentAbilityKinds();
+        if (abilityKinds == null)
+        {
+            return;
+        }
+
+        foreach (StatusAbilityKind abilityKind in abilityKinds)
+        {
+            CreateAbilityButton(abilityKind);
+        }
     }
 
     private void CreateAbilityButton(StatusAbilityKind abilityKind)
@@ -215,6 +236,13 @@ public class StatusDetailPanel : MonoBehaviour
         {
             Destroy(abilityListParent.GetChild(i).gameObject);
         }
+    }
+
+    private StatusAbilityKind[] GetCurrentAbilityKinds()
+    {
+        return currentRole == StatusDetailRole.Player
+            ? playerAbilityKinds
+            : heroineAbilityKinds;
     }
 
     private string BuildStatusSummary()
