@@ -1719,12 +1719,34 @@ public class GameManager : MonoBehaviour
         outfitPanel.SetActive(false);
         outfitReactionPanel.SetActive(false);
 
-        ShowHeroineDialogue(scheduledEvent.EventMessage);
+        ShowScheduledEventDialogue(scheduledEvent);
 
         flowState = ConversationFlowState.ShowingActionResult;
         nextButton.gameObject.SetActive(true);
 
         RefreshUI();
+    }
+
+    private void ShowScheduledEventDialogue(ScheduledEventDefinition scheduledEvent)
+    {
+        switch (scheduledEvent.EventSpeakerType)
+        {
+            case ScheduledEventSpeakerType.System:
+                ShowSystemDialogue(scheduledEvent.EventMessage);
+                return;
+
+            case ScheduledEventSpeakerType.Schedule:
+                ShowScheduleDialogue(scheduledEvent.EventMessage);
+                return;
+
+            case ScheduledEventSpeakerType.Outfit:
+                ShowOutfitDialogue(scheduledEvent.EventMessage);
+                return;
+
+            default:
+                ShowHeroineDialogue(scheduledEvent.EventMessage);
+                return;
+        }
     }
 
     private ScheduledEventDefinition GetScheduledEventDefinition(ScheduleType scheduleType)
@@ -1772,6 +1794,7 @@ public class GameManager : MonoBehaviour
                     "AutoWalkForest",
                     TimeSlot.Noon,
                     true,
+                    ScheduledEventSpeakerType.Heroine,
                     "今日は昼に森へ出かける予定です。出発までに服装を整えられます。",
                     "森の中をゆっくり歩きました。木漏れ日の下で、少し気持ちが軽くなります。",
                     1
@@ -1783,6 +1806,7 @@ public class GameManager : MonoBehaviour
                     "AutoWalkCave",
                     TimeSlot.Noon,
                     true,
+                    ScheduledEventSpeakerType.Heroine,
                     "今日は昼に洞窟へ向かう予定です。動きやすい服にしておくとよさそうです。",
                     "洞窟の入口まで足を運びました。ひんやりした空気に、少し冒険の気配を感じます。",
                     1
@@ -1794,6 +1818,7 @@ public class GameManager : MonoBehaviour
                     "AutoWalkLake",
                     TimeSlot.Noon,
                     true,
+                    ScheduledEventSpeakerType.Heroine,
                     "今日は昼に湖へ行く予定です。水辺に合う服を選ぶ余裕があります。",
                     "湖畔で静かな時間を過ごしました。水面を眺めていると、心が落ち着きます。",
                     1
@@ -1805,6 +1830,7 @@ public class GameManager : MonoBehaviour
                     "AutoWalkShopping",
                     TimeSlot.Noon,
                     true,
+                    ScheduledEventSpeakerType.Heroine,
                     "今日は昼に買い物へ行く予定です。街に出る服を選んでおけます。",
                     "街で買い物をしました。店先を見て回るだけでも、少し気分が華やぎます。",
                     1
@@ -1816,6 +1842,7 @@ public class GameManager : MonoBehaviour
                     "AutoDuoForest",
                     TimeSlot.Noon,
                     true,
+                    ScheduledEventSpeakerType.Heroine,
                     "今日は昼に二人で森へ行く予定です。出発前に衣装を見直せます。",
                     "二人で森を歩きました。並んで歩く時間が、いつもより少し近く感じられます。",
                     3
@@ -1827,6 +1854,7 @@ public class GameManager : MonoBehaviour
                     "AutoDuoCave",
                     TimeSlot.Noon,
                     true,
+                    ScheduledEventSpeakerType.Heroine,
                     "今日は昼に二人で洞窟へ行く予定です。動きやすい服装がよさそうです。",
                     "二人で洞窟へ向かいました。暗がりで声を掛け合うたび、距離が少し縮まります。",
                     3
@@ -1838,6 +1866,7 @@ public class GameManager : MonoBehaviour
                     "AutoDuoLake",
                     TimeSlot.Noon,
                     true,
+                    ScheduledEventSpeakerType.Heroine,
                     "今日は昼に二人で湖へ行く予定です。水辺に合う服を選ぶ時間があります。",
                     "二人で湖を眺めました。穏やかな水音の中で、会話も自然と柔らかくなります。",
                     3
@@ -1849,6 +1878,7 @@ public class GameManager : MonoBehaviour
                     "AutoDuoShopping",
                     TimeSlot.Noon,
                     true,
+                    ScheduledEventSpeakerType.Heroine,
                     "今日は昼に二人で買い物へ行く予定です。街歩きの服を選んでおけます。",
                     "二人で買い物に出かけました。選んだものを見せ合う時間が、楽しい思い出になります。",
                     3
@@ -1860,6 +1890,7 @@ public class GameManager : MonoBehaviour
                     "AutoStayHome",
                     TimeSlot.Noon,
                     true,
+                    ScheduledEventSpeakerType.Heroine,
                     "今日は家で過ごす予定です。くつろげる服に着替えてもよさそうです。",
                     "家でゆっくり過ごしました。落ち着いた時間の中で、自然に会話が続きます。",
                     2

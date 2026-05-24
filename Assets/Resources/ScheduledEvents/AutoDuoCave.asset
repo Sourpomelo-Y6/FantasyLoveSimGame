@@ -16,6 +16,7 @@ MonoBehaviour:
   actionId: AutoDuoCave
   triggerTimeSlot: 1
   allowOutfitChangeBeforeStart: 1
+  eventSpeakerType: 0
   preparationMessage: 今日は昼に二人で洞窟へ行く予定です。動きやすい服装がよさそうです。
   eventMessage: 二人で洞窟へ向かいました。暗がりで声を掛け合うたび、距離が少し縮まります。
   affectionChange: 3

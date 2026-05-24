@@ -16,6 +16,7 @@ MonoBehaviour:
   actionId: AutoWalkShopping
   triggerTimeSlot: 1
   allowOutfitChangeBeforeStart: 1
+  eventSpeakerType: 0
   preparationMessage: 今日は昼に買い物へ行く予定です。街に出る服を選んでおけます。
   eventMessage: 街で買い物をしました。店先を見て回るだけでも、少し気分が華やぎます。
   affectionChange: 1

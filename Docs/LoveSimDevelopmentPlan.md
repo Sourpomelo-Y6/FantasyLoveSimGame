@@ -140,6 +140,7 @@ public class ActionData : ScriptableObject
 これは「予定を翌日に自動実行する」ための仕組みで、現在は準備フェーズ付きで実装済み。
 予定イベントは `Assets/Resources/ScheduledEvents/` の `ScheduledEventData` アセットで管理する。
 `ActionId` は既存の `ActionData` と分けて、予約実行専用の内部 ID として扱っている。
+予定イベント本文の話者は `eventSpeakerType` で `Heroine` / `System` / `Schedule` / `Outfit` から選べる。
 翌朝は予定の準備メッセージだけを表示し、イベント本体は `triggerTimeSlot` に到達した時点で発動する。
 イベント直前には、必要に応じて `このまま出発` / `着替える` を選べる。
 

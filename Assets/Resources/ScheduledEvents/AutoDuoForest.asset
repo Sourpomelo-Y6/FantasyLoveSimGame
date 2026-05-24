@@ -16,6 +16,7 @@ MonoBehaviour:
   actionId: AutoDuoForest
   triggerTimeSlot: 1
   allowOutfitChangeBeforeStart: 1
+  eventSpeakerType: 0
   preparationMessage: 今日は昼に二人で森へ行く予定です。出発前に衣装を見直せます。
   eventMessage: 二人で森を歩きました。並んで歩く時間が、いつもより少し近く感じられます。
   affectionChange: 3

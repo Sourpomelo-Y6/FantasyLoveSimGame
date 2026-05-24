@@ -343,6 +343,7 @@
 
 予定イベントを増やす場合は、`Assets/Resources/ScheduledEvents/` に `ScheduledEventData` アセットを追加します。
 同じ `ScheduleType` のアセットがある場合、`GameManager` はそのデータを優先し、アセットがない場合だけコード内の既定定義へフォールバックします。
+予定イベント本文の話者は `ScheduledEventData.eventSpeakerType` で指定でき、`Heroine` / `System` / `Schedule` / `Outfit` から選べます。
 
 ### 会話を増やす
 

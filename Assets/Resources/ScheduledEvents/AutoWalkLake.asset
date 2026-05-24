@@ -16,6 +16,7 @@ MonoBehaviour:
   actionId: AutoWalkLake
   triggerTimeSlot: 1
   allowOutfitChangeBeforeStart: 1
+  eventSpeakerType: 0
   preparationMessage: 今日は昼に湖へ行く予定です。水辺に合う服を選ぶ余裕があります。
   eventMessage: 湖畔で静かな時間を過ごしました。水面を眺めていると、心が落ち着きます。
   affectionChange: 1

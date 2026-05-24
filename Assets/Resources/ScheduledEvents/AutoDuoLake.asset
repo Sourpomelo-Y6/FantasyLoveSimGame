@@ -16,6 +16,7 @@ MonoBehaviour:
   actionId: AutoDuoLake
   triggerTimeSlot: 1
   allowOutfitChangeBeforeStart: 1
+  eventSpeakerType: 0
   preparationMessage: 今日は昼に二人で湖へ行く予定です。水辺に合う服を選ぶ時間があります。
   eventMessage: 二人で湖を眺めました。穏やかな水音の中で、会話も自然と柔らかくなります。
   affectionChange: 3

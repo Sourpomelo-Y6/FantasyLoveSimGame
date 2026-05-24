@@ -12,6 +12,8 @@ public class ScheduledEventData : ScriptableObject
     public bool allowOutfitChangeBeforeStart = true;
 
     [Header("Messages")]
+    public ScheduledEventSpeakerType eventSpeakerType = ScheduledEventSpeakerType.Heroine;
+
     [TextArea(2, 4)]
     public string preparationMessage;
 
@@ -28,6 +30,7 @@ public class ScheduledEventData : ScriptableObject
             actionId,
             triggerTimeSlot,
             allowOutfitChangeBeforeStart,
+            eventSpeakerType,
             preparationMessage,
             eventMessage,
             affectionChange
