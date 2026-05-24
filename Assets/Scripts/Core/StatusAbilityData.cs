@@ -6,6 +6,7 @@ public class StatusAbilityData : ScriptableObject
     [Header("Basic")]
     public string abilityId;
     public StatusAbilityKind abilityKind = StatusAbilityKind.ConditionalOutfitPrompt;
+    public StatusAbilityEffectType effectType = StatusAbilityEffectType.UseAbilityKind;
     public StatusDetailRole targetRole = StatusDetailRole.Player;
 
     [Header("Display")]

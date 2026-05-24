@@ -367,13 +367,13 @@ public class StatusDetailPanel : MonoBehaviour
             return false;
         }
 
-        switch (abilityKind)
+        switch (GetAbilityEffectType(abilityKind, ability))
         {
-            case StatusAbilityKind.ConditionalOutfitPrompt:
+            case StatusAbilityEffectType.OutfitPromptConditional:
                 return abilities.canUseConditionalMode;
-            case StatusAbilityKind.HiddenOutfitPrompt:
+            case StatusAbilityEffectType.OutfitPromptHidden:
                 return abilities.canUseHiddenMode;
-            case StatusAbilityKind.TestJump:
+            case StatusAbilityEffectType.None:
             default:
                 return gameManager != null && gameManager.IsStatusAbilityUnlocked(GetStatusAbilitySaveKey(ability));
         }
@@ -397,15 +397,15 @@ public class StatusDetailPanel : MonoBehaviour
             return;
         }
 
-        switch (selectedAbilityKind)
+        switch (GetAbilityEffectType(selectedAbilityKind, selectedAbility))
         {
-            case StatusAbilityKind.ConditionalOutfitPrompt:
+            case StatusAbilityEffectType.OutfitPromptConditional:
                 abilities.canUseConditionalMode = true;
                 break;
-            case StatusAbilityKind.HiddenOutfitPrompt:
+            case StatusAbilityEffectType.OutfitPromptHidden:
                 abilities.canUseHiddenMode = true;
                 break;
-            case StatusAbilityKind.TestJump:
+            case StatusAbilityEffectType.None:
             default:
                 if (gameManager != null)
                 {
@@ -440,6 +440,24 @@ public class StatusDetailPanel : MonoBehaviour
         }
 
         return heroineStatus != null ? heroineStatus.OutfitPromptAbilities : null;
+    }
+
+    private StatusAbilityEffectType GetAbilityEffectType(StatusAbilityKind abilityKind, StatusAbilityData ability)
+    {
+        if (ability != null && ability.effectType != StatusAbilityEffectType.UseAbilityKind)
+        {
+            return ability.effectType;
+        }
+
+        switch (abilityKind)
+        {
+            case StatusAbilityKind.ConditionalOutfitPrompt:
+                return StatusAbilityEffectType.OutfitPromptConditional;
+            case StatusAbilityKind.HiddenOutfitPrompt:
+                return StatusAbilityEffectType.OutfitPromptHidden;
+            default:
+                return StatusAbilityEffectType.None;
+        }
     }
 
     private bool CanUnlockAbility(StatusAbilityKind abilityKind, StatusAbilityData ability)

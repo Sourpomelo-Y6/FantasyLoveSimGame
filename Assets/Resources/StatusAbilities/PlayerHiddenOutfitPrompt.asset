@@ -14,6 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   abilityId: PlayerHiddenOutfitPrompt
   abilityKind: 1
+  effectType: 3
   targetRole: 0
   displayName: "\u8863\u88C5\u78BA\u8A8D\u30E2\u30FC\u30C9: \u975E\u8868\u793A"
   description: "\u8863\u88C5\u78BA\u8A8D\u305D\u306E\u3082\u306E\u3092\u7701\u7565\u3057\u3001\u4E88\u5B9A\u958B\u59CB\u6642\u306B\u305D\u306E\u307E\u307E\u9032\u3081\u308B\u3088\u3046\u306B\u3057\u307E\u3059\u3002"
