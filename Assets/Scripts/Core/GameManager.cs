@@ -78,6 +78,9 @@ public class GameManager : MonoBehaviour
     [Header("Scheduled Event Data")]
     [SerializeField] private string scheduledEventResourcePath = "ScheduledEvents";
 
+    [Header("Outfit Prompt Ability")]
+    [SerializeField] private OutfitPromptAbilitySet playerOutfitPromptAbilities = new OutfitPromptAbilitySet();
+
     private List<ScheduledEventData> scheduledEvents = new List<ScheduledEventData>();
 
     [Header("Conversation Data")]
@@ -1624,7 +1627,7 @@ public class GameManager : MonoBehaviour
             return false;
         }
 
-        if (scheduledEvent.AllowOutfitChangeBeforeStart)
+        if (ShouldShowScheduledEventOutfitPrompt(scheduledEvent))
         {
             ShowScheduledEventOutfitPrompt(scheduledEvent);
             return true;
@@ -1632,6 +1635,74 @@ public class GameManager : MonoBehaviour
 
         StartScheduledEvent(scheduledEvent);
         return true;
+    }
+
+    private bool ShouldShowScheduledEventOutfitPrompt(ScheduledEventDefinition scheduledEvent)
+    {
+        if (scheduledEvent == null || !scheduledEvent.AllowOutfitChangeBeforeStart)
+        {
+            return false;
+        }
+
+        if (outfitManager == null)
+        {
+            return true;
+        }
+
+        ScheduledEventOutfitPromptMode effectiveMode =
+            GetEffectiveScheduledEventOutfitPromptMode(scheduledEvent.OutfitPromptMode);
+
+        switch (effectiveMode)
+        {
+            case ScheduledEventOutfitPromptMode.Always:
+                return true;
+
+            case ScheduledEventOutfitPromptMode.Hidden:
+                return false;
+
+            case ScheduledEventOutfitPromptMode.Conditional:
+                return !outfitManager.IsCurrentOutfitSuitableForSchedule(scheduledEvent.ScheduleType);
+
+            default:
+                return false;
+        }
+    }
+
+    private ScheduledEventOutfitPromptMode GetEffectiveScheduledEventOutfitPromptMode(
+        ScheduledEventOutfitPromptMode outfitPromptMode)
+    {
+        if (CanUseScheduledEventOutfitPromptMode(outfitPromptMode))
+        {
+            return outfitPromptMode;
+        }
+
+        return ScheduledEventOutfitPromptMode.Always;
+    }
+
+    private bool CanUseScheduledEventOutfitPromptMode(ScheduledEventOutfitPromptMode outfitPromptMode)
+    {
+        if (outfitPromptMode == ScheduledEventOutfitPromptMode.Always)
+        {
+            return true;
+        }
+
+        if (outfitPromptMode == ScheduledEventOutfitPromptMode.Conditional)
+        {
+            return playerOutfitPromptAbilities.canUseConditionalMode &&
+                   heroineStatus != null &&
+                   heroineStatus.OutfitPromptAbilities != null &&
+                   heroineStatus.OutfitPromptAbilities.canUseConditionalMode;
+        }
+
+        if (outfitPromptMode == ScheduledEventOutfitPromptMode.Hidden)
+        {
+            return playerOutfitPromptAbilities.canUseHiddenMode &&
+                   heroineStatus != null &&
+                   heroineStatus.OutfitPromptAbilities != null &&
+                   heroineStatus.OutfitPromptAbilities.canUseHiddenMode;
+        }
+
+        return false;
     }
 
     private void ShowScheduledEventOutfitPrompt(ScheduledEventDefinition scheduledEvent)
@@ -1794,6 +1865,7 @@ public class GameManager : MonoBehaviour
                     "AutoWalkForest",
                     TimeSlot.Noon,
                     true,
+                    ScheduledEventOutfitPromptMode.Conditional,
                     ScheduledEventSpeakerType.Heroine,
                     "今日は昼に森へ出かける予定です。出発までに服装を整えられます。",
                     "森の中をゆっくり歩きました。木漏れ日の下で、少し気持ちが軽くなります。",
@@ -1806,6 +1878,7 @@ public class GameManager : MonoBehaviour
                     "AutoWalkCave",
                     TimeSlot.Noon,
                     true,
+                    ScheduledEventOutfitPromptMode.Conditional,
                     ScheduledEventSpeakerType.Heroine,
                     "今日は昼に洞窟へ向かう予定です。動きやすい服にしておくとよさそうです。",
                     "洞窟の入口まで足を運びました。ひんやりした空気に、少し冒険の気配を感じます。",
@@ -1818,6 +1891,7 @@ public class GameManager : MonoBehaviour
                     "AutoWalkLake",
                     TimeSlot.Noon,
                     true,
+                    ScheduledEventOutfitPromptMode.Conditional,
                     ScheduledEventSpeakerType.Heroine,
                     "今日は昼に湖へ行く予定です。水辺に合う服を選ぶ余裕があります。",
                     "湖畔で静かな時間を過ごしました。水面を眺めていると、心が落ち着きます。",
@@ -1830,6 +1904,7 @@ public class GameManager : MonoBehaviour
                     "AutoWalkShopping",
                     TimeSlot.Noon,
                     true,
+                    ScheduledEventOutfitPromptMode.Conditional,
                     ScheduledEventSpeakerType.Heroine,
                     "今日は昼に買い物へ行く予定です。街に出る服を選んでおけます。",
                     "街で買い物をしました。店先を見て回るだけでも、少し気分が華やぎます。",
@@ -1842,6 +1917,7 @@ public class GameManager : MonoBehaviour
                     "AutoDuoForest",
                     TimeSlot.Noon,
                     true,
+                    ScheduledEventOutfitPromptMode.Conditional,
                     ScheduledEventSpeakerType.Heroine,
                     "今日は昼に二人で森へ行く予定です。出発前に衣装を見直せます。",
                     "二人で森を歩きました。並んで歩く時間が、いつもより少し近く感じられます。",
@@ -1854,6 +1930,7 @@ public class GameManager : MonoBehaviour
                     "AutoDuoCave",
                     TimeSlot.Noon,
                     true,
+                    ScheduledEventOutfitPromptMode.Conditional,
                     ScheduledEventSpeakerType.Heroine,
                     "今日は昼に二人で洞窟へ行く予定です。動きやすい服装がよさそうです。",
                     "二人で洞窟へ向かいました。暗がりで声を掛け合うたび、距離が少し縮まります。",
@@ -1866,6 +1943,7 @@ public class GameManager : MonoBehaviour
                     "AutoDuoLake",
                     TimeSlot.Noon,
                     true,
+                    ScheduledEventOutfitPromptMode.Conditional,
                     ScheduledEventSpeakerType.Heroine,
                     "今日は昼に二人で湖へ行く予定です。水辺に合う服を選ぶ時間があります。",
                     "二人で湖を眺めました。穏やかな水音の中で、会話も自然と柔らかくなります。",
@@ -1878,6 +1956,7 @@ public class GameManager : MonoBehaviour
                     "AutoDuoShopping",
                     TimeSlot.Noon,
                     true,
+                    ScheduledEventOutfitPromptMode.Conditional,
                     ScheduledEventSpeakerType.Heroine,
                     "今日は昼に二人で買い物へ行く予定です。街歩きの服を選んでおけます。",
                     "二人で買い物に出かけました。選んだものを見せ合う時間が、楽しい思い出になります。",
@@ -1890,6 +1969,7 @@ public class GameManager : MonoBehaviour
                     "AutoStayHome",
                     TimeSlot.Noon,
                     true,
+                    ScheduledEventOutfitPromptMode.Conditional,
                     ScheduledEventSpeakerType.Heroine,
                     "今日は家で過ごす予定です。くつろげる服に着替えてもよさそうです。",
                     "家でゆっくり過ごしました。落ち着いた時間の中で、自然に会話が続きます。",

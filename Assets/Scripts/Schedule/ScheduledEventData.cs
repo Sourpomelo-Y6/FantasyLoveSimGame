@@ -10,6 +10,7 @@ public class ScheduledEventData : ScriptableObject
     [Header("Timing")]
     public TimeSlot triggerTimeSlot = TimeSlot.Noon;
     public bool allowOutfitChangeBeforeStart = true;
+    public ScheduledEventOutfitPromptMode outfitPromptMode = ScheduledEventOutfitPromptMode.Conditional;
 
     [Header("Messages")]
     public ScheduledEventSpeakerType eventSpeakerType = ScheduledEventSpeakerType.Heroine;
@@ -30,6 +31,7 @@ public class ScheduledEventData : ScriptableObject
             actionId,
             triggerTimeSlot,
             allowOutfitChangeBeforeStart,
+            outfitPromptMode,
             eventSpeakerType,
             preparationMessage,
             eventMessage,

@@ -9,9 +9,13 @@ public class HeroineStatus : MonoBehaviour
     [SerializeField] private int affection = 0;
     [SerializeField] private int maxAffection = 100;
 
+    [Header("Outfit Prompt Ability")]
+    [SerializeField] private OutfitPromptAbilitySet outfitPromptAbilities = new OutfitPromptAbilitySet();
+
     public string HeroineName => heroineName;
     public int Affection => affection;
     public int MaxAffection => maxAffection;
+    public OutfitPromptAbilitySet OutfitPromptAbilities => outfitPromptAbilities;
 
     public void AddAffection(int value)
     {

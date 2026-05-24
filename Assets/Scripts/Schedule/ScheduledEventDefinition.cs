@@ -4,6 +4,7 @@ public class ScheduledEventDefinition
     public string ActionId { get; private set; }
     public TimeSlot TriggerTimeSlot { get; private set; }
     public bool AllowOutfitChangeBeforeStart { get; private set; }
+    public ScheduledEventOutfitPromptMode OutfitPromptMode { get; private set; }
     public ScheduledEventSpeakerType EventSpeakerType { get; private set; }
     public string PreparationMessage { get; private set; }
     public string EventMessage { get; private set; }
@@ -14,6 +15,7 @@ public class ScheduledEventDefinition
         string actionId,
         TimeSlot triggerTimeSlot,
         bool allowOutfitChangeBeforeStart,
+        ScheduledEventOutfitPromptMode outfitPromptMode,
         ScheduledEventSpeakerType eventSpeakerType,
         string preparationMessage,
         string eventMessage,
@@ -23,6 +25,7 @@ public class ScheduledEventDefinition
         ActionId = actionId;
         TriggerTimeSlot = triggerTimeSlot;
         AllowOutfitChangeBeforeStart = allowOutfitChangeBeforeStart;
+        OutfitPromptMode = outfitPromptMode;
         EventSpeakerType = eventSpeakerType;
         PreparationMessage = preparationMessage;
         EventMessage = eventMessage;

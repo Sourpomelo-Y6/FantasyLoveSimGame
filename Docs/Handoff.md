@@ -24,9 +24,12 @@
 - 予定が行動制限、会話候補、衣装自動選択に影響する
 - 予定を翌日の具体イベントに変換する案2は、準備フェーズ付きで実装済み
 - 翌朝は今日の予定と着替え可能な準備メッセージを表示し、予定イベント本体は指定された時間帯に発動する
-- 予定イベント本体の直前に `このまま出発` / `着替える` を選べる
+- 予定イベント本体の直前は、衣装確認モードに応じて `このまま出発` / `着替える` を出し分ける
+- 衣装確認モードは `Always` / `Conditional` / `Hidden` を想定しており、`Conditional` のときは今の衣装が予定に対して問題ない場合に確認を省略する
+- 衣装確認モードの可否は `GameManager.playerOutfitPromptAbilities` と `HeroineStatus.OutfitPromptAbilities` で制御する
 - 会話や行動のたびに時間が進み、一定数で日付が進む
 - 好感度が `100` に達すると `Ending` ボタンが表示される
+- メッセージは現状 1 枚のメッセージボックスに上書き表示されるため、今後はログ表示やメッセージキューを追加し、同時に 2 件以上のメッセージが発生したときは `Next` で 1 件ずつ読めるようにする
 
 ## 使用環境
 
@@ -322,6 +325,8 @@
 - セーブスロット UI は prefab 化済みで、`TitleScene` と `MainScene` に配置済み
 - 話者ラベルは `SYSTEM` / `予定` / `衣装` / ヒロイン名に分けている
 - ただしヒロイン発話とシステム通知は同じメッセージボックスに出るため、今後はシステム通知専用パネルや表示スタイル分離を検討する
+- メッセージが 2 件以上連続で発生する場合は、ログ表示またはメッセージキューに積み、`Next` で順番に表示する方式を検討する
+- 衣装確認モードの解放条件は、`GameManager.playerOutfitPromptAbilities` と `HeroineStatus.OutfitPromptAbilities` の組み合わせで管理する
 
 ## 変更しやすいポイント
 
@@ -338,7 +343,8 @@
 
 案2は `ScheduledEventData -> ScheduledEventDefinition` の変換として実装済みです。
 翌日開始時は準備メッセージだけを表示し、予定イベント本体は `triggerTimeSlot` に到達した後で発動します。
-イベント直前には `allowOutfitChangeBeforeStart` を見て、既存の選択肢ボタンで `このまま出発` / `着替える` を表示します。
+イベント直前には `allowOutfitChangeBeforeStart` と `outfitPromptMode` を見て、衣装確認モードに応じて `このまま出発` / `着替える` を表示します。
+`Conditional` は今の衣装が予定に対して問題ない場合は確認を省略し、`Hidden` は確認を出しません。
 現在は昼発動の固定メッセージ中心ですが、今後は予定ごとに昼・夜などの発動時間を拡張できます。
 
 予定イベントを増やす場合は、`Assets/Resources/ScheduledEvents/` に `ScheduledEventData` アセットを追加します。

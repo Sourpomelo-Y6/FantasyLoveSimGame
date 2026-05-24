@@ -89,6 +89,43 @@ public class OutfitManager : MonoBehaviour
         return true;
     }
 
+    public bool IsCurrentOutfitSuitableForSchedule(ScheduleType scheduleType)
+    {
+        return IsOutfitSuitableForSchedule(currentOutfit, scheduleType);
+    }
+
+    public bool IsOutfitSuitableForSchedule(OutfitData outfit, ScheduleType scheduleType)
+    {
+        if (outfit == null)
+        {
+            return false;
+        }
+
+        if (!CanWearOutfit(outfit))
+        {
+            return false;
+        }
+
+        switch (scheduleType)
+        {
+            case ScheduleType.StayHome:
+                return !outfit.isOutdoorOutfit || outfit.isIndoorOutfit;
+
+            case ScheduleType.SoloForest:
+            case ScheduleType.SoloCave:
+            case ScheduleType.SoloLake:
+            case ScheduleType.SoloShopping:
+            case ScheduleType.DuoForest:
+            case ScheduleType.DuoCave:
+            case ScheduleType.DuoLake:
+            case ScheduleType.DuoShopping:
+                return !outfit.isIndoorOutfit || outfit.isOutdoorOutfit;
+
+            default:
+                return true;
+        }
+    }
+
     public bool TryChangeOutfit(OutfitData outfit, out string message)
     {
         message = "";
