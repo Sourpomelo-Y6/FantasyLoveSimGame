@@ -257,6 +257,7 @@
 - `displayColumn` が `Auto` の場合や指定列が存在しない場合は、`sortOrder` 順の有効な `ActionData` を利用可能な列数で均等に分配する
 - 列内の並び順は引き続き `sortOrder` を使う
 - 初期アクションは左列に `Rest` / `Walk` / `Tea`、中央列に `Talk` / `Gift` / `StatusDetail`、右列に `DressUp` / `OutfitReaction` / `Schedule` を配置している
+- 列見出しや列分類の微調整は現時点では後回し。必要になったら Unity UI 上で見出し Text を手動配置し、表示分類は `ActionData.displayColumn` の設定で調整する
 
 ### Genre Buttons
 

@@ -136,6 +136,8 @@ public class ActionData : ScriptableObject
 `Auto` の場合や指定列が存在しない場合は、旧データ互換として `sortOrder` 順の有効な `ActionData` を列数で均等に分配する。
 列内の順序は既存の `sortOrder` を使う。
 初期アクションは基本行動を左列、交流・状態系を中央列、衣装・予定などの補助系を右列に置く。
+列見出しの追加や分類の微調整は現時点では優先しない。
+必要になった場合は、列見出しは Unity UI 上に Text を手動配置し、分類変更は `ActionData.displayColumn` の設定で行う。
 
 ### ActionReactionData
 
