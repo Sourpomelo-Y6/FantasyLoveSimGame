@@ -38,6 +38,7 @@
 - `StatusAbilityData.requiredAffection` と `requiredDay` で解放条件を設定でき、条件未達の場合は解放ボタンを押せない
 - 解放条件の現在値表示や詳細な不足理由表示は、現時点では必要性が低いため後回しにする
 - タイトルから新規ゲームを開始した直後に、メイン画面へ入る前のゲーム開始イベントを挟み、スチル表示もここで行う方針
+- タイトル画面とゲーム開始イベント中は `SaveLoadPanel` を閉じた状態に保ち、`Save` / `Load` ボタンを表示しない
 - `StatusAbilityData.effectType` が実際の効果を決める。`UseAbilityKind` は旧来互換として `abilityKind` から効果を推測し、`None` は効果なし能力として汎用の取得済みIDだけを保存する
 - 初期データとしてプレイヤー用・ヒロイン用の衣装確認能力をそれぞれ用意している
 - テスト用など効果を持たない能力は `StatusAbilityKind.TestJump` のような表示種別にし、`effectType` を `None`、`abilityId` を一意に設定すると汎用の取得済みIDとして保存される
@@ -328,6 +329,7 @@
 - `slot 0` は従来の `save.json` を使い、既存セーブとの互換を保つ
 - `SaveLoadPanel` は `TitleScene` と `MainScene` に同じ prefab を置いて使う共通 UI 制御用スクリプト
 - `SaveLoadPanel` は開いたモードに応じて背景色とタイトルを切り替える
+- `SaveLoadPanel` は起動時に閉じた状態で始まる
 - 保存済みスロットのラベルは `Slot 1 / Day 3 / Affection 42` のように日数と好感度を表示する
 - スロット一覧表示では `SaveManager.LoadPreview(int slotIndex)` でセーブデータを読み、現在選択中スロットは変更しない
 - `MainScene` でスロットからロードした後は `SaveLoadPanel.Close()` でパネルを閉じる
