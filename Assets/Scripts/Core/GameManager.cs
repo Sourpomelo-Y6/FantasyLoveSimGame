@@ -18,6 +18,18 @@ public class GameManager : MonoBehaviour
         ShowingGoodNight
     }
 
+    private struct DialogueMessage
+    {
+        public readonly string SpeakerName;
+        public readonly string Message;
+
+        public DialogueMessage(string speakerName, string message)
+        {
+            SpeakerName = speakerName;
+            Message = message;
+        }
+    }
+
     [Header("Managers")]
     [SerializeField] private TimeManager timeManager;
     [SerializeField] private HeroineStatus heroineStatus;
@@ -99,7 +111,7 @@ public class GameManager : MonoBehaviour
     private bool pendingAdvanceTime = false;
     private bool pendingGoodNight = false;
     private bool isFading = false;
-    private string dayStartMessage = "";
+    private List<DialogueMessage> dayStartMessages = new List<DialogueMessage>();
     private ScheduledEventDefinition pendingScheduledEvent;
     private bool startPendingScheduledEventAfterOutfitMessage = false;
     private bool returnToScheduledEventPromptAfterOutfitMessage = false;
@@ -112,6 +124,7 @@ public class GameManager : MonoBehaviour
 
     private readonly HashSet<string> shownConversationIds = new HashSet<string>();
     private readonly HashSet<string> unlockedStatusAbilityIds = new HashSet<string>();
+    private readonly Queue<DialogueMessage> queuedDialogueMessages = new Queue<DialogueMessage>();
 
     [Header("Save / Load Buttons")]
     [SerializeField] private Button saveButton;
@@ -190,8 +203,61 @@ public class GameManager : MonoBehaviour
 
     private void ShowDialogue(string speakerName, string message)
     {
-        speakerNameText.text = speakerName;
-        dialogueText.text = message;
+        queuedDialogueMessages.Clear();
+        SetDialogueText(speakerName, message);
+    }
+
+    private void SetDialogueText(string speakerName, string message)
+    {
+        if (speakerNameText != null)
+        {
+            speakerNameText.text = speakerName;
+        }
+
+        if (dialogueText != null)
+        {
+            dialogueText.text = speakerNameText == null && !string.IsNullOrEmpty(speakerName)
+                ? speakerName + "\n" + message
+                : message;
+        }
+    }
+
+    private void ShowDialogueSequence(List<DialogueMessage> messages)
+    {
+        queuedDialogueMessages.Clear();
+
+        if (messages == null || messages.Count == 0)
+        {
+            return;
+        }
+
+        SetDialogueText(messages[0].SpeakerName, messages[0].Message);
+
+        for (int i = 1; i < messages.Count; i++)
+        {
+            queuedDialogueMessages.Enqueue(messages[i]);
+        }
+
+        nextButton.gameObject.SetActive(queuedDialogueMessages.Count > 0);
+    }
+
+    private bool TryShowNextQueuedDialogue()
+    {
+        if (queuedDialogueMessages.Count == 0)
+        {
+            return false;
+        }
+
+        DialogueMessage message = queuedDialogueMessages.Dequeue();
+        SetDialogueText(message.SpeakerName, message.Message);
+
+        if (queuedDialogueMessages.Count == 0 && flowState == ConversationFlowState.Idle)
+        {
+            actionButtonArea.SetActive(true);
+            nextButton.gameObject.SetActive(false);
+        }
+
+        return true;
     }
 
     private void ShowHeroineDialogue(string message)
@@ -568,6 +634,11 @@ public class GameManager : MonoBehaviour
     private void OnClickNext()
     {
         if (isFading)
+        {
+            return;
+        }
+
+        if (TryShowNextQueuedDialogue())
         {
             return;
         }
@@ -1667,32 +1738,27 @@ public class GameManager : MonoBehaviour
 
     private void OnDayChanged()
     {
-        dayStartMessage = BuildDayStartMessage();
+        dayStartMessages = BuildDayStartMessages();
     }
 
-    private string BuildDayStartMessage()
+    private List<DialogueMessage> BuildDayStartMessages()
     {
-        List<string> messages = new List<string>();
+        List<DialogueMessage> messages = new List<DialogueMessage>();
         string outfitMessage = AutoChooseOutfitOnNewDay();
 
         if (!string.IsNullOrEmpty(outfitMessage))
         {
-            messages.Add(outfitMessage);
+            messages.Add(new DialogueMessage(OutfitSpeakerName, outfitMessage));
         }
 
         string scheduleMessage = CreateScheduledEventPreparationMessage();
 
         if (!string.IsNullOrEmpty(scheduleMessage))
         {
-            messages.Add(scheduleMessage);
+            messages.Add(new DialogueMessage(ScheduleSpeakerName, scheduleMessage));
         }
 
-        if (messages.Count == 0)
-        {
-            return "";
-        }
-
-        return string.Join("\n", messages);
+        return messages;
     }
 
     private string AutoChooseOutfitOnNewDay()
@@ -2170,24 +2236,32 @@ public class GameManager : MonoBehaviour
 
         SetFadeAlpha(0f);
 
-        if (string.IsNullOrEmpty(dayStartMessage))
+        if (dayStartMessages == null || dayStartMessages.Count == 0)
         {
             ShowHeroineDialogue("おはようございます。今日もよろしくお願いしますね。");
         }
         else
         {
-            ShowScheduleDialogue("今日の予定です。\n" + dayStartMessage);
-            dayStartMessage = "";
+            List<DialogueMessage> morningMessages = new List<DialogueMessage>
+            {
+                new DialogueMessage(heroineStatus.HeroineName, "おはようございます。今日もよろしくお願いしますね。")
+            };
+
+            morningMessages.AddRange(dayStartMessages);
+            ShowDialogueSequence(morningMessages);
+            dayStartMessages = new List<DialogueMessage>();
         }
 
         flowState = ConversationFlowState.Idle;
 
-        actionButtonArea.SetActive(true);
+        bool hasQueuedDayStartMessages = queuedDialogueMessages.Count > 0;
+
+        actionButtonArea.SetActive(!hasQueuedDayStartMessages);
         genreButtonArea.SetActive(false);
         choiceButtonArea.SetActive(false);
         outfitPanel.SetActive(false);
         outfitReactionPanel.SetActive(false);
-        nextButton.gameObject.SetActive(false);
+        nextButton.gameObject.SetActive(hasQueuedDayStartMessages);
 
         isFading = false;
     }

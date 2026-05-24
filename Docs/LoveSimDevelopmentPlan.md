@@ -188,7 +188,7 @@ public class ActionData : ScriptableObject
 4. 発動済み状態をセーブデータに保存し、ロード後の二重発火を避ける
 5. アセットがない予定はコード内の既定定義へフォールバックする
 6. 今後は `triggerTimeSlot` を昼・夜で分けたり、予定ごとの専用演出を追加できる
-7. メッセージ表示はログまたはキューで管理し、複数メッセージが同時に発生したら `Next` で 1 件ずつ読めるようにする
+7. 複数メッセージが同時に発生したら、話者付きキューで管理し、`Next` で 1 件ずつ読めるようにする
 8. 衣装確認モードの解放条件は、`GameManager.playerOutfitPromptAbilities` と `HeroineStatus.OutfitPromptAbilities` で管理する
 
 ## 優先度の高い改善候補
