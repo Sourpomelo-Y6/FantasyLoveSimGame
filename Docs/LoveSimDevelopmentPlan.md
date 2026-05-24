@@ -191,6 +191,7 @@ public class ActionData : ScriptableObject
 7. 複数メッセージが同時に発生したら、話者付きキューで管理し、`Next` で 1 件ずつ読めるようにする
 8. 衣装確認モードの解放条件は、`GameManager.playerOutfitPromptAbilities` と `HeroineStatus.OutfitPromptAbilities` で管理する
 9. 話者タイプごとに表示色を変え、同じメッセージボックス内でも発話種別が分かるようにする
+10. 汎用ログ画面を追加する場合は、セッション中の直近ログだけを保持する。対象は会話、行動結果、予定、衣装通知とし、話者タイプ付きで最大 20 件程度を表示する。セーブデータには含めない
 
 ## 優先度の高い改善候補
 
