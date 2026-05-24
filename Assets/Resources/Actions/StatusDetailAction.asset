@@ -14,6 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   actionId: StatusDetail
   displayName: "\u72B6\u614B"
+  displayColumn: 2
   executionType: 5
   resultMessage: 
   unavailableMessage: "\u4ECA\u306F\u3053\u306E\u884C\u52D5\u306F\u3067\u304D\u307E\u305B\u3093\u3002"

@@ -27,6 +27,7 @@ public class ActionData : ScriptableObject
     public List<ActionReactionData> reactions = new List<ActionReactionData>();
 
     [Header("Display")]
+    public ActionButtonColumn displayColumn = ActionButtonColumn.Auto;
     public int sortOrder = 0;
     public bool isEnabled = true;
 

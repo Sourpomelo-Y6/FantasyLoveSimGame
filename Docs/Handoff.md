@@ -253,9 +253,10 @@
 - `actionButtonAreaColumnRight`
 - `actionButtonParent`
 - `actionButtonPrefab`
-- 現在は `sortOrder` 順の有効な `ActionData` を、利用可能な列数で均等に分配している
-- 今後は `ActionData` 側に表示列を指定する項目を追加し、左列を基本行動、中央列を交流・状態系、右列を管理・補助系のように分類する方針
-- 表示列を追加する場合も、列内の並び順は引き続き `sortOrder` を使う
+- `ActionData.displayColumn` が `Left` / `Center` / `Right` の場合は指定列へ配置する
+- `displayColumn` が `Auto` の場合や指定列が存在しない場合は、`sortOrder` 順の有効な `ActionData` を利用可能な列数で均等に分配する
+- 列内の並び順は引き続き `sortOrder` を使う
+- 初期アクションは左列に `Rest` / `Walk` / `Tea`、中央列に `Talk` / `Gift` / `StatusDetail`、右列に `DressUp` / `OutfitReaction` / `Schedule` を配置している
 
 ### Genre Buttons
 
@@ -363,7 +364,7 @@
 
 `ActionData` アセットを `Assets/Resources/Actions/` に追加すればよいです。
 行動の反応を増やすなら `ActionReactionData` を使います。
-行動ボタンが増える場合は、将来的に `ActionData` に表示列を持たせ、意図した列に配置できるようにする方針です。
+行動ボタンの列を固定したい場合は、`ActionData.displayColumn` を `Left` / `Center` / `Right` に設定します。
 
 ### 予定を増やす
 

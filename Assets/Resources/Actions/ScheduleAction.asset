@@ -14,6 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   actionId: Schedule
   displayName: "\u30B9\u30B1\u30B8\u30E5\u30FC\u30EB"
+  displayColumn: 3
   executionType: 4
   resultMessage: 
   unavailableMessage: "\u4ECA\u306F\u3053\u306E\u884C\u52D5\u306F\u3067\u304D\u307E\u305B\u3093\u3002"

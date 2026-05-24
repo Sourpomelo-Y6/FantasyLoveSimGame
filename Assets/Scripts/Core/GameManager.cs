@@ -1267,7 +1267,7 @@ public class GameManager : MonoBehaviour
         for (int i = 0; i < enabledActions.Count; i++)
         {
             ActionData action = enabledActions[i];
-            int columnIndex = Mathf.Min(i / buttonsPerColumn, actionButtonParents.Length - 1);
+            int columnIndex = GetActionButtonColumnIndex(action, i, buttonsPerColumn, actionButtonParents.Length);
             Transform parent = actionButtonParents[columnIndex];
 
             if (parent == null)
@@ -1286,6 +1286,47 @@ public class GameManager : MonoBehaviour
             ActionData capturedAction = action;
             button.onClick.AddListener(() => ExecuteAction(capturedAction));
         }
+    }
+
+    private int GetActionButtonColumnIndex(
+        ActionData action,
+        int actionIndex,
+        int buttonsPerColumn,
+        int columnCount)
+    {
+        if (columnCount <= 0)
+        {
+            return 0;
+        }
+
+        if (columnCount == 1 || action == null || action.displayColumn == ActionButtonColumn.Auto)
+        {
+            return Mathf.Min(actionIndex / buttonsPerColumn, columnCount - 1);
+        }
+
+        int requestedColumnIndex;
+        switch (action.displayColumn)
+        {
+            case ActionButtonColumn.Left:
+                requestedColumnIndex = 0;
+                break;
+            case ActionButtonColumn.Center:
+                requestedColumnIndex = 1;
+                break;
+            case ActionButtonColumn.Right:
+                requestedColumnIndex = 2;
+                break;
+            default:
+                requestedColumnIndex = Mathf.Min(actionIndex / buttonsPerColumn, columnCount - 1);
+                break;
+        }
+
+        if (requestedColumnIndex >= columnCount)
+        {
+            return Mathf.Min(actionIndex / buttonsPerColumn, columnCount - 1);
+        }
+
+        return requestedColumnIndex;
     }
 
     private void ClearActionButtons()
