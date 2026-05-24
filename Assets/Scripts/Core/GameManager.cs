@@ -159,6 +159,9 @@ public class GameManager : MonoBehaviour
     private bool dialogueSequenceIsActive = false;
     private bool dialogueSequenceHidHeroineImage = false;
     private bool dialogueSequenceHidSaveLoadButtons = false;
+    private bool dialogueSequenceHasBackgroundZoomOverride = false;
+    private Vector3 dialogueSequencePreviousBackgroundZoomScale;
+    private Vector2 dialogueSequencePreviousBackgroundZoomPosition;
     private Sprite blankStillSprite;
 
     private const string SystemSpeakerName = "SYSTEM";
@@ -334,6 +337,14 @@ public class GameManager : MonoBehaviour
 
             if (backgroundZoom != null)
             {
+                if (!dialogueSequenceHasBackgroundZoomOverride)
+                {
+                    backgroundZoom.CaptureState(
+                        out dialogueSequencePreviousBackgroundZoomScale,
+                        out dialogueSequencePreviousBackgroundZoomPosition);
+                    dialogueSequenceHasBackgroundZoomOverride = true;
+                }
+
                 backgroundZoom.ResetZoom();
             }
         }
@@ -393,6 +404,15 @@ public class GameManager : MonoBehaviour
         }
 
         dialogueSequenceHidSaveLoadButtons = false;
+
+        if (dialogueSequenceHasBackgroundZoomOverride && backgroundZoom != null)
+        {
+            backgroundZoom.RestoreState(
+                dialogueSequencePreviousBackgroundZoomScale,
+                dialogueSequencePreviousBackgroundZoomPosition);
+        }
+
+        dialogueSequenceHasBackgroundZoomOverride = false;
     }
 
     private void SetSaveLoadButtonsVisible(bool visible)

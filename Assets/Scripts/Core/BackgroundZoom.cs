@@ -27,4 +27,28 @@ public class BackgroundZoom : MonoBehaviour
         background.localScale = Vector3.one;
         background.anchoredPosition = Vector2.zero;
     }
+
+    public void CaptureState(out Vector3 localScale, out Vector2 anchoredPosition)
+    {
+        if (background == null)
+        {
+            localScale = Vector3.one;
+            anchoredPosition = Vector2.zero;
+            return;
+        }
+
+        localScale = background.localScale;
+        anchoredPosition = background.anchoredPosition;
+    }
+
+    public void RestoreState(Vector3 localScale, Vector2 anchoredPosition)
+    {
+        if (background == null)
+        {
+            return;
+        }
+
+        background.localScale = localScale;
+        background.anchoredPosition = anchoredPosition;
+    }
 }
