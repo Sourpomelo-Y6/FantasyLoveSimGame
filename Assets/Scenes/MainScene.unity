@@ -291,8 +291,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -765, y: 396}
-  m_SizeDelta: {x: 539.0393, y: 107.7622}
+  m_AnchoredPosition: {x: -122.6769, y: 398.27}
+  m_SizeDelta: {x: 1823.6858, y: 103.22}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &93424615
 MonoBehaviour:
@@ -814,7 +814,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -914.52, y: 245.5}
+  m_AnchoredPosition: {x: -914.5198, y: 305.50003}
   m_SizeDelta: {x: 240, y: 60}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &154348810
@@ -860,7 +860,19 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 154348811}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 1989575940}
+        m_TargetAssemblyTypeName: StatusDetailPanel, Assembly-CSharp
+        m_MethodName: OpenPlayerDetail
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!114 &154348811
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1428,8 +1440,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -639.9086, y: 311.2764}
-  m_SizeDelta: {x: 789.2234, y: 43.4472}
+  m_AnchoredPosition: {x: -654.959, y: -165.68626}
+  m_SizeDelta: {x: 719.122, y: 571.3824}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &288867940
 MonoBehaviour:
@@ -2016,7 +2028,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -361, y: 396}
+  m_AnchoredPosition: {x: 923, y: 391.66}
   m_SizeDelta: {x: 220, y: 90}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &366653245
@@ -5481,8 +5493,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -10, y: -155}
-  m_SizeDelta: {x: 2000, y: 550}
+  m_AnchoredPosition: {x: 383.6677, y: -165.69}
+  m_SizeDelta: {x: 1252.6646, y: 571.38}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &949992026
 MonoBehaviour:
@@ -5797,7 +5809,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &1009132717
 RectTransform:
   m_ObjectHideFlags: 0
@@ -5835,7 +5847,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 1, g: 1, b: 1, a: 0.392}
+  m_Color: {r: 0.1254902, g: 0.1254902, b: 0.1254902, a: 0.78431374}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
@@ -7193,8 +7205,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -2.5, y: -1.8657}
-  m_SizeDelta: {x: 1081, y: 162.2454}
+  m_AnchoredPosition: {x: 0.000037432, y: 132}
+  m_SizeDelta: {x: 1081, y: 56.9921}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1234220117
 MonoBehaviour:
@@ -7216,7 +7228,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "\u8A18\u8FF0"
+  m_text: "\u30BF\u30A4\u30C8\u30EB"
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: de9f20a90f1fdf24a89d9000a7ddf0e0, type: 2}
   m_sharedMaterial: {fileID: 101836597338727658, guid: de9f20a90f1fdf24a89d9000a7ddf0e0, type: 2}
@@ -8863,7 +8875,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -649.6, y: 245.5}
+  m_AnchoredPosition: {x: -651, y: 305.5}
   m_SizeDelta: {x: 240, y: 60}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1487404025
@@ -8909,7 +8921,19 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 1487404026}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 1989575940}
+        m_TargetAssemblyTypeName: StatusDetailPanel, Assembly-CSharp
+        m_MethodName: OpenHeroineDetail
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!114 &1487404026
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -8995,6 +9019,14 @@ MonoBehaviour:
   schedulePanel: {fileID: 2108073426}
   speakerNameText: {fileID: 1303067653}
   dialogueText: {fileID: 360591824}
+  heroineSpeakerColor: {r: 1, g: 1, b: 1, a: 1}
+  heroineDialogueColor: {r: 1, g: 1, b: 1, a: 1}
+  systemSpeakerColor: {r: 0.8235294, g: 0.8235294, b: 0.8235294, a: 1}
+  systemDialogueColor: {r: 0.8235294, g: 0.8235294, b: 0.8235294, a: 1}
+  scheduleSpeakerColor: {r: 0.47058824, g: 0.7058824, b: 1, a: 1}
+  scheduleDialogueColor: {r: 1, g: 1, b: 1, a: 1}
+  outfitSpeakerColor: {r: 0.50980395, g: 0.8627451, b: 0.627451, a: 1}
+  outfitDialogueColor: {r: 1, g: 1, b: 1, a: 1}
   fadeImage: {fileID: 659468582}
   fadeDuration: 1.5
   actionButtonArea: {fileID: 968371922}
@@ -10926,8 +10958,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -443.00006, y: 117.000046}
-  m_SizeDelta: {x: 200, y: 50}
+  m_AnchoredPosition: {x: 0.000018716, y: 0.5242}
+  m_SizeDelta: {x: 1081, y: 180.8006}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1824396979
 MonoBehaviour:
@@ -10949,7 +10981,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "\u78BA\u8A8D"
+  m_text: "\u8A18\u8FF0"
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: de9f20a90f1fdf24a89d9000a7ddf0e0, type: 2}
   m_sharedMaterial: {fileID: 101836597338727658, guid: de9f20a90f1fdf24a89d9000a7ddf0e0, type: 2}
@@ -11706,7 +11738,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &1989575937
 RectTransform:
   m_ObjectHideFlags: 0
@@ -11748,7 +11780,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 0.21960786, g: 0.21960786, b: 0.21960786, a: 0.78431374}
+  m_Color: {r: 0, g: 0, b: 0, a: 0.78431374}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
@@ -11787,6 +11819,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   gameManager: {fileID: 1490559563}
   heroineStatus: {fileID: 507334145}
+  timeManager: {fileID: 0}
   panelRoot: {fileID: 1989575936}
   closeButton: {fileID: 366653245}
   titleText: {fileID: 93424615}
@@ -11798,6 +11831,9 @@ MonoBehaviour:
   abilityAcquireDescriptionText: {fileID: 1824396979}
   abilityAcquireButton: {fileID: 1729092161}
   abilityAcquireBackButton: {fileID: 1760144467}
+  statusAbilityResourcePath: StatusAbilities
+  playerAbilities: []
+  heroineAbilities: []
   playerTitle: "\u30D7\u30EC\u30A4\u30E4\u30FC\u8A73\u7D30\u30B9\u30C6\u30FC\u30BF\u30B9"
   heroineTitle: "\u30D2\u30ED\u30A4\u30F3\u8A73\u7D30\u30B9\u30C6\u30FC\u30BF\u30B9"
   playerSummaryFormat: "\u30D7\u30EC\u30A4\u30E4\u30FC\u80FD\u529B\n\u8863\u88C5\u78BA\u8A8D\u30E2\u30FC\u30C9\uFF1A{0}\nHidden\u89E3\u653E\uFF1A{1}"
