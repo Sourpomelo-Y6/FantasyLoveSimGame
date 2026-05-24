@@ -29,6 +29,10 @@
 - 衣装確認モードの可否は `GameManager.playerOutfitPromptAbilities` と `HeroineStatus.OutfitPromptAbilities` で制御する
 - プレイヤーとヒロインそれぞれに詳細ステータス画面を用意し、その中に能力項目と能力獲得画面への導線を置く方針
 - 能力はステータス画面から確認し、必要に応じて獲得画面へ移動して解放する
+- 現状の能力は `取得` = `解放` として扱い、取得後の `有効` / `無効` 切り替えはまだ持たせない
+- 将来、任意でオンオフできる能力が必要になった場合は `Locked` / `Unlocked` / `Active` のような状態分離を検討する
+- 現在の能力項目は衣装確認モード向けが中心で、プレイヤー用とヒロイン用の枠はあるが、能力一覧そのものはまだ十分に分離されていない
+- 今後は `StatusDetailRole` ごとに表示する能力を分け、プレイヤー能力とヒロイン能力を別リストとして扱えるようにする
 - 詳細ステータス画面は `StatusDetailPanel`、能力項目は `StatusAbilityKind`、画面の対象切り替えは `StatusDetailRole` で扱う
 - 詳細ステータス画面の入口として `StatusDetailAction` を用意し、行動一覧から開けるようにしている
 - `StatusDetailPanel` の画面部品は現在コードで組んでいるため、今後は Unity 上の手作業配置へ置き換える
