@@ -1,4 +1,5 @@
 using TMPro;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -26,17 +27,9 @@ public class StatusDetailPanel : MonoBehaviour
     [SerializeField] private Button abilityAcquireBackButton;
 
     [Header("Ability Lists")]
-    [SerializeField] private StatusAbilityKind[] playerAbilityKinds =
-    {
-        StatusAbilityKind.ConditionalOutfitPrompt,
-        StatusAbilityKind.HiddenOutfitPrompt
-    };
-
-    [SerializeField] private StatusAbilityKind[] heroineAbilityKinds =
-    {
-        StatusAbilityKind.ConditionalOutfitPrompt,
-        StatusAbilityKind.HiddenOutfitPrompt
-    };
+    [SerializeField] private string statusAbilityResourcePath = "StatusAbilities";
+    [SerializeField] private StatusAbilityData[] playerAbilities;
+    [SerializeField] private StatusAbilityData[] heroineAbilities;
 
     [Header("Labels")]
     [SerializeField] private string playerTitle = "プレイヤー詳細ステータス";
@@ -53,8 +46,10 @@ public class StatusDetailPanel : MonoBehaviour
     [SerializeField] private string acquiredMessage = "解放しました。";
 
     private StatusDetailRole currentRole = StatusDetailRole.Player;
+    private StatusAbilityData selectedAbility;
     private StatusAbilityKind selectedAbilityKind = StatusAbilityKind.ConditionalOutfitPrompt;
     private bool hasWarnedMissingReferences = false;
+    private List<StatusAbilityData> loadedAbilities = new List<StatusAbilityData>();
 
     private GameObject PanelRoot
     {
@@ -120,13 +115,13 @@ public class StatusDetailPanel : MonoBehaviour
     public void ShowAbilityAcquirePanelForConditional()
     {
         EnsureUiReferences();
-        ShowAbilityAcquireView(StatusAbilityKind.ConditionalOutfitPrompt);
+        ShowAbilityAcquireView(StatusAbilityKind.ConditionalOutfitPrompt, null);
     }
 
     public void ShowAbilityAcquirePanelForHidden()
     {
         EnsureUiReferences();
-        ShowAbilityAcquireView(StatusAbilityKind.HiddenOutfitPrompt);
+        ShowAbilityAcquireView(StatusAbilityKind.HiddenOutfitPrompt, null);
     }
 
     private void ShowDetailView()
@@ -141,9 +136,10 @@ public class StatusDetailPanel : MonoBehaviour
         Refresh();
     }
 
-    private void ShowAbilityAcquireView(StatusAbilityKind abilityKind)
+    private void ShowAbilityAcquireView(StatusAbilityKind abilityKind, StatusAbilityData ability)
     {
         EnsureUiReferences();
+        selectedAbility = ability;
         selectedAbilityKind = abilityKind;
 
         if (abilityAcquirePanel != null)
@@ -153,12 +149,12 @@ public class StatusDetailPanel : MonoBehaviour
 
         if (abilityAcquireTitleText != null)
         {
-            abilityAcquireTitleText.text = GetAbilityName(abilityKind) + " の解放";
+            abilityAcquireTitleText.text = GetAbilityName(abilityKind, ability) + " の解放";
         }
 
         if (abilityAcquireDescriptionText != null)
         {
-            abilityAcquireDescriptionText.text = GetAbilityDescription(abilityKind);
+            abilityAcquireDescriptionText.text = GetAbilityDescription(abilityKind, ability);
         }
 
         if (abilityAcquireButton != null)
@@ -204,19 +200,24 @@ public class StatusDetailPanel : MonoBehaviour
 
         ClearAbilityList();
 
-        StatusAbilityKind[] abilityKinds = GetCurrentAbilityKinds();
-        if (abilityKinds == null)
+        StatusAbilityData[] abilities = GetCurrentAbilitiesForList();
+        if (abilities == null)
         {
             return;
         }
 
-        foreach (StatusAbilityKind abilityKind in abilityKinds)
+        foreach (StatusAbilityData ability in abilities)
         {
-            CreateAbilityButton(abilityKind);
+            if (ability == null || !ability.isEnabled || ability.targetRole != currentRole)
+            {
+                continue;
+            }
+
+            CreateAbilityButton(ability);
         }
     }
 
-    private void CreateAbilityButton(StatusAbilityKind abilityKind)
+    private void CreateAbilityButton(StatusAbilityData ability)
     {
         Button button = Instantiate(abilityButtonPrefab, abilityListParent);
         button.gameObject.SetActive(true);
@@ -224,10 +225,10 @@ public class StatusDetailPanel : MonoBehaviour
         TextMeshProUGUI buttonText = button.GetComponentInChildren<TextMeshProUGUI>();
         if (buttonText != null)
         {
-            buttonText.text = BuildAbilityButtonLabel(abilityKind);
+            buttonText.text = BuildAbilityButtonLabel(ability);
         }
 
-        button.onClick.AddListener(() => ShowAbilityAcquireView(abilityKind));
+        button.onClick.AddListener(() => ShowAbilityAcquireView(ability.abilityKind, ability));
     }
 
     private void ClearAbilityList()
@@ -238,11 +239,41 @@ public class StatusDetailPanel : MonoBehaviour
         }
     }
 
-    private StatusAbilityKind[] GetCurrentAbilityKinds()
+    private StatusAbilityData[] GetCurrentAbilitiesForList()
     {
-        return currentRole == StatusDetailRole.Player
-            ? playerAbilityKinds
-            : heroineAbilityKinds;
+        StatusAbilityData[] configuredAbilities = currentRole == StatusDetailRole.Player
+            ? playerAbilities
+            : heroineAbilities;
+
+        if (configuredAbilities != null && configuredAbilities.Length > 0)
+        {
+            return configuredAbilities;
+        }
+
+        LoadStatusAbilitiesFromResources();
+
+        List<StatusAbilityData> roleAbilities = new List<StatusAbilityData>();
+        foreach (StatusAbilityData ability in loadedAbilities)
+        {
+            if (ability != null && ability.targetRole == currentRole)
+            {
+                roleAbilities.Add(ability);
+            }
+        }
+
+        return roleAbilities.ToArray();
+    }
+
+    private void LoadStatusAbilitiesFromResources()
+    {
+        if (loadedAbilities.Count > 0)
+        {
+            return;
+        }
+
+        StatusAbilityData[] abilities = Resources.LoadAll<StatusAbilityData>(statusAbilityResourcePath);
+        loadedAbilities = new List<StatusAbilityData>(abilities);
+        loadedAbilities.Sort((a, b) => a.sortOrder.CompareTo(b.sortOrder));
     }
 
     private string BuildStatusSummary()
@@ -263,9 +294,9 @@ public class StatusDetailPanel : MonoBehaviour
         return string.Format(format, conditionalLabel, hiddenLabel);
     }
 
-    private string BuildAbilityButtonLabel(StatusAbilityKind abilityKind)
+    private string BuildAbilityButtonLabel(StatusAbilityData ability)
     {
-        return GetAbilityName(abilityKind) + " / " + GetAbilityStateText(abilityKind);
+        return GetAbilityName(ability.abilityKind, ability) + " / " + GetAbilityStateText(ability.abilityKind);
     }
 
     private string GetAbilityStateText(StatusAbilityKind abilityKind)
@@ -273,8 +304,13 @@ public class StatusDetailPanel : MonoBehaviour
         return IsAbilityUnlocked(abilityKind) ? unlockedLabel : lockedLabel;
     }
 
-    private string GetAbilityName(StatusAbilityKind abilityKind)
+    private string GetAbilityName(StatusAbilityKind abilityKind, StatusAbilityData ability)
     {
+        if (ability != null && !string.IsNullOrEmpty(ability.displayName))
+        {
+            return ability.displayName;
+        }
+
         switch (abilityKind)
         {
             case StatusAbilityKind.HiddenOutfitPrompt:
@@ -284,8 +320,13 @@ public class StatusDetailPanel : MonoBehaviour
         }
     }
 
-    private string GetAbilityDescription(StatusAbilityKind abilityKind)
+    private string GetAbilityDescription(StatusAbilityKind abilityKind, StatusAbilityData ability)
     {
+        if (ability != null && !string.IsNullOrEmpty(ability.description))
+        {
+            return ability.description;
+        }
+
         switch (abilityKind)
         {
             case StatusAbilityKind.HiddenOutfitPrompt:
@@ -335,7 +376,7 @@ public class StatusDetailPanel : MonoBehaviour
 
         if (abilityAcquireDescriptionText != null)
         {
-            abilityAcquireDescriptionText.text = GetAbilityDescription(selectedAbilityKind) + "\n" + acquiredMessage;
+            abilityAcquireDescriptionText.text = GetAbilityDescription(selectedAbilityKind, selectedAbility) + "\n" + acquiredMessage;
         }
 
         if (abilityAcquireButton != null)

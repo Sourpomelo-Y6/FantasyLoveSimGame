@@ -77,6 +77,7 @@ This project is licensed under the MIT License. See [LICENSE](LICENSE) for detai
 - [`Assets/Scripts/Core/GameManager.cs`](Assets/Scripts/Core/GameManager.cs): 会話、行動、好感度、時間進行、UI 更新の制御
 - [`Assets/Scripts/Core/SaveLoadPanel.cs`](Assets/Scripts/Core/SaveLoadPanel.cs): セーブロードスロット UI の制御
 - [`Assets/Prefabs/SaveLoadPanel.prefab`](Assets/Prefabs/SaveLoadPanel.prefab): タイトル画面とメイン画面で共用するセーブロード UI
+- [`Assets/Resources/StatusAbilities/`](Assets/Resources/StatusAbilities): 詳細ステータス画面に表示する能力データ
 - [`Assets/Scripts/Action/`](Assets/Scripts/Action): 行動データの型定義
 - [`Assets/Scripts/Outfit/`](Assets/Scripts/Outfit): 衣装データ、衣装反応、衣装評価の管理
 - [`Assets/Scripts/Schedule/`](Assets/Scripts/Schedule): 予定データと予定パネルの制御

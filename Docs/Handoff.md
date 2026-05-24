@@ -32,8 +32,10 @@
 - 現状の能力は `取得` = `解放` として扱い、取得後の `有効` / `無効` 切り替えはまだ持たせない
 - 将来、任意でオンオフできる能力が必要になった場合は `Locked` / `Unlocked` / `Active` のような状態分離を検討する
 - 現在の能力項目は衣装確認モード向けが中心
-- `StatusDetailPanel` は `playerAbilityKinds` と `heroineAbilityKinds` で表示する能力一覧を分ける
-- 初期値では互換性のため両方に同じ衣装確認能力を入れているが、今後は `StatusDetailRole` ごとに別能力を追加できる
+- 能力表示は `StatusAbilityData` の ScriptableObject で管理する
+- `Assets/Resources/StatusAbilities/` に能力アセットを置くと、`StatusDetailPanel` が読み込んで `targetRole` ごとに表示する
+- `StatusDetailPanel` の `playerAbilities` / `heroineAbilities` を Inspector で設定した場合は、その配列を優先して表示する
+- 初期データとしてプレイヤー用・ヒロイン用の衣装確認能力をそれぞれ用意している
 - 詳細ステータス画面は `StatusDetailPanel`、能力項目は `StatusAbilityKind`、画面の対象切り替えは `StatusDetailRole` で扱う
 - 詳細ステータス画面の入口として `StatusDetailAction` を用意し、行動一覧から開けるようにしている
 - `StatusDetailPanel` の画面部品は Unity 上で手作業配置し、Inspector で参照を割り当てる
