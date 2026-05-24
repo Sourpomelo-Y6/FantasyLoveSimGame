@@ -31,6 +31,10 @@
 - 能力はステータス画面から確認し、必要に応じて獲得画面へ移動して解放する
 - 詳細ステータス画面は `StatusDetailPanel`、能力項目は `StatusAbilityKind`、画面の対象切り替えは `StatusDetailRole` で扱う
 - 詳細ステータス画面の入口として `StatusDetailAction` を用意し、行動一覧から開けるようにしている
+- `StatusDetailPanel` の画面部品は現在コードで組んでいるため、今後は Unity 上の手作業配置へ置き換える
+- 置き換え対象は `panelRoot`、各 `TextMeshProUGUI`、各 `Button`、`abilityListParent`、`abilityButtonPrefab`、`abilityAcquirePanel` 周辺
+- `GameManager` の `EnsureStatusDetailPanel()` も、シーン上に配置済みの `StatusDetailPanel` を参照する形へ移す
+- 手配線が終わったら、次はメイン画面のボタン配置を整える
 - 会話や行動のたびに時間が進み、一定数で日付が進む
 - 好感度が `100` に達すると `Ending` ボタンが表示される
 - メッセージは現状 1 枚のメッセージボックスに上書き表示されるため、今後はログ表示やメッセージキューを追加し、同時に 2 件以上のメッセージが発生したときは `Next` で 1 件ずつ読めるようにする
@@ -47,6 +51,7 @@
 - コード側の実装、データ構造、仕様メモ、ドキュメント更新は Codex が担当してよい
 - UI 追加が必要な機能では、先に必要な `SerializeField` や接続ポイントを整理し、Unity 上の配置や見た目は手作業で反映する
 - Unity ファイルを書き換える必要がある場合は、事前に作業範囲を確認する
+- 既にコードで組んでしまった UI は、シーン上の配置に置き換えるときに対象を洗い出してから削る
 
 ## 主要ファイル
 
