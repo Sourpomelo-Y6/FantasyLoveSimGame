@@ -18,13 +18,23 @@ public class GameManager : MonoBehaviour
         ShowingGoodNight
     }
 
+    private enum DialogueSpeakerType
+    {
+        Heroine,
+        System,
+        Schedule,
+        Outfit
+    }
+
     private struct DialogueMessage
     {
+        public readonly DialogueSpeakerType SpeakerType;
         public readonly string SpeakerName;
         public readonly string Message;
 
-        public DialogueMessage(string speakerName, string message)
+        public DialogueMessage(DialogueSpeakerType speakerType, string speakerName, string message)
         {
+            SpeakerType = speakerType;
             SpeakerName = speakerName;
             Message = message;
         }
@@ -55,6 +65,14 @@ public class GameManager : MonoBehaviour
     [Header("Dialogue")]
     [SerializeField] private TMP_Text speakerNameText;
     [SerializeField] private TMP_Text dialogueText;
+    [SerializeField] private Color heroineSpeakerColor = Color.white;
+    [SerializeField] private Color heroineDialogueColor = Color.white;
+    [SerializeField] private Color systemSpeakerColor = new Color32(210, 210, 210, 255);
+    [SerializeField] private Color systemDialogueColor = new Color32(210, 210, 210, 255);
+    [SerializeField] private Color scheduleSpeakerColor = new Color32(120, 180, 255, 255);
+    [SerializeField] private Color scheduleDialogueColor = Color.white;
+    [SerializeField] private Color outfitSpeakerColor = new Color32(130, 220, 160, 255);
+    [SerializeField] private Color outfitDialogueColor = Color.white;
 
     [Header("Fade")]
     [SerializeField] private Image fadeImage;
@@ -203,15 +221,21 @@ public class GameManager : MonoBehaviour
 
     private void ShowDialogue(string speakerName, string message)
     {
-        queuedDialogueMessages.Clear();
-        SetDialogueText(speakerName, message);
+        ShowDialogue(GetSpeakerTypeForName(speakerName), speakerName, message);
     }
 
-    private void SetDialogueText(string speakerName, string message)
+    private void ShowDialogue(DialogueSpeakerType speakerType, string speakerName, string message)
+    {
+        queuedDialogueMessages.Clear();
+        SetDialogueText(speakerType, speakerName, message);
+    }
+
+    private void SetDialogueText(DialogueSpeakerType speakerType, string speakerName, string message)
     {
         if (speakerNameText != null)
         {
             speakerNameText.text = speakerName;
+            speakerNameText.color = GetSpeakerNameColor(speakerType);
         }
 
         if (dialogueText != null)
@@ -219,6 +243,57 @@ public class GameManager : MonoBehaviour
             dialogueText.text = speakerNameText == null && !string.IsNullOrEmpty(speakerName)
                 ? speakerName + "\n" + message
                 : message;
+            dialogueText.color = GetDialogueColor(speakerType);
+        }
+    }
+
+    private DialogueSpeakerType GetSpeakerTypeForName(string speakerName)
+    {
+        if (speakerName == SystemSpeakerName)
+        {
+            return DialogueSpeakerType.System;
+        }
+
+        if (speakerName == ScheduleSpeakerName)
+        {
+            return DialogueSpeakerType.Schedule;
+        }
+
+        if (speakerName == OutfitSpeakerName)
+        {
+            return DialogueSpeakerType.Outfit;
+        }
+
+        return DialogueSpeakerType.Heroine;
+    }
+
+    private Color GetSpeakerNameColor(DialogueSpeakerType speakerType)
+    {
+        switch (speakerType)
+        {
+            case DialogueSpeakerType.System:
+                return systemSpeakerColor;
+            case DialogueSpeakerType.Schedule:
+                return scheduleSpeakerColor;
+            case DialogueSpeakerType.Outfit:
+                return outfitSpeakerColor;
+            default:
+                return heroineSpeakerColor;
+        }
+    }
+
+    private Color GetDialogueColor(DialogueSpeakerType speakerType)
+    {
+        switch (speakerType)
+        {
+            case DialogueSpeakerType.System:
+                return systemDialogueColor;
+            case DialogueSpeakerType.Schedule:
+                return scheduleDialogueColor;
+            case DialogueSpeakerType.Outfit:
+                return outfitDialogueColor;
+            default:
+                return heroineDialogueColor;
         }
     }
 
@@ -231,7 +306,7 @@ public class GameManager : MonoBehaviour
             return;
         }
 
-        SetDialogueText(messages[0].SpeakerName, messages[0].Message);
+        SetDialogueText(messages[0].SpeakerType, messages[0].SpeakerName, messages[0].Message);
 
         for (int i = 1; i < messages.Count; i++)
         {
@@ -249,7 +324,7 @@ public class GameManager : MonoBehaviour
         }
 
         DialogueMessage message = queuedDialogueMessages.Dequeue();
-        SetDialogueText(message.SpeakerName, message.Message);
+        SetDialogueText(message.SpeakerType, message.SpeakerName, message.Message);
 
         if (queuedDialogueMessages.Count == 0 && flowState == ConversationFlowState.Idle)
         {
@@ -262,22 +337,22 @@ public class GameManager : MonoBehaviour
 
     private void ShowHeroineDialogue(string message)
     {
-        ShowDialogue(heroineStatus.HeroineName, message);
+        ShowDialogue(DialogueSpeakerType.Heroine, heroineStatus.HeroineName, message);
     }
 
     private void ShowSystemDialogue(string message)
     {
-        ShowDialogue(SystemSpeakerName, message);
+        ShowDialogue(DialogueSpeakerType.System, SystemSpeakerName, message);
     }
 
     private void ShowScheduleDialogue(string message)
     {
-        ShowDialogue(ScheduleSpeakerName, message);
+        ShowDialogue(DialogueSpeakerType.Schedule, ScheduleSpeakerName, message);
     }
 
     private void ShowOutfitDialogue(string message)
     {
-        ShowDialogue(OutfitSpeakerName, message);
+        ShowDialogue(DialogueSpeakerType.Outfit, OutfitSpeakerName, message);
     }
 
     private void Start()
@@ -1748,14 +1823,14 @@ public class GameManager : MonoBehaviour
 
         if (!string.IsNullOrEmpty(outfitMessage))
         {
-            messages.Add(new DialogueMessage(OutfitSpeakerName, outfitMessage));
+            messages.Add(new DialogueMessage(DialogueSpeakerType.Outfit, OutfitSpeakerName, outfitMessage));
         }
 
         string scheduleMessage = CreateScheduledEventPreparationMessage();
 
         if (!string.IsNullOrEmpty(scheduleMessage))
         {
-            messages.Add(new DialogueMessage(ScheduleSpeakerName, scheduleMessage));
+            messages.Add(new DialogueMessage(DialogueSpeakerType.Schedule, ScheduleSpeakerName, scheduleMessage));
         }
 
         return messages;
@@ -2244,7 +2319,11 @@ public class GameManager : MonoBehaviour
         {
             List<DialogueMessage> morningMessages = new List<DialogueMessage>
             {
-                new DialogueMessage(heroineStatus.HeroineName, "おはようございます。今日もよろしくお願いしますね。")
+                new DialogueMessage(
+                    DialogueSpeakerType.Heroine,
+                    heroineStatus.HeroineName,
+                    "おはようございます。今日もよろしくお願いしますね。"
+                )
             };
 
             morningMessages.AddRange(dayStartMessages);

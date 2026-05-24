@@ -190,6 +190,7 @@ public class ActionData : ScriptableObject
 6. 今後は `triggerTimeSlot` を昼・夜で分けたり、予定ごとの専用演出を追加できる
 7. 複数メッセージが同時に発生したら、話者付きキューで管理し、`Next` で 1 件ずつ読めるようにする
 8. 衣装確認モードの解放条件は、`GameManager.playerOutfitPromptAbilities` と `HeroineStatus.OutfitPromptAbilities` で管理する
+9. 話者タイプごとに表示色を変え、同じメッセージボックス内でも発話種別が分かるようにする
 
 ## 優先度の高い改善候補
 
