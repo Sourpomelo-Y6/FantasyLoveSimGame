@@ -48,6 +48,7 @@
 - タイトルから新規ゲームを開始した直後は、`GameEventData` の `GameStart` イベントを再生してからメイン画面を始める。`GameEventData` は `Assets/Resources/GameEvents/` に置き、ページ単位で話者・メッセージ・スチルを持てる
 - Unity Editor で `MainScene` を直接開いて再生した場合は、`GameStartSettings.ShouldPlayGameStartEvent` の初期値が `false` のため開始イベントは発生しない
 - `GameEventData.showOnce` はセーブデータの `shownGameEventIds` で管理する
+- `GameEventData` の `DayStart` は翌朝メッセージに混ぜて自動再生し、`Manual` は `GameManager.TryStartManualGameEvent(string eventId)` から明示起動する
 - `StatusDetailPanel` の画面部品は Unity 上で手作業配置し、Inspector で参照を割り当てる
 - 必須参照は `panelRoot`、各 `TextMeshProUGUI`、各 `Button`、`abilityListParent`、`abilityButtonPrefab`、`abilityAcquirePanel` 周辺
 - `GameManager.EnsureStatusDetailPanel()` は配置済みの `StatusDetailPanel` を探して初期化するだけで、UI の自動生成は行わない

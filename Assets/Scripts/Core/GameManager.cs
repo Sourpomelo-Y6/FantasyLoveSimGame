@@ -1541,42 +1541,14 @@ public class GameManager : MonoBehaviour
 
     private void StartGameStartSequence()
     {
-        actionButtonArea.SetActive(false);
-        genreButtonArea.SetActive(false);
-        choiceButtonArea.SetActive(false);
-        outfitPanel.SetActive(false);
-        outfitReactionPanel.SetActive(false);
-        nextButton.gameObject.SetActive(false);
-
-        currentConversation = null;
-        pendingAdvanceTime = false;
-        pendingGoodNight = false;
-        flowState = ConversationFlowState.Idle;
-
         List<DialogueMessage> startMessages = BuildGameStartMessages();
-        ShowDialogueSequence(startMessages);
-        SetSaveLoadButtonsVisible(false);
-        dialogueSequenceHidSaveLoadButtons = true;
+        StartGameEventSequence(startMessages, true);
     }
 
     private List<DialogueMessage> BuildGameStartMessages()
     {
         List<DialogueMessage> messages = new List<DialogueMessage>();
-
-        foreach (GameEventData gameEvent in GetGameEventsForTrigger(GameEventTriggerType.GameStart))
-        {
-            if (gameEvent == null || gameEvent.pages == null || gameEvent.pages.Count == 0)
-            {
-                continue;
-            }
-
-            messages.AddRange(BuildGameEventMessages(gameEvent));
-
-            if (gameEvent.showOnce && !string.IsNullOrEmpty(gameEvent.eventId))
-            {
-                MarkGameEventShown(gameEvent.eventId);
-            }
-        }
+        AppendGameEventMessages(messages, GameEventTriggerType.GameStart);
 
         if (messages.Count > 0)
         {
@@ -1602,6 +1574,90 @@ public class GameManager : MonoBehaviour
         );
 
         return messages;
+    }
+
+    private void AppendGameEventMessages(List<DialogueMessage> messages, GameEventTriggerType triggerType)
+    {
+        if (messages == null)
+        {
+            return;
+        }
+
+        foreach (GameEventData gameEvent in GetGameEventsForTrigger(triggerType))
+        {
+            if (gameEvent == null || gameEvent.pages == null || gameEvent.pages.Count == 0)
+            {
+                continue;
+            }
+
+            messages.AddRange(BuildGameEventMessages(gameEvent));
+
+            if (gameEvent.showOnce && !string.IsNullOrEmpty(gameEvent.eventId))
+            {
+                MarkGameEventShown(gameEvent.eventId);
+            }
+        }
+    }
+
+    public bool TryStartManualGameEvent(string eventId)
+    {
+        if (string.IsNullOrEmpty(eventId))
+        {
+            return false;
+        }
+
+        GameEventData gameEvent = FindGameEventById(eventId);
+
+        if (gameEvent == null ||
+            !gameEvent.isEnabled ||
+            gameEvent.triggerType != GameEventTriggerType.Manual)
+        {
+            return false;
+        }
+
+        if (gameEvent.showOnce && IsGameEventShown(gameEvent.eventId))
+        {
+            return false;
+        }
+
+        List<DialogueMessage> messages = BuildGameEventMessages(gameEvent);
+
+        if (messages.Count == 0)
+        {
+            return false;
+        }
+
+        StartGameEventSequence(messages, true);
+
+        if (gameEvent.showOnce && !string.IsNullOrEmpty(gameEvent.eventId))
+        {
+            MarkGameEventShown(gameEvent.eventId);
+        }
+
+        return true;
+    }
+
+    private void StartGameEventSequence(List<DialogueMessage> messages, bool hideSaveLoadButtons)
+    {
+        actionButtonArea.SetActive(false);
+        genreButtonArea.SetActive(false);
+        choiceButtonArea.SetActive(false);
+        outfitPanel.SetActive(false);
+        outfitReactionPanel.SetActive(false);
+        nextButton.gameObject.SetActive(false);
+
+        currentConversation = null;
+        pendingAdvanceTime = false;
+        pendingGoodNight = false;
+        flowState = ConversationFlowState.Idle;
+
+        ShowDialogueSequence(messages);
+
+        if (hideSaveLoadButtons)
+        {
+            SetSaveLoadButtonsVisible(false);
+            dialogueSequenceHidSaveLoadButtons = true;
+        }
     }
 
     private List<GameEventData> GetGameEventsForTrigger(GameEventTriggerType triggerType)
@@ -1634,6 +1690,29 @@ public class GameManager : MonoBehaviour
         }
 
         return result;
+    }
+
+    private GameEventData FindGameEventById(string eventId)
+    {
+        if (string.IsNullOrEmpty(eventId) || gameEvents == null)
+        {
+            return null;
+        }
+
+        foreach (GameEventData gameEvent in gameEvents)
+        {
+            if (gameEvent == null)
+            {
+                continue;
+            }
+
+            if (gameEvent.eventId == eventId)
+            {
+                return gameEvent;
+            }
+        }
+
+        return null;
     }
 
     private List<DialogueMessage> BuildGameEventMessages(GameEventData gameEvent)
@@ -2316,6 +2395,8 @@ public class GameManager : MonoBehaviour
         {
             messages.Add(new DialogueMessage(DialogueSpeakerType.Schedule, ScheduleSpeakerName, scheduleMessage));
         }
+
+        AppendGameEventMessages(messages, GameEventTriggerType.DayStart);
 
         return messages;
     }
