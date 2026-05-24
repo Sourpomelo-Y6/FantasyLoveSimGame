@@ -118,6 +118,7 @@ public class ActionData : ScriptableObject
 {
     public string actionId;
     public string displayName;
+    public ActionButtonColumn displayColumn;
     public ActionExecutionType executionType;
     public string resultMessage;
     public string unavailableMessage;
@@ -129,6 +130,11 @@ public class ActionData : ScriptableObject
     public bool isEnabled;
 }
 ```
+
+行動ボタンは `ActionButtonArea` を左・中央・右の列に分けて配置する。
+現状は `sortOrder` 順の有効な `ActionData` を列数で均等に分配しているが、行動が増えるほど意図しない列に流れやすい。
+次に整理する場合は `ActionButtonColumn` のような表示列 enum を `ActionData` に追加し、基本行動、交流・状態系、管理・補助系をデータ側で指定できるようにする。
+列内の順序は既存の `sortOrder` を使い、列指定が未設定または旧データの場合は従来の均等分配へフォールバックする。
 
 ### ActionReactionData
 
