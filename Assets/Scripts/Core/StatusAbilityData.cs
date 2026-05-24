@@ -16,4 +16,8 @@ public class StatusAbilityData : ScriptableObject
 
     public int sortOrder = 0;
     public bool isEnabled = true;
+
+    [Header("Unlock Condition")]
+    public int requiredAffection = 0;
+    public int requiredDay = 1;
 }

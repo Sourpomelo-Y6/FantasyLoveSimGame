@@ -21,6 +21,7 @@ public class SaveData
     public List<OutfitPreference> outfitPreferences = new List<OutfitPreference>();
     public OutfitPromptAbilitySet playerOutfitPromptAbilities = new OutfitPromptAbilitySet();
     public OutfitPromptAbilitySet heroineOutfitPromptAbilities = new OutfitPromptAbilitySet();
+    public List<string> unlockedStatusAbilityIds = new List<string>();
 
     public List<string> shownConversationIds = new List<string>();
 

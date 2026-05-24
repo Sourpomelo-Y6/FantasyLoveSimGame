@@ -8,6 +8,7 @@ public class StatusDetailPanel : MonoBehaviour
     [Header("Managers")]
     [SerializeField] private GameManager gameManager;
     [SerializeField] private HeroineStatus heroineStatus;
+    [SerializeField] private TimeManager timeManager;
 
     [Header("Panel")]
     [SerializeField] private GameObject panelRoot;
@@ -91,6 +92,14 @@ public class StatusDetailPanel : MonoBehaviour
         EnsureUiReferences();
     }
 
+    public void Initialize(GameManager manager, HeroineStatus heroine, TimeManager time)
+    {
+        gameManager = manager;
+        heroineStatus = heroine;
+        timeManager = time;
+        EnsureUiReferences();
+    }
+
     public void OpenPlayerDetail()
     {
         EnsureUiReferences();
@@ -154,17 +163,18 @@ public class StatusDetailPanel : MonoBehaviour
 
         if (abilityAcquireDescriptionText != null)
         {
-            abilityAcquireDescriptionText.text = GetAbilityDescription(abilityKind, ability);
+            abilityAcquireDescriptionText.text = BuildAbilityAcquireDescription(abilityKind, ability);
         }
 
         if (abilityAcquireButton != null)
         {
-            abilityAcquireButton.interactable = !IsAbilityUnlocked(abilityKind);
+            bool canUnlock = CanUnlockAbility(abilityKind, ability);
+            abilityAcquireButton.interactable = !IsAbilityUnlocked(abilityKind, ability) && canUnlock;
 
             TextMeshProUGUI buttonLabel = abilityAcquireButton.GetComponentInChildren<TextMeshProUGUI>();
             if (buttonLabel != null)
             {
-                buttonLabel.text = IsAbilityUnlocked(abilityKind) ? unlockedLabel : acquireButtonLabel;
+                buttonLabel.text = IsAbilityUnlocked(abilityKind, ability) ? unlockedLabel : acquireButtonLabel;
             }
         }
     }
@@ -296,12 +306,12 @@ public class StatusDetailPanel : MonoBehaviour
 
     private string BuildAbilityButtonLabel(StatusAbilityData ability)
     {
-        return GetAbilityName(ability.abilityKind, ability) + " / " + GetAbilityStateText(ability.abilityKind);
+        return GetAbilityName(ability.abilityKind, ability) + " / " + GetAbilityStateText(ability);
     }
 
-    private string GetAbilityStateText(StatusAbilityKind abilityKind)
+    private string GetAbilityStateText(StatusAbilityData ability)
     {
-        return IsAbilityUnlocked(abilityKind) ? unlockedLabel : lockedLabel;
+        return IsAbilityUnlocked(ability.abilityKind, ability) ? unlockedLabel : lockedLabel;
     }
 
     private string GetAbilityName(StatusAbilityKind abilityKind, StatusAbilityData ability)
@@ -336,7 +346,20 @@ public class StatusDetailPanel : MonoBehaviour
         }
     }
 
-    private bool IsAbilityUnlocked(StatusAbilityKind abilityKind)
+    private string BuildAbilityAcquireDescription(StatusAbilityKind abilityKind, StatusAbilityData ability)
+    {
+        string description = GetAbilityDescription(abilityKind, ability);
+        string missingCondition = BuildMissingUnlockConditionText(ability);
+
+        if (string.IsNullOrEmpty(missingCondition))
+        {
+            return description;
+        }
+
+        return description + "\n" + missingCondition;
+    }
+
+    private bool IsAbilityUnlocked(StatusAbilityKind abilityKind, StatusAbilityData ability)
     {
         OutfitPromptAbilitySet abilities = GetCurrentAbilities();
         if (abilities == null)
@@ -346,10 +369,13 @@ public class StatusDetailPanel : MonoBehaviour
 
         switch (abilityKind)
         {
+            case StatusAbilityKind.ConditionalOutfitPrompt:
+                return abilities.canUseConditionalMode;
             case StatusAbilityKind.HiddenOutfitPrompt:
                 return abilities.canUseHiddenMode;
+            case StatusAbilityKind.TestJump:
             default:
-                return abilities.canUseConditionalMode;
+                return gameManager != null && gameManager.IsStatusAbilityUnlocked(GetStatusAbilitySaveKey(ability));
         }
     }
 
@@ -361,14 +387,30 @@ public class StatusDetailPanel : MonoBehaviour
             return;
         }
 
+        if (!CanUnlockAbility(selectedAbilityKind, selectedAbility))
+        {
+            if (abilityAcquireDescriptionText != null)
+            {
+                abilityAcquireDescriptionText.text = BuildAbilityAcquireDescription(selectedAbilityKind, selectedAbility);
+            }
+
+            return;
+        }
+
         switch (selectedAbilityKind)
         {
+            case StatusAbilityKind.ConditionalOutfitPrompt:
+                abilities.canUseConditionalMode = true;
+                break;
             case StatusAbilityKind.HiddenOutfitPrompt:
                 abilities.canUseHiddenMode = true;
                 break;
-
+            case StatusAbilityKind.TestJump:
             default:
-                abilities.canUseConditionalMode = true;
+                if (gameManager != null)
+                {
+                    gameManager.UnlockStatusAbility(GetStatusAbilitySaveKey(selectedAbility));
+                }
                 break;
         }
 
@@ -398,6 +440,78 @@ public class StatusDetailPanel : MonoBehaviour
         }
 
         return heroineStatus != null ? heroineStatus.OutfitPromptAbilities : null;
+    }
+
+    private bool CanUnlockAbility(StatusAbilityKind abilityKind, StatusAbilityData ability)
+    {
+        if (IsAbilityUnlocked(abilityKind, ability))
+        {
+            return false;
+        }
+
+        return MeetsUnlockCondition(ability);
+    }
+
+    private string GetStatusAbilitySaveKey(StatusAbilityData ability)
+    {
+        if (ability != null && !string.IsNullOrEmpty(ability.abilityId))
+        {
+            return ability.targetRole + ":" + ability.abilityId;
+        }
+
+        return currentRole + ":" + selectedAbilityKind;
+    }
+
+    private bool MeetsUnlockCondition(StatusAbilityData ability)
+    {
+        if (ability == null)
+        {
+            return true;
+        }
+
+        if (heroineStatus != null && heroineStatus.Affection < ability.requiredAffection)
+        {
+            return false;
+        }
+
+        if (timeManager != null && timeManager.Day < ability.requiredDay)
+        {
+            return false;
+        }
+
+        return true;
+    }
+
+    private string BuildMissingUnlockConditionText(StatusAbilityData ability)
+    {
+        if (ability == null)
+        {
+            return "";
+        }
+
+        string message = "";
+
+        if (heroineStatus != null && heroineStatus.Affection < ability.requiredAffection)
+        {
+            message += "必要好感度: " + ability.requiredAffection;
+        }
+
+        if (timeManager != null && timeManager.Day < ability.requiredDay)
+        {
+            if (!string.IsNullOrEmpty(message))
+            {
+                message += "\n";
+            }
+
+            message += "必要日数: Day " + ability.requiredDay;
+        }
+
+        if (string.IsNullOrEmpty(message))
+        {
+            return "";
+        }
+
+        return "解放条件未達\n" + message;
     }
 
     private void HideAllViews()

@@ -111,6 +111,7 @@ public class GameManager : MonoBehaviour
     public OutfitPromptAbilitySet PlayerOutfitPromptAbilities => playerOutfitPromptAbilities;
 
     private readonly HashSet<string> shownConversationIds = new HashSet<string>();
+    private readonly HashSet<string> unlockedStatusAbilityIds = new HashSet<string>();
 
     [Header("Save / Load Buttons")]
     [SerializeField] private Button saveButton;
@@ -846,6 +847,7 @@ public class GameManager : MonoBehaviour
             heroineStatus != null
                 ? heroineStatus.OutfitPromptAbilities.Clone()
                 : new OutfitPromptAbilitySet();
+        saveData.unlockedStatusAbilityIds = new List<string>(unlockedStatusAbilityIds);
 
         saveData.shownConversationIds = new List<string>(shownConversationIds);
 
@@ -888,6 +890,17 @@ public class GameManager : MonoBehaviour
         if (heroineStatus != null)
         {
             heroineStatus.SetOutfitPromptAbilities(saveData.heroineOutfitPromptAbilities);
+        }
+        unlockedStatusAbilityIds.Clear();
+        if (saveData.unlockedStatusAbilityIds != null)
+        {
+            foreach (string abilityId in saveData.unlockedStatusAbilityIds)
+            {
+                if (!string.IsNullOrEmpty(abilityId))
+                {
+                    unlockedStatusAbilityIds.Add(abilityId);
+                }
+            }
         }
 
         outfitPreferenceManager.SetPreferences(saveData.outfitPreferences);
@@ -948,6 +961,21 @@ public class GameManager : MonoBehaviour
     public bool HasSaveDataInSlot(int slotIndex)
     {
         return saveManager != null && saveManager.HasSaveData(slotIndex);
+    }
+
+    public bool IsStatusAbilityUnlocked(string abilityId)
+    {
+        return !string.IsNullOrEmpty(abilityId) && unlockedStatusAbilityIds.Contains(abilityId);
+    }
+
+    public void UnlockStatusAbility(string abilityId)
+    {
+        if (string.IsNullOrEmpty(abilityId))
+        {
+            return;
+        }
+
+        unlockedStatusAbilityIds.Add(abilityId);
     }
 
     private void ExecuteSimpleAction(
@@ -2258,7 +2286,7 @@ public class GameManager : MonoBehaviour
             return;
         }
 
-        statusDetailPanel.Initialize(this, heroineStatus);
+        statusDetailPanel.Initialize(this, heroineStatus, timeManager);
     }
 
 

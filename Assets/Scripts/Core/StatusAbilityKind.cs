@@ -1,5 +1,6 @@
 public enum StatusAbilityKind
 {
     ConditionalOutfitPrompt,
-    HiddenOutfitPrompt
+    HiddenOutfitPrompt,
+    TestJump
 }
