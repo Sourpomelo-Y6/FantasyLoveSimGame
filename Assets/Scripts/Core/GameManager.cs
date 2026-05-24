@@ -201,9 +201,26 @@ public class GameManager : MonoBehaviour
     [Header("Status Detail")]
     [SerializeField] private StatusDetailPanel statusDetailPanel;
 
+    [Header("Game Event Debug")]
+    [SerializeField] private string debugManualGameEventId = "";
+    [SerializeField] private KeyCode debugManualGameEventKey = KeyCode.F7;
+
 
     private void Update()
     {
+        if (Input.GetKeyDown(debugManualGameEventKey))
+        {
+            if (TryStartManualGameEvent(debugManualGameEventId))
+            {
+                return;
+            }
+
+            if (!string.IsNullOrEmpty(debugManualGameEventId))
+            {
+                ShowSystemMessage("手動イベントを開始できませんでした。");
+            }
+        }
+
         if (Input.GetKeyDown(KeyCode.P))
         {
             OpenSchedulePanel();
