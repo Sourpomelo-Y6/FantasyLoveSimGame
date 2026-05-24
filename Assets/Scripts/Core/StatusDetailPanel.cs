@@ -41,7 +41,7 @@ public class StatusDetailPanel : MonoBehaviour
 
     private StatusDetailRole currentRole = StatusDetailRole.Player;
     private StatusAbilityKind selectedAbilityKind = StatusAbilityKind.ConditionalOutfitPrompt;
-    private bool runtimeUiBuilt = false;
+    private bool hasWarnedMissingReferences = false;
 
     private GameObject PanelRoot
     {
@@ -50,7 +50,7 @@ public class StatusDetailPanel : MonoBehaviour
 
     private void Awake()
     {
-        EnsureRuntimeUi();
+        EnsureUiReferences();
 
         if (closeButton != null)
         {
@@ -72,7 +72,7 @@ public class StatusDetailPanel : MonoBehaviour
 
     private void OnEnable()
     {
-        EnsureRuntimeUi();
+        EnsureUiReferences();
         Refresh();
     }
 
@@ -80,12 +80,12 @@ public class StatusDetailPanel : MonoBehaviour
     {
         gameManager = manager;
         heroineStatus = heroine;
-        EnsureRuntimeUi();
+        EnsureUiReferences();
     }
 
     public void OpenPlayerDetail()
     {
-        EnsureRuntimeUi();
+        EnsureUiReferences();
         currentRole = StatusDetailRole.Player;
         PanelRoot.SetActive(true);
         ShowDetailView();
@@ -93,7 +93,7 @@ public class StatusDetailPanel : MonoBehaviour
 
     public void OpenHeroineDetail()
     {
-        EnsureRuntimeUi();
+        EnsureUiReferences();
         currentRole = StatusDetailRole.Heroine;
         PanelRoot.SetActive(true);
         ShowDetailView();
@@ -106,19 +106,19 @@ public class StatusDetailPanel : MonoBehaviour
 
     public void ShowAbilityAcquirePanelForConditional()
     {
-        EnsureRuntimeUi();
+        EnsureUiReferences();
         ShowAbilityAcquireView(StatusAbilityKind.ConditionalOutfitPrompt);
     }
 
     public void ShowAbilityAcquirePanelForHidden()
     {
-        EnsureRuntimeUi();
+        EnsureUiReferences();
         ShowAbilityAcquireView(StatusAbilityKind.HiddenOutfitPrompt);
     }
 
     private void ShowDetailView()
     {
-        EnsureRuntimeUi();
+        EnsureUiReferences();
 
         if (abilityAcquirePanel != null)
         {
@@ -130,7 +130,7 @@ public class StatusDetailPanel : MonoBehaviour
 
     private void ShowAbilityAcquireView(StatusAbilityKind abilityKind)
     {
-        EnsureRuntimeUi();
+        EnsureUiReferences();
         selectedAbilityKind = abilityKind;
 
         if (abilityAcquirePanel != null)
@@ -162,7 +162,7 @@ public class StatusDetailPanel : MonoBehaviour
 
     private void Refresh()
     {
-        EnsureRuntimeUi();
+        EnsureUiReferences();
 
         if (!PanelRoot.activeSelf)
         {
@@ -339,255 +339,27 @@ public class StatusDetailPanel : MonoBehaviour
         }
     }
 
-    private void EnsureRuntimeUi()
+    private void EnsureUiReferences()
     {
-        if (runtimeUiBuilt)
+        if (HasRequiredReferences() || hasWarnedMissingReferences)
         {
             return;
         }
 
-        if (titleText != null &&
+        Debug.LogWarning("StatusDetailPanel の UI 参照が不足しています。Hierarchy 上に UI を配置し、Inspector で参照を割り当ててください。");
+        hasWarnedMissingReferences = true;
+    }
+
+    private bool HasRequiredReferences()
+    {
+        return titleText != null &&
             statusSummaryText != null &&
             abilityListParent != null &&
             abilityButtonPrefab != null &&
-            abilityAcquirePanel != null)
-        {
-            runtimeUiBuilt = true;
-            return;
-        }
-
-        BuildRuntimeUi();
-        runtimeUiBuilt = true;
-    }
-
-    private void BuildRuntimeUi()
-    {
-        RectTransform rootRect = PanelRoot.GetComponent<RectTransform>();
-        if (rootRect == null)
-        {
-            rootRect = PanelRoot.AddComponent<RectTransform>();
-        }
-
-        rootRect.anchorMin = Vector2.zero;
-        rootRect.anchorMax = Vector2.one;
-        rootRect.offsetMin = Vector2.zero;
-        rootRect.offsetMax = Vector2.zero;
-
-        Image rootImage = PanelRoot.GetComponent<Image>();
-        if (rootImage == null)
-        {
-            rootImage = PanelRoot.AddComponent<Image>();
-        }
-
-        rootImage.color = new Color(0f, 0f, 0f, 0.72f);
-
-        GameObject contentObject = new GameObject("Content", typeof(RectTransform), typeof(Image));
-        contentObject.transform.SetParent(PanelRoot.transform, false);
-        RectTransform contentRect = contentObject.GetComponent<RectTransform>();
-        contentRect.anchorMin = new Vector2(0.5f, 0.5f);
-        contentRect.anchorMax = new Vector2(0.5f, 0.5f);
-        contentRect.sizeDelta = new Vector2(920f, 620f);
-        contentRect.anchoredPosition = Vector2.zero;
-
-        Image contentImage = contentObject.GetComponent<Image>();
-        contentImage.color = new Color(0.1f, 0.1f, 0.12f, 0.95f);
-
-        TMP_FontAsset fontAsset = ResolveFontAsset();
-
-        GameObject titleObject = CreateTextObject("Title", contentObject.transform, fontAsset, 30, TextAlignmentOptions.Left, new Vector2(30f, 565f), new Vector2(500f, 40f));
-        titleText = titleObject.GetComponent<TextMeshProUGUI>();
-
-        GameObject closeObject = CreateButtonObject("CloseButton", contentObject.transform, fontAsset, "閉じる", new Vector2(790f, 560f), new Vector2(100f, 36f));
-        closeButton = closeObject.GetComponent<Button>();
-        closeButton.onClick.RemoveAllListeners();
-        closeButton.onClick.AddListener(Close);
-
-        GameObject summaryObject = CreateTextObject("Summary", contentObject.transform, fontAsset, 24, TextAlignmentOptions.TopLeft, new Vector2(30f, 470f), new Vector2(350f, 110f));
-        statusSummaryText = summaryObject.GetComponent<TextMeshProUGUI>();
-
-        GameObject playerTab = CreateButtonObject("PlayerTab", contentObject.transform, fontAsset, "プレイヤー", new Vector2(30f, 420f), new Vector2(150f, 40f));
-        playerTab.GetComponent<Button>().onClick.RemoveAllListeners();
-        playerTab.GetComponent<Button>().onClick.AddListener(OpenPlayerDetail);
-
-        GameObject heroineTab = CreateButtonObject("HeroineTab", contentObject.transform, fontAsset, "ヒロイン", new Vector2(190f, 420f), new Vector2(150f, 40f));
-        heroineTab.GetComponent<Button>().onClick.RemoveAllListeners();
-        heroineTab.GetComponent<Button>().onClick.AddListener(OpenHeroineDetail);
-
-        GameObject abilityLabelObject = CreateTextObject("AbilityLabel", contentObject.transform, fontAsset, 24, TextAlignmentOptions.Left, new Vector2(30f, 360f), new Vector2(280f, 32f));
-        abilityLabelObject.GetComponent<TextMeshProUGUI>().text = "能力一覧";
-
-        GameObject listObject = new GameObject("AbilityList", typeof(RectTransform), typeof(VerticalLayoutGroup), typeof(ContentSizeFitter));
-        listObject.transform.SetParent(contentObject.transform, false);
-        RectTransform listRect = listObject.GetComponent<RectTransform>();
-        listRect.anchorMin = new Vector2(0f, 0f);
-        listRect.anchorMax = new Vector2(0f, 0f);
-        listRect.pivot = new Vector2(0f, 1f);
-        listRect.anchoredPosition = new Vector2(30f, 330f);
-        listRect.sizeDelta = new Vector2(360f, 240f);
-
-        VerticalLayoutGroup layoutGroup = listObject.GetComponent<VerticalLayoutGroup>();
-        layoutGroup.spacing = 10f;
-        layoutGroup.childForceExpandHeight = false;
-        layoutGroup.childForceExpandWidth = true;
-        layoutGroup.childControlHeight = true;
-        layoutGroup.childControlWidth = true;
-
-        ContentSizeFitter fitter = listObject.GetComponent<ContentSizeFitter>();
-        fitter.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
-        fitter.horizontalFit = ContentSizeFitter.FitMode.Unconstrained;
-
-        abilityListParent = listObject.transform;
-        abilityButtonPrefab = CreateAbilityButtonTemplate(fontAsset);
-
-        abilityAcquirePanel = CreateAcquirePanel(contentObject.transform, fontAsset);
-        abilityAcquirePanel.SetActive(false);
-
-        RefreshAbilityList();
-        ShowDetailView();
-    }
-
-    private TMP_FontAsset ResolveFontAsset()
-    {
-        if (titleText != null && titleText.font != null)
-        {
-            return titleText.font;
-        }
-
-        if (statusSummaryText != null && statusSummaryText.font != null)
-        {
-            return statusSummaryText.font;
-        }
-
-        TextMeshProUGUI[] texts = Resources.FindObjectsOfTypeAll<TextMeshProUGUI>();
-        foreach (TextMeshProUGUI text in texts)
-        {
-            if (text != null && text.font != null)
-            {
-                return text.font;
-            }
-        }
-
-        TMP_FontAsset[] fontAssets = Resources.FindObjectsOfTypeAll<TMP_FontAsset>();
-        foreach (TMP_FontAsset fontAsset in fontAssets)
-        {
-            if (fontAsset != null)
-            {
-                return fontAsset;
-            }
-        }
-
-        return null;
-    }
-
-    private GameObject CreateTextObject(
-        string name,
-        Transform parent,
-        TMP_FontAsset fontAsset,
-        int fontSize,
-        TextAlignmentOptions alignment,
-        Vector2 anchoredPosition,
-        Vector2 sizeDelta)
-    {
-        GameObject textObject = new GameObject(name, typeof(RectTransform), typeof(TextMeshProUGUI));
-        textObject.transform.SetParent(parent, false);
-
-        RectTransform rectTransform = textObject.GetComponent<RectTransform>();
-        rectTransform.anchorMin = new Vector2(0f, 1f);
-        rectTransform.anchorMax = new Vector2(0f, 1f);
-        rectTransform.pivot = new Vector2(0f, 1f);
-        rectTransform.anchoredPosition = anchoredPosition;
-        rectTransform.sizeDelta = sizeDelta;
-
-        TextMeshProUGUI text = textObject.GetComponent<TextMeshProUGUI>();
-        text.font = fontAsset;
-        text.fontSize = fontSize;
-        text.color = Color.white;
-        text.alignment = alignment;
-        text.enableWordWrapping = true;
-
-        return textObject;
-    }
-
-    private GameObject CreateButtonObject(
-        string name,
-        Transform parent,
-        TMP_FontAsset fontAsset,
-        string label,
-        Vector2 anchoredPosition,
-        Vector2 sizeDelta)
-    {
-        GameObject buttonObject = new GameObject(name, typeof(RectTransform), typeof(Image), typeof(Button), typeof(LayoutElement));
-        buttonObject.transform.SetParent(parent, false);
-
-        RectTransform rectTransform = buttonObject.GetComponent<RectTransform>();
-        rectTransform.anchorMin = new Vector2(0f, 1f);
-        rectTransform.anchorMax = new Vector2(0f, 1f);
-        rectTransform.pivot = new Vector2(0f, 1f);
-        rectTransform.anchoredPosition = anchoredPosition;
-        rectTransform.sizeDelta = sizeDelta;
-
-        Image image = buttonObject.GetComponent<Image>();
-        image.color = new Color(1f, 1f, 1f, 0.9f);
-
-        GameObject labelObject = CreateTextObject("Text", buttonObject.transform, fontAsset, 20, TextAlignmentOptions.Center, new Vector2(0f, 0f), sizeDelta);
-        labelObject.GetComponent<TextMeshProUGUI>().text = label;
-        RectTransform labelRect = labelObject.GetComponent<RectTransform>();
-        labelRect.anchorMin = Vector2.zero;
-        labelRect.anchorMax = Vector2.one;
-        labelRect.offsetMin = Vector2.zero;
-        labelRect.offsetMax = Vector2.zero;
-
-        Button button = buttonObject.GetComponent<Button>();
-        button.targetGraphic = image;
-
-        LayoutElement layoutElement = buttonObject.GetComponent<LayoutElement>();
-        layoutElement.preferredWidth = sizeDelta.x;
-        layoutElement.preferredHeight = sizeDelta.y;
-
-        return buttonObject;
-    }
-
-    private Button CreateAbilityButtonTemplate(TMP_FontAsset fontAsset)
-    {
-        GameObject buttonObject = CreateButtonObject(
-            "AbilityButtonTemplate",
-            PanelRoot.transform,
-            fontAsset,
-            "能力",
-            Vector2.zero,
-            new Vector2(300f, 44f)
-        );
-
-        buttonObject.SetActive(false);
-        return buttonObject.GetComponent<Button>();
-    }
-
-    private GameObject CreateAcquirePanel(Transform parent, TMP_FontAsset fontAsset)
-    {
-        GameObject panelObject = new GameObject("AbilityAcquirePanel", typeof(RectTransform), typeof(Image));
-        panelObject.transform.SetParent(parent, false);
-
-        RectTransform rectTransform = panelObject.GetComponent<RectTransform>();
-        rectTransform.anchorMin = new Vector2(0.5f, 0.5f);
-        rectTransform.anchorMax = new Vector2(0.5f, 0.5f);
-        rectTransform.pivot = new Vector2(0.5f, 0.5f);
-        rectTransform.anchoredPosition = Vector2.zero;
-        rectTransform.sizeDelta = new Vector2(420f, 360f);
-
-        Image image = panelObject.GetComponent<Image>();
-        image.color = new Color(0.08f, 0.08f, 0.1f, 0.98f);
-
-        abilityAcquireTitleText = CreateTextObject("AcquireTitle", panelObject.transform, fontAsset, 28, TextAlignmentOptions.Left, new Vector2(24f, 312f), new Vector2(360f, 40f)).GetComponent<TextMeshProUGUI>();
-        abilityAcquireDescriptionText = CreateTextObject("AcquireDescription", panelObject.transform, fontAsset, 22, TextAlignmentOptions.TopLeft, new Vector2(24f, 250f), new Vector2(360f, 150f)).GetComponent<TextMeshProUGUI>();
-
-        abilityAcquireButton = CreateButtonObject("AcquireButton", panelObject.transform, fontAsset, acquireButtonLabel, new Vector2(24f, 58f), new Vector2(150f, 44f)).GetComponent<Button>();
-        abilityAcquireButton.onClick.RemoveAllListeners();
-        abilityAcquireButton.onClick.AddListener(UnlockSelectedAbility);
-
-        abilityAcquireBackButton = CreateButtonObject("AcquireBackButton", panelObject.transform, fontAsset, "戻る", new Vector2(190f, 58f), new Vector2(120f, 44f)).GetComponent<Button>();
-        abilityAcquireBackButton.onClick.RemoveAllListeners();
-        abilityAcquireBackButton.onClick.AddListener(ShowDetailView);
-
-        return panelObject;
+            abilityAcquirePanel != null &&
+            abilityAcquireTitleText != null &&
+            abilityAcquireDescriptionText != null &&
+            abilityAcquireButton != null &&
+            abilityAcquireBackButton != null;
     }
 }

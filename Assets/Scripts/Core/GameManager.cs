@@ -2247,34 +2247,18 @@ public class GameManager : MonoBehaviour
 
     private void EnsureStatusDetailPanel()
     {
-        if (statusDetailPanel != null)
+        if (statusDetailPanel == null)
         {
+            statusDetailPanel = FindObjectOfType<StatusDetailPanel>();
+        }
+
+        if (statusDetailPanel == null)
+        {
+            Debug.LogWarning("StatusDetailPanel がシーンに配置されていません。Canvas 配下に手動で配置し、GameManager に参照を割り当ててください。");
             return;
         }
 
-        statusDetailPanel = FindObjectOfType<StatusDetailPanel>();
-        if (statusDetailPanel != null)
-        {
-            return;
-        }
-
-        Canvas canvas = FindObjectOfType<Canvas>();
-        if (canvas == null)
-        {
-            Debug.LogWarning("StatusDetailPanel を作成できませんでした。Canvas が見つかりません。");
-            return;
-        }
-
-        GameObject panelObject = new GameObject(
-            "StatusDetailPanel",
-            typeof(RectTransform),
-            typeof(CanvasRenderer),
-            typeof(UnityEngine.UI.Image)
-        );
-        panelObject.transform.SetParent(canvas.transform, false);
-        statusDetailPanel = panelObject.AddComponent<StatusDetailPanel>();
         statusDetailPanel.Initialize(this, heroineStatus);
-        panelObject.SetActive(false);
     }
 
 
