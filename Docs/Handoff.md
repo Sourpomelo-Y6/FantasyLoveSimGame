@@ -37,12 +37,15 @@
 - `StatusDetailPanel` の `playerAbilities` / `heroineAbilities` を Inspector で設定した場合は、その配列を優先して表示する
 - `StatusAbilityData.requiredAffection` と `requiredDay` で解放条件を設定でき、条件未達の場合は解放ボタンを押せない
 - 解放条件の現在値表示や詳細な不足理由表示は、現時点では必要性が低いため後回しにする
+- タイトルから新規ゲームを開始した直後に、メイン画面へ入る前のゲーム開始イベントを挟み、スチル表示もここで行う方針
 - `StatusAbilityData.effectType` が実際の効果を決める。`UseAbilityKind` は旧来互換として `abilityKind` から効果を推測し、`None` は効果なし能力として汎用の取得済みIDだけを保存する
 - 初期データとしてプレイヤー用・ヒロイン用の衣装確認能力をそれぞれ用意している
 - テスト用など効果を持たない能力は `StatusAbilityKind.TestJump` のような表示種別にし、`effectType` を `None`、`abilityId` を一意に設定すると汎用の取得済みIDとして保存される
 - `ConditionalOutfitPrompt` は初期状態で解放済みのため、何もしない能力のテストには使わない
 - 詳細ステータス画面は `StatusDetailPanel`、能力項目は `StatusAbilityKind`、画面の対象切り替えは `StatusDetailRole` で扱う
 - 詳細ステータス画面の入口として `StatusDetailAction` を用意し、行動一覧から開けるようにしている
+- タイトルから新規ゲームを開始した直後は、`GameEventData` の `GameStart` イベントを再生してからメイン画面を始める。`GameEventData` は `Assets/Resources/GameEvents/` に置き、ページ単位で話者・メッセージ・スチルを持てる
+- `GameEventData.showOnce` はセーブデータの `shownGameEventIds` で管理する
 - `StatusDetailPanel` の画面部品は Unity 上で手作業配置し、Inspector で参照を割り当てる
 - 必須参照は `panelRoot`、各 `TextMeshProUGUI`、各 `Button`、`abilityListParent`、`abilityButtonPrefab`、`abilityAcquirePanel` 周辺
 - `GameManager.EnsureStatusDetailPanel()` は配置済みの `StatusDetailPanel` を探して初期化するだけで、UI の自動生成は行わない
@@ -386,6 +389,9 @@
 ### 会話を増やす
 
 `ConversationData` アセットを追加して、`Assets/Resources/Conversations/` に配置すればよいです。
+会話IDは `Daily_Morning_01` のように `カテゴリ_条件_連番` を基本にし、`showOnce` は一度見せたら再出現させたくない会話だけに使う。
+`minAffection` / `maxAffection` は会話の入口条件、`allowedTimeSlots` / `allowedWeathers` / `allowedSeasons` は必要なときだけ絞り込む。条件が重なる会話が複数ある場合は `priority` で並び替える。
+同じ条件で複数の会話を置く場合は、まず `priority`、次に `conversationId` の命名で識別できるようにする。
 
 ### エンディングを増やす
 
@@ -434,6 +440,21 @@ UI デザインは手作業で行っています。
 - ロード後は `SaveLoadPanel` が自動で閉じる
 
 この構成にすると、見た目と階層は同じ prefab で管理し、動作だけを `TitleManager` / `GameManager` の参照で切り替えられます。
+
+### セーブ/ロード回帰確認チェックリスト
+
+手動確認時は、次の状態が保存・復元されるかを見る。
+
+- 好感度、日付、時間帯、曜日、季節、天気がロード後に戻る
+- 現在の衣装がロード後に戻る
+- 衣装評価の履歴がロード後に戻り、同じ衣装への反応が継続する
+- 今日/明日の予定がロード後に戻る
+- 当日予定イベントの発動済み状態がロード後に戻り、同じ日に二重発火しない
+- 能力取得状態がロード後に戻る
+- 衣装確認モードの解放状態がロード後に戻る
+- 表示列 `ActionData.displayColumn` はアセット設定なので、セーブ/ロードで変化しない
+- 翌朝メッセージキューと将来の汎用ログはセーブ対象外の方針なので、ロード後に復元されなくてよい
+- タイトル画面からロードした場合も、MainScene のロード後 UI が閉じた状態で始まる
 
 ## 追加開発の優先候補
 

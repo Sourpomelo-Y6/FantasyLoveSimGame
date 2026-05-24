@@ -31,12 +31,23 @@ public class GameManager : MonoBehaviour
         public readonly DialogueSpeakerType SpeakerType;
         public readonly string SpeakerName;
         public readonly string Message;
+        public readonly Sprite StillSprite;
 
         public DialogueMessage(DialogueSpeakerType speakerType, string speakerName, string message)
+            : this(speakerType, speakerName, message, null)
+        {
+        }
+
+        public DialogueMessage(
+            DialogueSpeakerType speakerType,
+            string speakerName,
+            string message,
+            Sprite stillSprite)
         {
             SpeakerType = speakerType;
             SpeakerName = speakerName;
             Message = message;
+            StillSprite = stillSprite;
         }
     }
 
@@ -109,6 +120,11 @@ public class GameManager : MonoBehaviour
 
     private List<ActionData> actions = new List<ActionData>();
 
+    [Header("Game Event Data")]
+    [SerializeField] private string gameEventResourcePath = "GameEvents";
+
+    private List<GameEventData> gameEvents = new List<GameEventData>();
+
     [Header("Scheduled Event Data")]
     [SerializeField] private string scheduledEventResourcePath = "ScheduledEvents";
 
@@ -133,6 +149,12 @@ public class GameManager : MonoBehaviour
     private ScheduledEventDefinition pendingScheduledEvent;
     private bool startPendingScheduledEventAfterOutfitMessage = false;
     private bool returnToScheduledEventPromptAfterOutfitMessage = false;
+    private Sprite dialogueSequencePreviousBackgroundSprite;
+    private bool dialogueSequenceHasBackgroundOverride = false;
+    private bool dialogueSequenceIsActive = false;
+    private bool dialogueSequenceHidHeroineImage = false;
+    private bool dialogueSequenceHidSaveLoadButtons = false;
+    private Sprite blankStillSprite;
 
     private const string SystemSpeakerName = "SYSTEM";
     private const string ScheduleSpeakerName = "予定";
@@ -141,6 +163,7 @@ public class GameManager : MonoBehaviour
     public OutfitPromptAbilitySet PlayerOutfitPromptAbilities => playerOutfitPromptAbilities;
 
     private readonly HashSet<string> shownConversationIds = new HashSet<string>();
+    private readonly HashSet<string> shownGameEventIds = new HashSet<string>();
     private readonly HashSet<string> unlockedStatusAbilityIds = new HashSet<string>();
     private readonly Queue<DialogueMessage> queuedDialogueMessages = new Queue<DialogueMessage>();
 
@@ -226,12 +249,51 @@ public class GameManager : MonoBehaviour
 
     private void ShowDialogue(DialogueSpeakerType speakerType, string speakerName, string message)
     {
-        queuedDialogueMessages.Clear();
-        SetDialogueText(speakerType, speakerName, message);
+        ShowDialogue(speakerType, speakerName, message, null);
     }
 
-    private void SetDialogueText(DialogueSpeakerType speakerType, string speakerName, string message)
+    private void ShowDialogue(
+        DialogueSpeakerType speakerType,
+        string speakerName,
+        string message,
+        Sprite stillSprite)
     {
+        ResetDialogueSequenceState();
+        queuedDialogueMessages.Clear();
+        dialogueSequenceIsActive = false;
+        SetDialogueText(speakerType, speakerName, message, stillSprite);
+    }
+
+    private void SetDialogueText(
+        DialogueSpeakerType speakerType,
+        string speakerName,
+        string message,
+        Sprite stillSprite)
+    {
+        if (stillSprite != null && backgroundImage != null)
+        {
+            if (!dialogueSequenceHasBackgroundOverride)
+            {
+                dialogueSequencePreviousBackgroundSprite = backgroundImage.sprite;
+                dialogueSequenceHasBackgroundOverride = true;
+            }
+
+            backgroundImage.sprite = stillSprite;
+
+            if (!dialogueSequenceHidHeroineImage &&
+                outfitManager != null &&
+                outfitManager.IsHeroineImageVisible())
+            {
+                outfitManager.SetHeroineImageVisible(false);
+                dialogueSequenceHidHeroineImage = true;
+            }
+
+            if (backgroundZoom != null)
+            {
+                backgroundZoom.ResetZoom();
+            }
+        }
+
         if (speakerNameText != null)
         {
             speakerNameText.text = speakerName;
@@ -244,6 +306,44 @@ public class GameManager : MonoBehaviour
                 ? speakerName + "\n" + message
                 : message;
             dialogueText.color = GetDialogueColor(speakerType);
+        }
+    }
+
+    private void ResetDialogueSequenceState()
+    {
+        if (dialogueSequenceHasBackgroundOverride && backgroundImage != null)
+        {
+            backgroundImage.sprite = dialogueSequencePreviousBackgroundSprite;
+        }
+
+        dialogueSequencePreviousBackgroundSprite = null;
+        dialogueSequenceHasBackgroundOverride = false;
+
+        if (dialogueSequenceHidHeroineImage && outfitManager != null)
+        {
+            outfitManager.SetHeroineImageVisible(true);
+        }
+
+        dialogueSequenceHidHeroineImage = false;
+
+        if (dialogueSequenceHidSaveLoadButtons)
+        {
+            SetSaveLoadButtonsVisible(true);
+        }
+
+        dialogueSequenceHidSaveLoadButtons = false;
+    }
+
+    private void SetSaveLoadButtonsVisible(bool visible)
+    {
+        if (saveButton != null)
+        {
+            saveButton.gameObject.SetActive(visible);
+        }
+
+        if (loadButton != null)
+        {
+            loadButton.gameObject.SetActive(visible);
         }
     }
 
@@ -299,21 +399,29 @@ public class GameManager : MonoBehaviour
 
     private void ShowDialogueSequence(List<DialogueMessage> messages)
     {
+        ResetDialogueSequenceState();
         queuedDialogueMessages.Clear();
+        dialogueSequenceIsActive = true;
 
         if (messages == null || messages.Count == 0)
         {
+            dialogueSequenceIsActive = false;
+            nextButton.gameObject.SetActive(false);
             return;
         }
 
-        SetDialogueText(messages[0].SpeakerType, messages[0].SpeakerName, messages[0].Message);
+        SetDialogueText(
+            messages[0].SpeakerType,
+            messages[0].SpeakerName,
+            messages[0].Message,
+            messages[0].StillSprite);
 
         for (int i = 1; i < messages.Count; i++)
         {
             queuedDialogueMessages.Enqueue(messages[i]);
         }
 
-        nextButton.gameObject.SetActive(queuedDialogueMessages.Count > 0);
+        nextButton.gameObject.SetActive(true);
     }
 
     private bool TryShowNextQueuedDialogue()
@@ -324,10 +432,16 @@ public class GameManager : MonoBehaviour
         }
 
         DialogueMessage message = queuedDialogueMessages.Dequeue();
-        SetDialogueText(message.SpeakerType, message.SpeakerName, message.Message);
+        SetDialogueText(
+            message.SpeakerType,
+            message.SpeakerName,
+            message.Message,
+            message.StillSprite);
 
         if (queuedDialogueMessages.Count == 0 && flowState == ConversationFlowState.Idle)
         {
+            ResetDialogueSequenceState();
+            dialogueSequenceIsActive = false;
             actionButtonArea.SetActive(true);
             nextButton.gameObject.SetActive(false);
         }
@@ -359,6 +473,7 @@ public class GameManager : MonoBehaviour
     {
         LoadConversationsFromResources();
         LoadActionsFromResources();
+        LoadGameEventsFromResources();
         LoadScheduledEventsFromResources();
 
         CreateGenreButtons();
@@ -382,6 +497,7 @@ public class GameManager : MonoBehaviour
         outfitReactionPanel.SetActive(false);
         nextButton.gameObject.SetActive(false);
         endingButton.gameObject.SetActive(false);
+        SetSaveLoadButtonsVisible(false);
 
         //saveButton.onClick.AddListener(SaveGame);
         //loadButton.onClick.AddListener(LoadGame);
@@ -389,7 +505,6 @@ public class GameManager : MonoBehaviour
         timeManager.OnDayChanged += OnDayChanged;
 
         outfitManager.WearDefaultOutfit();
-        ShowHeroineDialogue("今日は何を話しましょうか？");
 
         OnTalkStart();
         //background.localScale = new Vector3(1.3f, 1.3f, 1f);
@@ -400,10 +515,25 @@ public class GameManager : MonoBehaviour
         if (GameStartSettings.ShouldLoadOnStart)
         {
             GameStartSettings.ShouldLoadOnStart = false;
+            GameStartSettings.ShouldPlayGameStartEvent = false;
             LoadGame();
+            RefreshUI();
+            SetSaveLoadButtonsVisible(true);
+            EnsureStatusDetailPanel();
+            return;
         }
 
+        if (GameStartSettings.ShouldPlayGameStartEvent)
+        {
+            GameStartSettings.ShouldPlayGameStartEvent = false;
+            StartGameStartSequence();
+            EnsureStatusDetailPanel();
+            return;
+        }
+
+        ShowHeroineDialogue("今日は何を話しましょうか？");
         RefreshUI();
+        SetSaveLoadButtonsVisible(true);
         EnsureStatusDetailPanel();
     }
 
@@ -747,6 +877,14 @@ public class GameManager : MonoBehaviour
             StartCoroutine(FadeToBlackAndNextMorning());
             return;
         }
+
+        if (dialogueSequenceIsActive && flowState == ConversationFlowState.Idle)
+        {
+            ResetDialogueSequenceState();
+            dialogueSequenceIsActive = false;
+            actionButtonArea.SetActive(true);
+            nextButton.gameObject.SetActive(false);
+        }
     }
 
     private void FinishActionResult()
@@ -996,6 +1134,7 @@ public class GameManager : MonoBehaviour
         saveData.unlockedStatusAbilityIds = new List<string>(unlockedStatusAbilityIds);
 
         saveData.shownConversationIds = new List<string>(shownConversationIds);
+        saveData.shownGameEventIds = new List<string>(shownGameEventIds);
 
         saveData.todaySchedule = scheduleManager.TodaySchedule;
         saveData.tomorrowSchedule = scheduleManager.TomorrowSchedule;
@@ -1071,6 +1210,18 @@ public class GameManager : MonoBehaviour
             }
         }
 
+        shownGameEventIds.Clear();
+        if (saveData.shownGameEventIds != null)
+        {
+            foreach (string eventId in saveData.shownGameEventIds)
+            {
+                if (!string.IsNullOrEmpty(eventId))
+                {
+                    shownGameEventIds.Add(eventId);
+                }
+            }
+        }
+
         scheduleManager.SetScheduleState(
             saveData.todaySchedule,
             saveData.tomorrowSchedule,
@@ -1122,6 +1273,21 @@ public class GameManager : MonoBehaviour
         }
 
         unlockedStatusAbilityIds.Add(abilityId);
+    }
+
+    public bool IsGameEventShown(string eventId)
+    {
+        return !string.IsNullOrEmpty(eventId) && shownGameEventIds.Contains(eventId);
+    }
+
+    public void MarkGameEventShown(string eventId)
+    {
+        if (string.IsNullOrEmpty(eventId))
+        {
+            return;
+        }
+
+        shownGameEventIds.Add(eventId);
     }
 
     private void ExecuteSimpleAction(
@@ -1285,6 +1451,225 @@ public class GameManager : MonoBehaviour
 
             ActionData capturedAction = action;
             button.onClick.AddListener(() => ExecuteAction(capturedAction));
+        }
+    }
+
+    private void LoadGameEventsFromResources()
+    {
+        GameEventData[] loadedGameEvents =
+            Resources.LoadAll<GameEventData>(gameEventResourcePath);
+
+        gameEvents = new List<GameEventData>(loadedGameEvents);
+        gameEvents.Sort((a, b) => a.sortOrder.CompareTo(b.sortOrder));
+
+        Debug.Log("Loaded Game Events: " + gameEvents.Count);
+
+        foreach (GameEventData gameEvent in gameEvents)
+        {
+            Debug.Log(
+                "Game Event: " +
+                gameEvent.name +
+                " / Id: " +
+                gameEvent.eventId +
+                " / Trigger: " +
+                gameEvent.triggerType +
+                " / Sort: " +
+                gameEvent.sortOrder +
+                " / Pages: " +
+                (gameEvent.pages != null ? gameEvent.pages.Count : 0)
+            );
+        }
+    }
+
+    private void StartGameStartSequence()
+    {
+        actionButtonArea.SetActive(false);
+        genreButtonArea.SetActive(false);
+        choiceButtonArea.SetActive(false);
+        outfitPanel.SetActive(false);
+        outfitReactionPanel.SetActive(false);
+        nextButton.gameObject.SetActive(false);
+
+        currentConversation = null;
+        pendingAdvanceTime = false;
+        pendingGoodNight = false;
+        flowState = ConversationFlowState.Idle;
+
+        List<DialogueMessage> startMessages = BuildGameStartMessages();
+        ShowDialogueSequence(startMessages);
+        SetSaveLoadButtonsVisible(false);
+        dialogueSequenceHidSaveLoadButtons = true;
+    }
+
+    private List<DialogueMessage> BuildGameStartMessages()
+    {
+        List<DialogueMessage> messages = new List<DialogueMessage>();
+
+        foreach (GameEventData gameEvent in GetGameEventsForTrigger(GameEventTriggerType.GameStart))
+        {
+            if (gameEvent == null || gameEvent.pages == null || gameEvent.pages.Count == 0)
+            {
+                continue;
+            }
+
+            messages.AddRange(BuildGameEventMessages(gameEvent));
+
+            if (gameEvent.showOnce && !string.IsNullOrEmpty(gameEvent.eventId))
+            {
+                MarkGameEventShown(gameEvent.eventId);
+            }
+        }
+
+        if (messages.Count > 0)
+        {
+            return messages;
+        }
+
+        Sprite stillSprite = GetDefaultGameStartStillSprite();
+
+        messages.Add(
+            new DialogueMessage(
+                DialogueSpeakerType.Heroine,
+                heroineStatus != null ? heroineStatus.HeroineName : "",
+                "新しい物語が始まります。",
+                stillSprite
+            )
+        );
+        messages.Add(
+            new DialogueMessage(
+                DialogueSpeakerType.Heroine,
+                heroineStatus != null ? heroineStatus.HeroineName : "",
+                "今日は何を話しましょうか？"
+            )
+        );
+
+        return messages;
+    }
+
+    private List<GameEventData> GetGameEventsForTrigger(GameEventTriggerType triggerType)
+    {
+        List<GameEventData> result = new List<GameEventData>();
+
+        if (gameEvents == null)
+        {
+            return result;
+        }
+
+        foreach (GameEventData gameEvent in gameEvents)
+        {
+            if (gameEvent == null || !gameEvent.isEnabled)
+            {
+                continue;
+            }
+
+            if (gameEvent.triggerType != triggerType)
+            {
+                continue;
+            }
+
+            if (gameEvent.showOnce && !string.IsNullOrEmpty(gameEvent.eventId) && IsGameEventShown(gameEvent.eventId))
+            {
+                continue;
+            }
+
+            result.Add(gameEvent);
+        }
+
+        return result;
+    }
+
+    private List<DialogueMessage> BuildGameEventMessages(GameEventData gameEvent)
+    {
+        List<DialogueMessage> messages = new List<DialogueMessage>();
+
+        if (gameEvent == null || gameEvent.pages == null)
+        {
+            return messages;
+        }
+
+        Sprite defaultStillSprite = GetDefaultGameStartStillSprite();
+
+        for (int i = 0; i < gameEvent.pages.Count; i++)
+        {
+            GameEventPageData page = gameEvent.pages[i];
+            if (page == null)
+            {
+                continue;
+            }
+
+            string speakerName = page.speakerName;
+            if (string.IsNullOrEmpty(speakerName))
+            {
+                speakerName = GetGameEventDefaultSpeakerName(page.speakerType);
+            }
+
+            Sprite stillSprite = page.stillSprite;
+            if (stillSprite == null && i == 0)
+            {
+                stillSprite = defaultStillSprite;
+            }
+
+            messages.Add(
+                new DialogueMessage(
+                    GetDialogueSpeakerType(page.speakerType),
+                    speakerName,
+                    page.message,
+                    stillSprite
+                )
+            );
+        }
+
+        return messages;
+    }
+
+    private Sprite GetDefaultGameStartStillSprite()
+    {
+        if (blankStillSprite == null)
+        {
+            Texture2D texture = new Texture2D(1, 1, TextureFormat.RGBA32, false);
+            texture.SetPixel(0, 0, new Color(0f, 0f, 0f, 0f));
+            texture.Apply();
+            texture.hideFlags = HideFlags.HideAndDontSave;
+
+            blankStillSprite = Sprite.Create(
+                texture,
+                new Rect(0f, 0f, 1f, 1f),
+                new Vector2(0.5f, 0.5f),
+                1f
+            );
+            blankStillSprite.hideFlags = HideFlags.HideAndDontSave;
+        }
+
+        return blankStillSprite;
+    }
+
+    private DialogueSpeakerType GetDialogueSpeakerType(ScheduledEventSpeakerType speakerType)
+    {
+        switch (speakerType)
+        {
+            case ScheduledEventSpeakerType.System:
+                return DialogueSpeakerType.System;
+            case ScheduledEventSpeakerType.Schedule:
+                return DialogueSpeakerType.Schedule;
+            case ScheduledEventSpeakerType.Outfit:
+                return DialogueSpeakerType.Outfit;
+            default:
+                return DialogueSpeakerType.Heroine;
+        }
+    }
+
+    private string GetGameEventDefaultSpeakerName(ScheduledEventSpeakerType speakerType)
+    {
+        switch (speakerType)
+        {
+            case ScheduledEventSpeakerType.System:
+                return SystemSpeakerName;
+            case ScheduledEventSpeakerType.Schedule:
+                return ScheduleSpeakerName;
+            case ScheduledEventSpeakerType.Outfit:
+                return OutfitSpeakerName;
+            default:
+                return heroineStatus != null ? heroineStatus.HeroineName : "";
         }
     }
 

@@ -618,5 +618,20 @@ public class OutfitManager : MonoBehaviour
         return bonus;
     }
 
+    public void SetHeroineImageVisible(bool visible)
+    {
+        if (heroineImage == null)
+        {
+            return;
+        }
+
+        heroineImage.gameObject.SetActive(visible);
+    }
+
+    public bool IsHeroineImageVisible()
+    {
+        return heroineImage != null && heroineImage.gameObject.activeSelf;
+    }
+
 
 }

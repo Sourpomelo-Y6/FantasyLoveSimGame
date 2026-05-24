@@ -24,6 +24,7 @@ public class SaveData
     public List<string> unlockedStatusAbilityIds = new List<string>();
 
     public List<string> shownConversationIds = new List<string>();
+    public List<string> shownGameEventIds = new List<string>();
 
     public ScheduleType todaySchedule;
     public ScheduleType tomorrowSchedule;

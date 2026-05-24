@@ -38,6 +38,7 @@ public class TitleManager : MonoBehaviour
     private void OnClickNewGame()
     {
         GameStartSettings.ShouldLoadOnStart = false;
+        GameStartSettings.ShouldPlayGameStartEvent = true;
         SceneManager.LoadScene(mainSceneName);
     }
 
@@ -49,6 +50,7 @@ public class TitleManager : MonoBehaviour
     public void ContinueFromSelectedSlot()
     {
         GameStartSettings.ShouldLoadOnStart = true;
+        GameStartSettings.ShouldPlayGameStartEvent = false;
         SceneManager.LoadScene(mainSceneName);
     }
 

@@ -72,6 +72,7 @@ public class SaveLoadPanel : MonoBehaviour
         }
 
         HideConfirmPanel();
+        PanelRoot.SetActive(false);
     }
 
     private void OnEnable()
