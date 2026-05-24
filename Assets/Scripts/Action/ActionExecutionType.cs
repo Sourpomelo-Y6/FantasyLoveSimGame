@@ -4,5 +4,6 @@ public enum ActionExecutionType
     OpenConversationGenres,
     OpenOutfitPanel,
     OpenOutfitReactionPanel,
-    OpenSchedulePanel
+    OpenSchedulePanel,
+    OpenStatusDetailPanel
 }

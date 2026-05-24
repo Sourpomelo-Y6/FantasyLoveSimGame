@@ -58,6 +58,11 @@
 `MainScene` に主要導線を集約し、必要に応じてサブシステムを足していくのがよいです。
 UI デザイン、Unity シーン編集、Inspector の参照設定は手作業で行い、コード側は必要な接続ポイントを用意する方針です。
 
+今後の拡張では、プレイヤーとヒロインそれぞれに詳細ステータス画面を置き、その中に能力項目と能力獲得画面への導線を作ると、衣装確認モードの解放や各種機能解放を整理しやすくなります。
+実装上は `StatusDetailPanel` で詳細表示と能力獲得画面の切り替えをまとめ、対象は `StatusDetailRole`、能力項目は `StatusAbilityKind` で管理するとよいです。
+能力の解放状態はセーブデータに保存し、ロード後も同じ解放状況を再現する。
+入口は `StatusDetailAction` を行動一覧に置くと、既存の行動導線に自然に混ぜられます。
+
 ```text
 Canvas
 ├── BackgroundImage
@@ -69,6 +74,12 @@ Canvas
 │   ├── WeatherText
 │   └── SeasonText
 ├── SchedulePanel
+├── PlayerStatusDetailPanel
+│   ├── AbilityList
+│   └── AbilityAcquireButton
+├── HeroineStatusDetailPanel
+│   ├── AbilityList
+│   └── AbilityAcquireButton
 ├── DialoguePanel
 │   ├── SpeakerNameText
 │   ├── DialogueText

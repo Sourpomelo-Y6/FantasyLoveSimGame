@@ -104,6 +104,8 @@ public class GameManager : MonoBehaviour
     private const string ScheduleSpeakerName = "予定";
     private const string OutfitSpeakerName = "衣装";
 
+    public OutfitPromptAbilitySet PlayerOutfitPromptAbilities => playerOutfitPromptAbilities;
+
     private readonly HashSet<string> shownConversationIds = new HashSet<string>();
 
     [Header("Save / Load Buttons")]
@@ -128,6 +130,9 @@ public class GameManager : MonoBehaviour
     [SerializeField] private Button dislikeOutfitButton;
     [SerializeField] private Button boredOutfitButton;
     [SerializeField] private Button changeOutfitButton;
+
+    [Header("Status Detail")]
+    [SerializeField] private StatusDetailPanel statusDetailPanel;
 
 
     private void Update()
@@ -253,6 +258,7 @@ public class GameManager : MonoBehaviour
         }
 
         RefreshUI();
+        EnsureStatusDetailPanel();
     }
 
     private void LoadConversationsFromResources()
@@ -831,6 +837,11 @@ public class GameManager : MonoBehaviour
         }
 
         saveData.outfitPreferences = outfitPreferenceManager.CreateSaveData();
+        saveData.playerOutfitPromptAbilities = playerOutfitPromptAbilities.Clone();
+        saveData.heroineOutfitPromptAbilities =
+            heroineStatus != null
+                ? heroineStatus.OutfitPromptAbilities.Clone()
+                : new OutfitPromptAbilitySet();
 
         saveData.shownConversationIds = new List<string>(shownConversationIds);
 
@@ -869,6 +880,11 @@ public class GameManager : MonoBehaviour
         );
 
         heroineStatus.SetAffection(saveData.affection);
+        playerOutfitPromptAbilities.CopyFrom(saveData.playerOutfitPromptAbilities);
+        if (heroineStatus != null)
+        {
+            heroineStatus.SetOutfitPromptAbilities(saveData.heroineOutfitPromptAbilities);
+        }
 
         outfitPreferenceManager.SetPreferences(saveData.outfitPreferences);
 
@@ -1115,6 +1131,12 @@ public class GameManager : MonoBehaviour
         if (action.executionType == ActionExecutionType.OpenSchedulePanel)
         {
             OpenSchedulePanel();
+            return;
+        }
+
+        if (action.executionType == ActionExecutionType.OpenStatusDetailPanel)
+        {
+            OpenStatusDetailPanel();
             return;
         }
     }
@@ -2130,6 +2152,51 @@ public class GameManager : MonoBehaviour
         }
 
         schedulePanel.SetActive(true);
+    }
+
+    public void OpenStatusDetailPanel()
+    {
+        EnsureStatusDetailPanel();
+
+        if (statusDetailPanel == null)
+        {
+            Debug.LogWarning("StatusDetailPanel が設定されていません。");
+            return;
+        }
+
+        statusDetailPanel.OpenPlayerDetail();
+    }
+
+    private void EnsureStatusDetailPanel()
+    {
+        if (statusDetailPanel != null)
+        {
+            return;
+        }
+
+        statusDetailPanel = FindObjectOfType<StatusDetailPanel>();
+        if (statusDetailPanel != null)
+        {
+            return;
+        }
+
+        Canvas canvas = FindObjectOfType<Canvas>();
+        if (canvas == null)
+        {
+            Debug.LogWarning("StatusDetailPanel を作成できませんでした。Canvas が見つかりません。");
+            return;
+        }
+
+        GameObject panelObject = new GameObject(
+            "StatusDetailPanel",
+            typeof(RectTransform),
+            typeof(CanvasRenderer),
+            typeof(UnityEngine.UI.Image)
+        );
+        panelObject.transform.SetParent(canvas.transform, false);
+        statusDetailPanel = panelObject.AddComponent<StatusDetailPanel>();
+        statusDetailPanel.Initialize(this, heroineStatus);
+        panelObject.SetActive(false);
     }
 
 
