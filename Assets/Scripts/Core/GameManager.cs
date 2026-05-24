@@ -50,6 +50,10 @@ public class GameManager : MonoBehaviour
 
     [Header("Action Buttons")]
     [SerializeField] private GameObject actionButtonArea;
+    [SerializeField] private GameObject actionButtonAreaColumnLeft;
+    [SerializeField] private GameObject actionButtonAreaColumnCenter;
+    [SerializeField] private GameObject actionButtonAreaColumnRight;
+
     [SerializeField] private Transform actionButtonParent;
     [SerializeField] private Button actionButtonPrefab;
 
@@ -1044,9 +1048,10 @@ public class GameManager : MonoBehaviour
 
     private void CreateActionButtons()
     {
-        if (actionButtonParent == null)
+        Transform[] actionButtonParents = GetActionButtonParents();
+        if (actionButtonParents.Length == 0)
         {
-            Debug.LogError("Action Button Parent が設定されていません。");
+            Debug.LogError("Action Button Parent / Columns が設定されていません。");
             return;
         }
 
@@ -1058,6 +1063,7 @@ public class GameManager : MonoBehaviour
 
         ClearActionButtons();
 
+        List<ActionData> enabledActions = new List<ActionData>();
         foreach (ActionData action in actions)
         {
             if (action == null)
@@ -1070,7 +1076,32 @@ public class GameManager : MonoBehaviour
                 continue;
             }
 
-            Button button = Instantiate(actionButtonPrefab, actionButtonParent);
+            enabledActions.Add(action);
+        }
+
+        if (enabledActions.Count == 0)
+        {
+            return;
+        }
+
+        int buttonsPerColumn = Mathf.CeilToInt(enabledActions.Count / (float)actionButtonParents.Length);
+        if (buttonsPerColumn < 1)
+        {
+            buttonsPerColumn = 1;
+        }
+
+        for (int i = 0; i < enabledActions.Count; i++)
+        {
+            ActionData action = enabledActions[i];
+            int columnIndex = Mathf.Min(i / buttonsPerColumn, actionButtonParents.Length - 1);
+            Transform parent = actionButtonParents[columnIndex];
+
+            if (parent == null)
+            {
+                continue;
+            }
+
+            Button button = Instantiate(actionButtonPrefab, parent);
 
             TMP_Text buttonText = button.GetComponentInChildren<TMP_Text>();
             if (buttonText != null)
@@ -1085,10 +1116,57 @@ public class GameManager : MonoBehaviour
 
     private void ClearActionButtons()
     {
-        for (int i = actionButtonParent.childCount - 1; i >= 0; i--)
+        Transform[] actionButtonParents = GetActionButtonParents();
+        if (actionButtonParents.Length == 0)
         {
-            Destroy(actionButtonParent.GetChild(i).gameObject);
+            return;
         }
+
+        for (int i = 0; i < actionButtonParents.Length; i++)
+        {
+            Transform parent = actionButtonParents[i];
+            if (parent == null)
+            {
+                continue;
+            }
+
+            for (int childIndex = parent.childCount - 1; childIndex >= 0; childIndex--)
+            {
+                Destroy(parent.GetChild(childIndex).gameObject);
+            }
+        }
+    }
+
+    private Transform[] GetActionButtonParents()
+    {
+        List<Transform> parents = new List<Transform>();
+
+        if (actionButtonAreaColumnLeft != null)
+        {
+            parents.Add(actionButtonAreaColumnLeft.transform);
+        }
+
+        if (actionButtonAreaColumnCenter != null)
+        {
+            parents.Add(actionButtonAreaColumnCenter.transform);
+        }
+
+        if (actionButtonAreaColumnRight != null)
+        {
+            parents.Add(actionButtonAreaColumnRight.transform);
+        }
+
+        if (parents.Count > 0)
+        {
+            return parents.ToArray();
+        }
+
+        if (actionButtonParent != null)
+        {
+            return new[] { actionButtonParent };
+        }
+
+        return Array.Empty<Transform>();
     }
 
     private void ExecuteAction(ActionData action)

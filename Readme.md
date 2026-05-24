@@ -91,6 +91,7 @@ This project is licensed under the MIT License. See [LICENSE](LICENSE) for detai
 ## メモ
 
 - 画面上の日本語テキストは TextMeshPro のフォント資産を利用しています
+- Unity の UI はシーン上で手動配置し、Inspector で参照を割り当てる前提です
 - 会話データと行動データは ScriptableObject として分離されています
 - 行動には条件付き反応を持たせられるので、時間帯や天候で結果を変えやすいです
 - 衣装は着用時に保存され、衣装反応パネルから評価を付けられるようになっています
