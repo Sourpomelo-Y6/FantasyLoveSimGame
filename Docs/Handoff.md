@@ -53,6 +53,8 @@
 - テスト用の手動イベントとして `TestManualEvent` を用意している。`GameManager.debugManualGameEventId` に `TestManualEvent` を設定すると `F7` で繰り返し再生できる
 - イベントIDは `GameStartIntro`、`DayStart_条件_連番`、`Manual_用途_連番`、`Story_章_連番`、`Still_用途_連番` のように用途が分かる名前にする。`eventId` は既読管理に使うため、本番投入後は変更しない
 - イベントスチル画像は `Assets/Images/Event/` に置き、`GameStartIntro_01.png` のようにイベントIDに寄せたファイル名にする
+- スチル回想は、イベント既読の `shownGameEventIds` とは別に `unlockedStillIds` のような保存リストを持たせる方針。`GameEventPageData` に `stillId` を追加し、スチル表示時に解放する案で進める
+- 回想 UI は Unity 上で手作業配置し、コード側は回想パネル、一覧コンテナ、項目 Prefab、拡大表示 Image、戻るボタンなどの参照を受け取る
 - `StatusDetailPanel` の画面部品は Unity 上で手作業配置し、Inspector で参照を割り当てる
 - 必須参照は `panelRoot`、各 `TextMeshProUGUI`、各 `Button`、`abilityListParent`、`abilityButtonPrefab`、`abilityAcquirePanel` 周辺
 - `GameManager.EnsureStatusDetailPanel()` は配置済みの `StatusDetailPanel` を探して初期化するだけで、UI の自動生成は行わない
