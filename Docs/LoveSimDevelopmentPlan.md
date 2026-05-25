@@ -125,6 +125,31 @@ Canvas
 ページごとに話者、メッセージ、必要ならスチルを持ち、`showOnce` は `shownGameEventIds` でセーブデータに保存する。
 `TestManualEvent` は `Manual` / `showOnce=false` の確認用イベントで、システム・ヒロイン・予定・衣装の話者表示とスチル表示をまとめて確認するために使う。
 
+イベントIDは用途が分かるように、以下の規則を基本にする。
+
+- `GameStartIntro`: タイトルから新規開始した直後の導入イベント
+- `DayStart_条件_連番`: 翌朝メッセージに混ぜる日開始イベント
+- `Manual_用途_連番`: デバッグ、確認用、任意起動イベント
+- `Story_章_連番`: 将来の本編イベント
+- `Still_用途_連番`: スチル表示を主目的にしたイベント
+
+`eventId` はセーブデータの `shownGameEventIds` に入るため、後から名前を変えると既読管理が崩れる。
+本番用イベントは追加後に ID を変更しない方針にする。
+表示文だけの修正は同じ `eventId` のまま行い、イベントの意味や発生条件が変わる場合は新しい `eventId` を作る。
+
+トリガー別の運用は以下にする。
+
+- `GameStart`: 新規開始時に一度だけ見る導入イベント。基本は `showOnce=true`
+- `DayStart`: 翌朝に自動で混ぜるイベント。条件付きイベントを増やす場合は発生条件フィールドを追加する
+- `Manual`: デバッグ確認、テスト再生、将来の任意起動イベントに使う。確認用は `showOnce=false`
+
+イベントスチル画像は `Assets/Images/Event/` に置き、ファイル名はイベントIDに寄せる。
+例として、`GameStartIntro` で使う画像は `GameStartIntro_01.png` のようにする。
+複数ページで同じスチルを維持したい場合は、最初のページだけでなく必要なページにも `stillSprite` を設定するか、現在スチルを維持する仕様を明文化してから実装する。
+
+イベントが増えてきたら、`Assets/Resources/GameEvents/` 内で ScriptableObject 名と `eventId` を一致させる。
+Unity 上の一覧で見つけやすくするため、`sortOrder` は同種イベント内の表示順や発生順に使い、同じトリガー内で重複しないようにする。
+
 ### ActionData
 
 日常行動は `ActionData` で管理します。
