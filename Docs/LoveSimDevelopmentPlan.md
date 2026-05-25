@@ -220,6 +220,22 @@ Canvas
 - `DayStart`: 翌朝に自動で混ぜるイベント。条件付きイベントを増やす場合は発生条件フィールドを追加する
 - `Manual`: デバッグ確認、テスト再生、将来の任意起動イベントに使う。確認用は `showOnce=false`
 
+今後イベントを増やす前に、`GameEventData` に発生条件を追加する。
+現在は `triggerType` と `showOnce` だけで発生可否を判断しているため、イベント数が増えると「何日目以降」「好感度いくつ以上」「特定イベントを見た後」などの条件を表現しにくい。
+まずは以下の条件フィールドを追加する方針にする。
+
+- `minDay`: この日数以上で発生する。`0` または `1` 以下なら制限なし
+- `maxDay`: この日数以下で発生する。`0` 以下なら制限なし
+- `minAffection`: この好感度以上で発生する。`0` なら制限なし
+- `maxAffection`: この好感度以下で発生する。`0` 以下なら制限なし
+- `requiredShownEventIds`: 指定イベントをすべて見ている場合だけ発生する
+- `blockedShownEventIds`: 指定イベントを1つでも見ている場合は発生しない
+
+条件判定は `GameManager.GetGameEventsForTrigger()` またはその下請けの `CanStartGameEvent(GameEventData gameEvent)` に集約する。
+既存の `GameStartIntro` と `TestManualEvent` は条件未設定なら今まで通り発生するようにし、既存データの互換を壊さない。
+条件フィールドを追加した後も、`showOnce` は既読管理、条件フィールドは発生可否という役割分担にする。
+将来、予定や衣装、スチル解放状態を条件にしたくなった場合は、同じ `CanStartGameEvent` に条件を追加していく。
+
 イベントスチル画像は `Assets/Images/Event/` に置き、ファイル名はイベントIDに寄せる。
 例として、`GameStartIntro` で使う画像は `GameStartIntro_01.png` のようにする。
 複数ページで同じスチルを維持したい場合は、最初のページだけでなく必要なページにも `stillSprite` を設定するか、現在スチルを維持する仕様を明文化してから実装する。
