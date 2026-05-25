@@ -56,6 +56,7 @@
 - スチル回想は、イベント既読の `shownGameEventIds` とは別に `SaveData.unlockedStillIds` で保存する。`GameEventPageData.stillId` を追加済みで、スチル表示時に解放済みへ登録する
 - 回想 UI は `StillGalleryPanel` で制御する。`StillGalleryAction` から開き、解放済みスチルは押せるボタン、未解放スチルは無効ボタンとして一覧表示する方針。初期 UI は Unity 上に手作業配置済み
 - スチル回想は後でページングを追加する。`itemsPerPage`、前へ/次へボタン、ページ表示 Text を持たせ、固定件数でページを切り替える案を優先する
+- 回想項目のサムネイル Image は、スチル数が増えて一覧の視認性が問題になってから検討する。当面は Text ボタンだけでよい
 - `StatusDetailPanel` の画面部品は Unity 上で手作業配置し、Inspector で参照を割り当てる
 - 必須参照は `panelRoot`、各 `TextMeshProUGUI`、各 `Button`、`abilityListParent`、`abilityButtonPrefab`、`abilityAcquirePanel` 周辺
 - `GameManager.EnsureStatusDetailPanel()` は配置済みの `StatusDetailPanel` を探して初期化するだけで、UI の自動生成は行わない
