@@ -10,6 +10,7 @@ public class GameEventPageData
     [TextArea(2, 5)]
     public string message;
 
+    public string stillId;
     public Sprite stillSprite;
 }
 

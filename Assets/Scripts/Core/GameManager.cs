@@ -31,6 +31,7 @@ public class GameManager : MonoBehaviour
         public readonly DialogueSpeakerType SpeakerType;
         public readonly string SpeakerName;
         public readonly string Message;
+        public readonly string StillId;
         public readonly Sprite StillSprite;
 
         public DialogueMessage(DialogueSpeakerType speakerType, string speakerName, string message)
@@ -43,10 +44,21 @@ public class GameManager : MonoBehaviour
             string speakerName,
             string message,
             Sprite stillSprite)
+            : this(speakerType, speakerName, message, "", stillSprite)
+        {
+        }
+
+        public DialogueMessage(
+            DialogueSpeakerType speakerType,
+            string speakerName,
+            string message,
+            string stillId,
+            Sprite stillSprite)
         {
             SpeakerType = speakerType;
             SpeakerName = speakerName;
             Message = message;
+            StillId = stillId;
             StillSprite = stillSprite;
         }
     }
@@ -173,6 +185,7 @@ public class GameManager : MonoBehaviour
     private readonly HashSet<string> shownConversationIds = new HashSet<string>();
     private readonly HashSet<string> shownGameEventIds = new HashSet<string>();
     private readonly HashSet<string> unlockedStatusAbilityIds = new HashSet<string>();
+    private readonly HashSet<string> unlockedStillIds = new HashSet<string>();
     private readonly Queue<DialogueMessage> queuedDialogueMessages = new Queue<DialogueMessage>();
 
     [Header("Save / Load Buttons")]
@@ -286,20 +299,33 @@ public class GameManager : MonoBehaviour
         string message,
         Sprite stillSprite)
     {
+        ShowDialogue(speakerType, speakerName, message, "", stillSprite);
+    }
+
+    private void ShowDialogue(
+        DialogueSpeakerType speakerType,
+        string speakerName,
+        string message,
+        string stillId,
+        Sprite stillSprite)
+    {
         ResetDialogueSequenceState();
         queuedDialogueMessages.Clear();
         dialogueSequenceIsActive = false;
-        SetDialogueText(speakerType, speakerName, message, stillSprite);
+        SetDialogueText(speakerType, speakerName, message, stillId, stillSprite);
     }
 
     private void SetDialogueText(
         DialogueSpeakerType speakerType,
         string speakerName,
         string message,
+        string stillId,
         Sprite stillSprite)
     {
         if (stillSprite != null)
         {
+            UnlockStill(stillId);
+
             Image stillImage = GetDialogueStillImage();
             if (stillImage != null)
             {
@@ -505,6 +531,7 @@ public class GameManager : MonoBehaviour
             messages[0].SpeakerType,
             messages[0].SpeakerName,
             messages[0].Message,
+            messages[0].StillId,
             messages[0].StillSprite);
 
         for (int i = 1; i < messages.Count; i++)
@@ -527,6 +554,7 @@ public class GameManager : MonoBehaviour
             message.SpeakerType,
             message.SpeakerName,
             message.Message,
+            message.StillId,
             message.StillSprite);
 
         if (queuedDialogueMessages.Count == 0 && flowState == ConversationFlowState.Idle)
@@ -1227,6 +1255,7 @@ public class GameManager : MonoBehaviour
                 ? heroineStatus.OutfitPromptAbilities.Clone()
                 : new OutfitPromptAbilitySet();
         saveData.unlockedStatusAbilityIds = new List<string>(unlockedStatusAbilityIds);
+        saveData.unlockedStillIds = new List<string>(unlockedStillIds);
 
         saveData.shownConversationIds = new List<string>(shownConversationIds);
         saveData.shownGameEventIds = new List<string>(shownGameEventIds);
@@ -1279,6 +1308,17 @@ public class GameManager : MonoBehaviour
                 if (!string.IsNullOrEmpty(abilityId))
                 {
                     unlockedStatusAbilityIds.Add(abilityId);
+                }
+            }
+        }
+        unlockedStillIds.Clear();
+        if (saveData.unlockedStillIds != null)
+        {
+            foreach (string stillId in saveData.unlockedStillIds)
+            {
+                if (!string.IsNullOrEmpty(stillId))
+                {
+                    unlockedStillIds.Add(stillId);
                 }
             }
         }
@@ -1383,6 +1423,21 @@ public class GameManager : MonoBehaviour
         }
 
         shownGameEventIds.Add(eventId);
+    }
+
+    public bool IsStillUnlocked(string stillId)
+    {
+        return !string.IsNullOrEmpty(stillId) && unlockedStillIds.Contains(stillId);
+    }
+
+    public void UnlockStill(string stillId)
+    {
+        if (string.IsNullOrEmpty(stillId))
+        {
+            return;
+        }
+
+        unlockedStillIds.Add(stillId);
     }
 
     private void ExecuteSimpleAction(
@@ -1599,6 +1654,7 @@ public class GameManager : MonoBehaviour
                 DialogueSpeakerType.Heroine,
                 heroineStatus != null ? heroineStatus.HeroineName : "",
                 "新しい物語が始まります。",
+                "GameStartIntro_01",
                 stillSprite
             )
         );
@@ -1788,6 +1844,7 @@ public class GameManager : MonoBehaviour
                     GetDialogueSpeakerType(page.speakerType),
                     speakerName,
                     page.message,
+                    page.stillId,
                     stillSprite
                 )
             );

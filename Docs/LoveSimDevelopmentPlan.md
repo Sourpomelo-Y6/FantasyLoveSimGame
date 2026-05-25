@@ -61,11 +61,11 @@
 ### 保存データ
 
 回想の解放状態は、イベント既読とは別に保存する。
-`shownGameEventIds` はイベント再生済み管理であり、スチル単位の解放状態とは用途が違うため、将来的には `unlockedStillIds` のようなリストを `SaveData` に追加する。
+`shownGameEventIds` はイベント再生済み管理であり、スチル単位の解放状態とは用途が違うため、`SaveData.unlockedStillIds` で保存する。
 
 スチルIDは `eventId` とページ番号から自動生成するより、専用の `stillId` を持たせる方が安全。
 イベント本文のページ順を後から変えても、回想の解放状態が壊れにくいため。
-実装時は `GameEventPageData` に `stillId` を追加し、`stillSprite` があるページだけ `stillId` を設定する。
+`GameEventPageData` に `stillId` を追加し、`stillSprite` があるページだけ `stillId` を設定する。
 
 命名は次を基本にする。
 
@@ -109,9 +109,9 @@ Unity UI は手作業配置を基本にする。
 
 ### 実装順
 
-1. `SaveData` に `unlockedStillIds` を追加する
-2. `GameEventPageData` に `stillId` を追加する
-3. `GameManager` がスチル表示時に `stillId` を解放済みにする
+1. `SaveData` に `unlockedStillIds` を追加する。実装済み
+2. `GameEventPageData` に `stillId` を追加する。実装済み
+3. `GameManager` がスチル表示時に `stillId` を解放済みにする。実装済み
 4. 回想用パネルの接続ポイントを `StillGalleryPanel` として用意する
 5. Unity 上で回想 UI を手動配置し、Inspector で参照を割り当てる
 6. メイン画面の行動またはボタンから回想パネルを開けるようにする
