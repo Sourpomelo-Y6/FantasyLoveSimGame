@@ -22,6 +22,7 @@ public class StillGalleryPanel : MonoBehaviour
     [Header("Labels")]
     [SerializeField] private string defaultTitle = "イベント回想";
     [SerializeField] private string emptyMessage = "解放済みのスチルはありません。";
+    [SerializeField] private string lockedStillLabel = "???";
 
     private bool hasWarnedMissingReferences = false;
 
@@ -95,7 +96,7 @@ public class StillGalleryPanel : MonoBehaviour
             return;
         }
 
-        List<GameManager.StillGalleryItem> items = gameManager.GetUnlockedStillGalleryItems();
+        List<GameManager.StillGalleryItem> items = gameManager.GetStillGalleryItems(false);
         if (items == null || items.Count == 0)
         {
             SetEmptyState(true);
@@ -110,7 +111,7 @@ public class StillGalleryPanel : MonoBehaviour
             CreateGalleryButton(item);
         }
 
-        ShowStill(items[0]);
+        ShowFirstUnlockedStill(items);
     }
 
     private void CreateGalleryButton(GameManager.StillGalleryItem item)
@@ -122,14 +123,39 @@ public class StillGalleryPanel : MonoBehaviour
 
         Button button = Instantiate(itemButtonPrefab, listParent);
         button.gameObject.SetActive(true);
+        bool isUnlocked = gameManager != null && gameManager.IsStillUnlocked(item.StillId);
+        button.interactable = isUnlocked;
 
         TextMeshProUGUI buttonText = button.GetComponentInChildren<TextMeshProUGUI>();
         if (buttonText != null)
         {
-            buttonText.text = item.StillId;
+            buttonText.text = isUnlocked ? item.StillId : lockedStillLabel;
         }
 
-        button.onClick.AddListener(() => ShowStill(item));
+        if (isUnlocked)
+        {
+            button.onClick.AddListener(() => ShowStill(item));
+        }
+    }
+
+    private void ShowFirstUnlockedStill(List<GameManager.StillGalleryItem> items)
+    {
+        if (items == null || gameManager == null)
+        {
+            ClearPreview();
+            return;
+        }
+
+        foreach (GameManager.StillGalleryItem item in items)
+        {
+            if (gameManager.IsStillUnlocked(item.StillId))
+            {
+                ShowStill(item);
+                return;
+            }
+        }
+
+        ClearPreview();
     }
 
     private void ShowStill(GameManager.StillGalleryItem item)

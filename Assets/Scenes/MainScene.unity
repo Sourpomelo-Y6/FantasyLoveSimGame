@@ -359,6 +359,7 @@ MonoBehaviour:
   emptyText: {fileID: 0}
   defaultTitle: "\u30A4\u30D9\u30F3\u30C8\u56DE\u60F3"
   emptyMessage: "\u89E3\u653E\u6E08\u307F\u306E\u30B9\u30C1\u30EB\u306F\u3042\u308A\u307E\u305B\u3093\u3002"
+  lockedStillLabel: "???"
 --- !u!1 &93424613
 GameObject:
   m_ObjectHideFlags: 0
