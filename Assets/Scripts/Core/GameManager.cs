@@ -63,6 +63,18 @@ public class GameManager : MonoBehaviour
         }
     }
 
+    public struct StillGalleryItem
+    {
+        public readonly string StillId;
+        public readonly Sprite Sprite;
+
+        public StillGalleryItem(string stillId, Sprite sprite)
+        {
+            StillId = stillId;
+            Sprite = sprite;
+        }
+    }
+
     [Header("Managers")]
     [SerializeField] private TimeManager timeManager;
     [SerializeField] private HeroineStatus heroineStatus;
@@ -216,6 +228,9 @@ public class GameManager : MonoBehaviour
 
     [Header("Status Detail")]
     [SerializeField] private StatusDetailPanel statusDetailPanel;
+
+    [Header("Still Gallery")]
+    [SerializeField] private StillGalleryPanel stillGalleryPanel;
 
     [Header("Game Event Debug")]
     [SerializeField] private string debugManualGameEventId = "";
@@ -1440,6 +1455,55 @@ public class GameManager : MonoBehaviour
         unlockedStillIds.Add(stillId);
     }
 
+    public List<StillGalleryItem> GetUnlockedStillGalleryItems()
+    {
+        return GetStillGalleryItems(true);
+    }
+
+    public List<StillGalleryItem> GetStillGalleryItems(bool unlockedOnly)
+    {
+        List<StillGalleryItem> items = new List<StillGalleryItem>();
+        HashSet<string> addedStillIds = new HashSet<string>();
+
+        if (gameEvents == null || gameEvents.Count == 0)
+        {
+            LoadGameEventsFromResources();
+        }
+
+        foreach (GameEventData gameEvent in gameEvents)
+        {
+            if (gameEvent == null || gameEvent.pages == null)
+            {
+                continue;
+            }
+
+            foreach (GameEventPageData page in gameEvent.pages)
+            {
+                if (page == null ||
+                    string.IsNullOrEmpty(page.stillId) ||
+                    page.stillSprite == null)
+                {
+                    continue;
+                }
+
+                if (addedStillIds.Contains(page.stillId))
+                {
+                    continue;
+                }
+
+                if (unlockedOnly && !IsStillUnlocked(page.stillId))
+                {
+                    continue;
+                }
+
+                addedStillIds.Add(page.stillId);
+                items.Add(new StillGalleryItem(page.stillId, page.stillSprite));
+            }
+        }
+
+        return items;
+    }
+
     private void ExecuteSimpleAction(
         string speakerName,
         string message,
@@ -2046,6 +2110,12 @@ public class GameManager : MonoBehaviour
         if (action.executionType == ActionExecutionType.OpenStatusDetailPanel)
         {
             OpenStatusDetailPanel();
+            return;
+        }
+
+        if (action.executionType == ActionExecutionType.OpenStillGalleryPanel)
+        {
+            OpenStillGalleryPanel();
             return;
         }
     }
@@ -3085,6 +3155,19 @@ public class GameManager : MonoBehaviour
         statusDetailPanel.OpenPlayerDetail();
     }
 
+    public void OpenStillGalleryPanel()
+    {
+        EnsureStillGalleryPanel();
+
+        if (stillGalleryPanel == null)
+        {
+            Debug.LogWarning("StillGalleryPanel が設定されていません。");
+            return;
+        }
+
+        stillGalleryPanel.Open();
+    }
+
     private void EnsureStatusDetailPanel()
     {
         if (statusDetailPanel == null)
@@ -3099,6 +3182,22 @@ public class GameManager : MonoBehaviour
         }
 
         statusDetailPanel.Initialize(this, heroineStatus, timeManager);
+    }
+
+    private void EnsureStillGalleryPanel()
+    {
+        if (stillGalleryPanel == null)
+        {
+            stillGalleryPanel = FindObjectOfType<StillGalleryPanel>();
+        }
+
+        if (stillGalleryPanel == null)
+        {
+            Debug.LogWarning("StillGalleryPanel がシーンに配置されていません。Canvas 配下に手動で配置し、GameManager に参照を割り当ててください。");
+            return;
+        }
+
+        stillGalleryPanel.Initialize(this);
     }
 
 

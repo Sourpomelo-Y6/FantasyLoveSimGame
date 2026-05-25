@@ -112,9 +112,9 @@ Unity UI は手作業配置を基本にする。
 1. `SaveData` に `unlockedStillIds` を追加する。実装済み
 2. `GameEventPageData` に `stillId` を追加する。実装済み
 3. `GameManager` がスチル表示時に `stillId` を解放済みにする。実装済み
-4. 回想用パネルの接続ポイントを `StillGalleryPanel` として用意する
-5. Unity 上で回想 UI を手動配置し、Inspector で参照を割り当てる
-6. メイン画面の行動またはボタンから回想パネルを開けるようにする
+4. 回想用パネルの接続ポイントを `StillGalleryPanel` として用意する。実装済み
+5. Unity 上で回想 UI を手動配置し、Inspector で参照を割り当てる。初期配置済み
+6. メイン画面の行動またはボタンから回想パネルを開けるようにする。`StillGalleryAction` で実装済み
 7. 解放済みスチルだけが一覧に出ることを確認する
 
 最初の実装では、`GameStartIntro_01` を回想解放の確認用に使う。
