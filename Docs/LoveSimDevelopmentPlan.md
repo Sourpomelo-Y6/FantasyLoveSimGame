@@ -230,11 +230,14 @@ Canvas
 - `maxAffection`: この好感度以下で発生する。`0` 以下なら制限なし
 - `requiredShownEventIds`: 指定イベントをすべて見ている場合だけ発生する
 - `blockedShownEventIds`: 指定イベントを1つでも見ている場合は発生しない
+- `requiredOutfitIds`: 現在の衣装IDが指定一覧のどれかに一致したときだけ発生する
+- `blockedOutfitIds`: 現在の衣装IDが指定一覧のどれかに一致した場合は発生しない
 
 条件判定は `GameManager.CanStartGameEvent(GameEventData gameEvent)` に集約し、`GetGameEventsForTrigger()` と `TryStartManualGameEvent()` の両方から使う。
 既存の `GameStartIntro` と `TestManualEvent` は条件未設定なら今まで通り発生するようにし、既存データの互換を壊さない。
 条件フィールドを追加した後も、`showOnce` は既読管理、条件フィールドは発生可否という役割分担にする。
-将来、予定や衣装、スチル解放状態を条件にしたくなった場合は、同じ `CanStartGameEvent` に条件を追加していく。
+将来、予定やスチル解放状態を条件にしたくなった場合は、同じ `CanStartGameEvent` に条件を追加していく。
+衣装条件は現在の `OutfitManager.CurrentOutfit.outfitId` を見て判定する。衣装の種類や属性ではなく、実際に着ている衣装IDを直接指定する方が、表示するスチルとの対応を崩しにくい。
 
 イベントスチル画像は `Assets/Images/Event/` に置き、ファイル名はイベントIDに寄せる。
 例として、`GameStartIntro` で使う画像は `GameStartIntro_01.png` のようにする。

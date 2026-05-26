@@ -24,6 +24,8 @@ MonoBehaviour:
   requiredShownEventIds:
   - DayStart_Routine_01
   blockedShownEventIds: []
+  requiredOutfitIds: []
+  blockedOutfitIds: []
   pages:
   - speakerType: 1
     speakerName: 

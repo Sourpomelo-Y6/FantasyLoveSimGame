@@ -1884,6 +1884,16 @@ public class GameManager : MonoBehaviour
             }
         }
 
+        if (!HasRequiredOutfit(gameEvent.requiredOutfitIds))
+        {
+            return false;
+        }
+
+        if (HasBlockedOutfit(gameEvent.blockedOutfitIds))
+        {
+            return false;
+        }
+
         if (!HasRequiredShownGameEvents(gameEvent.requiredShownEventIds))
         {
             return false;
@@ -1895,6 +1905,48 @@ public class GameManager : MonoBehaviour
         }
 
         return true;
+    }
+
+    private bool HasRequiredOutfit(List<string> outfitIds)
+    {
+        if (outfitIds == null || outfitIds.Count == 0)
+        {
+            return true;
+        }
+
+        if (outfitManager == null || outfitManager.CurrentOutfit == null)
+        {
+            return false;
+        }
+
+        string currentOutfitId = outfitManager.CurrentOutfit.outfitId;
+        if (string.IsNullOrEmpty(currentOutfitId))
+        {
+            return false;
+        }
+
+        return outfitIds.Contains(currentOutfitId);
+    }
+
+    private bool HasBlockedOutfit(List<string> outfitIds)
+    {
+        if (outfitIds == null || outfitIds.Count == 0)
+        {
+            return false;
+        }
+
+        if (outfitManager == null || outfitManager.CurrentOutfit == null)
+        {
+            return false;
+        }
+
+        string currentOutfitId = outfitManager.CurrentOutfit.outfitId;
+        if (string.IsNullOrEmpty(currentOutfitId))
+        {
+            return false;
+        }
+
+        return outfitIds.Contains(currentOutfitId);
     }
 
     private bool HasRequiredShownGameEvents(List<string> eventIds)

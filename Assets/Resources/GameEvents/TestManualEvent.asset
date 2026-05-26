@@ -23,6 +23,8 @@ MonoBehaviour:
   maxAffection: 0
   requiredShownEventIds: []
   blockedShownEventIds: []
+  requiredOutfitIds: []
+  blockedOutfitIds: []
   pages:
   - speakerType: 1
     speakerName: ""

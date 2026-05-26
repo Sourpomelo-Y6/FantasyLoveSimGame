@@ -31,6 +31,8 @@ public class GameEventData : ScriptableObject
     public int maxAffection = 0;
     public List<string> requiredShownEventIds = new List<string>();
     public List<string> blockedShownEventIds = new List<string>();
+    public List<string> requiredOutfitIds = new List<string>();
+    public List<string> blockedOutfitIds = new List<string>();
 
     [Header("Pages")]
     public List<GameEventPageData> pages = new List<GameEventPageData>();
