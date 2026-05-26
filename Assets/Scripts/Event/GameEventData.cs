@@ -24,6 +24,14 @@ public class GameEventData : ScriptableObject
     public bool isEnabled = true;
     public int sortOrder = 0;
 
+    [Header("Conditions")]
+    public int minDay = 0;
+    public int maxDay = 0;
+    public int minAffection = 0;
+    public int maxAffection = 0;
+    public List<string> requiredShownEventIds = new List<string>();
+    public List<string> blockedShownEventIds = new List<string>();
+
     [Header("Pages")]
     public List<GameEventPageData> pages = new List<GameEventPageData>();
 }

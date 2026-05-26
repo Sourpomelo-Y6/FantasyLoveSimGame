@@ -220,9 +220,9 @@ Canvas
 - `DayStart`: 翌朝に自動で混ぜるイベント。条件付きイベントを増やす場合は発生条件フィールドを追加する
 - `Manual`: デバッグ確認、テスト再生、将来の任意起動イベントに使う。確認用は `showOnce=false`
 
-今後イベントを増やす前に、`GameEventData` に発生条件を追加する。
-現在は `triggerType` と `showOnce` だけで発生可否を判断しているため、イベント数が増えると「何日目以降」「好感度いくつ以上」「特定イベントを見た後」などの条件を表現しにくい。
-まずは以下の条件フィールドを追加する方針にする。
+`GameEventData` には発生条件フィールドを追加済み。
+イベント数が増えても「何日目以降」「好感度いくつ以上」「特定イベントを見た後」などを ScriptableObject 側で指定できる。
+現在使える条件フィールドは以下。
 
 - `minDay`: この日数以上で発生する。`0` または `1` 以下なら制限なし
 - `maxDay`: この日数以下で発生する。`0` 以下なら制限なし
@@ -231,7 +231,7 @@ Canvas
 - `requiredShownEventIds`: 指定イベントをすべて見ている場合だけ発生する
 - `blockedShownEventIds`: 指定イベントを1つでも見ている場合は発生しない
 
-条件判定は `GameManager.GetGameEventsForTrigger()` またはその下請けの `CanStartGameEvent(GameEventData gameEvent)` に集約する。
+条件判定は `GameManager.CanStartGameEvent(GameEventData gameEvent)` に集約し、`GetGameEventsForTrigger()` と `TryStartManualGameEvent()` の両方から使う。
 既存の `GameStartIntro` と `TestManualEvent` は条件未設定なら今まで通り発生するようにし、既存データの互換を壊さない。
 条件フィールドを追加した後も、`showOnce` は既読管理、条件フィールドは発生可否という役割分担にする。
 将来、予定や衣装、スチル解放状態を条件にしたくなった場合は、同じ `CanStartGameEvent` に条件を追加していく。

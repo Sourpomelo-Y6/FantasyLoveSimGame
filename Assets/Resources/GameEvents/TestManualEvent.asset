@@ -17,6 +17,12 @@ MonoBehaviour:
   showOnce: 0
   isEnabled: 1
   sortOrder: 100
+  minDay: 0
+  maxDay: 0
+  minAffection: 0
+  maxAffection: 0
+  requiredShownEventIds: []
+  blockedShownEventIds: []
   pages:
   - speakerType: 1
     speakerName: ""

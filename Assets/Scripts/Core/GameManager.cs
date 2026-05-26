@@ -1765,14 +1765,12 @@ public class GameManager : MonoBehaviour
 
         GameEventData gameEvent = FindGameEventById(eventId);
 
-        if (gameEvent == null ||
-            !gameEvent.isEnabled ||
-            gameEvent.triggerType != GameEventTriggerType.Manual)
+        if (gameEvent == null || gameEvent.triggerType != GameEventTriggerType.Manual)
         {
             return false;
         }
 
-        if (gameEvent.showOnce && IsGameEventShown(gameEvent.eventId))
+        if (!CanStartGameEvent(gameEvent))
         {
             return false;
         }
@@ -1828,17 +1826,12 @@ public class GameManager : MonoBehaviour
 
         foreach (GameEventData gameEvent in gameEvents)
         {
-            if (gameEvent == null || !gameEvent.isEnabled)
+            if (gameEvent == null || gameEvent.triggerType != triggerType)
             {
                 continue;
             }
 
-            if (gameEvent.triggerType != triggerType)
-            {
-                continue;
-            }
-
-            if (gameEvent.showOnce && !string.IsNullOrEmpty(gameEvent.eventId) && IsGameEventShown(gameEvent.eventId))
+            if (!CanStartGameEvent(gameEvent))
             {
                 continue;
             }
@@ -1847,6 +1840,107 @@ public class GameManager : MonoBehaviour
         }
 
         return result;
+    }
+
+    private bool CanStartGameEvent(GameEventData gameEvent)
+    {
+        if (gameEvent == null || !gameEvent.isEnabled)
+        {
+            return false;
+        }
+
+        if (gameEvent.showOnce && !string.IsNullOrEmpty(gameEvent.eventId) && IsGameEventShown(gameEvent.eventId))
+        {
+            return false;
+        }
+
+        if (timeManager != null)
+        {
+            int currentDay = timeManager.Day;
+
+            if (gameEvent.minDay > 1 && currentDay < gameEvent.minDay)
+            {
+                return false;
+            }
+
+            if (gameEvent.maxDay > 0 && currentDay > gameEvent.maxDay)
+            {
+                return false;
+            }
+        }
+
+        if (heroineStatus != null)
+        {
+            int currentAffection = heroineStatus.Affection;
+
+            if (gameEvent.minAffection > 0 && currentAffection < gameEvent.minAffection)
+            {
+                return false;
+            }
+
+            if (gameEvent.maxAffection > 0 && currentAffection > gameEvent.maxAffection)
+            {
+                return false;
+            }
+        }
+
+        if (!HasRequiredShownGameEvents(gameEvent.requiredShownEventIds))
+        {
+            return false;
+        }
+
+        if (HasBlockedShownGameEvent(gameEvent.blockedShownEventIds))
+        {
+            return false;
+        }
+
+        return true;
+    }
+
+    private bool HasRequiredShownGameEvents(List<string> eventIds)
+    {
+        if (eventIds == null || eventIds.Count == 0)
+        {
+            return true;
+        }
+
+        foreach (string eventId in eventIds)
+        {
+            if (string.IsNullOrEmpty(eventId))
+            {
+                continue;
+            }
+
+            if (!IsGameEventShown(eventId))
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private bool HasBlockedShownGameEvent(List<string> eventIds)
+    {
+        if (eventIds == null || eventIds.Count == 0)
+        {
+            return false;
+        }
+
+        foreach (string eventId in eventIds)
+        {
+            if (string.IsNullOrEmpty(eventId))
+            {
+                continue;
+            }
+
+            if (IsGameEventShown(eventId))
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private GameEventData FindGameEventById(string eventId)
