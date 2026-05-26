@@ -25,7 +25,8 @@ MonoBehaviour:
   blockedShownEventIds: []
   requiredOutfitIds: []
   blockedOutfitIds: []
-  requiredOutfits: []
+  requiredOutfits:
+  - {fileID: 11400000, guid: f3589957a72e7734e839166d1650dc08, type: 2}
   blockedOutfits: []
   pages:
   - speakerType: 0
