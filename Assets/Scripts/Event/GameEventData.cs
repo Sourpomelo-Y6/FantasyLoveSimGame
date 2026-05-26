@@ -33,6 +33,8 @@ public class GameEventData : ScriptableObject
     public List<string> blockedShownEventIds = new List<string>();
     public List<string> requiredOutfitIds = new List<string>();
     public List<string> blockedOutfitIds = new List<string>();
+    public List<OutfitData> requiredOutfits = new List<OutfitData>();
+    public List<OutfitData> blockedOutfits = new List<OutfitData>();
 
     [Header("Pages")]
     public List<GameEventPageData> pages = new List<GameEventPageData>();

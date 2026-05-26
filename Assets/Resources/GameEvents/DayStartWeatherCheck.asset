@@ -26,6 +26,8 @@ MonoBehaviour:
   blockedShownEventIds: []
   requiredOutfitIds: []
   blockedOutfitIds: []
+  requiredOutfits: []
+  blockedOutfits: []
   pages:
   - speakerType: 1
     speakerName: 

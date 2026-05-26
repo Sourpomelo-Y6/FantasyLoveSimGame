@@ -1884,12 +1884,12 @@ public class GameManager : MonoBehaviour
             }
         }
 
-        if (!HasRequiredOutfit(gameEvent.requiredOutfitIds))
+        if (!HasRequiredOutfit(gameEvent.requiredOutfitIds, gameEvent.requiredOutfits))
         {
             return false;
         }
 
-        if (HasBlockedOutfit(gameEvent.blockedOutfitIds))
+        if (HasBlockedOutfit(gameEvent.blockedOutfitIds, gameEvent.blockedOutfits))
         {
             return false;
         }
@@ -1907,46 +1907,99 @@ public class GameManager : MonoBehaviour
         return true;
     }
 
-    private bool HasRequiredOutfit(List<string> outfitIds)
+    private bool HasRequiredOutfit(List<string> outfitIds, List<OutfitData> outfits)
     {
-        if (outfitIds == null || outfitIds.Count == 0)
+        if (!HasOutfitCondition(outfitIds, outfits))
         {
             return true;
         }
 
-        if (outfitManager == null || outfitManager.CurrentOutfit == null)
-        {
-            return false;
-        }
-
-        string currentOutfitId = outfitManager.CurrentOutfit.outfitId;
+        string currentOutfitId = GetCurrentOutfitId();
         if (string.IsNullOrEmpty(currentOutfitId))
         {
             return false;
         }
 
-        return outfitIds.Contains(currentOutfitId);
+        return OutfitConditionContains(outfitIds, outfits, currentOutfitId);
     }
 
-    private bool HasBlockedOutfit(List<string> outfitIds)
+    private bool HasBlockedOutfit(List<string> outfitIds, List<OutfitData> outfits)
     {
-        if (outfitIds == null || outfitIds.Count == 0)
+        if (!HasOutfitCondition(outfitIds, outfits))
         {
             return false;
         }
 
-        if (outfitManager == null || outfitManager.CurrentOutfit == null)
-        {
-            return false;
-        }
-
-        string currentOutfitId = outfitManager.CurrentOutfit.outfitId;
+        string currentOutfitId = GetCurrentOutfitId();
         if (string.IsNullOrEmpty(currentOutfitId))
         {
             return false;
         }
 
-        return outfitIds.Contains(currentOutfitId);
+        return OutfitConditionContains(outfitIds, outfits, currentOutfitId);
+    }
+
+    private bool HasOutfitCondition(List<string> outfitIds, List<OutfitData> outfits)
+    {
+        if (outfitIds != null)
+        {
+            foreach (string outfitId in outfitIds)
+            {
+                if (!string.IsNullOrEmpty(outfitId))
+                {
+                    return true;
+                }
+            }
+        }
+
+        if (outfits != null)
+        {
+            foreach (OutfitData outfit in outfits)
+            {
+                if (outfit != null && !string.IsNullOrEmpty(outfit.outfitId))
+                {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    private bool OutfitConditionContains(List<string> outfitIds, List<OutfitData> outfits, string currentOutfitId)
+    {
+        if (string.IsNullOrEmpty(currentOutfitId))
+        {
+            return false;
+        }
+
+        if (outfitIds != null && outfitIds.Contains(currentOutfitId))
+        {
+            return true;
+        }
+
+        if (outfits != null)
+        {
+            foreach (OutfitData outfit in outfits)
+            {
+                if (outfit != null && outfit.outfitId == currentOutfitId)
+                {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    private string GetCurrentOutfitId()
+    {
+        if (outfitManager == null || outfitManager.CurrentOutfit == null)
+        {
+            return "";
+        }
+
+        return outfitManager.CurrentOutfit.outfitId;
     }
 
     private bool HasRequiredShownGameEvents(List<string> eventIds)
