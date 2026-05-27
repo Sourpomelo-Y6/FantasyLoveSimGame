@@ -16,3 +16,45 @@ MonoBehaviour:
   - timeSlot: 0
     weather: 0
     sprite: {fileID: 21300000, guid: ddf8f812033b4ac4bbfc5f8cf35a64d5, type: 3}
+  - timeSlot: 1
+    weather: 0
+    sprite: {fileID: 21300000, guid: ddf8f812033b4ac4bbfc5f8cf35a64d5, type: 3}
+  - timeSlot: 2
+    weather: 0
+    sprite: {fileID: 21300000, guid: 1b8cec7f849bd32428fa9cab2609431b, type: 3}
+  - timeSlot: 0
+    weather: 1
+    sprite: {fileID: 21300000, guid: 827b1180da700894d8104c795c09c5cf, type: 3}
+  - timeSlot: 1
+    weather: 1
+    sprite: {fileID: 21300000, guid: 827b1180da700894d8104c795c09c5cf, type: 3}
+  - timeSlot: 2
+    weather: 1
+    sprite: {fileID: 21300000, guid: 9eda02e64c663f1429073a5cceaaaad0, type: 3}
+  - timeSlot: 0
+    weather: 2
+    sprite: {fileID: 21300000, guid: 827b1180da700894d8104c795c09c5cf, type: 3}
+  - timeSlot: 1
+    weather: 2
+    sprite: {fileID: 21300000, guid: 827b1180da700894d8104c795c09c5cf, type: 3}
+  - timeSlot: 2
+    weather: 2
+    sprite: {fileID: 21300000, guid: 9eda02e64c663f1429073a5cceaaaad0, type: 3}
+  - timeSlot: 0
+    weather: 3
+    sprite: {fileID: 21300000, guid: 0cdb9a8f7dca7e2459bba894db8b118e, type: 3}
+  - timeSlot: 1
+    weather: 3
+    sprite: {fileID: 21300000, guid: 0cdb9a8f7dca7e2459bba894db8b118e, type: 3}
+  - timeSlot: 2
+    weather: 3
+    sprite: {fileID: 21300000, guid: 7b3bfe01ec494f74aa6a90c204fdeff4, type: 3}
+  - timeSlot: 0
+    weather: 4
+    sprite: {fileID: 21300000, guid: c2afcb519ba1927429a73dab025cc708, type: 3}
+  - timeSlot: 1
+    weather: 4
+    sprite: {fileID: 21300000, guid: c2afcb519ba1927429a73dab025cc708, type: 3}
+  - timeSlot: 0
+    weather: 4
+    sprite: {fileID: 21300000, guid: 065317eaf24f69c4f819478ca0447778, type: 3}

@@ -135,6 +135,8 @@ public class GameManager : MonoBehaviour
 
     [Header("Control Buttons")]
     [SerializeField] private Button nextButton;
+    [SerializeField] private DialogueClickAdvanceArea dialogueClickAdvanceArea;
+    [SerializeField] private bool enableDialogueWindowClickAdvance = true;
 
     [Header("Ending")]
     [SerializeField] private Button endingButton;
@@ -672,6 +674,11 @@ public class GameManager : MonoBehaviour
         changeOutfitButton.onClick.AddListener(() => OnClickOutfitReaction(OutfitReactionType.Change));
 
         nextButton.onClick.AddListener(OnClickNext);
+        if (dialogueClickAdvanceArea != null)
+        {
+            dialogueClickAdvanceArea.Initialize(this);
+        }
+
         endingButton.onClick.AddListener(OnClickEnding);
 
         actionButtonArea.SetActive(true);
@@ -1073,6 +1080,23 @@ public class GameManager : MonoBehaviour
             actionButtonArea.SetActive(true);
             nextButton.gameObject.SetActive(false);
         }
+    }
+
+    public void OnDialogueWindowClicked()
+    {
+        if (!enableDialogueWindowClickAdvance)
+        {
+            return;
+        }
+
+        if (nextButton == null ||
+            !nextButton.gameObject.activeInHierarchy ||
+            !nextButton.interactable)
+        {
+            return;
+        }
+
+        OnClickNext();
     }
 
     private void FinishActionResult()
