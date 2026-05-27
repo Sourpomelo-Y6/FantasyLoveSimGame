@@ -345,6 +345,11 @@ public class ActionData : ScriptableObject
 9. 話者タイプごとに表示色を変え、同じメッセージボックス内でも発話種別が分かるようにする
 10. 汎用ログ画面は実装済み。セッション中の直近ログだけを保持し、対象は会話、行動結果、予定、衣装通知とする。話者名とメッセージを `MessageLogPanel` に表示し、セーブデータには含めない
 
+ログ画面をスクロールビューで表示する場合は、Unity 上で `MessageLogPanel > Scroll View > Viewport > MessageLogList` の階層を作り、`ScrollRect.content` に `MessageLogList` を指定する。
+`MessageLogList` の中身は実行時に `MessageLogRowPrefab` から生成されるため、編集時点では空でよい。
+Unity Editor 上で UI を手作業変更した後は、必ず `Ctrl+S` でシーン保存してから Codex にコードや scene patch を依頼する。
+未保存の UI 変更はディスク上の `MainScene.unity` に存在しないため、Codex 側でシーンを編集したときに `Scroll View` / `Viewport` が消えたように見える原因になる。
+
 ## 優先度の高い改善候補
 
 1. 行動の反応パターン追加

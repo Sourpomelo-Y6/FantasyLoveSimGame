@@ -374,6 +374,8 @@
 - 翌朝開始時のメッセージは話者付きキューで順番に表示する
 - 汎用ログ画面は `MessageLogPanel` で実装済み。`GameManager.SetDialogueText()` で表示した会話、行動結果、予定、衣装通知を直近 20 件までセッション内ログとして保持し、セーブデータには入れない
 - ログ画面は `MessageLogAction` から開く。UI は手作業配置した `MessageLogPanel` / `MessageLogList` / `MessageLogRowPrefab` を使う
+- ログ画面をスクロール表示にする場合、Unity 上の階層は `MessageLogPanel > Scroll View > Viewport > MessageLogList` を基本にし、`ScrollRect.content` に `MessageLogList` の RectTransform を割り当てる。`MessageLogList` の中身は実行時に `MessageLogRowPrefab` から生成するため、編集時は空でよい
+- Unity Editor で UI を手作業変更した後は、Codex にシーン編集を依頼する前に必ず `Ctrl+S` で `MainScene.unity` を保存する。未保存の `Scroll View` / `Viewport` などはディスク上の `MainScene.unity` に存在しないため、Codex 側の scene patch と食い違って消えたように見えることがある
 - 衣装確認モードの解放条件は、`GameManager.playerOutfitPromptAbilities` と `HeroineStatus.OutfitPromptAbilities` の組み合わせで管理する
 
 ## 変更しやすいポイント
