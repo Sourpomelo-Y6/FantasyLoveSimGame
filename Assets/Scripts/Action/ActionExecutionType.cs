@@ -6,5 +6,6 @@ public enum ActionExecutionType
     OpenOutfitReactionPanel,
     OpenSchedulePanel,
     OpenStatusDetailPanel,
-    OpenStillGalleryPanel
+    OpenStillGalleryPanel,
+    OpenMessageLogPanel
 }

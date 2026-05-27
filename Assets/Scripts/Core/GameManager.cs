@@ -199,6 +199,8 @@ public class GameManager : MonoBehaviour
     private readonly HashSet<string> unlockedStatusAbilityIds = new HashSet<string>();
     private readonly HashSet<string> unlockedStillIds = new HashSet<string>();
     private readonly Queue<DialogueMessage> queuedDialogueMessages = new Queue<DialogueMessage>();
+    private readonly List<MessageLogPanel.MessageLogEntry> messageLogEntries =
+        new List<MessageLogPanel.MessageLogEntry>();
 
     [Header("Save / Load Buttons")]
     [SerializeField] private Button saveButton;
@@ -231,6 +233,10 @@ public class GameManager : MonoBehaviour
 
     [Header("Still Gallery")]
     [SerializeField] private StillGalleryPanel stillGalleryPanel;
+
+    [Header("Message Log")]
+    [SerializeField] private MessageLogPanel messageLogPanel;
+    [SerializeField] private int messageLogLimit = 20;
 
     [Header("Game Event Debug")]
     [SerializeField] private string debugManualGameEventId = "";
@@ -403,6 +409,34 @@ public class GameManager : MonoBehaviour
                 : message;
             dialogueText.color = GetDialogueColor(speakerType);
         }
+
+        AddMessageLogEntry(speakerType, speakerName, message);
+    }
+
+    private void AddMessageLogEntry(DialogueSpeakerType speakerType, string speakerName, string message)
+    {
+        if (string.IsNullOrEmpty(speakerName) && string.IsNullOrEmpty(message))
+        {
+            return;
+        }
+
+        messageLogEntries.Add(
+            new MessageLogPanel.MessageLogEntry(
+                speakerName,
+                message,
+                GetSpeakerNameColor(speakerType),
+                GetDialogueColor(speakerType)));
+
+        int limit = Mathf.Max(1, messageLogLimit);
+        while (messageLogEntries.Count > limit)
+        {
+            messageLogEntries.RemoveAt(0);
+        }
+    }
+
+    public IReadOnlyList<MessageLogPanel.MessageLogEntry> GetMessageLogEntries()
+    {
+        return messageLogEntries;
     }
 
     private void ResetDialogueSequenceState()
@@ -2317,6 +2351,12 @@ public class GameManager : MonoBehaviour
             OpenStillGalleryPanel();
             return;
         }
+
+        if (action.executionType == ActionExecutionType.OpenMessageLogPanel)
+        {
+            OpenMessageLogPanel();
+            return;
+        }
     }
 
     private void OpenOutfitPanel(ActionData action)
@@ -3367,6 +3407,19 @@ public class GameManager : MonoBehaviour
         stillGalleryPanel.Open();
     }
 
+    public void OpenMessageLogPanel()
+    {
+        EnsureMessageLogPanel();
+
+        if (messageLogPanel == null)
+        {
+            Debug.LogWarning("MessageLogPanel が設定されていません。");
+            return;
+        }
+
+        messageLogPanel.Open(messageLogEntries);
+    }
+
     private void EnsureStatusDetailPanel()
     {
         if (statusDetailPanel == null)
@@ -3397,6 +3450,31 @@ public class GameManager : MonoBehaviour
         }
 
         stillGalleryPanel.Initialize(this);
+    }
+
+    private void EnsureMessageLogPanel()
+    {
+        if (messageLogPanel == null)
+        {
+            messageLogPanel = FindObjectOfType<MessageLogPanel>();
+        }
+
+        if (messageLogPanel == null)
+        {
+            GameObject panelObject = GameObject.Find("MessageLogPanel");
+            if (panelObject != null)
+            {
+                messageLogPanel = panelObject.AddComponent<MessageLogPanel>();
+            }
+        }
+
+        if (messageLogPanel == null)
+        {
+            Debug.LogWarning("MessageLogPanel がシーンに配置されていません。Canvas 配下に手動で配置してください。");
+            return;
+        }
+
+        messageLogPanel.Initialize(this);
     }
 
 
