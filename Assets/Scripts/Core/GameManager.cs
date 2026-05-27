@@ -209,6 +209,7 @@ public class GameManager : MonoBehaviour
 
     [Header("Background")]
     [SerializeField] private Image backgroundImage;
+    [SerializeField] private BackgroundSpriteData backgroundSpriteData;
     [SerializeField] private Sprite dayBackgroundSprite;
     [SerializeField] private Sprite nightBackgroundSprite;
     [SerializeField] private BackgroundZoom backgroundZoom;
@@ -268,6 +269,21 @@ public class GameManager : MonoBehaviour
     {
         if (backgroundImage == null)
         {
+            return;
+        }
+
+        Sprite weatherBackground = null;
+
+        if (backgroundSpriteData != null)
+        {
+            weatherBackground = backgroundSpriteData.FindSprite(
+                timeManager.CurrentTimeSlot,
+                timeManager.CurrentWeather);
+        }
+
+        if (weatherBackground != null)
+        {
+            backgroundImage.sprite = weatherBackground;
             return;
         }
 

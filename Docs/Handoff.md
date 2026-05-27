@@ -55,6 +55,9 @@
 - `GameEventData` には `minDay` / `maxDay` / `minAffection` / `maxAffection` / `requiredShownEventIds` / `blockedShownEventIds` を追加済み。発生可否は `GameManager.CanStartGameEvent(GameEventData gameEvent)` に集約し、日開始イベントと手動イベントの両方で同じ条件判定を使う
 - `GameEventData` は衣装条件も持てる。`requiredOutfitIds` / `blockedOutfitIds` の文字列ID指定に加えて、Unity Inspector で `OutfitData` アセットを選べる `requiredOutfits` / `blockedOutfits` を追加済み。判定は現在の `OutfitManager.CurrentOutfit.outfitId` に対して行う
 - イベントスチル画像は `Assets/Images/Event/` に置き、`GameStartIntro_01.png` のようにイベントIDに寄せたファイル名にする
+- 将来は JSON から画像ファイルパスを取得し、イベントや回想で表示する画像を差し替えられる仕組みを追加する。画像パスは Unity の `Resources` / `StreamingAssets` / Addressables のどれで読むかを先に決め、JSON 側には `stillId` と画像パスの対応を持たせる。
+- 通常背景画像は `Assets/Images/Background/` に置く。ファイル名は `Background_Morning_Sunny.png`、`Background_Noon_Rainy.png`、`Background_Night_Snow.png` のように `Background_時間帯_天候` で統一する。
+- 背景は `BackgroundSpriteData` で時間帯と天候に対応する Sprite を管理する。`GameManager.backgroundSpriteData` に割り当てると、`RefreshUI()` 時に現在の時間帯と天候から背景が切り替わる。未設定の組み合わせは従来の `dayBackgroundSprite` / `nightBackgroundSprite` にフォールバックする。
 - スチル回想は、イベント既読の `shownGameEventIds` とは別に `SaveData.unlockedStillIds` で保存する。`GameEventPageData.stillId` を追加済みで、スチル表示時に解放済みへ登録する
 - 回想 UI は `StillGalleryPanel` で制御する。`StillGalleryAction` から開き、解放済みスチルは押せるボタン、未解放スチルは `???` の無効ボタンとして一覧表示する。初期 UI は Unity 上に手作業配置済み
 - スチル回想は後でページングを追加する。`itemsPerPage`、前へ/次へボタン、ページ表示 Text を持たせ、固定件数でページを切り替える案を優先する
@@ -231,6 +234,8 @@
 ### 9. Ending ボタン
 
 `OnClickEnding()` は現状、固定のエンド文を表示するだけです。
+今後は Ending ボタンから専用のエンディングシーンへ遷移し、エンディング用スチルやテキストを表示した後、タイトル画面へ戻す導線を作る予定です。
+初期実装は単一の `EndingScene` でよく、分岐が必要になった段階でエンディング条件や表示内容をデータ化します。
 
 ### 10. 衣装評価
 
@@ -471,6 +476,8 @@ UI デザインは手作業で行っています。
 - 表示列 `ActionData.displayColumn` はアセット設定なので、セーブ/ロードで変化しない
 - 翌朝メッセージキューと将来の汎用ログはセーブ対象外の方針なので、ロード後に復元されなくてよい
 - タイトル画面からロードした場合も、MainScene のロード後 UI が閉じた状態で始まる
+- 現在の複数メッセージ進行は `Next` ボタンが前提。将来は画面内、またはメッセージ表示ウィンドウのクリックでも次のメッセージへ進めるようにする。選択肢や Save/Load、ログ、ステータス画面などの UI 操作と競合しないよう、まずはメッセージ表示ウィンドウへのクリック進行から実装するのが安全。
+- クリック進行は好みが分かれるため、オプション画面を追加し、ON/OFF を切り替えられるようにする候補として扱う。
 
 ## 追加開発の優先候補
 
@@ -481,8 +488,10 @@ UI デザインは手作業で行っています。
 5. セーブスロット UI の調整
 6. 予定を行動へ変換する
 7. セーブ/ロードの強化
-8. エンディング分岐の追加
-9. UI の見た目調整
+8. エンディングシーンへの遷移とタイトル復帰
+9. メッセージ表示ウィンドウのクリック進行とオプション設定
+10. エンディング分岐の追加
+11. UI の見た目調整
 
 ## デバッグ時の確認項目
 
