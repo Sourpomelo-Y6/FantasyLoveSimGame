@@ -22,15 +22,19 @@ This project is licensed under the MIT License. See [LICENSE](LICENSE) for detai
 - 画面下の行動ボタンから `会話` / `休む` / `散歩` / `お茶` / `贈り物` を選べる
 - 予定パネルから翌日の予定を設定できる
 - 予定によって行動制限、会話候補、衣装選びが少し変化する
+- タイトルから新規開始するとゲーム開始イベントを再生できる
 - `会話` からは `Daily` / `Food` / `Adventure` / `Love` のジャンル会話に進める
 - `贈り物` 以外に、着替えた衣装への反応を選ぶ `褒める` / `嫌う` / `退屈` / `着替える` の導線がある
-- 会話は `Next` ボタンで進行し、必要に応じて選択肢を選ぶ
+- 会話は `Next` ボタンまたはメッセージウィンドウクリックで進行し、必要に応じて選択肢を選ぶ
 - 行動と会話の結果は ScriptableObject のデータで管理している
+- 汎用イベント、予定イベント、エンディングも ScriptableObject で管理している
 - 衣装ごとの好みや反応履歴を保存し、衣装評価に反映している
 - 予定の状態もセーブ/ロードで保存している
 - セーブ/ロードは4つのスロットから選択できる
+- メッセージログとスチル回想をメイン画面から開ける
+- 時間帯と天候に応じて背景画像を切り替えられる
 - 時間経過と日数進行がある
-- 好感度が一定値に達するとエンディングが解放される
+- 好感度が一定値に達するとエンディングシーンへ進める
 
 ## 動作環境
 
@@ -57,12 +61,13 @@ This project is licensed under the MIT License. See [LICENSE](LICENSE) for detai
 - 予定を選ぶと予定パネルが開き、翌日の予定を設定する
 - 予定パネルは戻るボタンで閉じる
 - 会話文が表示されたら `Next` ボタンで進める
+- メッセージウィンドウをクリックしても、`Next` ボタン相当の進行ができる
 - 選択肢が出たら、表示された選択肢ボタンを押してから `Next` ボタンで確定する
 - `休む` / `散歩` / `お茶` / `贈り物` はそのまま実行され、結果表示後に `Next` で戻る
 - タイトル画面の `Continue` からロード用スロット選択を開く
 - メイン画面の `Save` / `Load` からセーブロード用スロット選択を開く
 - セーブ時は青いパネル、ロード時はオレンジのパネルで表示される
-- 好感度が `100` に達すると `Ending` ボタンが表示される
+- 好感度が `100` に達すると `Ending` ボタンが表示され、`EndingScene` へ遷移する
 
 ## ゲームの流れ
 
@@ -76,8 +81,11 @@ This project is licensed under the MIT License. See [LICENSE](LICENSE) for detai
 ## 主なファイル
 
 - [`Assets/Scripts/Core/GameManager.cs`](Assets/Scripts/Core/GameManager.cs): 会話、行動、好感度、時間進行、UI 更新の制御
+- [`Assets/Scripts/Core/EndingManager.cs`](Assets/Scripts/Core/EndingManager.cs): エンディングシーンの表示とタイトル復帰
 - [`Assets/Scripts/Core/SaveLoadPanel.cs`](Assets/Scripts/Core/SaveLoadPanel.cs): セーブロードスロット UI の制御
 - [`Assets/Prefabs/SaveLoadPanel.prefab`](Assets/Prefabs/SaveLoadPanel.prefab): タイトル画面とメイン画面で共用するセーブロード UI
+- [`Assets/Resources/Endings/`](Assets/Resources/Endings): エンディングデータ
+- [`Assets/Resources/GameEvents/`](Assets/Resources/GameEvents): ゲーム開始、日開始、手動確認用イベント
 - [`Assets/Resources/StatusAbilities/`](Assets/Resources/StatusAbilities): 詳細ステータス画面に表示する能力データ
 - [`Assets/Scripts/Action/`](Assets/Scripts/Action): 行動データの型定義
 - [`Assets/Scripts/Outfit/`](Assets/Scripts/Outfit): 衣装データ、衣装反応、衣装評価の管理
@@ -88,6 +96,7 @@ This project is licensed under the MIT License. See [LICENSE](LICENSE) for detai
 - [`Assets/Resources/Outfits/`](Assets/Resources/Outfits): 衣装データ本体
 - [`Assets/Resources/Conversations/`](Assets/Resources/Conversations): 会話データ本体
 - [`Assets/Scenes/MainScene.unity`](Assets/Scenes/MainScene.unity): メインシーン
+- [`Assets/Scenes/EndingScene.unity`](Assets/Scenes/EndingScene.unity): エンディングシーン
 - [`Packages/manifest.json`](Packages/manifest.json): 利用パッケージ
 
 ## メモ

@@ -5,7 +5,7 @@
 ## プロジェクト概要
 
 本プロジェクトは Unity 製の恋愛シミュレーション試作です。
-行動ボタンから会話や日常行動を選び、`Next` ボタンで進行しながら好感度を上げ、一定値に達するとエンディングが解放されます。
+行動ボタンから会話や日常行動を選び、`Next` ボタンまたはメッセージウィンドウクリックで進行しながら好感度を上げ、一定値に達するとエンディングが解放されます。
 
 ### 現在の特徴
 
@@ -68,6 +68,8 @@
 - 会話や行動のたびに時間が進み、一定数で日付が進む
 - 好感度が `100` に達すると `Ending` ボタンが表示される
 - 翌朝開始時など複数メッセージが連続発生する場合は、話者付きメッセージキューに積み、`Next` で 1 件ずつ表示する
+- `DialogueClickAdvanceArea` を割り当てたメッセージウィンドウは、`Next` ボタンが押せる状態ならクリックでも進行できる
+- エンディングは `EndingScene` と `EndingData` で管理する。初期データは `Assets/Resources/Endings/GoodEnding.asset`
 
 ## 使用環境
 
@@ -86,7 +88,11 @@
 ## 主要ファイル
 
 - [`Assets/Scripts/Core/GameManager.cs`](../Assets/Scripts/Core/GameManager.cs): ゲーム進行の中心ロジック
+- [`Assets/Scripts/Core/EndingManager.cs`](../Assets/Scripts/Core/EndingManager.cs): エンディングシーンの表示とタイトル復帰
+- [`Assets/Scripts/Core/EndingData.cs`](../Assets/Scripts/Core/EndingData.cs): エンディングデータの ScriptableObject 定義
+- [`Assets/Scripts/Core/EndingSelectionSettings.cs`](../Assets/Scripts/Core/EndingSelectionSettings.cs): MainScene から EndingScene へ選択エンディングIDを渡す静的設定
 - [`Assets/Scripts/Core/BackgroundZoom.cs`](../Assets/Scripts/Core/BackgroundZoom.cs): 背景ズーム演出
+- [`Assets/Scripts/Core/BackgroundSpriteData.cs`](../Assets/Scripts/Core/BackgroundSpriteData.cs): 時間帯・天候ごとの背景 Sprite 設定
 - [`Assets/Scripts/Action/`](../Assets/Scripts/Action): 行動データ型の定義
 - [`Assets/Scripts/Conversation/`](../Assets/Scripts/Conversation): 会話データ型の定義
 - [`Assets/Scripts/Schedule/`](../Assets/Scripts/Schedule): 予定管理と予定パネル制御
@@ -95,8 +101,12 @@
 - [`Assets/Resources/ScheduledEvents/`](../Assets/Resources/ScheduledEvents): 予定イベントデータの実体
 - [`Assets/Resources/Actions/`](../Assets/Resources/Actions): 行動データの実体
 - [`Assets/Resources/Actions/ScheduleAction.asset`](../Assets/Resources/Actions/ScheduleAction.asset): 予定パネルを開く行動アセット
+- [`Assets/Resources/Endings/`](../Assets/Resources/Endings): エンディングデータの実体
+- [`Assets/Resources/GameEvents/`](../Assets/Resources/GameEvents): ゲーム開始、日開始、手動確認用イベントデータ
+- [`Assets/Resources/Backgrounds/`](../Assets/Resources/Backgrounds): 背景切り替え用データ
 - [`Assets/Resources/Conversations/`](../Assets/Resources/Conversations): 会話データの実体
 - [`Assets/Scenes/MainScene.unity`](../Assets/Scenes/MainScene.unity): メインシーン
+- [`Assets/Scenes/EndingScene.unity`](../Assets/Scenes/EndingScene.unity): エンディングシーン
 - [`Packages/manifest.json`](../Packages/manifest.json): パッケージ一覧
 - [`ProjectSettings/ProjectVersion.txt`](../ProjectSettings/ProjectVersion.txt): Unity バージョン情報
 
@@ -299,10 +309,14 @@
 ### Control Buttons
 
 - `nextButton`
+- `dialogueClickAdvanceArea`
+- `enableDialogueWindowClickAdvance`
 
 ### Ending
 
 - `endingButton`
+- `endingSceneName`
+- `defaultEndingId`
 
 ### Data
 
@@ -373,8 +387,9 @@
 ## 既知の実装制約
 
 - 会話データと行動データは ScriptableObject 化されているが、一覧の登録は Inspector 依存
-- エンディングは 1 パターンのみ
-- 分岐による永続状態はない
+- エンディング表示は `EndingData` 化済みだが、現在の選択処理は `GameManager.defaultEndingId` の固定選択
+- エンディング分岐条件の自動選択は未実装。必要になったら `Resources/Endings` から条件一致する `EndingData` を選ぶ
+- エンディング到達済みの永続フラグや回想はまだない
 - セーブスロット UI は prefab 化済みで、`TitleScene` と `MainScene` に配置済み
 - 話者ラベルは `SYSTEM` / `予定` / `衣装` / ヒロイン名に分けている
 - 話者タイプごとに `speakerNameText` と `dialogueText` の色を変え、ヒロイン発話・システム通知・予定通知・衣装通知を見分けやすくしている
@@ -495,23 +510,20 @@ UI デザインは手作業で行っています。
 - 表示列 `ActionData.displayColumn` はアセット設定なので、セーブ/ロードで変化しない
 - 翌朝メッセージキューと将来の汎用ログはセーブ対象外の方針なので、ロード後に復元されなくてよい
 - タイトル画面からロードした場合も、MainScene のロード後 UI が閉じた状態で始まる
-- 現在の複数メッセージ進行は `Next` ボタンが前提。将来は画面内、またはメッセージ表示ウィンドウのクリックでも次のメッセージへ進めるようにする。選択肢や Save/Load、ログ、ステータス画面などの UI 操作と競合しないよう、まずはメッセージ表示ウィンドウへのクリック進行から実装するのが安全。
+- 現在の複数メッセージ進行は `Next` ボタンとメッセージ表示ウィンドウクリックに対応済み。選択肢や Save/Load、ログ、ステータス画面などの UI 操作と競合しないよう、クリック進行はメッセージ表示ウィンドウに限定する。
 - メッセージ表示ウィンドウのクリック進行は `DialogueClickAdvanceArea` で実装済み。Unity 上でメッセージウィンドウの Panel などに追加し、`GameManager.dialogueClickAdvanceArea` に割り当てる。クリック対象の Image は `Raycast Target` を有効にしておく。
 - クリック進行は好みが分かれるため、オプション画面を追加し、ON/OFF を切り替えられるようにする候補として扱う。
 
 ## 追加開発の優先候補
 
-1. 会話データの分類ルール整理
-2. 行動データの反応パターン追加
-3. スチル表示と回想の導線追加
+1. 行動データの反応パターン追加
+2. 会話データの分類ルール整理
+3. エンディング分岐条件の自動選択
 4. 立ち絵切り替えと表情差分の整理
-5. セーブスロット UI の調整
-6. 予定を行動へ変換する
-7. セーブ/ロードの強化
-8. エンディングシーンへの遷移とタイトル復帰
-9. メッセージ表示ウィンドウのクリック進行とオプション設定
-10. エンディング分岐の追加
-11. UI の見た目調整
+5. スチル回想のページング
+6. セーブ/ロードの強化
+7. メッセージ表示ウィンドウのクリック進行 ON/OFF オプション
+8. UI の見た目調整
 
 ## デバッグ時の確認項目
 
