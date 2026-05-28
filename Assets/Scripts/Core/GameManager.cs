@@ -142,6 +142,7 @@ public class GameManager : MonoBehaviour
     [Header("Ending")]
     [SerializeField] private Button endingButton;
     [SerializeField] private string endingSceneName = "EndingScene";
+    [SerializeField] private string defaultEndingId = "GoodEnding";
 
     [Header("Action Data")]
     [SerializeField] private string actionResourcePath = "Actions";
@@ -1283,6 +1284,7 @@ public class GameManager : MonoBehaviour
             return;
         }
 
+        EndingSelectionSettings.SelectedEndingId = defaultEndingId;
         SceneManager.LoadScene(endingSceneName);
     }
 

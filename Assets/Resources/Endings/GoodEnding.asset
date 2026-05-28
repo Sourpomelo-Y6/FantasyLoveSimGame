@@ -1,0 +1,20 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7f81d1c884c946c0a4f51576f05c122a, type: 3}
+  m_Name: GoodEnding
+  m_EditorClassIdentifier:
+  endingId: GoodEnding
+  displayName: Good Ending
+  message: "\u597D\u611F\u5EA6MAX\u30A8\u30F3\u30C9\u3067\u3059\u3002\u3042\u306A\u305F\u3068\u904E\u3054\u3057\u305F\u65E5\u3005\u3092\u3001\u79C1\u306F\u5FD8\u308C\u307E\u305B\u3093\u3002"
+  stillSprite: {fileID: 0}
+  requiredAffection: 100
+  requiredShownEventIds: []

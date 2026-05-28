@@ -235,7 +235,9 @@
 
 `OnClickEnding()` は `EndingScene` へ遷移します。
 `EndingScene` には `EndingManager` を配置し、`titleButton` と `endingText` を Inspector で割り当てます。
-`EndingManager` は開始時に `endingMessage` を `endingText` へ表示し、`TitleButton` で `TitleScene` に戻します。
+`EndingManager` は `Assets/Resources/Endings/` から `EndingData` を読み込み、選択された `endingId` の `message` と `stillSprite` を表示します。
+初期データとして `GoodEnding.asset` を用意しています。スチル画像ができたら `GoodEnding.asset.stillSprite` に割り当てます。
+`TitleButton` で `TitleScene` に戻します。
 初期実装は単一エンディングです。分岐が必要になった段階でエンディング条件や表示内容を `EndingData` のような ScriptableObject に切り出します。
 
 ### 10. 衣装評価
