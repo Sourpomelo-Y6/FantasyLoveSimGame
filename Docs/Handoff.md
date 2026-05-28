@@ -419,7 +419,23 @@
 
 ### エンディングを増やす
 
-現在は好感度 `100` の単一条件です。
+エンディング内容は `EndingData` アセットで管理します。
+新しいエンディングを追加する場合は、Unity の Project ウィンドウで `Create > LoveSim > Ending Data` を選び、`Assets/Resources/Endings/` に保存します。
+ファイル名と `endingId` は一致させます。例: `GoodEnding.asset` / `GoodEnding`。
+
+設定する項目:
+
+- `endingId`: エンディング選択に使う一意ID。本番投入後は変更しない
+- `displayName`: Unity 上で見分けるための表示名
+- `message`: `EndingScene` の `EndingText` に表示する本文
+- `stillSprite`: エンディングスチル。画像が未完成なら空でよい
+- `requiredAffection`: 将来の分岐判定用。現状は `GoodEnding` の `100` を基準にする
+- `requiredShownEventIds`: 将来の分岐判定用。特定イベントを見た場合だけ出すエンディングに使う
+
+現状の `GameManager` は `defaultEndingId = GoodEnding` を選んで `EndingScene` に渡します。
+分岐を増やす段階では、`GameManager` に `Resources/Endings` を読み込んで条件一致する `EndingData` を選ぶ処理を追加します。
+複数条件に一致する可能性が出たら、`EndingData` に `priority` を追加して優先順位を決めます。
+
 条件分岐を増やすなら、好感度だけでなく以下も判定対象にできます。
 
 - 選択したジャンルの回数

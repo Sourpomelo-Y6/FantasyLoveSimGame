@@ -385,6 +385,12 @@ Ending ボタンを押すと、専用の `EndingScene` へ遷移する。
 初期データは `GoodEnding.asset` で、スチル画像ができたら `stillSprite` に割り当てる。
 最初は単一の `EndingScene` で十分とし、エンディング分岐や複数スチルが必要になった時点で `EndingData` のようなデータ化を検討する。
 
+エンディングを増やす場合は、`Assets/Resources/Endings/` に `EndingData` アセットを追加する。
+`endingId` はセーブや分岐で参照する可能性があるため、ファイル名と一致させ、本番投入後は変更しない。
+設定項目は `displayName`、`message`、`stillSprite`、`requiredAffection`、`requiredShownEventIds` を基本にする。
+現状は `GameManager.defaultEndingId` の `GoodEnding` を固定選択しているため、分岐を入れる段階で `Resources/Endings` から条件に合う `EndingData` を選ぶ処理を追加する。
+複数エンディングが同時に条件を満たす場合に備えて、必要になったら `priority` を追加する。
+
 ### メッセージのクリック進行
 
 現在は複数メッセージを読むとき、`Next` ボタンで次のメッセージへ進む。
