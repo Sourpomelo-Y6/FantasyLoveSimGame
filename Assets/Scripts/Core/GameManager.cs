@@ -4,6 +4,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 using System.Collections;
+using UnityEngine.SceneManagement;
 
 public class GameManager : MonoBehaviour
 {
@@ -140,6 +141,7 @@ public class GameManager : MonoBehaviour
 
     [Header("Ending")]
     [SerializeField] private Button endingButton;
+    [SerializeField] private string endingSceneName = "EndingScene";
 
     [Header("Action Data")]
     [SerializeField] private string actionResourcePath = "Actions";
@@ -1275,17 +1277,13 @@ public class GameManager : MonoBehaviour
 
     private void OnClickEnding()
     {
-        actionButtonArea.SetActive(false);
-        genreButtonArea.SetActive(false);
-        choiceButtonArea.SetActive(false);
-        outfitPanel.SetActive(false);
-        outfitReactionPanel.SetActive(false);
-        nextButton.gameObject.SetActive(false);
+        if (string.IsNullOrEmpty(endingSceneName))
+        {
+            ShowSystemDialogue("エンディングシーン名が設定されていません。");
+            return;
+        }
 
-        currentConversation = null;
-        flowState = ConversationFlowState.Idle;
-
-        ShowHeroineDialogue("好感度MAXエンドです。あなたと過ごした日々を、私は忘れません。");
+        SceneManager.LoadScene(endingSceneName);
     }
 
     public void RefreshUI()

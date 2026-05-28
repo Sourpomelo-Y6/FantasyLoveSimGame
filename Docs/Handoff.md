@@ -233,9 +233,10 @@
 
 ### 9. Ending ボタン
 
-`OnClickEnding()` は現状、固定のエンド文を表示するだけです。
-今後は Ending ボタンから専用のエンディングシーンへ遷移し、エンディング用スチルやテキストを表示した後、タイトル画面へ戻す導線を作る予定です。
-初期実装は単一の `EndingScene` でよく、分岐が必要になった段階でエンディング条件や表示内容をデータ化します。
+`OnClickEnding()` は `EndingScene` へ遷移します。
+`EndingScene` には `EndingManager` を配置し、`titleButton` と `endingText` を Inspector で割り当てます。
+`EndingManager` は開始時に `endingMessage` を `endingText` へ表示し、`TitleButton` で `TitleScene` に戻します。
+初期実装は単一エンディングです。分岐が必要になった段階でエンディング条件や表示内容を `EndingData` のような ScriptableObject に切り出します。
 
 ### 10. 衣装評価
 
