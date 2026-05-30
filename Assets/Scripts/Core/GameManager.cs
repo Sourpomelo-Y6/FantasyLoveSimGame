@@ -2969,11 +2969,22 @@ public class GameManager : MonoBehaviour
             return "";
         }
 
+        if (scheduleManager.TodayScheduleEventExecuted)
+        {
+            return "";
+        }
+
         ScheduledEventDefinition scheduledEvent = GetScheduledEventDefinition(scheduleManager.TodaySchedule);
 
         if (scheduledEvent == null)
         {
             return "";
+        }
+
+        if (ShouldCancelScheduledEventForWeather(scheduledEvent))
+        {
+            scheduleManager.MarkTodayScheduleEventExecuted();
+            return CreateScheduledEventWeatherCancelMessage(scheduledEvent);
         }
 
         return scheduledEvent.PreparationMessage;
@@ -3065,16 +3076,24 @@ public class GameManager : MonoBehaviour
         outfitPanel.SetActive(false);
         outfitReactionPanel.SetActive(false);
 
-        ShowScheduleDialogue(
-            "嵐のため、" +
-            ScheduleManager.GetScheduleDisplayName(scheduledEvent.ScheduleType) +
-            "の予定はキャンセルになりました。"
-        );
+        ShowScheduleDialogue(CreateScheduledEventWeatherCancelMessage(scheduledEvent));
 
         flowState = ConversationFlowState.ShowingActionResult;
         nextButton.gameObject.SetActive(true);
 
         RefreshUI();
+    }
+
+    private string CreateScheduledEventWeatherCancelMessage(ScheduledEventDefinition scheduledEvent)
+    {
+        if (scheduledEvent == null)
+        {
+            return "嵐のため、今日の予定はキャンセルになりました。";
+        }
+
+        return "嵐のため、" +
+               ScheduleManager.GetScheduleDisplayName(scheduledEvent.ScheduleType) +
+               "の予定はキャンセルになりました。";
     }
 
     private bool ShouldShowScheduledEventOutfitPrompt(ScheduledEventDefinition scheduledEvent)
