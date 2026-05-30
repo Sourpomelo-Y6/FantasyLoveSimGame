@@ -3003,6 +3003,12 @@ public class GameManager : MonoBehaviour
             return false;
         }
 
+        if (ShouldCancelScheduledEventForWeather(scheduledEvent))
+        {
+            CancelScheduledEventForWeather(scheduledEvent);
+            return true;
+        }
+
         if (ShouldShowScheduledEventOutfitPrompt(scheduledEvent))
         {
             ShowScheduledEventOutfitPrompt(scheduledEvent);
@@ -3011,6 +3017,64 @@ public class GameManager : MonoBehaviour
 
         StartScheduledEvent(scheduledEvent);
         return true;
+    }
+
+    private bool ShouldCancelScheduledEventForWeather(ScheduledEventDefinition scheduledEvent)
+    {
+        if (scheduledEvent == null || timeManager == null)
+        {
+            return false;
+        }
+
+        return timeManager.CurrentWeather == Weather.Storm &&
+               IsOutdoorSchedule(scheduledEvent.ScheduleType);
+    }
+
+    private bool IsOutdoorSchedule(ScheduleType scheduleType)
+    {
+        switch (scheduleType)
+        {
+            case ScheduleType.SoloForest:
+            case ScheduleType.SoloCave:
+            case ScheduleType.SoloLake:
+            case ScheduleType.SoloShopping:
+            case ScheduleType.DuoForest:
+            case ScheduleType.DuoCave:
+            case ScheduleType.DuoLake:
+            case ScheduleType.DuoShopping:
+                return true;
+
+            default:
+                return false;
+        }
+    }
+
+    private void CancelScheduledEventForWeather(ScheduledEventDefinition scheduledEvent)
+    {
+        scheduleManager.MarkTodayScheduleEventExecuted();
+        pendingScheduledEvent = null;
+        startPendingScheduledEventAfterOutfitMessage = false;
+        returnToScheduledEventPromptAfterOutfitMessage = false;
+        currentConversation = null;
+        pendingAdvanceTime = false;
+        pendingGoodNight = false;
+
+        actionButtonArea.SetActive(false);
+        genreButtonArea.SetActive(false);
+        choiceButtonArea.SetActive(false);
+        outfitPanel.SetActive(false);
+        outfitReactionPanel.SetActive(false);
+
+        ShowScheduleDialogue(
+            "嵐のため、" +
+            ScheduleManager.GetScheduleDisplayName(scheduledEvent.ScheduleType) +
+            "の予定はキャンセルになりました。"
+        );
+
+        flowState = ConversationFlowState.ShowingActionResult;
+        nextButton.gameObject.SetActive(true);
+
+        RefreshUI();
     }
 
     private bool ShouldShowScheduledEventOutfitPrompt(ScheduledEventDefinition scheduledEvent)
@@ -3148,6 +3212,12 @@ public class GameManager : MonoBehaviour
     {
         if (scheduledEvent == null)
         {
+            return;
+        }
+
+        if (ShouldCancelScheduledEventForWeather(scheduledEvent))
+        {
+            CancelScheduledEventForWeather(scheduledEvent);
             return;
         }
 
