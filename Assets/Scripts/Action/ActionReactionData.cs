@@ -13,6 +13,10 @@ public class ActionReactionData
 
     public bool useHeroineNameAsSpeaker = false;
 
+    [Header("Still")]
+    public string stillId;
+    public Sprite stillSprite;
+
     [Header("Effect")]
     public int affectionChange = 0;
     public bool advanceTime = true;

@@ -19,6 +19,10 @@ public class ActionData : ScriptableObject
 
     public bool useHeroineNameAsSpeaker = false;
 
+    [Header("Default Still")]
+    public string stillId;
+    public Sprite stillSprite;
+
     [Header("Default Effect")]
     public int affectionChange = 0;
     public bool advanceTime = true;

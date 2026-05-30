@@ -19,4 +19,6 @@ MonoBehaviour:
   eventSpeakerType: 0
   preparationMessage: 今日は昼に二人で森へ行く予定です。出発前に衣装を見直せます。
   eventMessage: 二人で森を歩きました。並んで歩く時間が、いつもより少し近く感じられます。
+  stillId: Scheduled_DuoForest_01
+  stillSprite: {fileID: 21300000, guid: 9096d13c499c9464db052bad3c54d7e1, type: 3}
   affectionChange: 3

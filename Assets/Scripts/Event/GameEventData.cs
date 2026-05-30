@@ -36,6 +36,10 @@ public class GameEventData : ScriptableObject
     public List<OutfitData> requiredOutfits = new List<OutfitData>();
     public List<OutfitData> blockedOutfits = new List<OutfitData>();
 
+    [Header("Weather Condition")]
+    public bool anyWeather = true;
+    public List<Weather> allowedWeathers = new List<Weather>();
+
     [Header("Pages")]
     public List<GameEventPageData> pages = new List<GameEventPageData>();
 }

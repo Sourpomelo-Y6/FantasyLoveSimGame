@@ -21,6 +21,10 @@ public class ScheduledEventData : ScriptableObject
     [TextArea(3, 6)]
     public string eventMessage;
 
+    [Header("Still")]
+    public string stillId;
+    public Sprite stillSprite;
+
     [Header("Effect")]
     public int affectionChange = 0;
 
@@ -35,7 +39,9 @@ public class ScheduledEventData : ScriptableObject
             eventSpeakerType,
             preparationMessage,
             eventMessage,
-            affectionChange
+            affectionChange,
+            stillId,
+            stillSprite
         );
     }
 }

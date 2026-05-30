@@ -1,3 +1,5 @@
+using UnityEngine;
+
 public class ScheduledEventDefinition
 {
     public ScheduleType ScheduleType { get; private set; }
@@ -9,6 +11,8 @@ public class ScheduledEventDefinition
     public string PreparationMessage { get; private set; }
     public string EventMessage { get; private set; }
     public int AffectionChange { get; private set; }
+    public string StillId { get; private set; }
+    public Sprite StillSprite { get; private set; }
 
     public ScheduledEventDefinition(
         ScheduleType scheduleType,
@@ -19,7 +23,9 @@ public class ScheduledEventDefinition
         ScheduledEventSpeakerType eventSpeakerType,
         string preparationMessage,
         string eventMessage,
-        int affectionChange)
+        int affectionChange,
+        string stillId = "",
+        Sprite stillSprite = null)
     {
         ScheduleType = scheduleType;
         ActionId = actionId;
@@ -30,5 +36,7 @@ public class ScheduledEventDefinition
         PreparationMessage = preparationMessage;
         EventMessage = eventMessage;
         AffectionChange = affectionChange;
+        StillId = stillId;
+        StillSprite = stillSprite;
     }
 }

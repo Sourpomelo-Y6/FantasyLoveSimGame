@@ -27,6 +27,8 @@ MonoBehaviour:
   blockedOutfitIds: []
   requiredOutfits: []
   blockedOutfits: []
+  anyWeather: 1
+  allowedWeathers: []
   pages:
   - speakerType: 0
     speakerName: ""

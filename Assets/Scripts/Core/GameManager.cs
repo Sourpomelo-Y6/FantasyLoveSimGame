@@ -1539,6 +1539,36 @@ public class GameManager : MonoBehaviour
         List<StillGalleryItem> items = new List<StillGalleryItem>();
         HashSet<string> addedStillIds = new HashSet<string>();
 
+        if (actions == null || actions.Count == 0)
+        {
+            LoadActionsFromResources();
+        }
+
+        foreach (ActionData action in actions)
+        {
+            if (action == null)
+            {
+                continue;
+            }
+
+            AddStillGalleryItem(items, addedStillIds, action.stillId, action.stillSprite, unlockedOnly);
+
+            if (action.reactions == null)
+            {
+                continue;
+            }
+
+            foreach (ActionReactionData reaction in action.reactions)
+            {
+                if (reaction == null)
+                {
+                    continue;
+                }
+
+                AddStillGalleryItem(items, addedStillIds, reaction.stillId, reaction.stillSprite, unlockedOnly);
+            }
+        }
+
         if (gameEvents == null || gameEvents.Count == 0)
         {
             LoadGameEventsFromResources();
@@ -1553,29 +1583,64 @@ public class GameManager : MonoBehaviour
 
             foreach (GameEventPageData page in gameEvent.pages)
             {
-                if (page == null ||
-                    string.IsNullOrEmpty(page.stillId) ||
-                    page.stillSprite == null)
+                if (page != null)
                 {
-                    continue;
+                    AddStillGalleryItem(items, addedStillIds, page.stillId, page.stillSprite, unlockedOnly);
                 }
-
-                if (addedStillIds.Contains(page.stillId))
-                {
-                    continue;
-                }
-
-                if (unlockedOnly && !IsStillUnlocked(page.stillId))
-                {
-                    continue;
-                }
-
-                addedStillIds.Add(page.stillId);
-                items.Add(new StillGalleryItem(page.stillId, page.stillSprite));
             }
         }
 
+        if (scheduledEvents == null || scheduledEvents.Count == 0)
+        {
+            LoadScheduledEventsFromResources();
+        }
+
+        foreach (ScheduledEventData scheduledEvent in scheduledEvents)
+        {
+            if (scheduledEvent == null)
+            {
+                continue;
+            }
+
+            AddStillGalleryItem(
+                items,
+                addedStillIds,
+                scheduledEvent.stillId,
+                scheduledEvent.stillSprite,
+                unlockedOnly
+            );
+        }
+
         return items;
+    }
+
+    private void AddStillGalleryItem(
+        List<StillGalleryItem> items,
+        HashSet<string> addedStillIds,
+        string stillId,
+        Sprite stillSprite,
+        bool unlockedOnly)
+    {
+        if (items == null ||
+            addedStillIds == null ||
+            string.IsNullOrEmpty(stillId) ||
+            stillSprite == null)
+        {
+            return;
+        }
+
+        if (addedStillIds.Contains(stillId))
+        {
+            return;
+        }
+
+        if (unlockedOnly && !IsStillUnlocked(stillId))
+        {
+            return;
+        }
+
+        addedStillIds.Add(stillId);
+        items.Add(new StillGalleryItem(stillId, stillSprite));
     }
 
     private void ExecuteSimpleAction(
@@ -1583,7 +1648,9 @@ public class GameManager : MonoBehaviour
         string message,
         int affectionChange,
         bool advanceTime,
-        string actionId)
+        string actionId,
+        string stillId = "",
+        Sprite stillSprite = null)
     {
         actionButtonArea.SetActive(false);
         genreButtonArea.SetActive(false);
@@ -1591,7 +1658,7 @@ public class GameManager : MonoBehaviour
         outfitPanel.SetActive(false);
         outfitReactionPanel.SetActive(false);
 
-        ShowDialogue(speakerName, message);
+        ShowDialogue(GetSpeakerTypeForName(speakerName), speakerName, message, stillId, stillSprite);
 
         heroineStatus.AddAffection(affectionChange);
 
@@ -1968,6 +2035,11 @@ public class GameManager : MonoBehaviour
             return false;
         }
 
+        if (!IsGameEventWeatherAvailable(gameEvent))
+        {
+            return false;
+        }
+
         if (!HasRequiredShownGameEvents(gameEvent.requiredShownEventIds))
         {
             return false;
@@ -1979,6 +2051,26 @@ public class GameManager : MonoBehaviour
         }
 
         return true;
+    }
+
+    private bool IsGameEventWeatherAvailable(GameEventData gameEvent)
+    {
+        if (gameEvent == null || gameEvent.anyWeather)
+        {
+            return true;
+        }
+
+        if (gameEvent.allowedWeathers == null || gameEvent.allowedWeathers.Count == 0)
+        {
+            return false;
+        }
+
+        if (timeManager == null)
+        {
+            return false;
+        }
+
+        return gameEvent.allowedWeathers.Contains(timeManager.CurrentWeather);
     }
 
     private bool HasRequiredOutfit(List<string> outfitIds, List<OutfitData> outfits)
@@ -2520,13 +2612,18 @@ public class GameManager : MonoBehaviour
             string reactionSpeakerName = reaction.useHeroineNameAsSpeaker
                 ? heroineStatus.HeroineName
                 : SystemSpeakerName;
+            string reactionMessage = string.IsNullOrEmpty(reaction.resultMessage)
+                ? action.resultMessage
+                : reaction.resultMessage;
 
             ExecuteSimpleAction(
                 reactionSpeakerName,
-                action.resultMessage,
-                action.affectionChange,
-                action.advanceTime,
-                action.actionId
+                reactionMessage,
+                reaction.affectionChange,
+                reaction.advanceTime,
+                action.actionId,
+                string.IsNullOrEmpty(reaction.stillId) ? action.stillId : reaction.stillId,
+                reaction.stillSprite != null ? reaction.stillSprite : action.stillSprite
             );
 
             return;
@@ -2541,7 +2638,9 @@ public class GameManager : MonoBehaviour
             action.resultMessage,
             action.affectionChange,
             action.advanceTime,
-            action.actionId
+            action.actionId,
+            action.stillId,
+            action.stillSprite
         );
     }
 
@@ -3080,19 +3179,19 @@ public class GameManager : MonoBehaviour
         switch (scheduledEvent.EventSpeakerType)
         {
             case ScheduledEventSpeakerType.System:
-                ShowSystemDialogue(scheduledEvent.EventMessage);
+                ShowDialogue(DialogueSpeakerType.System, SystemSpeakerName, scheduledEvent.EventMessage, scheduledEvent.StillId, scheduledEvent.StillSprite);
                 return;
 
             case ScheduledEventSpeakerType.Schedule:
-                ShowScheduleDialogue(scheduledEvent.EventMessage);
+                ShowDialogue(DialogueSpeakerType.Schedule, ScheduleSpeakerName, scheduledEvent.EventMessage, scheduledEvent.StillId, scheduledEvent.StillSprite);
                 return;
 
             case ScheduledEventSpeakerType.Outfit:
-                ShowOutfitDialogue(scheduledEvent.EventMessage);
+                ShowDialogue(DialogueSpeakerType.Outfit, OutfitSpeakerName, scheduledEvent.EventMessage, scheduledEvent.StillId, scheduledEvent.StillSprite);
                 return;
 
             default:
-                ShowHeroineDialogue(scheduledEvent.EventMessage);
+                ShowDialogue(DialogueSpeakerType.Heroine, heroineStatus.HeroineName, scheduledEvent.EventMessage, scheduledEvent.StillId, scheduledEvent.StillSprite);
                 return;
         }
     }
