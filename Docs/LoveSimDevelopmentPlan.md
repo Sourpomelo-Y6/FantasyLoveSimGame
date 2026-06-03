@@ -319,6 +319,12 @@ public class ActionData : ScriptableObject
 - 季節ごとの反応
 - 好感度帯ごとの反応
 
+今の実装では、`ActionData.reactions` から条件一致する候補を集め、`priority` が高いものを優先して選ぶ。
+同じ `priority` が複数ある場合はランダムに 1 件を選ぶ。
+条件欄は `minAffection` / `maxAffection`、`anyTimeSlot` / `allowedTimeSlots`、`anyWeather` / `allowedWeathers`、`anySeason` / `allowedSeasons` で構成する。
+`stillId` / `stillSprite` を持たせると、反応専用のスチルも差し替えられる。
+当面は衣装や予定種別まで条件に入れず、まずは時間帯・天候・季節・好感度で反応の厚みを増やす。
+
 ## 実装メモ
 
 - `GameManager` は状態管理と UI 反映をまとめている
