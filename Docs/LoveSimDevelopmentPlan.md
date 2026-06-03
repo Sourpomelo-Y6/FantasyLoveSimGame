@@ -255,8 +255,12 @@ Assets/Images/Heroines/DefaultHeroine/Ending/
 
 実装順は、`HeroineProfileData` の追加、`DefaultHeroineProfile.asset` の作成、`GameManager` の読み込みパス差し替え、`EndingManager` の読み込みパス差し替えまでは完了。
 `Resources/Heroines/DefaultHeroine/...` へのデータ移動と profile のパス切り替えは実施済み。
-次は新しいヒロイン用 profile を追加して差し替え確認を行う。
 画像フォルダ整理も `DefaultHeroine` については実施済み。
+
+差し替え確認用として `Assets/Resources/Heroines/TestHeroineProfile.asset` を追加済み。
+`Heroines/TestHeroine/Actions` / `Conversations` / `GameEvents` / `Endings` には最小確認用データだけを置いている。
+`MainScene` の `GameManager.heroineProfile` に `TestHeroineProfile` を割り当てると、ヒロイン名、開始イベント、会話、エンディングの読み込み元が切り替わるか確認できる。
+本番用ヒロインを追加する前に、まずこの profile で差し替え導線を手動確認する。
 
 新しいヒロインを追加するときは、次のチェックリストを使う。
 

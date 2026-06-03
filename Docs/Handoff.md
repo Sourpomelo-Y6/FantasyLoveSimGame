@@ -413,6 +413,8 @@
 
 新しいヒロインを追加する場合は、`HeroineProfileData` とヒロイン別 Resources フォルダをセットで作る。
 `Images/Background` は共通背景として残し、立ち絵・イベントスチル・行動スチル・エンディングスチルはヒロイン別素材として扱う。
+差し替え確認用に `Assets/Resources/Heroines/TestHeroineProfile.asset` を追加済み。
+`GameManager.heroineProfile` に割り当てると、最小データでヒロイン別読み込みを確認できる。
 
 チェックリスト:
 

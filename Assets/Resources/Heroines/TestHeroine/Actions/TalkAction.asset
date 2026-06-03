@@ -1,0 +1,34 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1f41d3cf9d66ee149ad7663c5cd19c24, type: 3}
+  m_Name: TalkAction
+  m_EditorClassIdentifier:
+  actionId: Talk
+  displayName: "会話"
+  displayColumn: 2
+  executionType: 1
+  resultMessage: "テストヒロイン用の会話データを読み込んでいます。"
+  unavailableMessage: "今はこの行動はできません。"
+  useHeroineNameAsSpeaker: 0
+  affectionChange: 0
+  advanceTime: 0
+  reactions: []
+  sortOrder: 10
+  isEnabled: 1
+  anyTimeSlot: 1
+  allowedTimeSlots:
+  anyWeather: 1
+  allowedWeathers:
+  anySeason: 1
+  allowedSeasons:
+  minAffection: 0
+  maxAffection: 100
