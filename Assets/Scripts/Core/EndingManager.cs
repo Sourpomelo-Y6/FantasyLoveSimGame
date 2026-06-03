@@ -52,7 +52,13 @@ public class EndingManager : MonoBehaviour
             selectedEndingId = defaultEndingId;
         }
 
-        EndingData[] endings = Resources.LoadAll<EndingData>(endingResourcePath);
+        string resourcePath = EndingSelectionSettings.EndingResourcePath;
+        if (string.IsNullOrEmpty(resourcePath))
+        {
+            resourcePath = endingResourcePath;
+        }
+
+        EndingData[] endings = Resources.LoadAll<EndingData>(resourcePath);
         foreach (EndingData ending in endings)
         {
             if (ending == null || string.IsNullOrEmpty(ending.endingId))
@@ -66,7 +72,7 @@ public class EndingManager : MonoBehaviour
             }
         }
 
-        Debug.LogWarning("EndingData が見つかりません: " + selectedEndingId);
+        Debug.LogWarning("EndingData が見つかりません: " + selectedEndingId + " / Path: " + resourcePath);
         return null;
     }
 

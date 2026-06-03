@@ -139,6 +139,10 @@ public class GameManager : MonoBehaviour
     [SerializeField] private DialogueClickAdvanceArea dialogueClickAdvanceArea;
     [SerializeField] private bool enableDialogueWindowClickAdvance = true;
 
+    [Header("Heroine Profile")]
+    [SerializeField] private HeroineProfileData heroineProfile;
+    [SerializeField] private string defaultHeroineProfileResourcePath = "Heroines/DefaultHeroine";
+
     [Header("Ending")]
     [SerializeField] private Button endingButton;
     [SerializeField] private string endingSceneName = "EndingScene";
@@ -658,8 +662,68 @@ public class GameManager : MonoBehaviour
         ShowDialogue(DialogueSpeakerType.Outfit, OutfitSpeakerName, message);
     }
 
+    private void ApplyHeroineProfileSettings()
+    {
+        HeroineProfileData profile = ResolveHeroineProfile();
+        if (profile == null)
+        {
+            return;
+        }
+
+        heroineProfile = profile;
+
+        if (heroineStatus != null)
+        {
+            heroineStatus.SetHeroineName(profile.displayName);
+        }
+
+        conversationResourcePath = GetProfileResourcePath(
+            profile.conversationResourcePath,
+            conversationResourcePath);
+        gameEventResourcePath = GetProfileResourcePath(
+            profile.gameEventResourcePath,
+            gameEventResourcePath);
+        actionResourcePath = GetProfileResourcePath(
+            profile.actionResourcePath,
+            actionResourcePath);
+    }
+
+    private HeroineProfileData ResolveHeroineProfile()
+    {
+        if (heroineProfile != null)
+        {
+            return heroineProfile;
+        }
+
+        if (string.IsNullOrEmpty(defaultHeroineProfileResourcePath))
+        {
+            return null;
+        }
+
+        HeroineProfileData profile =
+            Resources.Load<HeroineProfileData>(defaultHeroineProfileResourcePath);
+        if (profile == null)
+        {
+            Debug.LogWarning("HeroineProfileData が見つかりません: " + defaultHeroineProfileResourcePath);
+        }
+
+        return profile;
+    }
+
+    private string GetProfileResourcePath(string profilePath, string fallbackPath)
+    {
+        if (string.IsNullOrEmpty(profilePath))
+        {
+            return fallbackPath;
+        }
+
+        return profilePath;
+    }
+
     private void Start()
     {
+        ApplyHeroineProfileSettings();
+
         LoadConversationsFromResources();
         LoadActionsFromResources();
         LoadGameEventsFromResources();
@@ -1285,6 +1349,9 @@ public class GameManager : MonoBehaviour
         }
 
         EndingSelectionSettings.SelectedEndingId = defaultEndingId;
+        EndingSelectionSettings.SelectedHeroineId = heroineProfile != null ? heroineProfile.heroineId : "";
+        EndingSelectionSettings.EndingResourcePath =
+            heroineProfile != null ? heroineProfile.endingResourcePath : "";
         SceneManager.LoadScene(endingSceneName);
     }
 

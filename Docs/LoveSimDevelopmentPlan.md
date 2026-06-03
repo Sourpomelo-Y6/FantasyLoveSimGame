@@ -221,7 +221,7 @@ Canvas
 `Sprites` フォルダと `Images` フォルダのうち `Background` 以外は、基本的にヒロインに紐づく素材として扱う。
 背景は共通素材として残し、ヒロイン別差し替えの対象から外す。
 
-最初は `HeroineProfileData` の ScriptableObject を作り、以下を持たせる。
+`HeroineProfileData` の ScriptableObject を追加済みで、以下を持たせる。
 
 - `heroineId`: セーブや将来の切り替えで使う一意 ID
 - `displayName`: 表示名
@@ -231,7 +231,9 @@ Canvas
 - `endingResourcePath`: エンディングデータの読み込みパス
 - `defaultHeroineSprite`: 代表立ち絵
 
-現在のヒロインは `DefaultHeroine` として扱い、当面は既存の `Conversations` / `GameEvents` / `Actions` / `Endings` をそのまま参照する。
+現在のヒロインは `DefaultHeroine` として扱い、`Assets/Resources/Heroines/DefaultHeroine.asset` に既存の `Conversations` / `GameEvents` / `Actions` / `Endings` を参照させている。
+`GameManager` は profile から会話・イベント・行動の読み込みパスを適用し、`EndingScene` へ遷移するときに profile の `endingResourcePath` を `EndingSelectionSettings` へ渡す。
+`EndingManager` は渡された `endingResourcePath` があればそのパスから `EndingData` を読み込む。
 将来ヒロインを増やす段階で、Resources 配下を次のように分ける。
 
 ```text
@@ -251,7 +253,9 @@ Assets/Images/Heroines/DefaultHeroine/Actions/
 Assets/Images/Heroines/DefaultHeroine/Ending/
 ```
 
-実装順は、`HeroineProfileData` の追加、`DefaultHeroine.asset` の作成、`GameManager` の読み込みパス差し替え、`EndingManager` の読み込みパス差し替え、最後にフォルダ整理とする。
+実装順は、`HeroineProfileData` の追加、`DefaultHeroine.asset` の作成、`GameManager` の読み込みパス差し替え、`EndingManager` の読み込みパス差し替えまでは完了。
+次は実際に `Resources/Heroines/DefaultHeroine/...` へデータを移して profile のパスを切り替えるか、新しいヒロイン用 profile を追加して差し替え確認を行う。
+画像フォルダ整理は最後に行う。
 
 ### ConversationData
 

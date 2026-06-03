@@ -17,6 +17,14 @@ public class HeroineStatus : MonoBehaviour
     public int MaxAffection => maxAffection;
     public OutfitPromptAbilitySet OutfitPromptAbilities => outfitPromptAbilities;
 
+    public void SetHeroineName(string value)
+    {
+        if (!string.IsNullOrEmpty(value))
+        {
+            heroineName = value;
+        }
+    }
+
     public void SetOutfitPromptAbilities(OutfitPromptAbilitySet source)
     {
         outfitPromptAbilities.CopyFrom(source);

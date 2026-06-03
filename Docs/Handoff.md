@@ -47,7 +47,7 @@
 - 詳細ステータス画面は `StatusDetailPanel`、能力項目は `StatusAbilityKind`、画面の対象切り替えは `StatusDetailRole` で扱う
 - 詳細ステータス画面の入口として `StatusDetailAction` を用意し、行動一覧から開けるようにしている
 - タイトルから新規ゲームを開始した直後は、`GameEventData` の `GameStart` イベントを再生してからメイン画面を始める。`GameEventData` は `Assets/Resources/GameEvents/` に置き、ページ単位で話者・メッセージ・スチルを持てる
-- ヒロイン差し替えは `HeroineProfileData` で管理する方針。画像、会話、イベント、行動反応、エンディングをヒロイン単位で束ね、`Images/Background` は共通背景として扱う
+- ヒロイン差し替えは `HeroineProfileData` で管理する。画像、会話、イベント、行動反応、エンディングをヒロイン単位で束ね、`Images/Background` は共通背景として扱う。現在は `DefaultHeroine.asset` で既存の `Actions` / `Conversations` / `GameEvents` / `Endings` を参照している
 - Unity Editor で `MainScene` を直接開いて再生した場合は、`GameStartSettings.ShouldPlayGameStartEvent` の初期値が `false` のため開始イベントは発生しない
 - `GameEventData.showOnce` はセーブデータの `shownGameEventIds` で管理する
 - `GameEventData` の `DayStart` は翌朝メッセージに混ぜて自動再生し、`Manual` は `GameManager.TryStartManualGameEvent(string eventId)` から明示起動する
