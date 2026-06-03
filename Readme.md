@@ -28,6 +28,7 @@ This project is licensed under the MIT License. See [LICENSE](LICENSE) for detai
 - 会話は `Next` ボタンまたはメッセージウィンドウクリックで進行し、必要に応じて選択肢を選ぶ
 - 行動と会話の結果は ScriptableObject のデータで管理している
 - 汎用イベント、予定イベント、エンディングも ScriptableObject で管理している
+- ヒロインごとの画像、会話、イベント、行動反応、エンディングを profile で束ねる方針
 - 衣装ごとの好みや反応履歴を保存し、衣装評価に反映している
 - 予定の状態もセーブ/ロードで保存している
 - セーブ/ロードは4つのスロットから選択できる
@@ -86,6 +87,7 @@ This project is licensed under the MIT License. See [LICENSE](LICENSE) for detai
 - [`Assets/Prefabs/SaveLoadPanel.prefab`](Assets/Prefabs/SaveLoadPanel.prefab): タイトル画面とメイン画面で共用するセーブロード UI
 - [`Assets/Resources/Endings/`](Assets/Resources/Endings): エンディングデータ
 - [`Assets/Resources/GameEvents/`](Assets/Resources/GameEvents): ゲーム開始、日開始、手動確認用イベント
+- [`Assets/Resources/Heroines/`](Assets/Resources/Heroines): ヒロインプロフィールデータ
 - [`Assets/Resources/StatusAbilities/`](Assets/Resources/StatusAbilities): 詳細ステータス画面に表示する能力データ
 - [`Assets/Scripts/Action/`](Assets/Scripts/Action): 行動データの型定義
 - [`Assets/Scripts/Outfit/`](Assets/Scripts/Outfit): 衣装データ、衣装反応、衣装評価の管理
@@ -105,6 +107,7 @@ This project is licensed under the MIT License. See [LICENSE](LICENSE) for detai
 - Unity の UI はシーン上で手動配置し、Inspector で参照を割り当てる前提です
 - Unity Editor で UI を手作業変更した後は、Codex にシーン編集を依頼する前に必ず `Ctrl+S` でシーンを保存してください。未保存の UI 変更は `MainScene.unity` に存在しないため、後続の scene patch と食い違うことがあります
 - 会話データと行動データは ScriptableObject として分離されています
+- ヒロイン差し替えは `HeroineProfileData` で読み込みパスを切り替える方針です。`Images/Background` は共通背景として扱います
 - 行動には条件付き反応を持たせられるので、時間帯、天候、季節、好感度で結果を変えやすいです。反応ごとに `stillSprite` も持てます
 - 衣装は着用時に保存され、衣装反応パネルから評価を付けられるようになっています
 - 予定は `ScheduleManager` で管理され、保存データにも反映されています

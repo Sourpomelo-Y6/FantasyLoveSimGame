@@ -215,6 +215,44 @@ Canvas
 
 ## データ設計の方針
 
+### HeroineProfileData
+
+ヒロイン差し替えは、画像だけを差し替えるのではなく、ヒロイン単位で画像・会話・イベント・行動反応・エンディングを束ねる方針にする。
+`Sprites` フォルダと `Images` フォルダのうち `Background` 以外は、基本的にヒロインに紐づく素材として扱う。
+背景は共通素材として残し、ヒロイン別差し替えの対象から外す。
+
+最初は `HeroineProfileData` の ScriptableObject を作り、以下を持たせる。
+
+- `heroineId`: セーブや将来の切り替えで使う一意 ID
+- `displayName`: 表示名
+- `conversationResourcePath`: 会話データの読み込みパス
+- `gameEventResourcePath`: 汎用イベントデータの読み込みパス
+- `actionResourcePath`: 行動・行動反応データの読み込みパス
+- `endingResourcePath`: エンディングデータの読み込みパス
+- `defaultHeroineSprite`: 代表立ち絵
+
+現在のヒロインは `DefaultHeroine` として扱い、当面は既存の `Conversations` / `GameEvents` / `Actions` / `Endings` をそのまま参照する。
+将来ヒロインを増やす段階で、Resources 配下を次のように分ける。
+
+```text
+Assets/Resources/Heroines/DefaultHeroine/Conversations/
+Assets/Resources/Heroines/DefaultHeroine/GameEvents/
+Assets/Resources/Heroines/DefaultHeroine/Actions/
+Assets/Resources/Heroines/DefaultHeroine/Endings/
+```
+
+画像素材は参照切れを避けるため、Resources パスの切り替えが動いた後で整理する。
+整理する場合は次のように、背景以外をヒロイン別に分ける。
+
+```text
+Assets/Sprites/Heroines/DefaultHeroine/
+Assets/Images/Heroines/DefaultHeroine/Event/
+Assets/Images/Heroines/DefaultHeroine/Actions/
+Assets/Images/Heroines/DefaultHeroine/Ending/
+```
+
+実装順は、`HeroineProfileData` の追加、`DefaultHeroine.asset` の作成、`GameManager` の読み込みパス差し替え、`EndingManager` の読み込みパス差し替え、最後にフォルダ整理とする。
+
 ### ConversationData
 
 会話は引き続き `ConversationData` で管理します。

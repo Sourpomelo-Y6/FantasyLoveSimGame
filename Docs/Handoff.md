@@ -47,6 +47,7 @@
 - 詳細ステータス画面は `StatusDetailPanel`、能力項目は `StatusAbilityKind`、画面の対象切り替えは `StatusDetailRole` で扱う
 - 詳細ステータス画面の入口として `StatusDetailAction` を用意し、行動一覧から開けるようにしている
 - タイトルから新規ゲームを開始した直後は、`GameEventData` の `GameStart` イベントを再生してからメイン画面を始める。`GameEventData` は `Assets/Resources/GameEvents/` に置き、ページ単位で話者・メッセージ・スチルを持てる
+- ヒロイン差し替えは `HeroineProfileData` で管理する方針。画像、会話、イベント、行動反応、エンディングをヒロイン単位で束ね、`Images/Background` は共通背景として扱う
 - Unity Editor で `MainScene` を直接開いて再生した場合は、`GameStartSettings.ShouldPlayGameStartEvent` の初期値が `false` のため開始イベントは発生しない
 - `GameEventData.showOnce` はセーブデータの `shownGameEventIds` で管理する
 - `GameEventData` の `DayStart` は翌朝メッセージに混ぜて自動再生し、`Manual` は `GameManager.TryStartManualGameEvent(string eventId)` から明示起動する
@@ -94,6 +95,7 @@
 - [`Assets/Scripts/Core/EndingSelectionSettings.cs`](../Assets/Scripts/Core/EndingSelectionSettings.cs): MainScene から EndingScene へ選択エンディングIDを渡す静的設定
 - [`Assets/Scripts/Core/BackgroundZoom.cs`](../Assets/Scripts/Core/BackgroundZoom.cs): 背景ズーム演出
 - [`Assets/Scripts/Core/BackgroundSpriteData.cs`](../Assets/Scripts/Core/BackgroundSpriteData.cs): 時間帯・天候ごとの背景 Sprite 設定
+- [`Assets/Scripts/Core/HeroineProfileData.cs`](../Assets/Scripts/Core/HeroineProfileData.cs): ヒロイン単位の読み込みパスと代表画像設定
 - [`Assets/Scripts/Action/`](../Assets/Scripts/Action): 行動データ型の定義
 - [`Assets/Scripts/Conversation/`](../Assets/Scripts/Conversation): 会話データ型の定義
 - [`Assets/Scripts/Schedule/`](../Assets/Scripts/Schedule): 予定管理と予定パネル制御
@@ -103,6 +105,7 @@
 - [`Assets/Resources/Actions/`](../Assets/Resources/Actions): 行動データの実体
 - [`Assets/Resources/Actions/ScheduleAction.asset`](../Assets/Resources/Actions/ScheduleAction.asset): 予定パネルを開く行動アセット
 - [`Assets/Resources/Endings/`](../Assets/Resources/Endings): エンディングデータの実体
+- [`Assets/Resources/Heroines/`](../Assets/Resources/Heroines): ヒロインプロフィールデータ
 - [`Assets/Resources/GameEvents/`](../Assets/Resources/GameEvents): ゲーム開始、日開始、手動確認用イベントデータ
 - [`Assets/Resources/Backgrounds/`](../Assets/Resources/Backgrounds): 背景切り替え用データ
 - [`Assets/Resources/Conversations/`](../Assets/Resources/Conversations): 会話データの実体
