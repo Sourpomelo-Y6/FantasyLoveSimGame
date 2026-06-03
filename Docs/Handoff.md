@@ -424,7 +424,7 @@
 - `Conversations` にジャンル会話と条件付き会話を用意する
 - `GameEvents` に `GameStart` / `DayStart` / `Manual` イベントを用意する
 - `Endings` に `defaultEndingId` と一致する `EndingData` を用意する
-- 立ち絵は `Assets/Sprites/Heroines/<HeroineId>/` に置く
+- 立ち絵は `Assets/Images/Heroines/<HeroineId>/Sprites/` に置く
 - イベントスチルは `Assets/Images/Heroines/<HeroineId>/Event/` に置き、`GameEventData` に割り当てる
 - 行動スチルは `Assets/Images/Heroines/<HeroineId>/Actions/` に置き、`ActionData` または `ActionReactionData` に割り当てる
 - エンディングスチルは `Assets/Images/Heroines/<HeroineId>/Ending/` に置き、`EndingData` に割り当てる

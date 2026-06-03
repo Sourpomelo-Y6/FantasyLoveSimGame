@@ -247,7 +247,7 @@ Assets/Resources/Heroines/DefaultHeroine/Endings/
 現在は次のように、背景以外を `DefaultHeroine` 配下へ移動済み。
 
 ```text
-Assets/Sprites/Heroines/DefaultHeroine/
+Assets/Images/Heroines/DefaultHeroine/Sprites/
 Assets/Images/Heroines/DefaultHeroine/Event/
 Assets/Images/Heroines/DefaultHeroine/Actions/
 Assets/Images/Heroines/DefaultHeroine/Ending/
@@ -270,7 +270,7 @@ Assets/Images/Heroines/DefaultHeroine/Ending/
 - `Conversations` にはジャンル会話、好感度条件会話、天候・時間帯・季節条件会話を用意する
 - `GameEvents` には `GameStart`、`DayStart`、`Manual` 確認用イベントを用意する
 - `Endings` には少なくとも `defaultEndingId` と一致する `EndingData` を用意する
-- `Sprites/Heroines/<HeroineId>/` には通常立ち絵と、必要なら衣装・表情差分を用意する
+- `Images/Heroines/<HeroineId>/Sprites/` には通常立ち絵と、必要なら衣装・表情差分を用意する
 - `Images/Heroines/<HeroineId>/Event/` にはイベントスチルを用意し、`stillId` とファイル名を対応させる
 - `Images/Heroines/<HeroineId>/Actions/` には行動スチルを用意し、`ActionData.stillId` または `ActionReactionData.stillId` と対応させる
 - `Images/Heroines/<HeroineId>/Ending/` にはエンディングスチルを用意し、`EndingData.stillSprite` に割り当てる
