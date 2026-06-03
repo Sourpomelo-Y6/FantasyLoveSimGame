@@ -97,6 +97,8 @@ This project is licensed under the MIT License. See [LICENSE](LICENSE) for detai
 - [`Assets/Resources/Heroines/DefaultHeroine/Actions/ScheduleAction.asset`](Assets/Resources/Heroines/DefaultHeroine/Actions/ScheduleAction.asset): 予定パネルを開く行動データ
 - [`Assets/Resources/Outfits/`](Assets/Resources/Outfits): 衣装データ本体
 - [`Assets/Resources/Heroines/DefaultHeroine/Conversations/`](Assets/Resources/Heroines/DefaultHeroine/Conversations): 現在ヒロインの会話データ本体
+- [`Assets/Sprites/Heroines/DefaultHeroine/`](Assets/Sprites/Heroines/DefaultHeroine): 現在ヒロインの立ち絵
+- [`Assets/Images/Heroines/DefaultHeroine/`](Assets/Images/Heroines/DefaultHeroine): 現在ヒロインの行動・イベント・エンディングスチル
 - [`Assets/Scenes/MainScene.unity`](Assets/Scenes/MainScene.unity): メインシーン
 - [`Assets/Scenes/EndingScene.unity`](Assets/Scenes/EndingScene.unity): エンディングシーン
 - [`Packages/manifest.json`](Packages/manifest.json): 利用パッケージ

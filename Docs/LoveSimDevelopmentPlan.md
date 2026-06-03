@@ -109,7 +109,7 @@ Unity UI は手作業配置を基本にする。
 
 ### データ配置
 
-回想対象のスチル画像は `Assets/Images/Event/` に置き、ファイル名は `stillId` に合わせる。
+回想対象のスチル画像は `Assets/Images/Heroines/<HeroineId>/Event/` に置き、ファイル名は `stillId` に合わせる。
 `GameEventData` の `stillId` と画像ファイル名を近づけることで、Unity Inspector 上で対応を追いやすくする。
 将来は JSON から画像ファイルパスを取得し、イベントや回想で表示する画像を差し替えられるようにする。
 JSON には `stillId`、表示名、画像ファイルパスを持たせ、実行時にそのパスから Sprite を読み込む方針にする。
@@ -244,7 +244,7 @@ Assets/Resources/Heroines/DefaultHeroine/Endings/
 ```
 
 画像素材は参照切れを避けるため、Resources パスの切り替えが動いた後で整理する。
-整理する場合は次のように、背景以外をヒロイン別に分ける。
+現在は次のように、背景以外を `DefaultHeroine` 配下へ移動済み。
 
 ```text
 Assets/Sprites/Heroines/DefaultHeroine/
@@ -256,7 +256,7 @@ Assets/Images/Heroines/DefaultHeroine/Ending/
 実装順は、`HeroineProfileData` の追加、`DefaultHeroineProfile.asset` の作成、`GameManager` の読み込みパス差し替え、`EndingManager` の読み込みパス差し替えまでは完了。
 `Resources/Heroines/DefaultHeroine/...` へのデータ移動と profile のパス切り替えは実施済み。
 次は新しいヒロイン用 profile を追加して差し替え確認を行う。
-画像フォルダ整理は最後に行う。
+画像フォルダ整理も `DefaultHeroine` については実施済み。
 
 新しいヒロインを追加するときは、次のチェックリストを使う。
 
@@ -270,10 +270,10 @@ Assets/Images/Heroines/DefaultHeroine/Ending/
 - `Conversations` にはジャンル会話、好感度条件会話、天候・時間帯・季節条件会話を用意する
 - `GameEvents` には `GameStart`、`DayStart`、`Manual` 確認用イベントを用意する
 - `Endings` には少なくとも `defaultEndingId` と一致する `EndingData` を用意する
-- `Sprites` には通常立ち絵と、必要なら衣装・表情差分を用意する
-- `Images/Event` 相当にはイベントスチルを用意し、`stillId` とファイル名を対応させる
-- `Images/Actions` 相当には行動スチルを用意し、`ActionData.stillId` または `ActionReactionData.stillId` と対応させる
-- `Images/Ending` 相当にはエンディングスチルを用意し、`EndingData.stillSprite` に割り当てる
+- `Sprites/Heroines/<HeroineId>/` には通常立ち絵と、必要なら衣装・表情差分を用意する
+- `Images/Heroines/<HeroineId>/Event/` にはイベントスチルを用意し、`stillId` とファイル名を対応させる
+- `Images/Heroines/<HeroineId>/Actions/` には行動スチルを用意し、`ActionData.stillId` または `ActionReactionData.stillId` と対応させる
+- `Images/Heroines/<HeroineId>/Ending/` にはエンディングスチルを用意し、`EndingData.stillSprite` に割り当てる
 - `Images/Background` は共通背景なので、ヒロイン別素材とは分けて扱う
 - `MainScene` の `GameManager.heroineProfile` を新しい profile に切り替えて、行動・会話・イベント・エンディングが読み込めるか確認する
 
@@ -333,7 +333,7 @@ Assets/Images/Heroines/DefaultHeroine/Ending/
 文字列ID欄の `requiredOutfitIds` / `blockedOutfitIds` も残しているが、通常は Unity Inspector で `OutfitData` アセットを選べる `requiredOutfits` / `blockedOutfits` を使う。
 衣装の種類や属性ではなく、実際に着ている衣装を直接指定する方が、表示するスチルとの対応を崩しにくい。
 
-イベントスチル画像は `Assets/Images/Event/` に置き、ファイル名はイベントIDに寄せる。
+イベントスチル画像は `Assets/Images/Heroines/<HeroineId>/Event/` に置き、ファイル名はイベントIDに寄せる。
 例として、`GameStartIntro` で使う画像は `GameStartIntro_01.png` のようにする。
 複数ページで同じスチルを維持したい場合は、最初のページだけでなく必要なページにも `stillSprite` を設定するか、現在スチルを維持する仕様を明文化してから実装する。
 将来、イベント定義を外部 JSON 化する場合は、ページごとに画像ファイルパスを持たせ、JSON の内容だけで表示画像を差し替えられるようにする。

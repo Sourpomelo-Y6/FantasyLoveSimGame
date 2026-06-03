@@ -56,7 +56,7 @@
 - イベントIDは `GameStartIntro`、`DayStart_条件_連番`、`Manual_用途_連番`、`Story_章_連番`、`Still_用途_連番` のように用途が分かる名前にする。`eventId` は既読管理に使うため、本番投入後は変更しない
 - `GameEventData` には `minDay` / `maxDay` / `minAffection` / `maxAffection` / `requiredShownEventIds` / `blockedShownEventIds` を追加済み。発生可否は `GameManager.CanStartGameEvent(GameEventData gameEvent)` に集約し、日開始イベントと手動イベントの両方で同じ条件判定を使う
 - `GameEventData` は衣装条件も持てる。`requiredOutfitIds` / `blockedOutfitIds` の文字列ID指定に加えて、Unity Inspector で `OutfitData` アセットを選べる `requiredOutfits` / `blockedOutfits` を追加済み。判定は現在の `OutfitManager.CurrentOutfit.outfitId` に対して行う
-- イベントスチル画像は `Assets/Images/Event/` に置き、`GameStartIntro_01.png` のようにイベントIDに寄せたファイル名にする
+- イベントスチル画像は `Assets/Images/Heroines/<HeroineId>/Event/` に置き、`GameStartIntro_01.png` のようにイベントIDに寄せたファイル名にする
 - 将来は JSON から画像ファイルパスを取得し、イベントや回想で表示する画像を差し替えられる仕組みを追加する。画像パスは Unity の `Resources` / `StreamingAssets` / Addressables のどれで読むかを先に決め、JSON 側には `stillId` と画像パスの対応を持たせる。
 - 通常背景画像は `Assets/Images/Background/` に置く。ファイル名は `Background_Morning_Sunny.png`、`Background_Noon_Rainy.png`、`Background_Night_Snow.png` のように `Background_時間帯_天候` で統一する。
 - 背景は `BackgroundSpriteData` で時間帯と天候に対応する Sprite を管理する。`GameManager.backgroundSpriteData` に割り当てると、`RefreshUI()` 時に現在の時間帯と天候から背景が切り替わる。未設定の組み合わせは従来の `dayBackgroundSprite` / `nightBackgroundSprite` にフォールバックする。
@@ -424,7 +424,10 @@
 - `Conversations` にジャンル会話と条件付き会話を用意する
 - `GameEvents` に `GameStart` / `DayStart` / `Manual` イベントを用意する
 - `Endings` に `defaultEndingId` と一致する `EndingData` を用意する
-- イベントスチル、行動スチル、エンディングスチルをそれぞれのデータに割り当てる
+- 立ち絵は `Assets/Sprites/Heroines/<HeroineId>/` に置く
+- イベントスチルは `Assets/Images/Heroines/<HeroineId>/Event/` に置き、`GameEventData` に割り当てる
+- 行動スチルは `Assets/Images/Heroines/<HeroineId>/Actions/` に置き、`ActionData` または `ActionReactionData` に割り当てる
+- エンディングスチルは `Assets/Images/Heroines/<HeroineId>/Ending/` に置き、`EndingData` に割り当てる
 - `MainScene` の `GameManager.heroineProfile` を切り替えて読み込み確認する
 
 ### 行動を増やす
