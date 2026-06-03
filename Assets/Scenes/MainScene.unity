@@ -10198,14 +10198,18 @@ MonoBehaviour:
   nextButton: {fileID: 1224416590}
   dialogueClickAdvanceArea: {fileID: 0}
   enableDialogueWindowClickAdvance: 1
+  heroineProfile: {fileID: 11400000, guid: 7dfd984dfdc34a0f9897dc78907460ce, type: 2}
+  defaultHeroineProfileResourcePath: Heroines/DefaultHeroineProfile
   endingButton: {fileID: 1771410053}
-  actionResourcePath: Actions
-  gameEventResourcePath: GameEvents
+  endingSceneName: EndingScene
+  defaultEndingId: GoodEnding
+  actionResourcePath: Heroines/DefaultHeroine/Actions
+  gameEventResourcePath: Heroines/DefaultHeroine/GameEvents
   scheduledEventResourcePath: ScheduledEvents
   playerOutfitPromptAbilities:
     canUseConditionalMode: 1
     canUseHiddenMode: 0
-  conversationResourcePath: Conversations
+  conversationResourcePath: Heroines/DefaultHeroine/Conversations
   saveButton: {fileID: 1211694032}
   loadButton: {fileID: 554093483}
   backgroundImage: {fileID: 300472610}

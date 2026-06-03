@@ -141,7 +141,7 @@ public class GameManager : MonoBehaviour
 
     [Header("Heroine Profile")]
     [SerializeField] private HeroineProfileData heroineProfile;
-    [SerializeField] private string defaultHeroineProfileResourcePath = "Heroines/DefaultHeroine";
+    [SerializeField] private string defaultHeroineProfileResourcePath = "Heroines/DefaultHeroineProfile";
 
     [Header("Ending")]
     [SerializeField] private Button endingButton;

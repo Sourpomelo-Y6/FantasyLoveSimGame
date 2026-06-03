@@ -46,8 +46,8 @@
 - `ConditionalOutfitPrompt` は初期状態で解放済みのため、何もしない能力のテストには使わない
 - 詳細ステータス画面は `StatusDetailPanel`、能力項目は `StatusAbilityKind`、画面の対象切り替えは `StatusDetailRole` で扱う
 - 詳細ステータス画面の入口として `StatusDetailAction` を用意し、行動一覧から開けるようにしている
-- タイトルから新規ゲームを開始した直後は、`GameEventData` の `GameStart` イベントを再生してからメイン画面を始める。`GameEventData` は `Assets/Resources/GameEvents/` に置き、ページ単位で話者・メッセージ・スチルを持てる
-- ヒロイン差し替えは `HeroineProfileData` で管理する。画像、会話、イベント、行動反応、エンディングをヒロイン単位で束ね、`Images/Background` は共通背景として扱う。現在は `DefaultHeroine.asset` で既存の `Actions` / `Conversations` / `GameEvents` / `Endings` を参照している
+- タイトルから新規ゲームを開始した直後は、`GameEventData` の `GameStart` イベントを再生してからメイン画面を始める。`GameEventData` はヒロイン別 Resources パスに置き、ページ単位で話者・メッセージ・スチルを持てる
+- ヒロイン差し替えは `HeroineProfileData` で管理する。画像、会話、イベント、行動反応、エンディングをヒロイン単位で束ね、`Images/Background` は共通背景として扱う。現在は `DefaultHeroineProfile.asset` で `Heroines/DefaultHeroine/Actions` / `Conversations` / `GameEvents` / `Endings` を参照している
 - Unity Editor で `MainScene` を直接開いて再生した場合は、`GameStartSettings.ShouldPlayGameStartEvent` の初期値が `false` のため開始イベントは発生しない
 - `GameEventData.showOnce` はセーブデータの `shownGameEventIds` で管理する
 - `GameEventData` の `DayStart` は翌朝メッセージに混ぜて自動再生し、`Manual` は `GameManager.TryStartManualGameEvent(string eventId)` から明示起動する
@@ -71,7 +71,7 @@
 - 好感度が `100` に達すると `Ending` ボタンが表示される
 - 翌朝開始時など複数メッセージが連続発生する場合は、話者付きメッセージキューに積み、`Next` で 1 件ずつ表示する
 - `DialogueClickAdvanceArea` を割り当てたメッセージウィンドウは、`Next` ボタンが押せる状態ならクリックでも進行できる
-- エンディングは `EndingScene` と `EndingData` で管理する。初期データは `Assets/Resources/Endings/GoodEnding.asset`
+- エンディングは `EndingScene` と `EndingData` で管理する。初期データは `Assets/Resources/Heroines/DefaultHeroine/Endings/GoodEnding.asset`
 
 ## 使用環境
 
@@ -102,13 +102,13 @@
 - [`Assets/Scripts/Schedule/ScheduledEventData.cs`](../Assets/Scripts/Schedule/ScheduledEventData.cs): 予定イベントの ScriptableObject 定義
 - [`Assets/Scripts/Schedule/ScheduledEventDefinition.cs`](../Assets/Scripts/Schedule/ScheduledEventDefinition.cs): 実行時に使う予定イベント定義
 - [`Assets/Resources/ScheduledEvents/`](../Assets/Resources/ScheduledEvents): 予定イベントデータの実体
-- [`Assets/Resources/Actions/`](../Assets/Resources/Actions): 行動データの実体
-- [`Assets/Resources/Actions/ScheduleAction.asset`](../Assets/Resources/Actions/ScheduleAction.asset): 予定パネルを開く行動アセット
-- [`Assets/Resources/Endings/`](../Assets/Resources/Endings): エンディングデータの実体
+- [`Assets/Resources/Heroines/DefaultHeroine/Actions/`](../Assets/Resources/Heroines/DefaultHeroine/Actions): 現在ヒロインの行動データの実体
+- [`Assets/Resources/Heroines/DefaultHeroine/Actions/ScheduleAction.asset`](../Assets/Resources/Heroines/DefaultHeroine/Actions/ScheduleAction.asset): 予定パネルを開く行動アセット
+- [`Assets/Resources/Heroines/DefaultHeroine/Endings/`](../Assets/Resources/Heroines/DefaultHeroine/Endings): 現在ヒロインのエンディングデータの実体
 - [`Assets/Resources/Heroines/`](../Assets/Resources/Heroines): ヒロインプロフィールデータ
-- [`Assets/Resources/GameEvents/`](../Assets/Resources/GameEvents): ゲーム開始、日開始、手動確認用イベントデータ
+- [`Assets/Resources/Heroines/DefaultHeroine/GameEvents/`](../Assets/Resources/Heroines/DefaultHeroine/GameEvents): 現在ヒロインのゲーム開始、日開始、手動確認用イベントデータ
 - [`Assets/Resources/Backgrounds/`](../Assets/Resources/Backgrounds): 背景切り替え用データ
-- [`Assets/Resources/Conversations/`](../Assets/Resources/Conversations): 会話データの実体
+- [`Assets/Resources/Heroines/DefaultHeroine/Conversations/`](../Assets/Resources/Heroines/DefaultHeroine/Conversations): 現在ヒロインの会話データの実体
 - [`Assets/Scenes/MainScene.unity`](../Assets/Scenes/MainScene.unity): メインシーン
 - [`Assets/Scenes/EndingScene.unity`](../Assets/Scenes/EndingScene.unity): エンディングシーン
 - [`Packages/manifest.json`](../Packages/manifest.json): パッケージ一覧
@@ -128,8 +128,8 @@
 - `Assets/Scripts/Core/`: 進行管理の本体
 - `Assets/Scripts/Action/`: 行動データの型
 - `Assets/Scripts/Conversation/`: 会話データの型
-- `Assets/Resources/Actions/`: 行動資産
-- `Assets/Resources/Conversations/`: 会話資産
+- `Assets/Resources/Heroines/DefaultHeroine/Actions/`: 現在ヒロインの行動資産
+- `Assets/Resources/Heroines/DefaultHeroine/Conversations/`: 現在ヒロインの会話資産
 - `Assets/Scenes/`: シーン
 - `Assets/Fonts/`: 日本語表示用フォント資産
 - `Assets/Settings/`: URP 関連設定
@@ -251,7 +251,7 @@
 
 `OnClickEnding()` は `EndingScene` へ遷移します。
 `EndingScene` には `EndingManager` を配置し、`titleButton` と `endingText` を Inspector で割り当てます。
-`EndingManager` は `Assets/Resources/Endings/` から `EndingData` を読み込み、選択された `endingId` の `message` と `stillSprite` を表示します。
+`EndingManager` は `HeroineProfileData.endingResourcePath` のパスから `EndingData` を読み込み、選択された `endingId` の `message` と `stillSprite` を表示します。
 初期データとして `GoodEnding.asset` を用意しています。スチル画像ができたら `GoodEnding.asset.stillSprite` に割り当てます。
 `TitleButton` で `TitleScene` に戻します。
 初期実装は単一エンディングです。分岐が必要になった段階でエンディング条件や表示内容を `EndingData` のような ScriptableObject に切り出します。
@@ -394,7 +394,7 @@
 
 - 会話データと行動データは ScriptableObject 化されているが、一覧の登録は Inspector 依存
 - エンディング表示は `EndingData` 化済みだが、現在の選択処理は `GameManager.defaultEndingId` の固定選択
-- エンディング分岐条件の自動選択は未実装。必要になったら `Resources/Endings` から条件一致する `EndingData` を選ぶ
+- エンディング分岐条件の自動選択は未実装。必要になったら `HeroineProfileData.endingResourcePath` から条件一致する `EndingData` を選ぶ
 - エンディング到達済みの永続フラグや回想はまだない
 - セーブスロット UI は prefab 化済みで、`TitleScene` と `MainScene` に配置済み
 - 話者ラベルは `SYSTEM` / `予定` / `衣装` / ヒロイン名に分けている
@@ -411,7 +411,7 @@
 
 ### 行動を増やす
 
-`ActionData` アセットを `Assets/Resources/Actions/` に追加すればよいです。
+`ActionData` アセットを `Assets/Resources/Heroines/DefaultHeroine/Actions/` など、対象ヒロインの `actionResourcePath` 配下に追加すればよいです。
 行動の反応を増やすなら `ActionReactionData` を使います。
 行動ボタンの列を固定したい場合は、`ActionData.displayColumn` を `Left` / `Center` / `Right` に設定します。
 
@@ -433,7 +433,7 @@
 
 ### 会話を増やす
 
-`ConversationData` アセットを追加して、`Assets/Resources/Conversations/` に配置すればよいです。
+`ConversationData` アセットを追加して、`Assets/Resources/Heroines/DefaultHeroine/Conversations/` など、対象ヒロインの `conversationResourcePath` 配下に配置すればよいです。
 会話IDは `Daily_Morning_01` のように `カテゴリ_条件_連番` を基本にし、`showOnce` は一度見せたら再出現させたくない会話だけに使う。
 `minAffection` / `maxAffection` は会話の入口条件、`allowedTimeSlots` / `allowedWeathers` / `allowedSeasons` は必要なときだけ絞り込む。条件が重なる会話が複数ある場合は `priority` で並び替える。
 同じ条件で複数の会話を置く場合は、まず `priority`、次に `conversationId` の命名で識別できるようにする。
@@ -441,7 +441,7 @@
 ### エンディングを増やす
 
 エンディング内容は `EndingData` アセットで管理します。
-新しいエンディングを追加する場合は、Unity の Project ウィンドウで `Create > LoveSim > Ending Data` を選び、`Assets/Resources/Endings/` に保存します。
+新しいエンディングを追加する場合は、Unity の Project ウィンドウで `Create > LoveSim > Ending Data` を選び、対象ヒロインの `endingResourcePath` 配下に保存します。
 ファイル名と `endingId` は一致させます。例: `GoodEnding.asset` / `GoodEnding`。
 
 設定する項目:
@@ -454,7 +454,7 @@
 - `requiredShownEventIds`: 将来の分岐判定用。特定イベントを見た場合だけ出すエンディングに使う
 
 現状の `GameManager` は `defaultEndingId = GoodEnding` を選んで `EndingScene` に渡します。
-分岐を増やす段階では、`GameManager` に `Resources/Endings` を読み込んで条件一致する `EndingData` を選ぶ処理を追加します。
+分岐を増やす段階では、`GameManager` に `HeroineProfileData.endingResourcePath` を読み込んで条件一致する `EndingData` を選ぶ処理を追加します。
 複数条件に一致する可能性が出たら、`EndingData` に `priority` を追加して優先順位を決めます。
 
 条件分岐を増やすなら、好感度だけでなく以下も判定対象にできます。
@@ -539,8 +539,8 @@ UI デザインは手作業で行っています。
 - `nextButton` が割り当て済みか
 - `actionButtonParent` と `actionButtonPrefab` が割り当て済みか
 - `scheduleManager` と `schedulePanel` が割り当て済みか
-- `actionResourcePath` が `Actions` になっているか
-- `conversationResourcePath` が `Conversations` になっているか
+- `GameManager.heroineProfile` または `defaultHeroineProfileResourcePath` が正しく設定されているか
+- `DefaultHeroineProfile.asset` の `actionResourcePath` / `conversationResourcePath` / `gameEventResourcePath` / `endingResourcePath` が `Heroines/DefaultHeroine/...` を指しているか
 - `Assets/Scenes/MainScene.unity` を開いているか
 - Unity バージョンが `2021.3.45f1` か
 

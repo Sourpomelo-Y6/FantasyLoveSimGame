@@ -85,18 +85,18 @@ This project is licensed under the MIT License. See [LICENSE](LICENSE) for detai
 - [`Assets/Scripts/Core/EndingManager.cs`](Assets/Scripts/Core/EndingManager.cs): エンディングシーンの表示とタイトル復帰
 - [`Assets/Scripts/Core/SaveLoadPanel.cs`](Assets/Scripts/Core/SaveLoadPanel.cs): セーブロードスロット UI の制御
 - [`Assets/Prefabs/SaveLoadPanel.prefab`](Assets/Prefabs/SaveLoadPanel.prefab): タイトル画面とメイン画面で共用するセーブロード UI
-- [`Assets/Resources/Endings/`](Assets/Resources/Endings): エンディングデータ
-- [`Assets/Resources/GameEvents/`](Assets/Resources/GameEvents): ゲーム開始、日開始、手動確認用イベント
+- [`Assets/Resources/Heroines/DefaultHeroine/Endings/`](Assets/Resources/Heroines/DefaultHeroine/Endings): 現在ヒロインのエンディングデータ
+- [`Assets/Resources/Heroines/DefaultHeroine/GameEvents/`](Assets/Resources/Heroines/DefaultHeroine/GameEvents): 現在ヒロインのゲーム開始、日開始、手動確認用イベント
 - [`Assets/Resources/Heroines/`](Assets/Resources/Heroines): ヒロインプロフィールデータ
 - [`Assets/Resources/StatusAbilities/`](Assets/Resources/StatusAbilities): 詳細ステータス画面に表示する能力データ
 - [`Assets/Scripts/Action/`](Assets/Scripts/Action): 行動データの型定義
 - [`Assets/Scripts/Outfit/`](Assets/Scripts/Outfit): 衣装データ、衣装反応、衣装評価の管理
 - [`Assets/Scripts/Schedule/`](Assets/Scripts/Schedule): 予定データと予定パネルの制御
 - [`Assets/Scripts/Conversation/`](Assets/Scripts/Conversation): 会話データの型定義
-- [`Assets/Resources/Actions/`](Assets/Resources/Actions): 行動データ本体
-- [`Assets/Resources/Actions/ScheduleAction.asset`](Assets/Resources/Actions/ScheduleAction.asset): 予定パネルを開く行動データ
+- [`Assets/Resources/Heroines/DefaultHeroine/Actions/`](Assets/Resources/Heroines/DefaultHeroine/Actions): 現在ヒロインの行動データ本体
+- [`Assets/Resources/Heroines/DefaultHeroine/Actions/ScheduleAction.asset`](Assets/Resources/Heroines/DefaultHeroine/Actions/ScheduleAction.asset): 予定パネルを開く行動データ
 - [`Assets/Resources/Outfits/`](Assets/Resources/Outfits): 衣装データ本体
-- [`Assets/Resources/Conversations/`](Assets/Resources/Conversations): 会話データ本体
+- [`Assets/Resources/Heroines/DefaultHeroine/Conversations/`](Assets/Resources/Heroines/DefaultHeroine/Conversations): 現在ヒロインの会話データ本体
 - [`Assets/Scenes/MainScene.unity`](Assets/Scenes/MainScene.unity): メインシーン
 - [`Assets/Scenes/EndingScene.unity`](Assets/Scenes/EndingScene.unity): エンディングシーン
 - [`Packages/manifest.json`](Packages/manifest.json): 利用パッケージ
