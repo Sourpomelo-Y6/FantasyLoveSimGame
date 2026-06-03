@@ -108,6 +108,7 @@ This project is licensed under the MIT License. See [LICENSE](LICENSE) for detai
 - Unity Editor で UI を手作業変更した後は、Codex にシーン編集を依頼する前に必ず `Ctrl+S` でシーンを保存してください。未保存の UI 変更は `MainScene.unity` に存在しないため、後続の scene patch と食い違うことがあります
 - 会話データと行動データは ScriptableObject として分離されています
 - ヒロイン差し替えは `HeroineProfileData` で読み込みパスを切り替えます。`Images/Background` は共通背景として扱います
+- 新ヒロイン追加時の必要データと素材は [`Docs/LoveSimDevelopmentPlan.md`](Docs/LoveSimDevelopmentPlan.md) と [`Docs/Handoff.md`](Docs/Handoff.md) のチェックリストにまとめています
 - 行動には条件付き反応を持たせられるので、時間帯、天候、季節、好感度で結果を変えやすいです。反応ごとに `stillSprite` も持てます
 - 衣装は着用時に保存され、衣装反応パネルから評価を付けられるようになっています
 - 予定は `ScheduleManager` で管理され、保存データにも反映されています

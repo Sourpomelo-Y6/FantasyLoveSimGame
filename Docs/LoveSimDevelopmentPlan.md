@@ -258,6 +258,25 @@ Assets/Images/Heroines/DefaultHeroine/Ending/
 次は新しいヒロイン用 profile を追加して差し替え確認を行う。
 画像フォルダ整理は最後に行う。
 
+新しいヒロインを追加するときは、次のチェックリストを使う。
+
+- `HeroineProfileData` を作成し、`heroineId` と `displayName` を設定する
+- `conversationResourcePath` に、そのヒロイン用の `Conversations` フォルダを設定する
+- `gameEventResourcePath` に、そのヒロイン用の `GameEvents` フォルダを設定する
+- `actionResourcePath` に、そのヒロイン用の `Actions` フォルダを設定する
+- `endingResourcePath` に、そのヒロイン用の `Endings` フォルダを設定する
+- `defaultHeroineSprite` に代表立ち絵を設定する
+- `Actions` には行動名、行動結果、行動反応、行動スチルを用意する
+- `Conversations` にはジャンル会話、好感度条件会話、天候・時間帯・季節条件会話を用意する
+- `GameEvents` には `GameStart`、`DayStart`、`Manual` 確認用イベントを用意する
+- `Endings` には少なくとも `defaultEndingId` と一致する `EndingData` を用意する
+- `Sprites` には通常立ち絵と、必要なら衣装・表情差分を用意する
+- `Images/Event` 相当にはイベントスチルを用意し、`stillId` とファイル名を対応させる
+- `Images/Actions` 相当には行動スチルを用意し、`ActionData.stillId` または `ActionReactionData.stillId` と対応させる
+- `Images/Ending` 相当にはエンディングスチルを用意し、`EndingData.stillSprite` に割り当てる
+- `Images/Background` は共通背景なので、ヒロイン別素材とは分けて扱う
+- `MainScene` の `GameManager.heroineProfile` を新しい profile に切り替えて、行動・会話・イベント・エンディングが読み込めるか確認する
+
 ### ConversationData
 
 会話は引き続き `ConversationData` で管理します。

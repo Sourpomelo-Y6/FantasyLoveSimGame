@@ -409,6 +409,24 @@
 
 ## 変更しやすいポイント
 
+### ヒロインを追加する
+
+新しいヒロインを追加する場合は、`HeroineProfileData` とヒロイン別 Resources フォルダをセットで作る。
+`Images/Background` は共通背景として残し、立ち絵・イベントスチル・行動スチル・エンディングスチルはヒロイン別素材として扱う。
+
+チェックリスト:
+
+- `HeroineProfileData` を作成する
+- `heroineId` と `displayName` を設定する
+- `conversationResourcePath` / `gameEventResourcePath` / `actionResourcePath` / `endingResourcePath` を設定する
+- `defaultHeroineSprite` に代表立ち絵を設定する
+- `Actions` に行動データと行動反応を用意する
+- `Conversations` にジャンル会話と条件付き会話を用意する
+- `GameEvents` に `GameStart` / `DayStart` / `Manual` イベントを用意する
+- `Endings` に `defaultEndingId` と一致する `EndingData` を用意する
+- イベントスチル、行動スチル、エンディングスチルをそれぞれのデータに割り当てる
+- `MainScene` の `GameManager.heroineProfile` を切り替えて読み込み確認する
+
 ### 行動を増やす
 
 `ActionData` アセットを `Assets/Resources/Heroines/DefaultHeroine/Actions/` など、対象ヒロインの `actionResourcePath` 配下に追加すればよいです。
