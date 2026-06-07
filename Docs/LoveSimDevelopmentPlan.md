@@ -260,6 +260,7 @@ Assets/Images/Heroines/DefaultHeroine/Ending/
 差し替え確認用として `Assets/Resources/Heroines/TestHeroineProfile.asset` を追加済み。
 `Heroines/TestHeroine/Actions` / `Conversations` / `GameEvents` / `Endings` には最小確認用データだけを置いている。
 `MainScene` の `GameManager.heroineProfile` に `TestHeroineProfile` を割り当てると、ヒロイン名、開始イベント、会話、エンディングの読み込み元が切り替わるか確認できる。
+`HeroineProfileData.defaultHeroineSprite` は通常衣装 `Normal` の立ち絵として `OutfitManager` に渡し、通常衣装以外は衣装側の `heroineSprite` を優先する。
 本番用ヒロインを追加する前に、まずこの profile で差し替え導線を手動確認する。
 
 新しいヒロインを追加するときは、次のチェックリストを使う。
