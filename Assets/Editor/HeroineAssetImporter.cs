@@ -8,6 +8,8 @@ public static class HeroineAssetImporter
     private const string MenuPath = "FantasyLoveSim/Import Heroine Export";
     private const string ProfileJsonRelativePath = "Data/heroine_profile_export.json";
     private const string AssetsJsonRelativePath = "Data/assets_export.json";
+    private const string DefaultHeroineSpriteAssetId = "Heroine_Normal";
+    private const string DefaultHeroineSpriteFileName = "Heroine_Normal.png";
     private const bool OverwriteExistingImages = false;
 
     [MenuItem(MenuPath)]
@@ -61,13 +63,14 @@ public static class HeroineAssetImporter
         }
 
         ApplyProfile(profile, profileExport);
-        int copiedImageCount = ImportImages(exportFolder, profileExport.heroineId);
+        ImageImportResult imageImportResult = ImportImages(exportFolder, profileExport.heroineId);
+        ApplyDefaultHeroineSprite(profile, imageImportResult.defaultSpritePath);
 
         EditorUtility.SetDirty(profile);
         AssetDatabase.SaveAssets();
         AssetDatabase.Refresh();
 
-        Debug.Log($"Heroine export を import しました: {assetPath}, copied images: {copiedImageCount}");
+        Debug.Log($"Heroine export を import しました: {assetPath}, copied images: {imageImportResult.copiedCount}");
     }
 
     private static void ApplyProfile(HeroineProfileData profile, HeroineProfileExport profileExport)
@@ -82,13 +85,31 @@ public static class HeroineAssetImporter
         profile.endingResourcePath = $"Heroines/{profileExport.heroineId}/Endings";
     }
 
-    private static int ImportImages(string exportFolder, string heroineId)
+    private static void ApplyDefaultHeroineSprite(HeroineProfileData profile, string defaultSpritePath)
+    {
+        if (string.IsNullOrWhiteSpace(defaultSpritePath))
+        {
+            Debug.Log("代表立ち絵候補が見つからないため、defaultHeroineSprite は変更しませんでした。");
+            return;
+        }
+
+        Sprite sprite = AssetDatabase.LoadAssetAtPath<Sprite>(defaultSpritePath);
+        if (sprite == null)
+        {
+            Debug.LogWarning("代表立ち絵候補を Sprite として読み込めませんでした: " + defaultSpritePath);
+            return;
+        }
+
+        profile.defaultHeroineSprite = sprite;
+    }
+
+    private static ImageImportResult ImportImages(string exportFolder, string heroineId)
     {
         string assetsJsonPath = Path.Combine(exportFolder, AssetsJsonRelativePath);
         if (!File.Exists(assetsJsonPath))
         {
             Debug.Log("assets_export.json が見つからないため、画像 import はスキップしました: " + assetsJsonPath);
-            return 0;
+            return new ImageImportResult();
         }
 
         AssetsExport assetsExport;
@@ -100,19 +121,19 @@ public static class HeroineAssetImporter
         catch (Exception ex)
         {
             Debug.LogError("assets_export.json の読み込みに失敗しました: " + ex.Message);
-            return 0;
+            return new ImageImportResult();
         }
 
         if (assetsExport == null || assetsExport.assets == null)
         {
             Debug.LogWarning("assets_export.json に assets がありません。");
-            return 0;
+            return new ImageImportResult();
         }
 
         string effectiveHeroineId = string.IsNullOrWhiteSpace(assetsExport.heroineId)
             ? heroineId
             : assetsExport.heroineId;
-        int copiedCount = 0;
+        ImageImportResult result = new ImageImportResult();
 
         foreach (HeroineAssetExport asset in assetsExport.assets)
         {
@@ -139,15 +160,56 @@ public static class HeroineAssetImporter
             if (File.Exists(unityPath) && !OverwriteExistingImages)
             {
                 Debug.LogWarning("既存画像があるため上書きせずスキップしました: " + unityPath);
+                AssetDatabase.ImportAsset(unityPath);
+                EnsureSpriteImportSettings(unityPath);
+                SetDefaultSpriteCandidateIfNeeded(result, asset, unityPath);
                 continue;
             }
 
             File.Copy(sourcePath, unityPath, OverwriteExistingImages);
             AssetDatabase.ImportAsset(unityPath);
-            copiedCount++;
+            EnsureSpriteImportSettings(unityPath);
+            SetDefaultSpriteCandidateIfNeeded(result, asset, unityPath);
+            result.copiedCount++;
         }
 
-        return copiedCount;
+        return result;
+    }
+
+    private static void SetDefaultSpriteCandidateIfNeeded(
+        ImageImportResult result,
+        HeroineAssetExport asset,
+        string unityPath)
+    {
+        if (!string.IsNullOrWhiteSpace(result.defaultSpritePath) || !IsDefaultSpriteCandidate(asset))
+        {
+            return;
+        }
+
+        result.defaultSpritePath = unityPath;
+    }
+
+    private static bool IsDefaultSpriteCandidate(HeroineAssetExport asset)
+    {
+        if (!string.Equals(asset.usage, "Sprites", StringComparison.OrdinalIgnoreCase))
+        {
+            return false;
+        }
+
+        return string.Equals(asset.assetId, DefaultHeroineSpriteAssetId, StringComparison.OrdinalIgnoreCase)
+            || string.Equals(asset.fileName, DefaultHeroineSpriteFileName, StringComparison.OrdinalIgnoreCase);
+    }
+
+    private static void EnsureSpriteImportSettings(string unityPath)
+    {
+        TextureImporter importer = AssetImporter.GetAtPath(unityPath) as TextureImporter;
+        if (importer == null || importer.textureType == TextureImporterType.Sprite)
+        {
+            return;
+        }
+
+        importer.textureType = TextureImporterType.Sprite;
+        importer.SaveAndReimport();
     }
 
     private static bool ShouldImportAsset(HeroineAssetExport asset)
@@ -268,5 +330,11 @@ public static class HeroineAssetImporter
         public string exportImagePath;
         public string exportPromptPath;
         public string unityImagePath;
+    }
+
+    private sealed class ImageImportResult
+    {
+        public int copiedCount;
+        public string defaultSpritePath;
     }
 }

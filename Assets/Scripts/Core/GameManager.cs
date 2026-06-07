@@ -677,6 +677,11 @@ public class GameManager : MonoBehaviour
             heroineStatus.SetHeroineName(profile.displayName);
         }
 
+        if (outfitManager != null)
+        {
+            outfitManager.SetDefaultHeroineSprite(profile.defaultHeroineSprite);
+        }
+
         conversationResourcePath = GetProfileResourcePath(
             profile.conversationResourcePath,
             conversationResourcePath);

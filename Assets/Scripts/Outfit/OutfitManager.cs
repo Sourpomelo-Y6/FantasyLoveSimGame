@@ -4,6 +4,8 @@ using UnityEngine.UI;
 
 public class OutfitManager : MonoBehaviour
 {
+    private const string NormalOutfitId = "Normal";
+
     [Header("Managers")]
     [SerializeField] private HeroineStatus heroineStatus;
     [SerializeField] private TimeManager timeManager;
@@ -23,6 +25,7 @@ public class OutfitManager : MonoBehaviour
     private List<OutfitData> outfits = new List<OutfitData>();
 
     private OutfitData currentOutfit;
+    private Sprite defaultHeroineSprite;
 
     public OutfitData CurrentOutfit => currentOutfit;
     public IReadOnlyList<OutfitData> Outfits => outfits;
@@ -163,10 +166,15 @@ public class OutfitManager : MonoBehaviour
             outfitPreferenceManager.RegisterWear(outfit.outfitId);
         }
 
-        if (heroineImage != null && outfit.heroineSprite != null)
+        Sprite displaySprite = GetDisplaySpriteForOutfit(outfit);
+        if (heroineImage != null && displaySprite != null)
         {
-            heroineImage.sprite = outfit.heroineSprite;
+            heroineImage.sprite = displaySprite;
             heroineImage.color = Color.white;
+        }
+        else
+        {
+            ApplyDefaultHeroineSprite();
         }
 
         if (!string.IsNullOrEmpty(outfit.changedMessage))
@@ -185,6 +193,7 @@ public class OutfitManager : MonoBehaviour
     {
         if (outfits == null || outfits.Count == 0)
         {
+            ApplyDefaultHeroineSprite();
             return;
         }
 
@@ -197,6 +206,49 @@ public class OutfitManager : MonoBehaviour
                 return;
             }
         }
+
+        ApplyDefaultHeroineSprite();
+    }
+
+    public void SetDefaultHeroineSprite(Sprite sprite)
+    {
+        defaultHeroineSprite = sprite;
+
+        if (currentOutfit == null || currentOutfit.heroineSprite == null || IsNormalOutfit(currentOutfit))
+        {
+            ApplyDefaultHeroineSprite();
+        }
+    }
+
+    private Sprite GetDisplaySpriteForOutfit(OutfitData outfit)
+    {
+        if (IsNormalOutfit(outfit) && defaultHeroineSprite != null)
+        {
+            return defaultHeroineSprite;
+        }
+
+        if (outfit != null && outfit.heroineSprite != null)
+        {
+            return outfit.heroineSprite;
+        }
+
+        return defaultHeroineSprite;
+    }
+
+    private static bool IsNormalOutfit(OutfitData outfit)
+    {
+        return outfit != null && outfit.outfitId == NormalOutfitId;
+    }
+
+    private void ApplyDefaultHeroineSprite()
+    {
+        if (heroineImage == null || defaultHeroineSprite == null)
+        {
+            return;
+        }
+
+        heroineImage.sprite = defaultHeroineSprite;
+        heroineImage.color = Color.white;
     }
 
     public OutfitData FindOutfitById(string outfitId)

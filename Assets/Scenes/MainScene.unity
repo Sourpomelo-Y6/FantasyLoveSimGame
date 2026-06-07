@@ -10198,7 +10198,7 @@ MonoBehaviour:
   nextButton: {fileID: 1224416590}
   dialogueClickAdvanceArea: {fileID: 0}
   enableDialogueWindowClickAdvance: 1
-  heroineProfile: {fileID: 11400000, guid: 7dfd984dfdc34a0f9897dc78907460ce, type: 2}
+  heroineProfile: {fileID: 11400000, guid: 63593869a2c64e72b65962e3dd82d2e0, type: 2}
   defaultHeroineProfileResourcePath: Heroines/DefaultHeroineProfile
   endingButton: {fileID: 1771410053}
   endingSceneName: EndingScene

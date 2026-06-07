@@ -328,6 +328,10 @@ Unity Editor 拡張は `exportImagePath` から画像をコピーし、`unityIma
 `Data/heroine_profile_export.json` を読み、`Assets/Resources/Heroines/<HeroineId>Profile.asset` の `HeroineProfileData` を新規作成または更新する。
 `Data/assets_export.json` が存在する場合は、`Accepted` または空ステータスの画像を `exportImagePath` から `unityImagePath` へコピーする。
 既存画像は自動上書きせず、警告ログを出してスキップする。
+`usage` が `Sprites` で、`assetId` または `fileName` が `Heroine_Normal` / `Heroine_Normal.png` の画像は代表立ち絵候補として扱い、`HeroineProfileData.defaultHeroineSprite` に自動割り当てする。
+取り込んだ画像は UI 表示に使えるよう、Unity の import 設定を `Sprite` に補正する。
+`GameManager` は `HeroineProfileData.defaultHeroineSprite` を `OutfitManager` に渡し、通常衣装 `Normal` の表示では profile の代表立ち絵を優先する。
+通常衣装以外は、衣装に `heroineSprite` が設定されている場合は従来どおり衣装画像を優先し、衣装画像がない場合だけ代表立ち絵へフォールバックする。
 `TestHeroine` の追加画像は容量節約のため Unity 側リポジトリへコミットせず、AssetTool 側の export サンプルまたはローカル import 結果として扱う。
 prompt JSON、会話・イベント下書きの import は次段階で対応する。
 
