@@ -328,6 +328,7 @@ Unity Editor 拡張は `exportImagePath` から画像をコピーし、`unityIma
 `Data/heroine_profile_export.json` を読み、`Assets/Resources/Heroines/<HeroineId>Profile.asset` の `HeroineProfileData` を新規作成または更新する。
 `Data/assets_export.json` が存在する場合は、`Accepted` または空ステータスの画像を `exportImagePath` から `unityImagePath` へコピーする。
 既存画像は自動上書きせず、警告ログを出してスキップする。
+`TestHeroine` の追加画像は容量節約のため Unity 側リポジトリへコミットせず、AssetTool 側の export サンプルまたはローカル import 結果として扱う。
 prompt JSON、会話・イベント下書きの import は次段階で対応する。
 
 対応関係:

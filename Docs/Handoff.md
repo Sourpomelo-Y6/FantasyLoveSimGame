@@ -417,6 +417,8 @@
 `Images/Background` は共通背景として残し、立ち絵・イベントスチル・行動スチル・エンディングスチルはヒロイン別素材として扱う。
 差し替え確認用に `Assets/Resources/Heroines/TestHeroineProfile.asset` を追加済み。
 `GameManager.heroineProfile` に割り当てると、最小データでヒロイン別読み込みを確認できる。
+追加の `TestHeroine` 画像は容量節約のためコミットしない。
+画像が必要な場合は `FantasyLoveSimAssetTool` の export サンプルから importer で取り込み、ローカル確認用として扱う。
 
 チェックリスト:
 

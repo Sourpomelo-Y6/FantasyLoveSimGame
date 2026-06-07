@@ -112,6 +112,7 @@ This project is licensed under the MIT License. See [LICENSE](LICENSE) for detai
 - 会話データと行動データは ScriptableObject として分離されています
 - ヒロイン差し替えは `HeroineProfileData` で読み込みパスを切り替えます。`Images/Background` は共通背景として扱います
 - 差し替え確認用に `TestHeroineProfile` と最小データを追加しています。本番ヒロイン追加前の読み込み確認に使います
+- 追加の `TestHeroine` 画像は容量節約のためコミットせず、AssetTool の export サンプルやローカル import 結果として扱います
 - 新ヒロイン追加時の必要データと素材は [`Docs/LoveSimDevelopmentPlan.md`](Docs/LoveSimDevelopmentPlan.md) と [`Docs/Handoff.md`](Docs/Handoff.md) のチェックリストにまとめています
 - 行動には条件付き反応を持たせられるので、時間帯、天候、季節、好感度で結果を変えやすいです。反応ごとに `stillSprite` も持てます
 - 衣装は着用時に保存され、衣装反応パネルから評価を付けられるようになっています
