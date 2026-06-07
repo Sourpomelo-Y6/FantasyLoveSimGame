@@ -325,8 +325,10 @@ Unity Editor 拡張は `exportImagePath` から画像をコピーし、`unityIma
 12. `AssetDatabase.SaveAssets` で保存する
 
 現状の Unity 側実装では、`Assets/Editor/HeroineAssetImporter.cs` を追加し、`FantasyLoveSim > Import Heroine Export` メニューから `Export/<HeroineId>/` フォルダを選べる。
-まずは `Data/heroine_profile_export.json` のみを読み、`Assets/Resources/Heroines/<HeroineId>Profile.asset` の `HeroineProfileData` を新規作成または更新する。
-画像コピー、`assets_export.json`、prompt JSON、会話・イベント下書きの import は次段階で対応する。
+`Data/heroine_profile_export.json` を読み、`Assets/Resources/Heroines/<HeroineId>Profile.asset` の `HeroineProfileData` を新規作成または更新する。
+`Data/assets_export.json` が存在する場合は、`Accepted` または空ステータスの画像を `exportImagePath` から `unityImagePath` へコピーする。
+既存画像は自動上書きせず、警告ログを出してスキップする。
+prompt JSON、会話・イベント下書きの import は次段階で対応する。
 
 対応関係:
 

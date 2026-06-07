@@ -7,6 +7,8 @@ public static class HeroineAssetImporter
 {
     private const string MenuPath = "FantasyLoveSim/Import Heroine Export";
     private const string ProfileJsonRelativePath = "Data/heroine_profile_export.json";
+    private const string AssetsJsonRelativePath = "Data/assets_export.json";
+    private const bool OverwriteExistingImages = false;
 
     [MenuItem(MenuPath)]
     public static void ImportHeroineExport()
@@ -59,12 +61,13 @@ public static class HeroineAssetImporter
         }
 
         ApplyProfile(profile, profileExport);
+        int copiedImageCount = ImportImages(exportFolder, profileExport.heroineId);
 
         EditorUtility.SetDirty(profile);
         AssetDatabase.SaveAssets();
         AssetDatabase.Refresh();
 
-        Debug.Log("HeroineProfileData を import しました: " + assetPath);
+        Debug.Log($"Heroine export を import しました: {assetPath}, copied images: {copiedImageCount}");
     }
 
     private static void ApplyProfile(HeroineProfileData profile, HeroineProfileExport profileExport)
@@ -77,6 +80,134 @@ public static class HeroineAssetImporter
         profile.gameEventResourcePath = $"Heroines/{profileExport.heroineId}/GameEvents";
         profile.actionResourcePath = $"Heroines/{profileExport.heroineId}/Actions";
         profile.endingResourcePath = $"Heroines/{profileExport.heroineId}/Endings";
+    }
+
+    private static int ImportImages(string exportFolder, string heroineId)
+    {
+        string assetsJsonPath = Path.Combine(exportFolder, AssetsJsonRelativePath);
+        if (!File.Exists(assetsJsonPath))
+        {
+            Debug.Log("assets_export.json が見つからないため、画像 import はスキップしました: " + assetsJsonPath);
+            return 0;
+        }
+
+        AssetsExport assetsExport;
+        try
+        {
+            string json = File.ReadAllText(assetsJsonPath);
+            assetsExport = JsonUtility.FromJson<AssetsExport>(json);
+        }
+        catch (Exception ex)
+        {
+            Debug.LogError("assets_export.json の読み込みに失敗しました: " + ex.Message);
+            return 0;
+        }
+
+        if (assetsExport == null || assetsExport.assets == null)
+        {
+            Debug.LogWarning("assets_export.json に assets がありません。");
+            return 0;
+        }
+
+        string effectiveHeroineId = string.IsNullOrWhiteSpace(assetsExport.heroineId)
+            ? heroineId
+            : assetsExport.heroineId;
+        int copiedCount = 0;
+
+        foreach (HeroineAssetExport asset in assetsExport.assets)
+        {
+            if (asset == null || !ShouldImportAsset(asset))
+            {
+                continue;
+            }
+
+            string sourcePath = ResolveExportPath(exportFolder, asset.exportImagePath, asset.usage, asset.fileName);
+            if (string.IsNullOrEmpty(sourcePath) || !File.Exists(sourcePath))
+            {
+                Debug.LogWarning("画像ファイルが見つからないためスキップしました: " + sourcePath);
+                continue;
+            }
+
+            string unityPath = ResolveUnityImagePath(effectiveHeroineId, asset);
+            if (!IsValidUnityAssetPath(unityPath))
+            {
+                Debug.LogWarning("unityImagePath が Assets 配下ではないためスキップしました: " + unityPath);
+                continue;
+            }
+
+            EnsureFolderForAssetPath(unityPath);
+            if (File.Exists(unityPath) && !OverwriteExistingImages)
+            {
+                Debug.LogWarning("既存画像があるため上書きせずスキップしました: " + unityPath);
+                continue;
+            }
+
+            File.Copy(sourcePath, unityPath, OverwriteExistingImages);
+            AssetDatabase.ImportAsset(unityPath);
+            copiedCount++;
+        }
+
+        return copiedCount;
+    }
+
+    private static bool ShouldImportAsset(HeroineAssetExport asset)
+    {
+        return string.IsNullOrWhiteSpace(asset.status)
+            || string.Equals(asset.status, "Accepted", StringComparison.OrdinalIgnoreCase);
+    }
+
+    private static string ResolveExportPath(string exportFolder, string exportImagePath, string usage, string fileName)
+    {
+        if (!string.IsNullOrWhiteSpace(exportImagePath))
+        {
+            return Path.IsPathRooted(exportImagePath)
+                ? exportImagePath
+                : Path.Combine(exportFolder, exportImagePath);
+        }
+
+        if (string.IsNullOrWhiteSpace(usage) || string.IsNullOrWhiteSpace(fileName))
+        {
+            return string.Empty;
+        }
+
+        return Path.Combine(exportFolder, "Images", usage, fileName);
+    }
+
+    private static string ResolveUnityImagePath(string heroineId, HeroineAssetExport asset)
+    {
+        if (!string.IsNullOrWhiteSpace(asset.unityImagePath))
+        {
+            return NormalizeAssetPath(asset.unityImagePath);
+        }
+
+        if (string.IsNullOrWhiteSpace(asset.usage) || string.IsNullOrWhiteSpace(asset.fileName))
+        {
+            return string.Empty;
+        }
+
+        return NormalizeAssetPath($"Assets/Images/Heroines/{heroineId}/{asset.usage}/{asset.fileName}");
+    }
+
+    private static bool IsValidUnityAssetPath(string assetPath)
+    {
+        string normalizedPath = NormalizeAssetPath(assetPath);
+        return normalizedPath.StartsWith("Assets/", StringComparison.Ordinal)
+            && !normalizedPath.Contains("/../")
+            && !normalizedPath.EndsWith("/..", StringComparison.Ordinal);
+    }
+
+    private static void EnsureFolderForAssetPath(string assetPath)
+    {
+        string folderPath = Path.GetDirectoryName(assetPath)?.Replace("\\", "/");
+        if (!string.IsNullOrEmpty(folderPath))
+        {
+            EnsureFolder(folderPath);
+        }
+    }
+
+    private static string NormalizeAssetPath(string path)
+    {
+        return string.IsNullOrWhiteSpace(path) ? string.Empty : path.Replace("\\", "/");
     }
 
     private static void EnsureFolder(string path)
@@ -115,5 +246,27 @@ public static class HeroineAssetImporter
         public string endingPolicy;
         public string[] likes;
         public string[] dislikes;
+    }
+
+    [Serializable]
+    private sealed class AssetsExport
+    {
+        public string schemaVersion;
+        public string heroineId;
+        public string unityImageRoot;
+        public HeroineAssetExport[] assets;
+    }
+
+    [Serializable]
+    private sealed class HeroineAssetExport
+    {
+        public string assetId;
+        public string usage;
+        public string status;
+        public string fileName;
+        public string memo;
+        public string exportImagePath;
+        public string exportPromptPath;
+        public string unityImagePath;
     }
 }
