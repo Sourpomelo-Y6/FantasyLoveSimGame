@@ -3,7 +3,8 @@
 このドキュメントは、`FantasyLoveSimAssetTool` で会話、イベント、行動反応、エンディング本文を作成し、Unity 側へ渡すための設計案をまとめる。
 
 現時点では WPF ツールは画像素材と prompt 記録の管理を主目的にしている。
-会話データは次の段階で追加する。
+次の作業では、Unity 側 importer をさらに広げる前に、WPF ツール側で会話データを入力、保存、export できるようにする。
+Unity 側は `conversations_export.json` の最小 import があるため、まず Tool 側から通常会話 JSON を出力して検証する。
 
 ## 基本方針
 
@@ -242,6 +243,78 @@ Export 時は `ConversationEntries` を種別ごとに分け、`conversations_ex
 - 種別とカテゴリに基づく ID 自動生成
 
 複雑な分岐、選択肢、演出命令、音声参照は後回しにする。
+
+## Tool 側の実装順
+
+Unity 側の `game_events_export.json` import を進める前に、まず `FantasyLoveSimAssetTool` 側の export を安定させる。
+
+1. `profile.json` に `ConversationEntries` を追加する。
+2. `ConversationEntry` の内部モデルを作る。
+3. 会話データタブを追加し、`Conversations` の一覧、詳細編集、保存を実装する。
+4. `conversations_export.json` を出力する。
+5. export 前の検証を追加する。
+6. Accepted 画像の `AssetId` を候補として `imageAssetIds` に追加できるようにする。
+7. `GameEvents`、`ActionReactions`、`Endings` は同じモデルを使って後から種別を広げる。
+
+最初の実装対象は `conversations_export.json` のみでよい。
+Unity 側には通常会話の最小 import があるため、Tool 側で作った JSON を Unity に取り込んで、実際に会話ジャンルから表示できるか確認する。
+
+### ConversationEntry 最小項目
+
+`profile.json` に保存する `ConversationEntry` は、最初は次の項目で足りる。
+
+- `Kind`: `Conversation`、`GameEvent`、`ActionReaction`、`Ending`
+- `Id`
+- `Title`
+- `Category`
+- `MinAffection`
+- `MaxAffection`
+- `Weather`
+- `Season`
+- `TimeOfDay`
+- `Once`
+- `Lines`
+- `ImageAssetIds`
+- `Priority`
+- `Memo`
+
+`Lines` は複数行を保持できる形にする。
+最初は 1 行だけでもよいが、JSON は `lines` 配列として出力する。
+
+### conversations_export.json の初期マッピング
+
+Tool 側の `ConversationEntry` から `conversations_export.json` へは次のように変換する。
+
+| ConversationEntry | conversations_export.json |
+| --- | --- |
+| `Id` | `items[].id` |
+| `Title` | `items[].title` |
+| `Category` | `items[].category` |
+| `MinAffection` | `items[].conditions.minAffection` |
+| `MaxAffection` | `items[].conditions.maxAffection` |
+| `Weather` | `items[].conditions.weather` |
+| `Season` | `items[].conditions.season` |
+| `TimeOfDay` | `items[].conditions.timeOfDay` |
+| `Once` | `items[].conditions.once` |
+| `Lines` | `items[].lines` |
+| `ImageAssetIds` | `items[].imageAssetIds` |
+| `Priority` | `items[].priority` |
+| `Memo` | `items[].memo` |
+
+`Category` は Unity 側の `ConversationGenre` に合わせ、最初は `Daily`、`Food`、`Adventure`、`Love` を候補にする。
+未知のカテゴリを export できるようにしてもよいが、Unity 側では `Daily` にフォールバックするため、Tool 側では候補選択を基本にする。
+
+### Tool 側の検証
+
+export 前に最低限次を検証する。
+
+- `Id` が空でない
+- 同一 `Kind` 内で `Id` が重複しない
+- `Lines` に空でない本文がある
+- `MinAffection` が `MaxAffection` を超えていない
+- `Category` が空でない
+- `ImageAssetIds` が指定されている場合、Accepted 画像の `AssetId` に存在する
+- `Priority` が数値として扱える
 
 ## Unity Import 対応
 

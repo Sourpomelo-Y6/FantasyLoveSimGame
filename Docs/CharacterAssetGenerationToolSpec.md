@@ -348,6 +348,9 @@ Unity Editor 拡張は `exportImagePath` から画像をコピーし、`unityIma
 現時点の会話 import は最小対応で、`lines` の最初の本文を `ConversationData.heroineLine` に反映し、`category`、好感度、時間帯、季節、天候、優先度、単発表示条件を可能な範囲で反映する。
 prompt JSON、ゲームイベント、行動反応、エンディング本文の JSON import は次段階で対応する。
 
+次は Unity 側 importer を広げる前に、`FantasyLoveSimAssetTool` 側で会話、イベント、行動反応、エンディング本文を入力、保存、export できるようにする。
+Unity 側は受け口を段階的に増やす方針だが、先に Tool 側の JSON 出力を安定させることで、Unity import の実装と検証を進めやすくする。
+
 対応関係:
 
 | WPF export | Unity 側用途 |
@@ -377,6 +380,18 @@ Data/
 
 このときもツール側から `.asset` を直接生成しない。
 Unity Editor 側で `ConversationData`、`GameEventData`、`ActionReactionData`、`EndingData` の `.asset` を生成、更新する。
+
+Tool 側で先に作る最小機能:
+
+1. `profile.json` に会話本文データの保存領域を追加する
+2. 会話、イベント、行動反応、エンディングを同じ内部モデルで保持する
+3. 種別ごとに `conversations_export.json`、`game_events_export.json`、`action_reactions_export.json`、`endings_export.json` を出力する
+4. 既存の Accepted 画像 `assetId` を `imageAssetIds` に指定できるようにする
+5. export 前に ID 重複、空本文、参照できない画像 `assetId` を検証する
+
+最初に Tool 側で実装する対象は `conversations_export.json` とする。
+Unity 側には既に最小 import があるため、Tool 側から export した JSON をそのまま Unity に取り込めるか確認しやすい。
+次に `game_events_export.json` を出力し、Unity 側の `GameEventData` import 対応へ進む。
 
 各 JSON は次の共通項目を持つ。
 
