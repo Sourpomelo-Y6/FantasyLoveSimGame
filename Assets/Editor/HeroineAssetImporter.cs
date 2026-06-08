@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using UnityEditor;
 using UnityEngine;
@@ -8,6 +9,7 @@ public static class HeroineAssetImporter
     private const string MenuPath = "FantasyLoveSim/Import Heroine Export";
     private const string ProfileJsonRelativePath = "Data/heroine_profile_export.json";
     private const string AssetsJsonRelativePath = "Data/assets_export.json";
+    private const string ConversationsJsonRelativePath = "Data/conversations_export.json";
     private const string DefaultHeroineSpriteAssetId = "Heroine_Normal";
     private const string DefaultHeroineSpriteFileName = "Heroine_Normal.png";
     private const bool OverwriteExistingImages = false;
@@ -65,12 +67,13 @@ public static class HeroineAssetImporter
         ApplyProfile(profile, profileExport);
         ImageImportResult imageImportResult = ImportImages(exportFolder, profileExport.heroineId);
         ApplyDefaultHeroineSprite(profile, imageImportResult.defaultSpritePath);
+        int importedConversationCount = ImportConversations(exportFolder, profileExport.heroineId);
 
         EditorUtility.SetDirty(profile);
         AssetDatabase.SaveAssets();
         AssetDatabase.Refresh();
 
-        Debug.Log($"Heroine export を import しました: {assetPath}, copied images: {imageImportResult.copiedCount}");
+        Debug.Log($"Heroine export を import しました: {assetPath}, copied images: {imageImportResult.copiedCount}, conversations: {importedConversationCount}");
     }
 
     private static void ApplyProfile(HeroineProfileData profile, HeroineProfileExport profileExport)
@@ -176,6 +179,170 @@ public static class HeroineAssetImporter
         return result;
     }
 
+    private static int ImportConversations(string exportFolder, string heroineId)
+    {
+        string conversationsJsonPath = Path.Combine(exportFolder, ConversationsJsonRelativePath);
+        if (!File.Exists(conversationsJsonPath))
+        {
+            Debug.Log("conversations_export.json が見つからないため、会話 import はスキップしました: " + conversationsJsonPath);
+            return 0;
+        }
+
+        ConversationsExport conversationsExport;
+        try
+        {
+            string json = File.ReadAllText(conversationsJsonPath);
+            conversationsExport = JsonUtility.FromJson<ConversationsExport>(json);
+        }
+        catch (Exception ex)
+        {
+            Debug.LogError("conversations_export.json の読み込みに失敗しました: " + ex.Message);
+            return 0;
+        }
+
+        if (conversationsExport == null || conversationsExport.items == null)
+        {
+            Debug.LogWarning("conversations_export.json に items がありません。");
+            return 0;
+        }
+
+        if (!string.IsNullOrWhiteSpace(conversationsExport.heroineId)
+            && !string.Equals(conversationsExport.heroineId, heroineId, StringComparison.Ordinal))
+        {
+            Debug.LogWarning($"conversations_export.json の heroineId が profile と一致しません: {conversationsExport.heroineId} / {heroineId}");
+        }
+
+        string conversationFolderPath = $"Assets/Resources/Heroines/{heroineId}/Conversations";
+        EnsureFolder(conversationFolderPath);
+
+        int importedCount = 0;
+        HashSet<string> importedIds = new HashSet<string>(StringComparer.Ordinal);
+        foreach (ConversationExportItem item in conversationsExport.items)
+        {
+            if (!CanImportConversation(item, importedIds))
+            {
+                continue;
+            }
+
+            string assetPath = $"{conversationFolderPath}/{SanitizeAssetFileName(item.id)}.asset";
+            ConversationData conversation = AssetDatabase.LoadAssetAtPath<ConversationData>(assetPath);
+            if (conversation == null)
+            {
+                conversation = ScriptableObject.CreateInstance<ConversationData>();
+                AssetDatabase.CreateAsset(conversation, assetPath);
+            }
+
+            ApplyConversation(conversation, item);
+            EditorUtility.SetDirty(conversation);
+            importedIds.Add(item.id);
+            importedCount++;
+        }
+
+        return importedCount;
+    }
+
+    private static bool CanImportConversation(ConversationExportItem item, HashSet<string> importedIds)
+    {
+        if (item == null || string.IsNullOrWhiteSpace(item.id))
+        {
+            Debug.LogWarning("id が空の会話 item をスキップしました。");
+            return false;
+        }
+
+        if (importedIds.Contains(item.id))
+        {
+            Debug.LogWarning("id が重複している会話 item をスキップしました: " + item.id);
+            return false;
+        }
+
+        string heroineLine = GetFirstLineText(item);
+        if (string.IsNullOrWhiteSpace(heroineLine))
+        {
+            Debug.LogWarning("lines が空の会話 item をスキップしました: " + item.id);
+            return false;
+        }
+
+        return true;
+    }
+
+    private static void ApplyConversation(ConversationData conversation, ConversationExportItem item)
+    {
+        ConversationExportConditions conditions = item.conditions ?? new ConversationExportConditions();
+
+        conversation.conversationId = item.id;
+        conversation.genre = ParseEnumOrDefault(item.category, ConversationGenre.Daily);
+        conversation.type = ConversationType.Simple;
+        conversation.heroineLine = GetFirstLineText(item);
+        conversation.choices.Clear();
+        conversation.priority = item.priority;
+        conversation.showOnce = conditions.once;
+        conversation.minAffection = Math.Max(0, conditions.minAffection);
+        conversation.maxAffection = conditions.maxAffection > 0 ? conditions.maxAffection : 100;
+
+        ApplySingleEnumCondition(
+            conditions.timeOfDay,
+            conversation.allowedTimeSlots,
+            value => conversation.anyTimeSlot = value);
+        ApplySingleEnumCondition(
+            conditions.season,
+            conversation.allowedSeasons,
+            value => conversation.anySeason = value);
+        ApplySingleEnumCondition(
+            conditions.weather,
+            conversation.allowedWeathers,
+            value => conversation.anyWeather = value);
+    }
+
+    private static string GetFirstLineText(ConversationExportItem item)
+    {
+        if (item == null || item.lines == null)
+        {
+            return string.Empty;
+        }
+
+        foreach (ConversationExportLine line in item.lines)
+        {
+            if (line != null && !string.IsNullOrWhiteSpace(line.text))
+            {
+                return line.text;
+            }
+        }
+
+        return string.Empty;
+    }
+
+    private static void ApplySingleEnumCondition<T>(string rawValue, List<T> target, Action<bool> setAny)
+        where T : struct
+    {
+        target.Clear();
+        if (string.IsNullOrWhiteSpace(rawValue))
+        {
+            setAny(true);
+            return;
+        }
+
+        if (Enum.TryParse(rawValue, true, out T parsedValue))
+        {
+            target.Add(parsedValue);
+            setAny(false);
+            return;
+        }
+
+        Debug.LogWarning($"未知の条件値を無視しました: {typeof(T).Name} = {rawValue}");
+        setAny(true);
+    }
+
+    private static T ParseEnumOrDefault<T>(string rawValue, T defaultValue)
+        where T : struct
+    {
+        if (string.IsNullOrWhiteSpace(rawValue))
+        {
+            return defaultValue;
+        }
+
+        return Enum.TryParse(rawValue, true, out T parsedValue) ? parsedValue : defaultValue;
+    }
+
     private static void SetDefaultSpriteCandidateIfNeeded(
         ImageImportResult result,
         HeroineAssetExport asset,
@@ -272,6 +439,17 @@ public static class HeroineAssetImporter
         return string.IsNullOrWhiteSpace(path) ? string.Empty : path.Replace("\\", "/");
     }
 
+    private static string SanitizeAssetFileName(string rawFileName)
+    {
+        string safeName = rawFileName;
+        foreach (char invalidChar in Path.GetInvalidFileNameChars())
+        {
+            safeName = safeName.Replace(invalidChar, '_');
+        }
+
+        return string.IsNullOrWhiteSpace(safeName) ? "Conversation" : safeName;
+    }
+
     private static void EnsureFolder(string path)
     {
         if (AssetDatabase.IsValidFolder(path))
@@ -317,6 +495,47 @@ public static class HeroineAssetImporter
         public string heroineId;
         public string unityImageRoot;
         public HeroineAssetExport[] assets;
+    }
+
+    [Serializable]
+    private sealed class ConversationsExport
+    {
+        public string schemaVersion;
+        public string heroineId;
+        public ConversationExportItem[] items;
+    }
+
+    [Serializable]
+    private sealed class ConversationExportItem
+    {
+        public string id;
+        public string title;
+        public string category;
+        public ConversationExportConditions conditions;
+        public ConversationExportLine[] lines;
+        public string[] imageAssetIds;
+        public int priority;
+        public string memo;
+    }
+
+    [Serializable]
+    private sealed class ConversationExportConditions
+    {
+        public bool once;
+        public string locationId;
+        public int minAffection;
+        public int maxAffection;
+        public string weather;
+        public string season;
+        public string timeOfDay;
+    }
+
+    [Serializable]
+    private sealed class ConversationExportLine
+    {
+        public string speaker;
+        public string text;
+        public string expression;
     }
 
     [Serializable]
