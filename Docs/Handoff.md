@@ -14,6 +14,8 @@
 - 予定パネルは戻るボタンで閉じる
 - 会話ジャンルは `Daily` / `Food` / `Adventure` / `Love`
 - 会話には `Simple` と `Choice` の 2 種類がある
+- ヒロイン別会話は `Conversations.asset` の `ConversationData.items` にまとめられる。`GameManager` は読み込み時に item を従来の会話候補へ展開する
+- 既存互換として、個別の `ConversationData` asset も引き続き読み込める
 - `Simple` は `Next` を押すと好感度が増加して会話が終了する
 - `Choice` は `Next` で選択肢表示に進み、3 つまでの選択肢から 1 つを選ぶ
 - 行動は ScriptableObject ベースで、時間帯・天候・季節・好感度に応じて反応を切り替えられる
@@ -110,7 +112,7 @@
 - [`Assets/Resources/Heroines/`](../Assets/Resources/Heroines): ヒロインプロフィールデータ
 - [`Assets/Resources/Heroines/DefaultHeroine/GameEvents/`](../Assets/Resources/Heroines/DefaultHeroine/GameEvents): 現在ヒロインのゲーム開始、日開始、手動確認用イベントデータ
 - [`Assets/Resources/Backgrounds/`](../Assets/Resources/Backgrounds): 背景切り替え用データ
-- [`Assets/Resources/Heroines/DefaultHeroine/Conversations/`](../Assets/Resources/Heroines/DefaultHeroine/Conversations): 現在ヒロインの会話データの実体
+- [`Assets/Resources/Heroines/DefaultHeroine/Conversations.asset`](../Assets/Resources/Heroines/DefaultHeroine/Conversations.asset): 現在ヒロインの会話データ container
 - [`Assets/Scenes/MainScene.unity`](../Assets/Scenes/MainScene.unity): メインシーン
 - [`Assets/Scenes/EndingScene.unity`](../Assets/Scenes/EndingScene.unity): エンディングシーン
 - [`Packages/manifest.json`](../Packages/manifest.json): パッケージ一覧
@@ -131,7 +133,7 @@
 - `Assets/Scripts/Action/`: 行動データの型
 - `Assets/Scripts/Conversation/`: 会話データの型
 - `Assets/Resources/Heroines/DefaultHeroine/Actions/`: 現在ヒロインの行動資産
-- `Assets/Resources/Heroines/DefaultHeroine/Conversations/`: 現在ヒロインの会話資産
+- `Assets/Resources/Heroines/DefaultHeroine/Conversations.asset`: 現在ヒロインの会話資産 container
 - `Assets/Scenes/`: シーン
 - `Assets/Fonts/`: 日本語表示用フォント資産
 - `Assets/Settings/`: URP 関連設定
@@ -462,7 +464,8 @@
 
 ### 会話を増やす
 
-`ConversationData` アセットを追加して、`Assets/Resources/Heroines/DefaultHeroine/Conversations/` など、対象ヒロインの `conversationResourcePath` 配下に配置すればよいです。
+新規 import では、対象ヒロインの `Assets/Resources/Heroines/<HeroineId>/Conversations.asset` に `ConversationData.items` として会話をまとめます。
+既存互換として個別の `ConversationData` アセットも読み込めますが、今後は `Conversations.asset` 方式を基本にします。
 会話IDは `Daily_Morning_01` のように `カテゴリ_条件_連番` を基本にし、`showOnce` は一度見せたら再出現させたくない会話だけに使う。
 `minAffection` / `maxAffection` は会話の入口条件、`allowedTimeSlots` / `allowedWeathers` / `allowedSeasons` は必要なときだけ絞り込む。条件が重なる会話が複数ある場合は `priority` で並び替える。
 同じ条件で複数の会話を置く場合は、まず `priority`、次に `conversationId` の命名で識別できるようにする。

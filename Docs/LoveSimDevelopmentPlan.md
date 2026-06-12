@@ -231,13 +231,13 @@ Canvas
 - `endingResourcePath`: エンディングデータの読み込みパス
 - `defaultHeroineSprite`: 代表立ち絵
 
-現在のヒロインは `DefaultHeroine` として扱い、`Assets/Resources/Heroines/DefaultHeroineProfile.asset` に `Heroines/DefaultHeroine/Conversations` / `GameEvents` / `Actions` / `Endings` を参照させている。
+現在のヒロインは `DefaultHeroine` として扱い、`Assets/Resources/Heroines/DefaultHeroineProfile.asset` に `Heroines/DefaultHeroine` / `Heroines/DefaultHeroine/GameEvents` / `Heroines/DefaultHeroine/Actions` / `Heroines/DefaultHeroine/Endings` を参照させている。
 `GameManager` は profile から会話・イベント・行動の読み込みパスを適用し、`EndingScene` へ遷移するときに profile の `endingResourcePath` を `EndingSelectionSettings` へ渡す。
 `EndingManager` は渡された `endingResourcePath` があればそのパスから `EndingData` を読み込む。
 将来ヒロインを増やす段階で、Resources 配下を次のように分ける。
 
 ```text
-Assets/Resources/Heroines/DefaultHeroine/Conversations/
+Assets/Resources/Heroines/DefaultHeroine/Conversations.asset
 Assets/Resources/Heroines/DefaultHeroine/GameEvents/
 Assets/Resources/Heroines/DefaultHeroine/Actions/
 Assets/Resources/Heroines/DefaultHeroine/Endings/
@@ -258,7 +258,7 @@ Assets/Images/Heroines/DefaultHeroine/Ending/
 画像フォルダ整理も `DefaultHeroine` については実施済み。
 
 差し替え確認用として `Assets/Resources/Heroines/TestHeroineProfile.asset` を追加済み。
-`Heroines/TestHeroine/Actions` / `Conversations` / `GameEvents` / `Endings` には最小確認用データだけを置いている。
+`Heroines/TestHeroine/Actions` / `Conversations.asset` / `GameEvents` / `Endings` には最小確認用データだけを置く。
 `MainScene` の `GameManager.heroineProfile` に `TestHeroineProfile` を割り当てると、ヒロイン名、開始イベント、会話、エンディングの読み込み元が切り替わるか確認できる。
 `HeroineProfileData.defaultHeroineSprite` は通常衣装 `Normal` の立ち絵として `OutfitManager` に渡し、通常衣装以外は衣装側の `heroineSprite` を優先する。
 本番用ヒロインを追加する前に、まずこの profile で差し替え導線を手動確認する。
@@ -266,13 +266,13 @@ Assets/Images/Heroines/DefaultHeroine/Ending/
 新しいヒロインを追加するときは、次のチェックリストを使う。
 
 - `HeroineProfileData` を作成し、`heroineId` と `displayName` を設定する
-- `conversationResourcePath` に、そのヒロイン用の `Conversations` フォルダを設定する
+- `conversationResourcePath` に、そのヒロイン用の root パス `Heroines/<HeroineId>` を設定する
 - `gameEventResourcePath` に、そのヒロイン用の `GameEvents` フォルダを設定する
 - `actionResourcePath` に、そのヒロイン用の `Actions` フォルダを設定する
 - `endingResourcePath` に、そのヒロイン用の `Endings` フォルダを設定する
 - `defaultHeroineSprite` に代表立ち絵を設定する
 - `Actions` には行動名、行動結果、行動反応、行動スチルを用意する
-- `Conversations` にはジャンル会話、好感度条件会話、天候・時間帯・季節条件会話を用意する
+- `Conversations.asset` にはジャンル会話、好感度条件会話、天候・時間帯・季節条件会話を用意する
 - `GameEvents` には `GameStart`、`DayStart`、`Manual` 確認用イベントを用意する
 - `Endings` には少なくとも `defaultEndingId` と一致する `EndingData` を用意する
 - `Images/Heroines/<HeroineId>/Sprites/` には通常立ち絵と、必要なら衣装・表情差分を用意する
@@ -285,7 +285,9 @@ Assets/Images/Heroines/DefaultHeroine/Ending/
 ### ConversationData
 
 会話は引き続き `ConversationData` で管理します。
-会話の追加は、対象ヒロインの `conversationResourcePath` 配下にアセットを置くだけで済むようにするのが目標です。
+新規 import では、対象ヒロインの `Assets/Resources/Heroines/<HeroineId>/Conversations.asset` に `ConversationData.items` として複数会話をまとめる。
+`GameManager` は `ConversationData.items` を読み込み時に従来の会話候補へ展開する。
+既存互換として、個別の `ConversationData` アセットも読み込める。
 会話IDは `カテゴリ_条件_連番` を基本にし、`showOnce` は一度だけ見せる会話に限って使う。
 `minAffection` / `maxAffection` は会話の入口条件、`allowedTimeSlots` / `allowedWeathers` / `allowedSeasons` は必要な場合だけ使う。条件が重なる会話は `priority` で解決する。
 同じ条件の会話が複数ある場合でも、`conversationId` から用途が分かるようにしておく。

@@ -82,7 +82,7 @@ public static class HeroineAssetImporter
         profile.displayName = string.IsNullOrWhiteSpace(profileExport.displayName)
             ? profileExport.heroineId
             : profileExport.displayName;
-        profile.conversationResourcePath = $"Heroines/{profileExport.heroineId}/Conversations";
+        profile.conversationResourcePath = $"Heroines/{profileExport.heroineId}";
         profile.gameEventResourcePath = $"Heroines/{profileExport.heroineId}/GameEvents";
         profile.actionResourcePath = $"Heroines/{profileExport.heroineId}/Actions";
         profile.endingResourcePath = $"Heroines/{profileExport.heroineId}/Endings";
@@ -212,11 +212,21 @@ public static class HeroineAssetImporter
             Debug.LogWarning($"conversations_export.json の heroineId が profile と一致しません: {conversationsExport.heroineId} / {heroineId}");
         }
 
-        string conversationFolderPath = $"Assets/Resources/Heroines/{heroineId}/Conversations";
-        EnsureFolder(conversationFolderPath);
+        string heroineResourceFolderPath = $"Assets/Resources/Heroines/{heroineId}";
+        EnsureFolder(heroineResourceFolderPath);
+
+        string assetPath = $"{heroineResourceFolderPath}/Conversations.asset";
+        ConversationData conversationContainer = AssetDatabase.LoadAssetAtPath<ConversationData>(assetPath);
+        if (conversationContainer == null)
+        {
+            conversationContainer = ScriptableObject.CreateInstance<ConversationData>();
+            AssetDatabase.CreateAsset(conversationContainer, assetPath);
+        }
 
         int importedCount = 0;
         HashSet<string> importedIds = new HashSet<string>(StringComparer.Ordinal);
+        conversationContainer.heroineId = heroineId;
+        conversationContainer.items.Clear();
         foreach (ConversationExportItem item in conversationsExport.items)
         {
             if (!CanImportConversation(item, importedIds))
@@ -224,20 +234,14 @@ public static class HeroineAssetImporter
                 continue;
             }
 
-            string assetPath = $"{conversationFolderPath}/{SanitizeAssetFileName(item.id)}.asset";
-            ConversationData conversation = AssetDatabase.LoadAssetAtPath<ConversationData>(assetPath);
-            if (conversation == null)
-            {
-                conversation = ScriptableObject.CreateInstance<ConversationData>();
-                AssetDatabase.CreateAsset(conversation, assetPath);
-            }
-
+            ConversationDataItem conversation = new ConversationDataItem();
             ApplyConversation(conversation, item);
-            EditorUtility.SetDirty(conversation);
+            conversationContainer.items.Add(conversation);
             importedIds.Add(item.id);
             importedCount++;
         }
 
+        EditorUtility.SetDirty(conversationContainer);
         return importedCount;
     }
 
@@ -265,7 +269,7 @@ public static class HeroineAssetImporter
         return true;
     }
 
-    private static void ApplyConversation(ConversationData conversation, ConversationExportItem item)
+    private static void ApplyConversation(ConversationDataItem conversation, ConversationExportItem item)
     {
         ConversationExportConditions conditions = item.conditions ?? new ConversationExportConditions();
 
@@ -437,17 +441,6 @@ public static class HeroineAssetImporter
     private static string NormalizeAssetPath(string path)
     {
         return string.IsNullOrWhiteSpace(path) ? string.Empty : path.Replace("\\", "/");
-    }
-
-    private static string SanitizeAssetFileName(string rawFileName)
-    {
-        string safeName = rawFileName;
-        foreach (char invalidChar in Path.GetInvalidFileNameChars())
-        {
-            safeName = safeName.Replace(invalidChar, '_');
-        }
-
-        return string.IsNullOrWhiteSpace(safeName) ? "Conversation" : safeName;
     }
 
     private static void EnsureFolder(string path)

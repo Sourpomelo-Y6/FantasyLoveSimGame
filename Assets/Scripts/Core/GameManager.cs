@@ -809,7 +809,12 @@ public class GameManager : MonoBehaviour
         ConversationData[] loadedConversations =
             Resources.LoadAll<ConversationData>(conversationResourcePath);
 
-        conversations = new List<ConversationData>(loadedConversations);
+        conversations = new List<ConversationData>();
+        HashSet<string> loadedConversationIds = new HashSet<string>();
+        foreach (ConversationData loadedConversation in loadedConversations)
+        {
+            AddLoadedConversationData(loadedConversation, loadedConversationIds);
+        }
 
         Debug.Log("Loaded Conversations: " + conversations.Count);
 
@@ -826,6 +831,92 @@ public class GameManager : MonoBehaviour
                 conversation.type
             );
         }
+    }
+
+    private void AddLoadedConversationData(
+        ConversationData loadedConversation,
+        HashSet<string> loadedConversationIds)
+    {
+        if (loadedConversation == null)
+        {
+            return;
+        }
+
+        if (loadedConversation.items != null && loadedConversation.items.Count > 0)
+        {
+            foreach (ConversationDataItem item in loadedConversation.items)
+            {
+                ConversationData expandedConversation = CreateConversationFromItem(
+                    loadedConversation,
+                    item);
+                if (expandedConversation != null)
+                {
+                    AddConversationIfNotDuplicate(expandedConversation, loadedConversationIds);
+                }
+            }
+
+            return;
+        }
+
+        AddConversationIfNotDuplicate(loadedConversation, loadedConversationIds);
+    }
+
+    private void AddConversationIfNotDuplicate(
+        ConversationData conversation,
+        HashSet<string> loadedConversationIds)
+    {
+        if (conversation == null)
+        {
+            return;
+        }
+
+        if (!string.IsNullOrEmpty(conversation.conversationId)
+            && !loadedConversationIds.Add(conversation.conversationId))
+        {
+            Debug.LogWarning("Conversation Id が重複しているためスキップしました: " + conversation.conversationId);
+            return;
+        }
+
+        conversations.Add(conversation);
+    }
+
+    private ConversationData CreateConversationFromItem(
+        ConversationData sourceAsset,
+        ConversationDataItem item)
+    {
+        if (item == null)
+        {
+            return null;
+        }
+
+        ConversationData conversation = ScriptableObject.CreateInstance<ConversationData>();
+        conversation.name = string.IsNullOrEmpty(item.conversationId)
+            ? sourceAsset.name
+            : sourceAsset.name + "/" + item.conversationId;
+        conversation.conversationId = item.conversationId;
+        conversation.genre = item.genre;
+        conversation.type = item.type;
+        conversation.heroineLine = item.heroineLine;
+        conversation.choices = item.choices == null
+            ? new List<ConversationChoice>()
+            : new List<ConversationChoice>(item.choices);
+        conversation.priority = item.priority;
+        conversation.showOnce = item.showOnce;
+        conversation.minAffection = item.minAffection;
+        conversation.maxAffection = item.maxAffection;
+        conversation.anyTimeSlot = item.anyTimeSlot;
+        conversation.allowedTimeSlots = item.allowedTimeSlots == null
+            ? new List<TimeSlot>()
+            : new List<TimeSlot>(item.allowedTimeSlots);
+        conversation.anySeason = item.anySeason;
+        conversation.allowedSeasons = item.allowedSeasons == null
+            ? new List<Season>()
+            : new List<Season>(item.allowedSeasons);
+        conversation.anyWeather = item.anyWeather;
+        conversation.allowedWeathers = item.allowedWeathers == null
+            ? new List<Weather>()
+            : new List<Weather>(item.allowedWeathers);
+        return conversation;
     }
 
     private void CreateGenreButtons()
