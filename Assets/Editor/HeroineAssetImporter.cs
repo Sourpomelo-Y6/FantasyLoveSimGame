@@ -28,6 +28,7 @@ public static class HeroineAssetImporter
 
     public static void ImportHeroineExport(string exportFolder)
     {
+        HeroineImportReport report = new HeroineImportReport();
         string profileJsonPath = Path.Combine(exportFolder, ProfileJsonRelativePath);
         if (!File.Exists(profileJsonPath))
         {
@@ -65,15 +66,19 @@ public static class HeroineAssetImporter
         }
 
         ApplyProfile(profile, profileExport);
-        ImageImportResult imageImportResult = ImportImages(exportFolder, profileExport.heroineId);
-        ApplyDefaultHeroineSprite(profile, imageImportResult.defaultSpritePath);
-        int importedConversationCount = ImportConversations(exportFolder, profileExport.heroineId);
+        ImportImages(exportFolder, profileExport.heroineId, report);
+        ApplyDefaultHeroineSprite(profile, report.defaultSpritePath, report);
+        ImportConversations(exportFolder, profileExport.heroineId, report);
 
         EditorUtility.SetDirty(profile);
         AssetDatabase.SaveAssets();
         AssetDatabase.Refresh();
 
-        Debug.Log($"Heroine export を import しました: {assetPath}, copied images: {imageImportResult.copiedCount}, catalog assets: {imageImportResult.catalogCount}, conversations: {importedConversationCount}");
+        report.LogSummary(assetPath);
+        EditorUtility.DisplayDialog(
+            "Heroine Export Import",
+            report.CreateDialogMessage(assetPath),
+            "OK");
     }
 
     private static void ApplyProfile(HeroineProfileData profile, HeroineProfileExport profileExport)
@@ -88,7 +93,10 @@ public static class HeroineAssetImporter
         profile.endingResourcePath = $"Heroines/{profileExport.heroineId}/Endings";
     }
 
-    private static void ApplyDefaultHeroineSprite(HeroineProfileData profile, string defaultSpritePath)
+    private static void ApplyDefaultHeroineSprite(
+        HeroineProfileData profile,
+        string defaultSpritePath,
+        HeroineImportReport report)
     {
         if (string.IsNullOrWhiteSpace(defaultSpritePath))
         {
@@ -99,20 +107,23 @@ public static class HeroineAssetImporter
         Sprite sprite = AssetDatabase.LoadAssetAtPath<Sprite>(defaultSpritePath);
         if (sprite == null)
         {
-            Debug.LogWarning("代表立ち絵候補を Sprite として読み込めませんでした: " + defaultSpritePath);
+            report.Warn("代表立ち絵候補を Sprite として読み込めませんでした: " + defaultSpritePath);
             return;
         }
 
         profile.defaultHeroineSprite = sprite;
     }
 
-    private static ImageImportResult ImportImages(string exportFolder, string heroineId)
+    private static void ImportImages(
+        string exportFolder,
+        string heroineId,
+        HeroineImportReport report)
     {
         string assetsJsonPath = Path.Combine(exportFolder, AssetsJsonRelativePath);
         if (!File.Exists(assetsJsonPath))
         {
             Debug.Log("assets_export.json が見つからないため、画像 import はスキップしました: " + assetsJsonPath);
-            return new ImageImportResult();
+            return;
         }
 
         AssetsExport assetsExport;
@@ -124,19 +135,18 @@ public static class HeroineAssetImporter
         catch (Exception ex)
         {
             Debug.LogError("assets_export.json の読み込みに失敗しました: " + ex.Message);
-            return new ImageImportResult();
+            return;
         }
 
         if (assetsExport == null || assetsExport.assets == null)
         {
-            Debug.LogWarning("assets_export.json に assets がありません。");
-            return new ImageImportResult();
+            report.Warn("assets_export.json に assets がありません。");
+            return;
         }
 
         string effectiveHeroineId = string.IsNullOrWhiteSpace(assetsExport.heroineId)
             ? heroineId
             : assetsExport.heroineId;
-        ImageImportResult result = new ImageImportResult();
         HeroineAssetCatalog catalog = LoadOrCreateAssetCatalog(effectiveHeroineId);
         catalog.heroineId = effectiveHeroineId;
         if (catalog.assets == null)
@@ -154,7 +164,7 @@ public static class HeroineAssetImporter
                 continue;
             }
 
-            if (!CanImportCatalogAsset(asset, importedAssetIds))
+            if (!CanImportCatalogAsset(asset, importedAssetIds, report))
             {
                 continue;
             }
@@ -162,39 +172,38 @@ public static class HeroineAssetImporter
             string sourcePath = ResolveExportPath(exportFolder, asset.exportImagePath, asset.usage, asset.fileName);
             if (string.IsNullOrEmpty(sourcePath) || !File.Exists(sourcePath))
             {
-                Debug.LogWarning("画像ファイルが見つからないためスキップしました: " + sourcePath);
+                report.Warn("画像ファイルが見つからないためスキップしました: " + sourcePath);
                 continue;
             }
 
             string unityPath = ResolveUnityImagePath(effectiveHeroineId, asset);
             if (!IsValidUnityAssetPath(unityPath))
             {
-                Debug.LogWarning("unityImagePath が Assets 配下ではないためスキップしました: " + unityPath);
+                report.Warn("unityImagePath が Assets 配下ではないためスキップしました: " + unityPath);
                 continue;
             }
 
             EnsureFolderForAssetPath(unityPath);
             if (File.Exists(unityPath) && !OverwriteExistingImages)
             {
-                Debug.LogWarning("既存画像があるため上書きせずスキップしました: " + unityPath);
+                report.Warn("既存画像があるため上書きせずスキップしました: " + unityPath);
                 AssetDatabase.ImportAsset(unityPath);
                 EnsureSpriteImportSettings(unityPath);
-                SetDefaultSpriteCandidateIfNeeded(result, asset, unityPath);
-                AddCatalogEntry(catalog, asset, unityPath);
+                SetDefaultSpriteCandidateIfNeeded(report, asset, unityPath);
+                AddCatalogEntry(catalog, asset, unityPath, report);
                 continue;
             }
 
             File.Copy(sourcePath, unityPath, OverwriteExistingImages);
             AssetDatabase.ImportAsset(unityPath);
             EnsureSpriteImportSettings(unityPath);
-            SetDefaultSpriteCandidateIfNeeded(result, asset, unityPath);
-            AddCatalogEntry(catalog, asset, unityPath);
-            result.copiedCount++;
+            SetDefaultSpriteCandidateIfNeeded(report, asset, unityPath);
+            AddCatalogEntry(catalog, asset, unityPath, report);
+            report.copiedImageCount++;
         }
 
-        result.catalogCount = catalog.assets.Count;
+        report.catalogAssetCount = catalog.assets.Count;
         EditorUtility.SetDirty(catalog);
-        return result;
     }
 
     private static HeroineAssetCatalog LoadOrCreateAssetCatalog(string heroineId)
@@ -216,17 +225,18 @@ public static class HeroineAssetImporter
 
     private static bool CanImportCatalogAsset(
         HeroineAssetExport asset,
-        HashSet<string> importedAssetIds)
+        HashSet<string> importedAssetIds,
+        HeroineImportReport report)
     {
         if (string.IsNullOrWhiteSpace(asset.assetId))
         {
-            Debug.LogWarning("assetId が空の画像 asset をスキップしました: " + asset.fileName);
+            report.Warn("assetId が空の画像 asset をスキップしました: " + asset.fileName);
             return false;
         }
 
         if (!importedAssetIds.Add(asset.assetId))
         {
-            Debug.LogWarning("assetId が重複している画像 asset をスキップしました: " + asset.assetId);
+            report.Warn("assetId が重複している画像 asset をスキップしました: " + asset.assetId);
             return false;
         }
 
@@ -236,12 +246,13 @@ public static class HeroineAssetImporter
     private static void AddCatalogEntry(
         HeroineAssetCatalog catalog,
         HeroineAssetExport asset,
-        string unityPath)
+        string unityPath,
+        HeroineImportReport report)
     {
         Sprite sprite = AssetDatabase.LoadAssetAtPath<Sprite>(unityPath);
         if (sprite == null)
         {
-            Debug.LogWarning("HeroineAssetCatalog 用 Sprite を解決できませんでした: " + unityPath);
+            report.Warn("HeroineAssetCatalog 用 Sprite を解決できませんでした: " + unityPath);
         }
 
         catalog.assets.Add(new HeroineAssetEntry
@@ -257,13 +268,16 @@ public static class HeroineAssetImporter
         });
     }
 
-    private static int ImportConversations(string exportFolder, string heroineId)
+    private static void ImportConversations(
+        string exportFolder,
+        string heroineId,
+        HeroineImportReport report)
     {
         string conversationsJsonPath = Path.Combine(exportFolder, ConversationsJsonRelativePath);
         if (!File.Exists(conversationsJsonPath))
         {
             Debug.Log("conversations_export.json が見つからないため、会話 import はスキップしました: " + conversationsJsonPath);
-            return 0;
+            return;
         }
 
         ConversationsExport conversationsExport;
@@ -275,19 +289,19 @@ public static class HeroineAssetImporter
         catch (Exception ex)
         {
             Debug.LogError("conversations_export.json の読み込みに失敗しました: " + ex.Message);
-            return 0;
+            return;
         }
 
         if (conversationsExport == null || conversationsExport.items == null)
         {
-            Debug.LogWarning("conversations_export.json に items がありません。");
-            return 0;
+            report.Warn("conversations_export.json に items がありません。");
+            return;
         }
 
         if (!string.IsNullOrWhiteSpace(conversationsExport.heroineId)
             && !string.Equals(conversationsExport.heroineId, heroineId, StringComparison.Ordinal))
         {
-            Debug.LogWarning($"conversations_export.json の heroineId が profile と一致しません: {conversationsExport.heroineId} / {heroineId}");
+            report.Warn($"conversations_export.json の heroineId が profile と一致しません: {conversationsExport.heroineId} / {heroineId}");
         }
 
         string heroineResourceFolderPath = $"Assets/Resources/Heroines/{heroineId}";
@@ -307,47 +321,53 @@ public static class HeroineAssetImporter
         conversationContainer.items.Clear();
         foreach (ConversationExportItem item in conversationsExport.items)
         {
-            if (!CanImportConversation(item, importedIds))
+            if (!CanImportConversation(item, importedIds, report))
             {
                 continue;
             }
 
             ConversationDataItem conversation = new ConversationDataItem();
-            ApplyConversation(conversation, item);
+            ApplyConversation(conversation, item, report);
             conversationContainer.items.Add(conversation);
             importedIds.Add(item.id);
             importedCount++;
         }
 
+        report.conversationCount = importedCount;
         EditorUtility.SetDirty(conversationContainer);
-        return importedCount;
     }
 
-    private static bool CanImportConversation(ConversationExportItem item, HashSet<string> importedIds)
+    private static bool CanImportConversation(
+        ConversationExportItem item,
+        HashSet<string> importedIds,
+        HeroineImportReport report)
     {
         if (item == null || string.IsNullOrWhiteSpace(item.id))
         {
-            Debug.LogWarning("id が空の会話 item をスキップしました。");
+            report.Warn("id が空の会話 item をスキップしました。");
             return false;
         }
 
         if (importedIds.Contains(item.id))
         {
-            Debug.LogWarning("id が重複している会話 item をスキップしました: " + item.id);
+            report.Warn("id が重複している会話 item をスキップしました: " + item.id);
             return false;
         }
 
         string heroineLine = GetFirstLineText(item);
         if (string.IsNullOrWhiteSpace(heroineLine))
         {
-            Debug.LogWarning("lines が空の会話 item をスキップしました: " + item.id);
+            report.Warn("lines が空の会話 item をスキップしました: " + item.id);
             return false;
         }
 
         return true;
     }
 
-    private static void ApplyConversation(ConversationDataItem conversation, ConversationExportItem item)
+    private static void ApplyConversation(
+        ConversationDataItem conversation,
+        ConversationExportItem item,
+        HeroineImportReport report)
     {
         ConversationExportConditions conditions = item.conditions ?? new ConversationExportConditions();
 
@@ -364,15 +384,18 @@ public static class HeroineAssetImporter
         ApplySingleEnumCondition(
             conditions.timeOfDay,
             conversation.allowedTimeSlots,
-            value => conversation.anyTimeSlot = value);
+            value => conversation.anyTimeSlot = value,
+            report);
         ApplySingleEnumCondition(
             conditions.season,
             conversation.allowedSeasons,
-            value => conversation.anySeason = value);
+            value => conversation.anySeason = value,
+            report);
         ApplySingleEnumCondition(
             conditions.weather,
             conversation.allowedWeathers,
-            value => conversation.anyWeather = value);
+            value => conversation.anyWeather = value,
+            report);
     }
 
     private static string GetFirstLineText(ConversationExportItem item)
@@ -393,7 +416,11 @@ public static class HeroineAssetImporter
         return string.Empty;
     }
 
-    private static void ApplySingleEnumCondition<T>(string rawValue, List<T> target, Action<bool> setAny)
+    private static void ApplySingleEnumCondition<T>(
+        string rawValue,
+        List<T> target,
+        Action<bool> setAny,
+        HeroineImportReport report)
         where T : struct
     {
         target.Clear();
@@ -410,7 +437,7 @@ public static class HeroineAssetImporter
             return;
         }
 
-        Debug.LogWarning($"未知の条件値を無視しました: {typeof(T).Name} = {rawValue}");
+        report.Warn($"未知の条件値を無視しました: {typeof(T).Name} = {rawValue}");
         setAny(true);
     }
 
@@ -426,16 +453,16 @@ public static class HeroineAssetImporter
     }
 
     private static void SetDefaultSpriteCandidateIfNeeded(
-        ImageImportResult result,
+        HeroineImportReport report,
         HeroineAssetExport asset,
         string unityPath)
     {
-        if (!string.IsNullOrWhiteSpace(result.defaultSpritePath) || !IsDefaultSpriteCandidate(asset))
+        if (!string.IsNullOrWhiteSpace(report.defaultSpritePath) || !IsDefaultSpriteCandidate(asset))
         {
             return;
         }
 
-        result.defaultSpritePath = unityPath;
+        report.defaultSpritePath = unityPath;
     }
 
     private static bool IsDefaultSpriteCandidate(HeroineAssetExport asset)
@@ -622,10 +649,54 @@ public static class HeroineAssetImporter
         public string unityImagePath;
     }
 
-    private sealed class ImageImportResult
+    private sealed class HeroineImportReport
     {
-        public int copiedCount;
-        public int catalogCount;
+        public int copiedImageCount;
+        public int catalogAssetCount;
+        public int conversationCount;
         public string defaultSpritePath;
+        public readonly List<string> warnings = new List<string>();
+
+        public void Warn(string message)
+        {
+            warnings.Add(message);
+            Debug.LogWarning(message);
+        }
+
+        public void LogSummary(string assetPath)
+        {
+            Debug.Log(
+                $"Heroine export を import しました: {assetPath}, copied images: {copiedImageCount}, catalog assets: {catalogAssetCount}, conversations: {conversationCount}, warnings: {warnings.Count}");
+        }
+
+        public string CreateDialogMessage(string assetPath)
+        {
+            string message =
+                "Import completed.\n" +
+                "Profile: " + assetPath + "\n" +
+                "Copied images: " + copiedImageCount + "\n" +
+                "Catalog assets: " + catalogAssetCount + "\n" +
+                "Conversations: " + conversationCount + "\n" +
+                "Warnings: " + warnings.Count;
+
+            if (warnings.Count == 0)
+            {
+                return message;
+            }
+
+            int previewCount = Math.Min(5, warnings.Count);
+            message += "\n\nWarnings:";
+            for (int i = 0; i < previewCount; i++)
+            {
+                message += "\n- " + warnings[i];
+            }
+
+            if (warnings.Count > previewCount)
+            {
+                message += "\n- ...";
+            }
+
+            return message;
+        }
     }
 }
