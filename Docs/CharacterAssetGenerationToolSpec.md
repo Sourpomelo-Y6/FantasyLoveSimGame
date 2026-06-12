@@ -344,8 +344,10 @@ Unity Editor 拡張は `exportImagePath` から画像をコピーし、`unityIma
 `GameManager` は `HeroineProfileData.defaultHeroineSprite` を `OutfitManager` に渡し、通常衣装 `Normal` の表示では profile の代表立ち絵を優先する。
 通常衣装以外は、衣装に `heroineSprite` が設定されている場合は従来どおり衣装画像を優先し、衣装画像がない場合だけ代表立ち絵へフォールバックする。
 `TestHeroine` の追加画像は容量節約のため Unity 側リポジトリへコミットせず、AssetTool 側の export サンプルまたはローカル import 結果として扱う。
-`Data/conversations_export.json` が存在する場合は、`Assets/Resources/Heroines/<HeroineId>/Conversations/` 配下へ `ConversationData` を生成、更新する。
-現時点の会話 import は最小対応で、`lines` の最初の本文を `ConversationData.heroineLine` に反映し、`category`、好感度、時間帯、季節、天候、優先度、単発表示条件を可能な範囲で反映する。
+`Data/conversations_export.json` が存在する場合は、`Assets/Resources/Heroines/<HeroineId>/Conversations.asset` を生成、更新する。
+`Conversations.asset` は `ConversationData.items` に複数会話を持つ container として扱い、実行時には `GameManager` が従来の会話候補へ展開する。
+現時点の会話 import は最小対応で、`lines` の最初の本文を `ConversationDataItem.heroineLine` に反映し、`category`、好感度、時間帯、季節、天候、優先度、単発表示条件を可能な範囲で反映する。
+既存の個別 `ConversationData` asset も互換のため読み込めるが、新規 import は `Conversations.asset` にまとめる。
 prompt JSON、ゲームイベント、行動反応、エンディング本文の JSON import は次段階で対応する。
 
 次は Unity 側 importer を広げる前に、`FantasyLoveSimAssetTool` 側で会話、イベント、行動反応、エンディング本文を入力、保存、export できるようにする。
@@ -380,6 +382,7 @@ Data/
 
 このときもツール側から `.asset` を直接生成しない。
 Unity Editor 側で `ConversationData`、`GameEventData`、`ActionReactionData`、`EndingData` の `.asset` を生成、更新する。
+会話データは item ごとに個別 `.asset` を分けず、まずは `Conversations.asset` 1つにまとめる。
 
 Tool 側で先に作る最小機能:
 
