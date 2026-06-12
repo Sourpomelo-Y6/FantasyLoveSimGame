@@ -423,6 +423,8 @@
 通常衣装以外は衣装側の `heroineSprite` を優先し、衣装画像がない場合だけ profile の代表立ち絵へフォールバックする。
 AssetTool の `assets_export.json` を importer で取り込むと、`Assets/Resources/Heroines/<HeroineId>/HeroineAssetCatalog.asset` に `assetId` と Sprite 参照の対応が保存される。
 Importer は完了時に copied images、catalog assets、conversations、warning 件数を summary 表示する。
+`sprite_layers_export.json` がある場合は、`HeroineLayeredSpriteData.asset` に `BaseBody` / `Costume` / `Expression` / `Accessory` の各レイヤーを import する。
+レイヤーの実表示を行う `HeroineLayeredSpriteView` は未実装で、次以降の作業対象。
 追加の `TestHeroine` 画像は容量節約のためコミットしない。
 画像が必要な場合は `FantasyLoveSimAssetTool` の export サンプルから importer で取り込み、ローカル確認用として扱う。
 

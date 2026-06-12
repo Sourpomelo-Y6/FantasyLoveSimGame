@@ -9,6 +9,7 @@ public static class HeroineAssetImporter
     private const string MenuPath = "FantasyLoveSim/Import Heroine Export";
     private const string ProfileJsonRelativePath = "Data/heroine_profile_export.json";
     private const string AssetsJsonRelativePath = "Data/assets_export.json";
+    private const string SpriteLayersJsonRelativePath = "Data/sprite_layers_export.json";
     private const string ConversationsJsonRelativePath = "Data/conversations_export.json";
     private const string DefaultHeroineSpriteAssetId = "Heroine_Normal";
     private const string DefaultHeroineSpriteFileName = "Heroine_Normal.png";
@@ -68,6 +69,7 @@ public static class HeroineAssetImporter
         ApplyProfile(profile, profileExport);
         ImportImages(exportFolder, profileExport.heroineId, report);
         ApplyDefaultHeroineSprite(profile, report.defaultSpritePath, report);
+        ImportSpriteLayers(exportFolder, profileExport.heroineId, report);
         ImportConversations(exportFolder, profileExport.heroineId, report);
 
         EditorUtility.SetDirty(profile);
@@ -266,6 +268,313 @@ public static class HeroineAssetImporter
             unityImagePath = unityPath,
             exportPromptPath = asset.exportPromptPath
         });
+    }
+
+    private static void ImportSpriteLayers(
+        string exportFolder,
+        string heroineId,
+        HeroineImportReport report)
+    {
+        string spriteLayersJsonPath = Path.Combine(exportFolder, SpriteLayersJsonRelativePath);
+        if (!File.Exists(spriteLayersJsonPath))
+        {
+            Debug.Log("sprite_layers_export.json が見つからないため、レイヤー import はスキップしました: " + spriteLayersJsonPath);
+            return;
+        }
+
+        SpriteLayersExport spriteLayersExport;
+        try
+        {
+            string json = File.ReadAllText(spriteLayersJsonPath);
+            spriteLayersExport = JsonUtility.FromJson<SpriteLayersExport>(json);
+        }
+        catch (Exception ex)
+        {
+            Debug.LogError("sprite_layers_export.json の読み込みに失敗しました: " + ex.Message);
+            return;
+        }
+
+        if (spriteLayersExport == null || spriteLayersExport.layers == null)
+        {
+            report.Warn("sprite_layers_export.json に layers がありません。");
+            return;
+        }
+
+        if (!string.IsNullOrWhiteSpace(spriteLayersExport.heroineId)
+            && !string.Equals(spriteLayersExport.heroineId, heroineId, StringComparison.Ordinal))
+        {
+            report.Warn($"sprite_layers_export.json の heroineId が profile と一致しません: {spriteLayersExport.heroineId} / {heroineId}");
+        }
+
+        string heroineResourceFolderPath = $"Assets/Resources/Heroines/{heroineId}";
+        EnsureFolder(heroineResourceFolderPath);
+
+        string assetPath = $"{heroineResourceFolderPath}/HeroineLayeredSpriteData.asset";
+        HeroineLayeredSpriteData layeredSpriteData =
+            AssetDatabase.LoadAssetAtPath<HeroineLayeredSpriteData>(assetPath);
+        if (layeredSpriteData == null)
+        {
+            layeredSpriteData = ScriptableObject.CreateInstance<HeroineLayeredSpriteData>();
+            AssetDatabase.CreateAsset(layeredSpriteData, assetPath);
+        }
+
+        EnsureLayerLists(layeredSpriteData);
+        layeredSpriteData.heroineId = heroineId;
+        layeredSpriteData.baseBodyLayers.Clear();
+        layeredSpriteData.costumeLayers.Clear();
+        layeredSpriteData.expressionLayers.Clear();
+        layeredSpriteData.accessoryLayers.Clear();
+
+        HeroineAssetCatalog catalog = LoadOrCreateAssetCatalog(heroineId);
+        Dictionary<string, Sprite> spritesByAssetId = CreateCatalogSpriteMap(catalog, report);
+        HashSet<string> importedLayerAssetIds = new HashSet<string>(StringComparer.Ordinal);
+        HashSet<string> importedLayerKeys = new HashSet<string>(StringComparer.Ordinal);
+
+        foreach (SpriteLayerExport layer in spriteLayersExport.layers)
+        {
+            if (!CanImportSpriteLayer(layer, importedLayerAssetIds, importedLayerKeys, report))
+            {
+                continue;
+            }
+
+            LayerEntry entry = CreateLayerEntry(layer, spritesByAssetId, report);
+            AddLayerEntry(layeredSpriteData, entry, report);
+        }
+
+        SortLayerEntries(layeredSpriteData);
+        ValidateLayeredSpriteData(layeredSpriteData, report);
+        report.layerCount =
+            layeredSpriteData.baseBodyLayers.Count +
+            layeredSpriteData.costumeLayers.Count +
+            layeredSpriteData.expressionLayers.Count +
+            layeredSpriteData.accessoryLayers.Count;
+
+        EditorUtility.SetDirty(layeredSpriteData);
+    }
+
+    private static void EnsureLayerLists(HeroineLayeredSpriteData data)
+    {
+        if (data.baseBodyLayers == null)
+        {
+            data.baseBodyLayers = new List<LayerEntry>();
+        }
+
+        if (data.costumeLayers == null)
+        {
+            data.costumeLayers = new List<LayerEntry>();
+        }
+
+        if (data.expressionLayers == null)
+        {
+            data.expressionLayers = new List<LayerEntry>();
+        }
+
+        if (data.accessoryLayers == null)
+        {
+            data.accessoryLayers = new List<LayerEntry>();
+        }
+    }
+
+    private static Dictionary<string, Sprite> CreateCatalogSpriteMap(
+        HeroineAssetCatalog catalog,
+        HeroineImportReport report)
+    {
+        Dictionary<string, Sprite> spritesByAssetId =
+            new Dictionary<string, Sprite>(StringComparer.Ordinal);
+        if (catalog == null || catalog.assets == null)
+        {
+            return spritesByAssetId;
+        }
+
+        foreach (HeroineAssetEntry asset in catalog.assets)
+        {
+            if (asset == null || string.IsNullOrWhiteSpace(asset.assetId))
+            {
+                continue;
+            }
+
+            if (spritesByAssetId.ContainsKey(asset.assetId))
+            {
+                report.Warn("HeroineAssetCatalog の assetId が重複しています: " + asset.assetId);
+                continue;
+            }
+
+            spritesByAssetId.Add(asset.assetId, asset.sprite);
+        }
+
+        return spritesByAssetId;
+    }
+
+    private static bool CanImportSpriteLayer(
+        SpriteLayerExport layer,
+        HashSet<string> importedLayerAssetIds,
+        HashSet<string> importedLayerKeys,
+        HeroineImportReport report)
+    {
+        if (layer == null)
+        {
+            report.Warn("空の sprite layer をスキップしました。");
+            return false;
+        }
+
+        if (string.IsNullOrWhiteSpace(layer.assetId))
+        {
+            report.Warn("assetId が空の sprite layer をスキップしました: " + layer.fileName);
+            return false;
+        }
+
+        if (!importedLayerAssetIds.Add(layer.assetId))
+        {
+            report.Warn("assetId が重複している sprite layer をスキップしました: " + layer.assetId);
+            return false;
+        }
+
+        if (!IsKnownLayerKind(layer.layerKind))
+        {
+            report.Warn("未知の layerKind の sprite layer をスキップしました: " + layer.layerKind);
+            return false;
+        }
+
+        if (string.Equals(layer.layerKind, "Costume", StringComparison.OrdinalIgnoreCase)
+            && string.IsNullOrWhiteSpace(layer.costumeId))
+        {
+            report.Warn("Costume なのに costumeId が空の sprite layer をスキップしました: " + layer.assetId);
+            return false;
+        }
+
+        if (string.Equals(layer.layerKind, "Expression", StringComparison.OrdinalIgnoreCase)
+            && string.IsNullOrWhiteSpace(layer.expressionId))
+        {
+            report.Warn("Expression なのに expressionId が空の sprite layer をスキップしました: " + layer.assetId);
+            return false;
+        }
+
+        string layerKey = NormalizeLayerKind(layer.layerKind) + "|" + layer.costumeId + "|" + layer.expressionId;
+        if (!importedLayerKeys.Add(layerKey))
+        {
+            report.Warn("同じ layerKind + costumeId + expressionId の sprite layer があります: " + layerKey);
+        }
+
+        return true;
+    }
+
+    private static bool IsKnownLayerKind(string layerKind)
+    {
+        string normalizedLayerKind = NormalizeLayerKind(layerKind);
+        return normalizedLayerKind == "BaseBody"
+            || normalizedLayerKind == "Costume"
+            || normalizedLayerKind == "Expression"
+            || normalizedLayerKind == "Accessory";
+    }
+
+    private static string NormalizeLayerKind(string layerKind)
+    {
+        if (string.Equals(layerKind, "BaseBody", StringComparison.OrdinalIgnoreCase))
+        {
+            return "BaseBody";
+        }
+
+        if (string.Equals(layerKind, "Costume", StringComparison.OrdinalIgnoreCase))
+        {
+            return "Costume";
+        }
+
+        if (string.Equals(layerKind, "Expression", StringComparison.OrdinalIgnoreCase))
+        {
+            return "Expression";
+        }
+
+        if (string.Equals(layerKind, "Accessory", StringComparison.OrdinalIgnoreCase))
+        {
+            return "Accessory";
+        }
+
+        return layerKind;
+    }
+
+    private static LayerEntry CreateLayerEntry(
+        SpriteLayerExport layer,
+        Dictionary<string, Sprite> spritesByAssetId,
+        HeroineImportReport report)
+    {
+        Sprite sprite = null;
+        if (!spritesByAssetId.TryGetValue(layer.assetId, out sprite) || sprite == null)
+        {
+            sprite = AssetDatabase.LoadAssetAtPath<Sprite>(NormalizeAssetPath(layer.unityImagePath));
+            if (sprite == null)
+            {
+                report.Warn("sprite layer の Sprite を解決できませんでした: " + layer.assetId);
+            }
+        }
+
+        return new LayerEntry
+        {
+            assetId = layer.assetId,
+            layerKind = NormalizeLayerKind(layer.layerKind),
+            costumeId = layer.costumeId,
+            expressionId = layer.expressionId,
+            displayName = layer.displayName,
+            drawOrder = layer.drawOrder,
+            sprite = sprite
+        };
+    }
+
+    private static void AddLayerEntry(
+        HeroineLayeredSpriteData data,
+        LayerEntry entry,
+        HeroineImportReport report)
+    {
+        switch (entry.layerKind)
+        {
+            case "BaseBody":
+                data.baseBodyLayers.Add(entry);
+                break;
+            case "Costume":
+                data.costumeLayers.Add(entry);
+                break;
+            case "Expression":
+                data.expressionLayers.Add(entry);
+                break;
+            case "Accessory":
+                data.accessoryLayers.Add(entry);
+                break;
+            default:
+                report.Warn("未知の layerKind の LayerEntry をスキップしました: " + entry.layerKind);
+                break;
+        }
+    }
+
+    private static void SortLayerEntries(HeroineLayeredSpriteData data)
+    {
+        Comparison<LayerEntry> comparison = (left, right) => left.drawOrder.CompareTo(right.drawOrder);
+        data.baseBodyLayers.Sort(comparison);
+        data.costumeLayers.Sort(comparison);
+        data.expressionLayers.Sort(comparison);
+        data.accessoryLayers.Sort(comparison);
+    }
+
+    private static void ValidateLayeredSpriteData(
+        HeroineLayeredSpriteData data,
+        HeroineImportReport report)
+    {
+        if (data.baseBodyLayers.Count == 0)
+        {
+            report.Warn("HeroineLayeredSpriteData に BaseBody がありません。");
+        }
+
+        bool hasDefaultCostume = data.costumeLayers.Exists(
+            layer => string.Equals(layer.costumeId, data.defaultCostumeId, StringComparison.Ordinal));
+        if (!hasDefaultCostume)
+        {
+            report.Warn("HeroineLayeredSpriteData に Default 衣装がありません。");
+        }
+
+        bool hasNeutralExpression = data.expressionLayers.Exists(
+            layer => string.Equals(layer.expressionId, data.defaultExpressionId, StringComparison.Ordinal));
+        if (!hasNeutralExpression)
+        {
+            report.Warn("HeroineLayeredSpriteData に Neutral 表情がありません。");
+        }
     }
 
     private static void ImportConversations(
@@ -604,6 +913,29 @@ public static class HeroineAssetImporter
     }
 
     [Serializable]
+    private sealed class SpriteLayersExport
+    {
+        public string schemaVersion;
+        public string heroineId;
+        public string unityImageRoot;
+        public SpriteLayerExport[] layers;
+    }
+
+    [Serializable]
+    private sealed class SpriteLayerExport
+    {
+        public string assetId;
+        public string layerKind;
+        public string costumeId;
+        public string expressionId;
+        public string displayName;
+        public int drawOrder;
+        public string fileName;
+        public string exportImagePath;
+        public string unityImagePath;
+    }
+
+    [Serializable]
     private sealed class ConversationExportItem
     {
         public string id;
@@ -653,6 +985,7 @@ public static class HeroineAssetImporter
     {
         public int copiedImageCount;
         public int catalogAssetCount;
+        public int layerCount;
         public int conversationCount;
         public string defaultSpritePath;
         public readonly List<string> warnings = new List<string>();
@@ -666,7 +999,7 @@ public static class HeroineAssetImporter
         public void LogSummary(string assetPath)
         {
             Debug.Log(
-                $"Heroine export を import しました: {assetPath}, copied images: {copiedImageCount}, catalog assets: {catalogAssetCount}, conversations: {conversationCount}, warnings: {warnings.Count}");
+                $"Heroine export を import しました: {assetPath}, copied images: {copiedImageCount}, catalog assets: {catalogAssetCount}, layers: {layerCount}, conversations: {conversationCount}, warnings: {warnings.Count}");
         }
 
         public string CreateDialogMessage(string assetPath)
@@ -676,6 +1009,7 @@ public static class HeroineAssetImporter
                 "Profile: " + assetPath + "\n" +
                 "Copied images: " + copiedImageCount + "\n" +
                 "Catalog assets: " + catalogAssetCount + "\n" +
+                "Layers: " + layerCount + "\n" +
                 "Conversations: " + conversationCount + "\n" +
                 "Warnings: " + warnings.Count;
 

@@ -350,8 +350,11 @@ Unity Editor 拡張は `exportImagePath` から画像をコピーし、`unityIma
 `Conversations.asset` は `ConversationData.items` に複数会話を持つ container として扱い、実行時には `GameManager` が従来の会話候補へ展開する。
 現時点の会話 import は最小対応で、`lines` の最初の本文を `ConversationDataItem.heroineLine` に反映し、`category`、好感度、時間帯、季節、天候、優先度、単発表示条件を可能な範囲で反映する。
 既存の個別 `ConversationData` asset も互換のため読み込めるが、新規 import は `Conversations.asset` にまとめる。
+`Data/sprite_layers_export.json` が存在する場合は、`Assets/Resources/Heroines/<HeroineId>/HeroineLayeredSpriteData.asset` を生成、更新する。
+レイヤーは `BaseBody` / `Costume` / `Expression` / `Accessory` に分類し、`assetId` から `HeroineAssetCatalog` の Sprite を参照する。
+`BaseBody` なし、`Default` 衣装なし、`Neutral` 表情なし、未知 `layerKind`、Sprite 解決失敗は Import warning に残す。
 prompt JSON、ゲームイベント、行動反応、エンディング本文の JSON import は次段階で対応する。
-Importer は `HeroineImportReport` で copied images、catalog assets、conversations、warning 件数を集計し、完了時に Console summary と `EditorUtility.DisplayDialog` で結果を表示する。
+Importer は `HeroineImportReport` で copied images、catalog assets、layers、conversations、warning 件数を集計し、完了時に Console summary と `EditorUtility.DisplayDialog` で結果を表示する。
 続行可能な問題は warning として report に残し、JSON が読めない、`heroineId` が取れないなどのキー情報不足だけ中断する。
 
 次は Unity 側 importer を広げる前に、`FantasyLoveSimAssetTool` 側で会話、イベント、行動反応、エンディング本文を入力、保存、export できるようにする。
