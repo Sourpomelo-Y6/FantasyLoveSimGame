@@ -238,6 +238,7 @@ Canvas
 
 ```text
 Assets/Resources/Heroines/DefaultHeroine/Conversations.asset
+Assets/Resources/Heroines/DefaultHeroine/HeroineAssetCatalog.asset
 Assets/Resources/Heroines/DefaultHeroine/GameEvents/
 Assets/Resources/Heroines/DefaultHeroine/Actions/
 Assets/Resources/Heroines/DefaultHeroine/Endings/
@@ -261,6 +262,7 @@ Assets/Images/Heroines/DefaultHeroine/Ending/
 `Heroines/TestHeroine/Actions` / `Conversations.asset` / `GameEvents` / `Endings` には最小確認用データだけを置く。
 `MainScene` の `GameManager.heroineProfile` に `TestHeroineProfile` を割り当てると、ヒロイン名、開始イベント、会話、エンディングの読み込み元が切り替わるか確認できる。
 `HeroineProfileData.defaultHeroineSprite` は通常衣装 `Normal` の立ち絵として `OutfitManager` に渡し、通常衣装以外は衣装側の `heroineSprite` を優先する。
+AssetTool の `assets_export.json` は importer で `HeroineAssetCatalog.asset` に変換し、画像の `assetId`、用途、Unity asset path、Sprite 参照を保持する。
 本番用ヒロインを追加する前に、まずこの profile で差し替え導線を手動確認する。
 
 新しいヒロインを追加するときは、次のチェックリストを使う。
@@ -271,6 +273,7 @@ Assets/Images/Heroines/DefaultHeroine/Ending/
 - `actionResourcePath` に、そのヒロイン用の `Actions` フォルダを設定する
 - `endingResourcePath` に、そのヒロイン用の `Endings` フォルダを設定する
 - `defaultHeroineSprite` に代表立ち絵を設定する
+- `HeroineAssetCatalog.asset` に画像の `assetId` と Sprite 参照が入っているか確認する
 - `Actions` には行動名、行動結果、行動反応、行動スチルを用意する
 - `Conversations.asset` にはジャンル会話、好感度条件会話、天候・時間帯・季節条件会話を用意する
 - `GameEvents` には `GameStart`、`DayStart`、`Manual` 確認用イベントを用意する

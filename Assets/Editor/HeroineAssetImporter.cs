@@ -73,7 +73,7 @@ public static class HeroineAssetImporter
         AssetDatabase.SaveAssets();
         AssetDatabase.Refresh();
 
-        Debug.Log($"Heroine export を import しました: {assetPath}, copied images: {imageImportResult.copiedCount}, conversations: {importedConversationCount}");
+        Debug.Log($"Heroine export を import しました: {assetPath}, copied images: {imageImportResult.copiedCount}, catalog assets: {imageImportResult.catalogCount}, conversations: {importedConversationCount}");
     }
 
     private static void ApplyProfile(HeroineProfileData profile, HeroineProfileExport profileExport)
@@ -137,10 +137,24 @@ public static class HeroineAssetImporter
             ? heroineId
             : assetsExport.heroineId;
         ImageImportResult result = new ImageImportResult();
+        HeroineAssetCatalog catalog = LoadOrCreateAssetCatalog(effectiveHeroineId);
+        catalog.heroineId = effectiveHeroineId;
+        if (catalog.assets == null)
+        {
+            catalog.assets = new List<HeroineAssetEntry>();
+        }
+
+        catalog.assets.Clear();
+        HashSet<string> importedAssetIds = new HashSet<string>(StringComparer.Ordinal);
 
         foreach (HeroineAssetExport asset in assetsExport.assets)
         {
             if (asset == null || !ShouldImportAsset(asset))
+            {
+                continue;
+            }
+
+            if (!CanImportCatalogAsset(asset, importedAssetIds))
             {
                 continue;
             }
@@ -166,6 +180,7 @@ public static class HeroineAssetImporter
                 AssetDatabase.ImportAsset(unityPath);
                 EnsureSpriteImportSettings(unityPath);
                 SetDefaultSpriteCandidateIfNeeded(result, asset, unityPath);
+                AddCatalogEntry(catalog, asset, unityPath);
                 continue;
             }
 
@@ -173,10 +188,73 @@ public static class HeroineAssetImporter
             AssetDatabase.ImportAsset(unityPath);
             EnsureSpriteImportSettings(unityPath);
             SetDefaultSpriteCandidateIfNeeded(result, asset, unityPath);
+            AddCatalogEntry(catalog, asset, unityPath);
             result.copiedCount++;
         }
 
+        result.catalogCount = catalog.assets.Count;
+        EditorUtility.SetDirty(catalog);
         return result;
+    }
+
+    private static HeroineAssetCatalog LoadOrCreateAssetCatalog(string heroineId)
+    {
+        string heroineResourceFolderPath = $"Assets/Resources/Heroines/{heroineId}";
+        EnsureFolder(heroineResourceFolderPath);
+
+        string assetPath = $"{heroineResourceFolderPath}/HeroineAssetCatalog.asset";
+        HeroineAssetCatalog catalog = AssetDatabase.LoadAssetAtPath<HeroineAssetCatalog>(assetPath);
+        if (catalog != null)
+        {
+            return catalog;
+        }
+
+        catalog = ScriptableObject.CreateInstance<HeroineAssetCatalog>();
+        AssetDatabase.CreateAsset(catalog, assetPath);
+        return catalog;
+    }
+
+    private static bool CanImportCatalogAsset(
+        HeroineAssetExport asset,
+        HashSet<string> importedAssetIds)
+    {
+        if (string.IsNullOrWhiteSpace(asset.assetId))
+        {
+            Debug.LogWarning("assetId が空の画像 asset をスキップしました: " + asset.fileName);
+            return false;
+        }
+
+        if (!importedAssetIds.Add(asset.assetId))
+        {
+            Debug.LogWarning("assetId が重複している画像 asset をスキップしました: " + asset.assetId);
+            return false;
+        }
+
+        return true;
+    }
+
+    private static void AddCatalogEntry(
+        HeroineAssetCatalog catalog,
+        HeroineAssetExport asset,
+        string unityPath)
+    {
+        Sprite sprite = AssetDatabase.LoadAssetAtPath<Sprite>(unityPath);
+        if (sprite == null)
+        {
+            Debug.LogWarning("HeroineAssetCatalog 用 Sprite を解決できませんでした: " + unityPath);
+        }
+
+        catalog.assets.Add(new HeroineAssetEntry
+        {
+            assetId = asset.assetId,
+            usage = asset.usage,
+            status = asset.status,
+            fileName = asset.fileName,
+            memo = asset.memo,
+            sprite = sprite,
+            unityImagePath = unityPath,
+            exportPromptPath = asset.exportPromptPath
+        });
     }
 
     private static int ImportConversations(string exportFolder, string heroineId)
@@ -547,6 +625,7 @@ public static class HeroineAssetImporter
     private sealed class ImageImportResult
     {
         public int copiedCount;
+        public int catalogCount;
         public string defaultSpritePath;
     }
 }

@@ -331,7 +331,7 @@ Unity Editor 拡張は `exportImagePath` から画像をコピーし、`unityIma
 7. `heroineId` に対応する `HeroineProfileData.asset` を検索する
 8. 既存 `.asset` があれば更新し、なければ作成する
 9. `assets_export.json` の各 `asset` から画像参照を設定する
-10. 必要に応じて `HeroineAssetCatalog.asset` のような画像一覧 ScriptableObject を作る
+10. `HeroineAssetCatalog.asset` に画像一覧と Sprite 参照を保存する
 11. `Prompts/` 配下の prompt JSON は参照資料としてコピーまたはパスだけ記録する
 12. `AssetDatabase.SaveAssets` で保存する
 
@@ -339,6 +339,8 @@ Unity Editor 拡張は `exportImagePath` から画像をコピーし、`unityIma
 `Data/heroine_profile_export.json` を読み、`Assets/Resources/Heroines/<HeroineId>Profile.asset` の `HeroineProfileData` を新規作成または更新する。
 `Data/assets_export.json` が存在する場合は、`Accepted` または空ステータスの画像を `exportImagePath` から `unityImagePath` へコピーする。
 既存画像は自動上書きせず、警告ログを出してスキップする。
+同時に `Assets/Resources/Heroines/<HeroineId>/HeroineAssetCatalog.asset` を生成、更新し、`assetId`、用途、ファイル名、`unityImagePath`、`Sprite` 参照を保存する。
+`assetId` が空、または同一 export 内で重複している画像は warning を出してスキップする。
 `usage` が `Sprites` で、`assetId` または `fileName` が `Heroine_Normal` / `Heroine_Normal.png` の画像は代表立ち絵候補として扱い、`HeroineProfileData.defaultHeroineSprite` に自動割り当てする。
 取り込んだ画像は UI 表示に使えるよう、Unity の import 設定を `Sprite` に補正する。
 `GameManager` は `HeroineProfileData.defaultHeroineSprite` を `OutfitManager` に渡し、通常衣装 `Normal` の表示では profile の代表立ち絵を優先する。
@@ -359,7 +361,7 @@ Unity 側は受け口を段階的に増やす方針だが、先に Tool 側の J
 | --- | --- |
 | `Images/<Usage>/<FileName>` | Unity に取り込む画像ファイル |
 | `Data/heroine_profile_export.json` | `HeroineProfileData` 生成、更新 |
-| `Data/assets_export.json` | 画像一覧、用途、Unity asset path の生成 |
+| `Data/assets_export.json` | `HeroineAssetCatalog` 生成、更新 |
 | `Prompts/<AssetId>.prompt.json` | 生成条件の確認、再生成用メモ |
 | `Data/*_draft.md` | 会話、イベント、行動反応、エンディングの下書き |
 | `Data/conversations_export.json` | 通常会話データの生成、更新 |
@@ -491,7 +493,6 @@ Unity 側の対応先は `EndingData` を想定する。
 
 - Unity 側の ScriptableObject 型名とフィールド名の完全な対応
 - `HeroineProfileData.asset` の保存先
-- 画像一覧を `HeroineProfileData` に直接持たせるか、別の `HeroineAssetCatalog` に分けるか
 - prompt JSON を Unity プロジェクト内へコピーするか、WPF export フォルダ参照のままにするか
 - Import 時に既存画像を上書きするか、確認ダイアログを出すか
 - `speaker` を文字列にするか enum にするか

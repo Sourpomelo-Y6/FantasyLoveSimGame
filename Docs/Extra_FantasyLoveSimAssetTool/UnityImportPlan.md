@@ -174,7 +174,7 @@ Unity Editor 拡張は `exportImagePath` から画像をコピーし、`unityIma
 7. `heroineId` に対応する `HeroineProfileData.asset` を検索する。
 8. 既存 `.asset` があれば更新し、なければ作成する。
 9. `assets_export.json` の各 `asset` から画像参照を設定する。
-10. 必要に応じて `HeroineAssetCatalog.asset` のような画像一覧 ScriptableObject を作る。
+10. `HeroineAssetCatalog.asset` に画像一覧と Sprite 参照を保存する。
 11. `sprite_layers_export.json` があれば読み込み、透過レイヤー素材の ScriptableObject `.asset` を生成、更新する。
 12. `conversations_export.json`、`game_events_export.json`、`action_reactions_export.json`、`endings_export.json` を読み込む。
 13. 会話、イベント、行動反応、エンディング本文の ScriptableObject `.asset` を生成、更新する。
@@ -233,7 +233,6 @@ WPF 側は同じ値を入力候補として表示し、Export 時に候補外の
 
 ## 未決事項
 
-- 画像一覧を `HeroineProfileData` に直接持たせるか、別の `HeroineAssetCatalog` に分けるか
 - prompt JSON を Unity プロジェクト内へコピーするか、WPF export フォルダ参照のままにするか
 - Import 時に既存画像を上書きするか、確認ダイアログを出すか
 
