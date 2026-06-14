@@ -18,6 +18,7 @@ public class OutfitManager : MonoBehaviour
 
     [Header("View")]
     [SerializeField] private Image heroineImage;
+    [SerializeField] private HeroineLayeredSpriteView layeredSpriteView;
 
     [Header("Outfit Data")]
     [SerializeField] private string outfitResourcePath = "Outfits";
@@ -26,6 +27,7 @@ public class OutfitManager : MonoBehaviour
 
     private OutfitData currentOutfit;
     private Sprite defaultHeroineSprite;
+    private HeroineLayeredSpriteData layeredSpriteData;
 
     public OutfitData CurrentOutfit => currentOutfit;
     public IReadOnlyList<OutfitData> Outfits => outfits;
@@ -33,6 +35,7 @@ public class OutfitManager : MonoBehaviour
     private void Awake()
     {
         LoadOutfitsFromResources();
+        ResolveLayeredSpriteView();
 
         if (scheduleManager == null)
         {
@@ -167,10 +170,16 @@ public class OutfitManager : MonoBehaviour
         }
 
         Sprite displaySprite = GetDisplaySpriteForOutfit(outfit);
-        if (heroineImage != null && displaySprite != null)
+        if (TryRefreshLayeredSprite(outfit))
         {
+            SetSingleHeroineImageVisible(false);
+        }
+        else if (heroineImage != null && displaySprite != null)
+        {
+            SetLayeredSpriteVisible(false);
             heroineImage.sprite = displaySprite;
             heroineImage.color = Color.white;
+            SetSingleHeroineImageVisible(true);
         }
         else
         {
@@ -220,6 +229,34 @@ public class OutfitManager : MonoBehaviour
         }
     }
 
+    public void SetLayeredSpriteData(HeroineLayeredSpriteData data)
+    {
+        layeredSpriteData = data;
+        ResolveLayeredSpriteView();
+
+        if (layeredSpriteView != null)
+        {
+            layeredSpriteView.SetData(layeredSpriteData);
+        }
+
+        if (layeredSpriteData == null)
+        {
+            SetLayeredSpriteVisible(false);
+        }
+
+        if (currentOutfit != null)
+        {
+            if (TryRefreshLayeredSprite(currentOutfit))
+            {
+                SetSingleHeroineImageVisible(false);
+            }
+            else
+            {
+                ApplyDefaultHeroineSprite();
+            }
+        }
+    }
+
     private Sprite GetDisplaySpriteForOutfit(OutfitData outfit)
     {
         if (IsNormalOutfit(outfit) && defaultHeroineSprite != null)
@@ -242,13 +279,93 @@ public class OutfitManager : MonoBehaviour
 
     private void ApplyDefaultHeroineSprite()
     {
+        if (TryRefreshLayeredSprite(currentOutfit))
+        {
+            SetSingleHeroineImageVisible(false);
+            return;
+        }
+
         if (heroineImage == null || defaultHeroineSprite == null)
         {
             return;
         }
 
+        SetLayeredSpriteVisible(false);
         heroineImage.sprite = defaultHeroineSprite;
         heroineImage.color = Color.white;
+        SetSingleHeroineImageVisible(true);
+    }
+
+    private bool TryRefreshLayeredSprite(OutfitData outfit)
+    {
+        ResolveLayeredSpriteView();
+
+        if (layeredSpriteView == null || layeredSpriteData == null)
+        {
+            return false;
+        }
+
+        layeredSpriteView.SetVisible(true);
+
+        string costumeId = GetLayeredCostumeId(outfit);
+        bool hasVisibleLayer = layeredSpriteView.Refresh(costumeId, null);
+        if (!hasVisibleLayer)
+        {
+            SetLayeredSpriteVisible(false);
+            return false;
+        }
+
+        return true;
+    }
+
+    private string GetLayeredCostumeId(OutfitData outfit)
+    {
+        if (outfit == null || IsNormalOutfit(outfit))
+        {
+            return null;
+        }
+
+        return outfit.outfitId;
+    }
+
+    private void ResolveLayeredSpriteView()
+    {
+        if (layeredSpriteView != null)
+        {
+            return;
+        }
+
+        layeredSpriteView = FindObjectOfType<HeroineLayeredSpriteView>();
+        if (layeredSpriteView != null)
+        {
+            return;
+        }
+
+        GameObject root = GameObject.Find("HeroineLayeredSpriteRoot");
+        if (root != null)
+        {
+            layeredSpriteView = root.GetComponent<HeroineLayeredSpriteView>();
+            if (layeredSpriteView == null)
+            {
+                layeredSpriteView = root.AddComponent<HeroineLayeredSpriteView>();
+            }
+        }
+    }
+
+    private void SetSingleHeroineImageVisible(bool visible)
+    {
+        if (heroineImage != null)
+        {
+            heroineImage.gameObject.SetActive(visible);
+        }
+    }
+
+    private void SetLayeredSpriteVisible(bool visible)
+    {
+        if (layeredSpriteView != null)
+        {
+            layeredSpriteView.SetVisible(visible);
+        }
     }
 
     public OutfitData FindOutfitById(string outfitId)
@@ -672,17 +789,28 @@ public class OutfitManager : MonoBehaviour
 
     public void SetHeroineImageVisible(bool visible)
     {
-        if (heroineImage == null)
+        if (!visible)
         {
+            SetSingleHeroineImageVisible(false);
+            SetLayeredSpriteVisible(false);
             return;
         }
 
-        heroineImage.gameObject.SetActive(visible);
+        if (TryRefreshLayeredSprite(currentOutfit))
+        {
+            SetSingleHeroineImageVisible(false);
+            return;
+        }
+
+        SetLayeredSpriteVisible(false);
+        SetSingleHeroineImageVisible(true);
     }
 
     public bool IsHeroineImageVisible()
     {
-        return heroineImage != null && heroineImage.gameObject.activeSelf;
+        bool singleVisible = heroineImage != null && heroineImage.gameObject.activeSelf;
+        bool layeredVisible = layeredSpriteView != null && layeredSpriteView.gameObject.activeSelf;
+        return singleVisible || layeredVisible;
     }
 
 

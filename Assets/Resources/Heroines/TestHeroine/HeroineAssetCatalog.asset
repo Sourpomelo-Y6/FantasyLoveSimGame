@@ -1,0 +1,65 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c75e851e41fd427f8e73a9a5aaf50d13, type: 3}
+  m_Name: HeroineAssetCatalog
+  m_EditorClassIdentifier: 
+  heroineId: TestHeroine
+  assets:
+  - assetId: Heroine_Normal
+    usage: Sprites
+    status: Accepted
+    fileName: Heroine_Normal.png
+    memo: "\u30B9\u30C1\u30EB\u4E00\u89A7\u304B\u3089\u4F5C\u6210\u3057\u305F prompt
+      \u4F5C\u696D\u7528\u30EC\u30B3\u30FC\u30C9"
+    sprite: {fileID: 21300000, guid: 75760bce93a9a794498a3ef81175bafb, type: 3}
+    unityImagePath: Assets/Images/Heroines/TestHeroine/Sprites/Heroine_Normal.png
+    exportPromptPath: Prompts/Heroine_Normal.prompt.json
+  - assetId: Heroine_Smile
+    usage: Sprites
+    status: Accepted
+    fileName: Heroine_Smile.png
+    memo: 
+    sprite: {fileID: 21300000, guid: 796086eb101301f43b48f9690646de9f, type: 3}
+    unityImagePath: Assets/Images/Heroines/TestHeroine/Sprites/Heroine_Smile.png
+    exportPromptPath: Prompts/Heroine_Smile.prompt.json
+  - assetId: Heroine_BaseBody
+    usage: Sprites
+    status: Accepted
+    fileName: Heroine_BaseBody.png
+    memo: 
+    sprite: {fileID: 21300000, guid: c469d79811cb2b54392c983e706a690e, type: 3}
+    unityImagePath: Assets/Images/Heroines/TestHeroine/Sprites/Heroine_BaseBody.png
+    exportPromptPath: Prompts/Heroine_BaseBody.prompt.json
+  - assetId: Costume_Default
+    usage: Sprites
+    status: Accepted
+    fileName: Costume_Default.png
+    memo: 
+    sprite: {fileID: 21300000, guid: a132a23ad4b54ef42b0de72893febb47, type: 3}
+    unityImagePath: Assets/Images/Heroines/TestHeroine/Sprites/Costume_Default.png
+    exportPromptPath: Prompts/Costume_Default.prompt.json
+  - assetId: Expression_Neutral
+    usage: Sprites
+    status: Accepted
+    fileName: Expression_Neutral.png
+    memo: 
+    sprite: {fileID: 21300000, guid: cd4712765ee2493428b33dc87b8c292c, type: 3}
+    unityImagePath: Assets/Images/Heroines/TestHeroine/Sprites/Expression_Neutral.png
+    exportPromptPath: Prompts/Expression_Neutral.prompt.json
+  - assetId: Expression_Smile
+    usage: Sprites
+    status: Accepted
+    fileName: Expression_Smile.png
+    memo: 
+    sprite: {fileID: 21300000, guid: 0e2520de4ead5f54da76df13a4e5b758, type: 3}
+    unityImagePath: Assets/Images/Heroines/TestHeroine/Sprites/Expression_Smile.png
+    exportPromptPath: Prompts/Expression_Smile.prompt.json

@@ -1,0 +1,46 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cb5097099197776438840c7469e425ca, type: 3}
+  m_Name: Conversations
+  m_EditorClassIdentifier: 
+  heroineId: TestHeroine
+  items:
+  - conversationId: Talk_01
+    genre: 0
+    type: 0
+    heroineLine: "\u30C6\u30B9\u30C8\u3067\u3059"
+    choices: []
+    priority: 100
+    showOnce: 0
+    minAffection: 0
+    maxAffection: 100
+    anyTimeSlot: 1
+    allowedTimeSlots: 
+    anySeason: 1
+    allowedSeasons: 
+    anyWeather: 1
+    allowedWeathers: 
+  conversationId: 
+  genre: 0
+  type: 0
+  heroineLine: 
+  choices: []
+  priority: 0
+  showOnce: 0
+  minAffection: 0
+  maxAffection: 100
+  anyTimeSlot: 1
+  allowedTimeSlots: 
+  anySeason: 1
+  allowedSeasons: 
+  anyWeather: 1
+  allowedWeathers: 

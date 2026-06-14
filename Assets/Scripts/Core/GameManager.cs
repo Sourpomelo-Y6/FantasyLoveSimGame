@@ -680,6 +680,7 @@ public class GameManager : MonoBehaviour
         if (outfitManager != null)
         {
             outfitManager.SetDefaultHeroineSprite(profile.defaultHeroineSprite);
+            outfitManager.SetLayeredSpriteData(ResolveHeroineLayeredSpriteData(profile));
         }
 
         conversationResourcePath = GetProfileResourcePath(
@@ -723,6 +724,17 @@ public class GameManager : MonoBehaviour
         }
 
         return profilePath;
+    }
+
+    private HeroineLayeredSpriteData ResolveHeroineLayeredSpriteData(HeroineProfileData profile)
+    {
+        if (profile == null || string.IsNullOrEmpty(profile.heroineId))
+        {
+            return null;
+        }
+
+        string resourcePath = "Heroines/" + profile.heroineId + "/HeroineLayeredSpriteData";
+        return Resources.Load<HeroineLayeredSpriteData>(resourcePath);
     }
 
     private void Start()
