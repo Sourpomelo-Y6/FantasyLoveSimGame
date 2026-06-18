@@ -28,6 +28,7 @@ public class OutfitManager : MonoBehaviour
     private OutfitData currentOutfit;
     private Sprite defaultHeroineSprite;
     private HeroineLayeredSpriteData layeredSpriteData;
+    private string currentExpressionId = "";
 
     public OutfitData CurrentOutfit => currentOutfit;
     public IReadOnlyList<OutfitData> Outfits => outfits;
@@ -257,6 +258,19 @@ public class OutfitManager : MonoBehaviour
         }
     }
 
+    public bool SetHeroineExpression(string expressionId)
+    {
+        currentExpressionId = expressionId ?? "";
+
+        if (TryRefreshLayeredSprite(currentOutfit))
+        {
+            SetSingleHeroineImageVisible(false);
+            return true;
+        }
+
+        return false;
+    }
+
     private Sprite GetDisplaySpriteForOutfit(OutfitData outfit)
     {
         if (IsNormalOutfit(outfit) && defaultHeroineSprite != null)
@@ -308,7 +322,7 @@ public class OutfitManager : MonoBehaviour
         layeredSpriteView.SetVisible(true);
 
         string costumeId = GetLayeredCostumeId(outfit);
-        bool hasVisibleLayer = layeredSpriteView.Refresh(costumeId, null);
+        bool hasVisibleLayer = layeredSpriteView.Refresh(costumeId, currentExpressionId);
         if (!hasVisibleLayer)
         {
             SetLayeredSpriteVisible(false);

@@ -684,6 +684,8 @@ public static class HeroineAssetImporter
         conversation.genre = ParseEnumOrDefault(item.category, ConversationGenre.Daily);
         conversation.type = ConversationType.Simple;
         conversation.heroineLine = GetFirstLineText(item);
+        conversation.expressionId = GetFirstLineExpression(item);
+        ApplyConversationLines(conversation.lines, item);
         conversation.choices.Clear();
         conversation.priority = item.priority;
         conversation.showOnce = conditions.once;
@@ -723,6 +725,53 @@ public static class HeroineAssetImporter
         }
 
         return string.Empty;
+    }
+
+    private static string GetFirstLineExpression(ConversationExportItem item)
+    {
+        if (item == null || item.lines == null)
+        {
+            return string.Empty;
+        }
+
+        foreach (ConversationExportLine line in item.lines)
+        {
+            if (line != null && !string.IsNullOrWhiteSpace(line.text))
+            {
+                return line.expression ?? string.Empty;
+            }
+        }
+
+        return string.Empty;
+    }
+
+    private static void ApplyConversationLines(
+        List<ConversationLineData> target,
+        ConversationExportItem item)
+    {
+        target.Clear();
+
+        if (item == null || item.lines == null)
+        {
+            return;
+        }
+
+        foreach (ConversationExportLine line in item.lines)
+        {
+            if (line == null || string.IsNullOrWhiteSpace(line.text))
+            {
+                continue;
+            }
+
+            ConversationLineData conversationLine = new ConversationLineData
+            {
+                speaker = line.speaker ?? string.Empty,
+                text = line.text,
+                expressionId = line.expression ?? string.Empty
+            };
+
+            target.Add(conversationLine);
+        }
     }
 
     private static void ApplySingleEnumCondition<T>(

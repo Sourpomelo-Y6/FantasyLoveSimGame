@@ -15,6 +15,8 @@ public class HeroineLayeredSpriteView : MonoBehaviour
 
     public bool HasData => layeredSpriteData != null;
 
+    private bool warnedMissingBaseBody = false;
+
     private void Awake()
     {
         ResolveImageReferences();
@@ -27,6 +29,7 @@ public class HeroineLayeredSpriteView : MonoBehaviour
     public void SetData(HeroineLayeredSpriteData data)
     {
         layeredSpriteData = data;
+        warnedMissingBaseBody = false;
         ResolveImageReferences();
         Refresh(
             GetDefaultCostumeId(),
@@ -46,12 +49,27 @@ public class HeroineLayeredSpriteView : MonoBehaviour
         LayerEntry baseBodyLayer = GetFirstValidLayer(layeredSpriteData.baseBodyLayers);
         LayerEntry costumeLayer = FindLayerByCostumeId(costumeId);
         LayerEntry expressionLayer = FindLayerByExpressionId(expressionId);
-        LayerEntry accessoryLayer = GetFirstValidLayer(layeredSpriteData.accessoryLayers);
+        LayerEntry accessoryLayer = FindAccessoryLayer(costumeLayer, expressionLayer);
+
+        if (!HasVisibleLayer(baseBodyLayer) && !warnedMissingBaseBody)
+        {
+            Debug.LogWarning("HeroineLayeredSpriteView: BaseBody レイヤーが見つからないため表示できません。");
+            warnedMissingBaseBody = true;
+        }
 
         ApplyLayer(baseBodyImage, baseBodyLayer);
         ApplyLayer(costumeImage, costumeLayer);
         ApplyLayer(expressionImage, expressionLayer);
         ApplyLayer(accessoryImage, accessoryLayer);
+        ApplyLayerSiblingOrder(
+            baseBodyImage,
+            baseBodyLayer,
+            costumeImage,
+            costumeLayer,
+            expressionImage,
+            expressionLayer,
+            accessoryImage,
+            accessoryLayer);
 
         return HasVisibleLayer(baseBodyLayer) ||
             HasVisibleLayer(costumeLayer) ||
@@ -139,6 +157,34 @@ public class HeroineLayeredSpriteView : MonoBehaviour
         return FindLayerById(layeredSpriteData.expressionLayers, GetDefaultExpressionId());
     }
 
+    private LayerEntry FindAccessoryLayer(LayerEntry costumeLayer, LayerEntry expressionLayer)
+    {
+        if (layeredSpriteData.accessoryLayers == null)
+        {
+            return null;
+        }
+
+        foreach (LayerEntry layer in layeredSpriteData.accessoryLayers)
+        {
+            if (!HasVisibleLayer(layer))
+            {
+                continue;
+            }
+
+            bool costumeMatches = string.IsNullOrEmpty(layer.costumeId) ||
+                (costumeLayer != null && layer.costumeId == costumeLayer.costumeId);
+            bool expressionMatches = string.IsNullOrEmpty(layer.expressionId) ||
+                (expressionLayer != null && layer.expressionId == expressionLayer.expressionId);
+
+            if (costumeMatches && expressionMatches)
+            {
+                return layer;
+            }
+        }
+
+        return null;
+    }
+
     private static LayerEntry FindLayerById(List<LayerEntry> layers, string id)
     {
         if (layers == null || string.IsNullOrEmpty(id))
@@ -208,6 +254,51 @@ public class HeroineLayeredSpriteView : MonoBehaviour
         image.sprite = null;
         image.color = new Color(1f, 1f, 1f, 0f);
         image.enabled = false;
+    }
+
+    private static void ApplyLayerSiblingOrder(
+        Image baseBody,
+        LayerEntry baseBodyLayer,
+        Image costume,
+        LayerEntry costumeLayer,
+        Image expression,
+        LayerEntry expressionLayer,
+        Image accessory,
+        LayerEntry accessoryLayer)
+    {
+        List<LayerImagePair> pairs = new List<LayerImagePair>
+        {
+            new LayerImagePair(baseBody, baseBodyLayer),
+            new LayerImagePair(costume, costumeLayer),
+            new LayerImagePair(expression, expressionLayer),
+            new LayerImagePair(accessory, accessoryLayer)
+        };
+
+        pairs.Sort((a, b) => a.DrawOrder.CompareTo(b.DrawOrder));
+
+        int siblingIndex = 0;
+        foreach (LayerImagePair pair in pairs)
+        {
+            if (pair.Image == null || pair.Image.transform.parent == null)
+            {
+                continue;
+            }
+
+            pair.Image.transform.SetSiblingIndex(siblingIndex);
+            siblingIndex++;
+        }
+    }
+
+    private struct LayerImagePair
+    {
+        public readonly Image Image;
+        public readonly int DrawOrder;
+
+        public LayerImagePair(Image image, LayerEntry layer)
+        {
+            Image = image;
+            DrawOrder = layer != null ? layer.drawOrder : int.MaxValue;
+        }
     }
 
     private string GetDefaultCostumeId()

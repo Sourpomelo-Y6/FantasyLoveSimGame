@@ -34,6 +34,7 @@ public class GameManager : MonoBehaviour
         public readonly string Message;
         public readonly string StillId;
         public readonly Sprite StillSprite;
+        public readonly string ExpressionId;
 
         public DialogueMessage(DialogueSpeakerType speakerType, string speakerName, string message)
             : this(speakerType, speakerName, message, null)
@@ -55,12 +56,24 @@ public class GameManager : MonoBehaviour
             string message,
             string stillId,
             Sprite stillSprite)
+            : this(speakerType, speakerName, message, stillId, stillSprite, "")
+        {
+        }
+
+        public DialogueMessage(
+            DialogueSpeakerType speakerType,
+            string speakerName,
+            string message,
+            string stillId,
+            Sprite stillSprite,
+            string expressionId)
         {
             SpeakerType = speakerType;
             SpeakerName = speakerName;
             Message = message;
             StillId = stillId;
             StillSprite = stillSprite;
+            ExpressionId = expressionId;
         }
     }
 
@@ -368,6 +381,19 @@ public class GameManager : MonoBehaviour
         string stillId,
         Sprite stillSprite)
     {
+        SetDialogueText(speakerType, speakerName, message, stillId, stillSprite, "");
+    }
+
+    private void SetDialogueText(
+        DialogueSpeakerType speakerType,
+        string speakerName,
+        string message,
+        string stillId,
+        Sprite stillSprite,
+        string expressionId)
+    {
+        ApplyHeroineExpression(expressionId);
+
         if (stillSprite != null)
         {
             UnlockStill(stillId);
@@ -588,6 +614,16 @@ public class GameManager : MonoBehaviour
         }
     }
 
+    private void ApplyHeroineExpression(string expressionId)
+    {
+        if (outfitManager == null)
+        {
+            return;
+        }
+
+        outfitManager.SetHeroineExpression(expressionId);
+    }
+
     private void ShowDialogueSequence(List<DialogueMessage> messages)
     {
         ResetDialogueSequenceState();
@@ -606,7 +642,8 @@ public class GameManager : MonoBehaviour
             messages[0].SpeakerName,
             messages[0].Message,
             messages[0].StillId,
-            messages[0].StillSprite);
+            messages[0].StillSprite,
+            messages[0].ExpressionId);
 
         for (int i = 1; i < messages.Count; i++)
         {
@@ -629,7 +666,8 @@ public class GameManager : MonoBehaviour
             message.SpeakerName,
             message.Message,
             message.StillId,
-            message.StillSprite);
+            message.StillSprite,
+            message.ExpressionId);
 
         if (queuedDialogueMessages.Count == 0 && flowState == ConversationFlowState.Idle)
         {
@@ -642,9 +680,125 @@ public class GameManager : MonoBehaviour
         return true;
     }
 
+    private void ShowConversationDialogue(ConversationData conversation)
+    {
+        ResetDialogueSequenceState();
+        queuedDialogueMessages.Clear();
+        dialogueSequenceIsActive = false;
+
+        List<DialogueMessage> messages = BuildConversationDialogueMessages(conversation);
+        if (messages.Count == 0)
+        {
+            ShowHeroineDialogue("");
+            return;
+        }
+
+        if (messages.Count == 1)
+        {
+            DialogueMessage message = messages[0];
+            SetDialogueText(
+                message.SpeakerType,
+                message.SpeakerName,
+                message.Message,
+                message.StillId,
+                message.StillSprite,
+                message.ExpressionId);
+            return;
+        }
+
+        ShowDialogueSequence(messages);
+    }
+
+    private List<DialogueMessage> BuildConversationDialogueMessages(ConversationData conversation)
+    {
+        List<DialogueMessage> messages = new List<DialogueMessage>();
+        if (conversation == null)
+        {
+            return messages;
+        }
+
+        if (conversation.lines != null && conversation.lines.Count > 0)
+        {
+            foreach (ConversationLineData line in conversation.lines)
+            {
+                if (line == null || string.IsNullOrWhiteSpace(line.text))
+                {
+                    continue;
+                }
+
+                DialogueSpeakerType speakerType = GetConversationLineSpeakerType(line.speaker);
+                string speakerName = GetConversationLineSpeakerName(speakerType, line.speaker);
+                messages.Add(
+                    new DialogueMessage(
+                        speakerType,
+                        speakerName,
+                        line.text,
+                        "",
+                        null,
+                        line.expressionId));
+            }
+
+            return messages;
+        }
+
+        if (!string.IsNullOrWhiteSpace(conversation.heroineLine))
+        {
+            messages.Add(
+                new DialogueMessage(
+                    DialogueSpeakerType.Heroine,
+                    heroineStatus.HeroineName,
+                    conversation.heroineLine,
+                    "",
+                    null,
+                    conversation.expressionId));
+        }
+
+        return messages;
+    }
+
+    private DialogueSpeakerType GetConversationLineSpeakerType(string speaker)
+    {
+        if (string.IsNullOrWhiteSpace(speaker))
+        {
+            return DialogueSpeakerType.Heroine;
+        }
+
+        if (string.Equals(speaker, "System", StringComparison.OrdinalIgnoreCase) ||
+            string.Equals(speaker, SystemSpeakerName, StringComparison.OrdinalIgnoreCase))
+        {
+            return DialogueSpeakerType.System;
+        }
+
+        return DialogueSpeakerType.Heroine;
+    }
+
+    private string GetConversationLineSpeakerName(DialogueSpeakerType speakerType, string speaker)
+    {
+        if (speakerType == DialogueSpeakerType.System)
+        {
+            return SystemSpeakerName;
+        }
+
+        return heroineStatus.HeroineName;
+    }
+
     private void ShowHeroineDialogue(string message)
     {
-        ShowDialogue(DialogueSpeakerType.Heroine, heroineStatus.HeroineName, message);
+        ShowHeroineDialogue(message, "");
+    }
+
+    private void ShowHeroineDialogue(string message, string expressionId)
+    {
+        ResetDialogueSequenceState();
+        queuedDialogueMessages.Clear();
+        dialogueSequenceIsActive = false;
+        SetDialogueText(
+            DialogueSpeakerType.Heroine,
+            heroineStatus.HeroineName,
+            message,
+            "",
+            null,
+            expressionId);
     }
 
     private void ShowSystemDialogue(string message)
@@ -909,6 +1063,10 @@ public class GameManager : MonoBehaviour
         conversation.genre = item.genre;
         conversation.type = item.type;
         conversation.heroineLine = item.heroineLine;
+        conversation.expressionId = item.expressionId;
+        conversation.lines = item.lines == null
+            ? new List<ConversationLineData>()
+            : new List<ConversationLineData>(item.lines);
         conversation.choices = item.choices == null
             ? new List<ConversationChoice>()
             : new List<ConversationChoice>(item.choices);
@@ -1022,7 +1180,7 @@ public class GameManager : MonoBehaviour
 
         RegisterShownConversation(currentConversation);
 
-        ShowHeroineDialogue(currentConversation.heroineLine);
+        ShowConversationDialogue(currentConversation);
 
         if (currentConversation.type == ConversationType.Simple)
         {

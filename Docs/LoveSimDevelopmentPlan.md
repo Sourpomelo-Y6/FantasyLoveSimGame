@@ -265,7 +265,9 @@ Assets/Images/Heroines/DefaultHeroine/Ending/
 `HeroineProfileData.defaultHeroineSprite` は通常衣装 `Normal` の立ち絵として `OutfitManager` に渡し、通常衣装以外は衣装側の `heroineSprite` を優先する。
 AssetTool の `assets_export.json` は importer で `HeroineAssetCatalog.asset` に変換し、画像の `assetId`、用途、Unity asset path、Sprite 参照を保持する。
 AssetTool の `sprite_layers_export.json` は importer で `HeroineLayeredSpriteData.asset` に変換し、表情、衣装、ベース、小物の透過レイヤー定義を保持する。
-実際の表示に使う `HeroineLayeredSpriteView` は今後追加する。
+実際の表示に使う `HeroineLayeredSpriteView` は追加済み。
+現在衣装の `costumeId` と会話行の `expressionId` から `BaseBody`、`Costume`、`Expression`、条件一致 `Accessory` を選び、指定がない場合は `Default` 衣装と `Neutral` 表情へ fallback する。
+会話 import は `lines[]` を保持し、実行時に `expression` を表情レイヤー切り替えへ渡す。
 本番用ヒロインを追加する前に、まずこの profile で差し替え導線を手動確認する。
 
 新しいヒロインを追加するときは、次のチェックリストを使う。
@@ -278,6 +280,7 @@ AssetTool の `sprite_layers_export.json` は importer で `HeroineLayeredSprite
 - `defaultHeroineSprite` に代表立ち絵を設定する
 - `HeroineAssetCatalog.asset` に画像の `assetId` と Sprite 参照が入っているか確認する
 - 透過レイヤー方式を使う場合は `HeroineLayeredSpriteData.asset` に `BaseBody`、`Default` 衣装、`Neutral` 表情が入っているか確認する
+- `HeroineLayeredSpriteView` の `BaseBodyImage`、`CostumeImage`、`ExpressionImage`、`AccessoryImage` が同じ親の下にあり、表情会話で `Neutral`、`Smile`、`Sad` などが切り替わるか確認する
 - `Actions` には行動名、行動結果、行動反応、行動スチルを用意する
 - `Conversations.asset` にはジャンル会話、好感度条件会話、天候・時間帯・季節条件会話を用意する
 - `GameEvents` には `GameStart`、`DayStart`、`Manual` 確認用イベントを用意する

@@ -3,6 +3,17 @@ using System.Collections.Generic;
 using UnityEngine;
 
 [Serializable]
+public class ConversationLineData
+{
+    public string speaker;
+
+    [TextArea(3, 6)]
+    public string text;
+
+    public string expressionId;
+}
+
+[Serializable]
 public class ConversationDataItem
 {
     [Header("Basic")]
@@ -14,6 +25,10 @@ public class ConversationDataItem
 
     [TextArea(3, 6)]
     public string heroineLine;
+
+    public string expressionId;
+
+    public List<ConversationLineData> lines = new List<ConversationLineData>();
 
     public List<ConversationChoice> choices = new List<ConversationChoice>();
 
@@ -54,6 +69,10 @@ public class ConversationData : ScriptableObject
 
     [TextArea(3, 6)]
     public string heroineLine;
+
+    public string expressionId;
+
+    public List<ConversationLineData> lines = new List<ConversationLineData>();
 
     public List<ConversationChoice> choices = new List<ConversationChoice>();
 
