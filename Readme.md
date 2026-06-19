@@ -115,6 +115,7 @@ This project is licensed under the MIT License. See [LICENSE](LICENSE) for detai
 - 差し替え確認用に `TestHeroineProfile` と最小データを追加しています。本番ヒロイン追加前の読み込み確認に使います
 - 追加の `TestHeroine` 画像は容量節約のためコミットせず、AssetTool の export サンプルやローカル import 結果として扱います
 - 新ヒロイン追加時の必要データと素材は [`Docs/LoveSimDevelopmentPlan.md`](Docs/LoveSimDevelopmentPlan.md) と [`Docs/Handoff.md`](Docs/Handoff.md) のチェックリストにまとめています
+- よくある確認事項は [`Docs/FAQ.md`](Docs/FAQ.md) にまとめています
 - 行動には条件付き反応を持たせられるので、時間帯、天候、季節、好感度で結果を変えやすいです。反応ごとに `stillSprite` も持てます
 - 衣装は着用時に保存され、衣装反応パネルから評価を付けられるようになっています
 - 予定は `ScheduleManager` で管理され、保存データにも反映されています

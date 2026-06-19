@@ -93,7 +93,8 @@ Assets/Resources/Heroines/<HeroineId>/
   HeroineProfileData.asset
   HeroineAssetCatalog.asset
   Conversations.asset
-  GameEvents.asset
+  GameEvents/
+    <EventId>.asset
   ActionReactions.asset
   Endings.asset
 ```
@@ -108,7 +109,7 @@ Unity 側の ScriptableObject 型は次を基本にする。
 | `heroine_profile_export.json` | `HeroineProfileData` | `Assets/Resources/Heroines/<HeroineId>/HeroineProfileData.asset` |
 | `assets_export.json` | `HeroineAssetCatalog` | `Assets/Resources/Heroines/<HeroineId>/HeroineAssetCatalog.asset` |
 | `conversations_export.json` | `ConversationData` | `Assets/Resources/Heroines/<HeroineId>/Conversations.asset` |
-| `game_events_export.json` | `GameEventData` | `Assets/Resources/Heroines/<HeroineId>/GameEvents.asset` |
+| `game_events_export.json` | `GameEventData` | `Assets/Resources/Heroines/<HeroineId>/GameEvents/<EventId>.asset` |
 | `action_reactions_export.json` | `ActionReactionData` | `Assets/Resources/Heroines/<HeroineId>/ActionReactions.asset` |
 | `endings_export.json` | `EndingData` | `Assets/Resources/Heroines/<HeroineId>/Endings.asset` |
 | `sprite_layers_export.json` | `HeroineLayeredSpriteData` | `Assets/Resources/Heroines/<HeroineId>/HeroineLayeredSpriteData.asset` |

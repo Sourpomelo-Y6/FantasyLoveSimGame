@@ -357,8 +357,12 @@ Unity Editor 拡張は `exportImagePath` から画像をコピーし、`unityIma
 `BaseBody` なし、`Default` 衣装なし、`Neutral` 表情なし、未知 `layerKind`、Sprite 解決失敗は Import warning に残す。
 `HeroineLayeredSpriteView` は実装済みで、現在衣装の `costumeId` と会話行の `expressionId` から表示レイヤーを選ぶ。
 指定衣装がなければ `Default`、指定表情がなければ `Neutral` へ fallback する。
-prompt JSON、ゲームイベント、行動反応、エンディング本文の JSON import は次段階で対応する。
-Importer は `HeroineImportReport` で copied images、catalog assets、layers、conversations、warning 件数を集計し、完了時に Console summary と `EditorUtility.DisplayDialog` で結果を表示する。
+`Data/game_events_export.json` が存在する場合は、`Assets/Resources/Heroines/<HeroineId>/GameEvents/<EventId>.asset` を生成、更新する。
+`category` は `GameStart` / `DayStart` / `Manual` の `GameEventTriggerType` として扱い、未知の場合は warning を出して `Manual` とする。
+`lines[]` は `GameEventData.pages` に変換し、`lines[].expression` はイベントページの `expressionId` として保持する。
+`imageAssetIds[0]` は `HeroineAssetCatalog` から Sprite 解決し、最初のページのイベントスチルとして設定する。
+prompt JSON、行動反応、エンディング本文の JSON import は次段階で対応する。
+Importer は `HeroineImportReport` で copied images、catalog assets、layers、conversations、game events、warning 件数を集計し、完了時に Console summary と `EditorUtility.DisplayDialog` で結果を表示する。
 続行可能な問題は warning として report に残し、JSON が読めない、`heroineId` が取れないなどのキー情報不足だけ中断する。
 
 次は Unity 側 importer を広げる前に、`FantasyLoveSimAssetTool` 側で会話、イベント、行動反応、エンディング本文を入力、保存、export できるようにする。
@@ -405,7 +409,8 @@ Tool 側で先に作る最小機能:
 
 最初に Tool 側で実装する対象は `conversations_export.json` とする。
 Unity 側には既に最小 import があるため、Tool 側から export した JSON をそのまま Unity に取り込めるか確認しやすい。
-次に `game_events_export.json` を出力し、Unity 側の `GameEventData` import 対応へ進む。
+`game_events_export.json` の Unity import も対応済み。
+次は Tool 側でゲームイベント export を実データとして増やし、Unity 側で `GameStart` / `DayStart` / `Manual` の発火確認を進める。
 
 各 JSON は次の共通項目を持つ。
 

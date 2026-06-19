@@ -2607,7 +2607,8 @@ public class GameManager : MonoBehaviour
                     speakerName,
                     page.message,
                     page.stillId,
-                    stillSprite
+                    stillSprite,
+                    page.expressionId
                 )
             );
         }

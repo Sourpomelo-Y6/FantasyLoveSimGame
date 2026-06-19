@@ -11,6 +11,7 @@ public static class HeroineAssetImporter
     private const string AssetsJsonRelativePath = "Data/assets_export.json";
     private const string SpriteLayersJsonRelativePath = "Data/sprite_layers_export.json";
     private const string ConversationsJsonRelativePath = "Data/conversations_export.json";
+    private const string GameEventsJsonRelativePath = "Data/game_events_export.json";
     private const string DefaultHeroineSpriteAssetId = "Heroine_Normal";
     private const string DefaultHeroineSpriteFileName = "Heroine_Normal.png";
     private const bool OverwriteExistingImages = false;
@@ -71,6 +72,7 @@ public static class HeroineAssetImporter
         ApplyDefaultHeroineSprite(profile, report.defaultSpritePath, report);
         ImportSpriteLayers(exportFolder, profileExport.heroineId, report);
         ImportConversations(exportFolder, profileExport.heroineId, report);
+        ImportGameEvents(exportFolder, profileExport.heroineId, report);
 
         EditorUtility.SetDirty(profile);
         AssetDatabase.SaveAssets();
@@ -774,6 +776,299 @@ public static class HeroineAssetImporter
         }
     }
 
+    private static void ImportGameEvents(
+        string exportFolder,
+        string heroineId,
+        HeroineImportReport report)
+    {
+        string gameEventsJsonPath = Path.Combine(exportFolder, GameEventsJsonRelativePath);
+        if (!File.Exists(gameEventsJsonPath))
+        {
+            Debug.Log("game_events_export.json が見つからないため、ゲームイベント import はスキップしました: " + gameEventsJsonPath);
+            return;
+        }
+
+        GameEventsExport gameEventsExport;
+        try
+        {
+            string json = File.ReadAllText(gameEventsJsonPath);
+            gameEventsExport = JsonUtility.FromJson<GameEventsExport>(json);
+        }
+        catch (Exception ex)
+        {
+            Debug.LogError("game_events_export.json の読み込みに失敗しました: " + ex.Message);
+            return;
+        }
+
+        if (gameEventsExport == null || gameEventsExport.items == null)
+        {
+            report.Warn("game_events_export.json に items がありません。");
+            return;
+        }
+
+        if (!string.IsNullOrWhiteSpace(gameEventsExport.heroineId)
+            && !string.Equals(gameEventsExport.heroineId, heroineId, StringComparison.Ordinal))
+        {
+            report.Warn($"game_events_export.json の heroineId が profile と一致しません: {gameEventsExport.heroineId} / {heroineId}");
+        }
+
+        string eventFolderPath = $"Assets/Resources/Heroines/{heroineId}/GameEvents";
+        EnsureFolder(eventFolderPath);
+
+        HeroineAssetCatalog catalog = LoadOrCreateAssetCatalog(heroineId);
+        Dictionary<string, Sprite> spritesByAssetId = CreateCatalogSpriteMap(catalog, report);
+        HashSet<string> importedIds = new HashSet<string>(StringComparer.Ordinal);
+        int importedCount = 0;
+
+        foreach (GameEventExportItem item in gameEventsExport.items)
+        {
+            if (!CanImportGameEvent(item, importedIds, report))
+            {
+                continue;
+            }
+
+            string assetPath = $"{eventFolderPath}/{ToSafeAssetFileName(item.id)}.asset";
+            GameEventData gameEvent = AssetDatabase.LoadAssetAtPath<GameEventData>(assetPath);
+            if (gameEvent == null)
+            {
+                gameEvent = ScriptableObject.CreateInstance<GameEventData>();
+                AssetDatabase.CreateAsset(gameEvent, assetPath);
+            }
+
+            ApplyGameEvent(gameEvent, item, spritesByAssetId, report);
+            EditorUtility.SetDirty(gameEvent);
+            importedCount++;
+        }
+
+        report.gameEventCount = importedCount;
+    }
+
+    private static bool CanImportGameEvent(
+        GameEventExportItem item,
+        HashSet<string> importedIds,
+        HeroineImportReport report)
+    {
+        if (item == null || string.IsNullOrWhiteSpace(item.id))
+        {
+            report.Warn("id が空の game event item をスキップしました。");
+            return false;
+        }
+
+        if (!importedIds.Add(item.id))
+        {
+            report.Warn("id が重複している game event item をスキップしました: " + item.id);
+            return false;
+        }
+
+        if (item.lines == null || item.lines.Length == 0)
+        {
+            report.Warn("lines が空の game event item をスキップしました: " + item.id);
+            return false;
+        }
+
+        return true;
+    }
+
+    private static void ApplyGameEvent(
+        GameEventData gameEvent,
+        GameEventExportItem item,
+        Dictionary<string, Sprite> spritesByAssetId,
+        HeroineImportReport report)
+    {
+        GameEventExportConditions conditions = item.conditions ?? new GameEventExportConditions();
+
+        gameEvent.name = item.id;
+        gameEvent.eventId = item.id;
+        gameEvent.triggerType = ParseGameEventTriggerType(item.category, report);
+        gameEvent.showOnce = conditions.once;
+        gameEvent.isEnabled = true;
+        gameEvent.sortOrder = item.priority;
+        gameEvent.minDay = Math.Max(0, conditions.minDay);
+        gameEvent.maxDay = Math.Max(0, conditions.maxDay);
+        gameEvent.minAffection = Math.Max(0, conditions.minAffection);
+        gameEvent.maxAffection = Math.Max(0, conditions.maxAffection);
+        EnsureGameEventLists(gameEvent);
+        ApplyStringList(gameEvent.requiredShownEventIds, conditions.requiredShownEventIds);
+        ApplyStringList(gameEvent.blockedShownEventIds, conditions.blockedShownEventIds);
+        ApplyStringList(gameEvent.requiredOutfitIds, conditions.requiredOutfitIds);
+        ApplyStringList(gameEvent.blockedOutfitIds, conditions.blockedOutfitIds);
+        gameEvent.requiredOutfits.Clear();
+        gameEvent.blockedOutfits.Clear();
+        ApplySingleEnumCondition(
+            conditions.weather,
+            gameEvent.allowedWeathers,
+            value => gameEvent.anyWeather = value,
+            report);
+        ApplyGameEventPages(gameEvent.pages, item, spritesByAssetId, report);
+    }
+
+    private static void EnsureGameEventLists(GameEventData gameEvent)
+    {
+        if (gameEvent.requiredShownEventIds == null)
+        {
+            gameEvent.requiredShownEventIds = new List<string>();
+        }
+
+        if (gameEvent.blockedShownEventIds == null)
+        {
+            gameEvent.blockedShownEventIds = new List<string>();
+        }
+
+        if (gameEvent.requiredOutfitIds == null)
+        {
+            gameEvent.requiredOutfitIds = new List<string>();
+        }
+
+        if (gameEvent.blockedOutfitIds == null)
+        {
+            gameEvent.blockedOutfitIds = new List<string>();
+        }
+
+        if (gameEvent.requiredOutfits == null)
+        {
+            gameEvent.requiredOutfits = new List<OutfitData>();
+        }
+
+        if (gameEvent.blockedOutfits == null)
+        {
+            gameEvent.blockedOutfits = new List<OutfitData>();
+        }
+
+        if (gameEvent.allowedWeathers == null)
+        {
+            gameEvent.allowedWeathers = new List<Weather>();
+        }
+
+        if (gameEvent.pages == null)
+        {
+            gameEvent.pages = new List<GameEventPageData>();
+        }
+    }
+
+    private static GameEventTriggerType ParseGameEventTriggerType(
+        string category,
+        HeroineImportReport report)
+    {
+        if (string.IsNullOrWhiteSpace(category))
+        {
+            return GameEventTriggerType.Manual;
+        }
+
+        if (Enum.TryParse(category, true, out GameEventTriggerType triggerType))
+        {
+            return triggerType;
+        }
+
+        report.Warn("未知の game event category は Manual として import します: " + category);
+        return GameEventTriggerType.Manual;
+    }
+
+    private static void ApplyGameEventPages(
+        List<GameEventPageData> target,
+        GameEventExportItem item,
+        Dictionary<string, Sprite> spritesByAssetId,
+        HeroineImportReport report)
+    {
+        target.Clear();
+
+        Sprite stillSprite = ResolveFirstSprite(item.imageAssetIds, spritesByAssetId, report);
+        string stillId = item.imageAssetIds != null && item.imageAssetIds.Length > 0
+            ? item.imageAssetIds[0]
+            : string.Empty;
+        bool appliedStill = false;
+
+        foreach (ConversationExportLine line in item.lines)
+        {
+            if (line == null || string.IsNullOrWhiteSpace(line.text))
+            {
+                continue;
+            }
+
+            GameEventPageData page = new GameEventPageData
+            {
+                speakerType = ParseScheduledEventSpeakerType(line.speaker),
+                speakerName = "",
+                message = line.text,
+                expressionId = line.expression ?? string.Empty,
+                stillId = appliedStill ? string.Empty : stillId,
+                stillSprite = appliedStill ? null : stillSprite
+            };
+
+            target.Add(page);
+            appliedStill = true;
+        }
+    }
+
+    private static ScheduledEventSpeakerType ParseScheduledEventSpeakerType(string speaker)
+    {
+        if (string.IsNullOrWhiteSpace(speaker))
+        {
+            return ScheduledEventSpeakerType.Heroine;
+        }
+
+        if (Enum.TryParse(speaker, true, out ScheduledEventSpeakerType speakerType))
+        {
+            return speakerType;
+        }
+
+        return ScheduledEventSpeakerType.Heroine;
+    }
+
+    private static Sprite ResolveFirstSprite(
+        string[] imageAssetIds,
+        Dictionary<string, Sprite> spritesByAssetId,
+        HeroineImportReport report)
+    {
+        if (imageAssetIds == null || imageAssetIds.Length == 0)
+        {
+            return null;
+        }
+
+        string assetId = imageAssetIds[0];
+        if (string.IsNullOrWhiteSpace(assetId))
+        {
+            return null;
+        }
+
+        if (spritesByAssetId != null
+            && spritesByAssetId.TryGetValue(assetId, out Sprite sprite)
+            && sprite != null)
+        {
+            return sprite;
+        }
+
+        report.Warn("game event の imageAssetIds を Sprite に解決できませんでした: " + assetId);
+        return null;
+    }
+
+    private static void ApplyStringList(List<string> target, string[] source)
+    {
+        target.Clear();
+        if (source == null)
+        {
+            return;
+        }
+
+        foreach (string value in source)
+        {
+            if (!string.IsNullOrWhiteSpace(value))
+            {
+                target.Add(value);
+            }
+        }
+    }
+
+    private static string ToSafeAssetFileName(string rawName)
+    {
+        string fileName = string.IsNullOrWhiteSpace(rawName) ? "GameEvent" : rawName.Trim();
+        foreach (char invalidChar in Path.GetInvalidFileNameChars())
+        {
+            fileName = fileName.Replace(invalidChar, '_');
+        }
+
+        return fileName;
+    }
+
     private static void ApplySingleEnumCondition<T>(
         string rawValue,
         List<T> target,
@@ -962,6 +1257,14 @@ public static class HeroineAssetImporter
     }
 
     [Serializable]
+    private sealed class GameEventsExport
+    {
+        public string schemaVersion;
+        public string heroineId;
+        public GameEventExportItem[] items;
+    }
+
+    [Serializable]
     private sealed class SpriteLayersExport
     {
         public string schemaVersion;
@@ -1010,6 +1313,37 @@ public static class HeroineAssetImporter
     }
 
     [Serializable]
+    private sealed class GameEventExportItem
+    {
+        public string id;
+        public string title;
+        public string category;
+        public GameEventExportConditions conditions;
+        public ConversationExportLine[] lines;
+        public string[] imageAssetIds;
+        public int priority;
+        public string memo;
+    }
+
+    [Serializable]
+    private sealed class GameEventExportConditions
+    {
+        public bool once;
+        public string locationId;
+        public int minDay;
+        public int maxDay;
+        public int minAffection;
+        public int maxAffection;
+        public string weather;
+        public string season;
+        public string timeOfDay;
+        public string[] requiredShownEventIds;
+        public string[] blockedShownEventIds;
+        public string[] requiredOutfitIds;
+        public string[] blockedOutfitIds;
+    }
+
+    [Serializable]
     private sealed class ConversationExportLine
     {
         public string speaker;
@@ -1036,6 +1370,7 @@ public static class HeroineAssetImporter
         public int catalogAssetCount;
         public int layerCount;
         public int conversationCount;
+        public int gameEventCount;
         public string defaultSpritePath;
         public readonly List<string> warnings = new List<string>();
 
@@ -1048,7 +1383,7 @@ public static class HeroineAssetImporter
         public void LogSummary(string assetPath)
         {
             Debug.Log(
-                $"Heroine export を import しました: {assetPath}, copied images: {copiedImageCount}, catalog assets: {catalogAssetCount}, layers: {layerCount}, conversations: {conversationCount}, warnings: {warnings.Count}");
+                $"Heroine export を import しました: {assetPath}, copied images: {copiedImageCount}, catalog assets: {catalogAssetCount}, layers: {layerCount}, conversations: {conversationCount}, game events: {gameEventCount}, warnings: {warnings.Count}");
         }
 
         public string CreateDialogMessage(string assetPath)
@@ -1060,6 +1395,7 @@ public static class HeroineAssetImporter
                 "Catalog assets: " + catalogAssetCount + "\n" +
                 "Layers: " + layerCount + "\n" +
                 "Conversations: " + conversationCount + "\n" +
+                "Game events: " + gameEventCount + "\n" +
                 "Warnings: " + warnings.Count;
 
             if (warnings.Count == 0)

@@ -18,6 +18,11 @@ MonoBehaviour:
     genre: 0
     type: 0
     heroineLine: "\u30C6\u30B9\u30C8\u3067\u3059"
+    expressionId: 
+    lines:
+    - speaker: Heroine
+      text: "\u30C6\u30B9\u30C8\u3067\u3059"
+      expressionId: 
     choices: []
     priority: 100
     showOnce: 0
@@ -33,6 +38,8 @@ MonoBehaviour:
   genre: 0
   type: 0
   heroineLine: 
+  expressionId: 
+  lines: []
   choices: []
   priority: 0
   showOnce: 0
