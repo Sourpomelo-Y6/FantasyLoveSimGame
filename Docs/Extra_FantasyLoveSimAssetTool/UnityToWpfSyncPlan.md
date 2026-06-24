@@ -118,7 +118,7 @@ WPF 側では `ConversationEntries` の `Kind=GameEvents` へ merge する候補
 メニュー:
 
 ```text
-Tools/FantasyLoveSim/Export Heroine Unity Data...
+FantasyLoveSim/Export Heroine Unity Data
 ```
 
 処理:
@@ -131,6 +131,10 @@ Tools/FantasyLoveSim/Export Heroine Unity Data...
 6. 件数と warning を `export_report.json` と Console に出す。
 
 Unity Editor 拡張側で型付き ScriptableObject を読むため、WPF Tool 側は Unity 固有の `.asset` 形式を知らなくてよい。
+
+現状の Unity 側実装では、`Assets/Editor/HeroineUnityDataExporter.cs` を追加済み。
+選択中またはファイル選択した `HeroineProfileData` の `actionResourcePath` から `ActionData` を読み、`actions_from_unity.json` と `export_report.json` を出力する。
+Sprite 参照そのものは出力せず、`stillId` がある場合だけ `imageAssetIds` に戻す。
 
 ## WPF Tool 側 Import 案
 
@@ -247,9 +251,9 @@ WPF Tool 側の import preview で出す warning:
 
 ## 実装順
 
-1. この方針を Unity 側にも共有する。
-2. Unity Editor 拡張に `Export Heroine Unity Data...` の空メニューを追加する。
-3. `ActionData` だけを `actions_from_unity.json` として出力する。
+1. この方針を Unity 側にも共有する。完了。
+2. Unity Editor 拡張に `Export Heroine Unity Data` メニューを追加する。完了。
+3. `ActionData` だけを `actions_from_unity.json` として出力する。完了。
 4. WPF Tool 側に `actions_from_unity.json` の読み込み preview を追加する。
 5. 新規 action のみ追加できるようにする。
 6. 差分表示と選択 merge を追加する。
