@@ -91,10 +91,49 @@ public static class HeroineAssetImporter
         profile.displayName = string.IsNullOrWhiteSpace(profileExport.displayName)
             ? profileExport.heroineId
             : profileExport.displayName;
+        profile.initialDialogueMessage = ResolveProfileText(
+            profileExport.initialDialogueMessage,
+            profile.initialDialogueMessage,
+            "今日は何を話しましょうか？");
+        profile.nextActionPrompt = ResolveProfileText(
+            profileExport.nextActionPrompt,
+            profile.nextActionPrompt,
+            "次は何をしましょうか？");
+        profile.morningGreeting = ResolveProfileText(
+            profileExport.morningGreeting,
+            profile.morningGreeting,
+            "おはようございます。今日もよろしくお願いしますね。");
+        profile.goodNightGreeting = ResolveProfileText(
+            profileExport.goodNightGreeting,
+            profile.goodNightGreeting,
+            "もう夜も遅いですね。おやすみなさい。また明日。");
+        profile.gameStartFallbackMessage = ResolveProfileText(
+            profileExport.gameStartFallbackMessage,
+            profile.gameStartFallbackMessage,
+            "新しい物語が始まります。");
+        profile.gameStartFollowUpMessage = ResolveProfileText(
+            profileExport.gameStartFollowUpMessage,
+            profile.gameStartFollowUpMessage,
+            "今日は何を話しましょうか？");
         profile.conversationResourcePath = $"Heroines/{profileExport.heroineId}";
         profile.gameEventResourcePath = $"Heroines/{profileExport.heroineId}/GameEvents";
         profile.actionResourcePath = $"Heroines/{profileExport.heroineId}/Actions";
         profile.endingResourcePath = $"Heroines/{profileExport.heroineId}/Endings";
+    }
+
+    private static string ResolveProfileText(string exportedText, string currentText, string fallback)
+    {
+        if (!string.IsNullOrWhiteSpace(exportedText))
+        {
+            return exportedText;
+        }
+
+        if (!string.IsNullOrWhiteSpace(currentText))
+        {
+            return currentText;
+        }
+
+        return fallback;
     }
 
     private static void ApplyDefaultHeroineSprite(
@@ -1231,6 +1270,12 @@ public static class HeroineAssetImporter
         public string speakingStyle;
         public string firstPerson;
         public string secondPerson;
+        public string initialDialogueMessage;
+        public string nextActionPrompt;
+        public string morningGreeting;
+        public string goodNightGreeting;
+        public string gameStartFallbackMessage;
+        public string gameStartFollowUpMessage;
         public string appearancePrompt;
         public string stillCommonPositivePrompt;
         public string actionReactionPolicy;

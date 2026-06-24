@@ -230,10 +230,17 @@ Canvas
 - `actionResourcePath`: 行動・行動反応データの読み込みパス
 - `endingResourcePath`: エンディングデータの読み込みパス
 - `defaultHeroineSprite`: 代表立ち絵
+- `initialDialogueMessage`: MainScene 直接開始時などの初期セリフ
+- `nextActionPrompt`: 行動や会話後に次の行動を促すセリフ
+- `morningGreeting`: 翌朝開始時の挨拶
+- `goodNightGreeting`: 夜から翌日へ進む前の挨拶
+- `gameStartFallbackMessage`: GameStart イベントがない場合の開始メッセージ
+- `gameStartFollowUpMessage`: GameStart fallback 後の次セリフ
 
 現在のヒロインは `DefaultHeroine` として扱い、`Assets/Resources/Heroines/DefaultHeroineProfile.asset` に `Heroines/DefaultHeroine` / `Heroines/DefaultHeroine/GameEvents` / `Heroines/DefaultHeroine/Actions` / `Heroines/DefaultHeroine/Endings` を参照させている。
 `GameManager` は profile から会話・イベント・行動の読み込みパスを適用し、`EndingScene` へ遷移するときに profile の `endingResourcePath` を `EndingSelectionSettings` へ渡す。
 `EndingManager` は渡された `endingResourcePath` があればそのパスから `EndingData` を読み込む。
+コード直書きだった朝夜の挨拶や行動後プロンプトは `HeroineProfileData` へ移し、ヒロイン差し替え時に口調も変えられるようにする。
 将来ヒロインを増やす段階で、Resources 配下を次のように分ける。
 
 ```text

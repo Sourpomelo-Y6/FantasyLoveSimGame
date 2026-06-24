@@ -816,6 +816,53 @@ public class GameManager : MonoBehaviour
         ShowDialogue(DialogueSpeakerType.Outfit, OutfitSpeakerName, message);
     }
 
+    private string GetInitialDialogueMessage()
+    {
+        return GetHeroineProfileDialogue(
+            heroineProfile != null ? heroineProfile.initialDialogueMessage : null,
+            "今日は何を話しましょうか？");
+    }
+
+    private string GetNextActionPrompt()
+    {
+        return GetHeroineProfileDialogue(
+            heroineProfile != null ? heroineProfile.nextActionPrompt : null,
+            "次は何をしましょうか？");
+    }
+
+    private string GetMorningGreeting()
+    {
+        return GetHeroineProfileDialogue(
+            heroineProfile != null ? heroineProfile.morningGreeting : null,
+            "おはようございます。今日もよろしくお願いしますね。");
+    }
+
+    private string GetGoodNightGreeting()
+    {
+        return GetHeroineProfileDialogue(
+            heroineProfile != null ? heroineProfile.goodNightGreeting : null,
+            "もう夜も遅いですね。おやすみなさい。また明日。");
+    }
+
+    private string GetGameStartFallbackMessage()
+    {
+        return GetHeroineProfileDialogue(
+            heroineProfile != null ? heroineProfile.gameStartFallbackMessage : null,
+            "新しい物語が始まります。");
+    }
+
+    private string GetGameStartFollowUpMessage()
+    {
+        return GetHeroineProfileDialogue(
+            heroineProfile != null ? heroineProfile.gameStartFollowUpMessage : null,
+            "今日は何を話しましょうか？");
+    }
+
+    private static string GetHeroineProfileDialogue(string profileMessage, string fallback)
+    {
+        return string.IsNullOrWhiteSpace(profileMessage) ? fallback : profileMessage;
+    }
+
     private void ApplyHeroineProfileSettings()
     {
         HeroineProfileData profile = ResolveHeroineProfile();
@@ -964,7 +1011,7 @@ public class GameManager : MonoBehaviour
             return;
         }
 
-        ShowHeroineDialogue("今日は何を話しましょうか？");
+        ShowHeroineDialogue(GetInitialDialogueMessage());
         RefreshUI();
         SetSaveLoadButtonsVisible(true);
         EnsureStatusDetailPanel();
@@ -1438,7 +1485,7 @@ public class GameManager : MonoBehaviour
         {
             pendingGoodNight = false;
 
-            ShowHeroineDialogue("もう夜も遅いですね。おやすみなさい。また明日。");
+            ShowHeroineDialogue(GetGoodNightGreeting());
 
             flowState = ConversationFlowState.ShowingGoodNight;
 
@@ -1482,7 +1529,7 @@ public class GameManager : MonoBehaviour
         outfitReactionPanel.SetActive(false);
         actionButtonArea.SetActive(true);
 
-        ShowHeroineDialogue("次は何をしましょうか？");
+        ShowHeroineDialogue(GetNextActionPrompt());
     }
 
     private void ShowChoices()
@@ -1603,7 +1650,7 @@ public class GameManager : MonoBehaviour
         outfitReactionPanel.SetActive(false);
         actionButtonArea.SetActive(true);
 
-        ShowHeroineDialogue("次は何をしましょうか？");
+        ShowHeroineDialogue(GetNextActionPrompt());
     }
 
     private void OnClickEnding()
@@ -2191,7 +2238,7 @@ public class GameManager : MonoBehaviour
             new DialogueMessage(
                 DialogueSpeakerType.Heroine,
                 heroineStatus != null ? heroineStatus.HeroineName : "",
-                "新しい物語が始まります。",
+                GetGameStartFallbackMessage(),
                 "GameStartIntro_01",
                 stillSprite
             )
@@ -2200,7 +2247,7 @@ public class GameManager : MonoBehaviour
             new DialogueMessage(
                 DialogueSpeakerType.Heroine,
                 heroineStatus != null ? heroineStatus.HeroineName : "",
-                "今日は何を話しましょうか？"
+                GetGameStartFollowUpMessage()
             )
         );
 
@@ -3843,7 +3890,7 @@ public class GameManager : MonoBehaviour
 
         if (dayStartMessages == null || dayStartMessages.Count == 0)
         {
-            ShowHeroineDialogue("おはようございます。今日もよろしくお願いしますね。");
+            ShowHeroineDialogue(GetMorningGreeting());
         }
         else
         {
@@ -3852,7 +3899,7 @@ public class GameManager : MonoBehaviour
                 new DialogueMessage(
                     DialogueSpeakerType.Heroine,
                     heroineStatus.HeroineName,
-                    "おはようございます。今日もよろしくお願いしますね。"
+                    GetMorningGreeting()
                 )
             };
 
@@ -3899,7 +3946,7 @@ public class GameManager : MonoBehaviour
 
     private void ShowGoodNightBeforeNextDay()
     {
-        ShowHeroineDialogue("もう夜も遅いですね。おやすみなさい。また明日。");
+        ShowHeroineDialogue(GetGoodNightGreeting());
 
         flowState = ConversationFlowState.ShowingGoodNight;
 

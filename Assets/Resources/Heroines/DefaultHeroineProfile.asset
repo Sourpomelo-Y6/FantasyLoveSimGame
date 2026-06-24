@@ -15,6 +15,12 @@ MonoBehaviour:
   heroineId: DefaultHeroine
   displayName: ヒロイン
   defaultHeroineSprite: {fileID: 21300000, guid: 3a96e21edc0a10546af05bd496fc8636, type: 3}
+  initialDialogueMessage: "\u4ECA\u65E5\u306F\u4F55\u3092\u8A71\u3057\u307E\u3057\u3087\u3046\u304B\uFF1F"
+  nextActionPrompt: "\u6B21\u306F\u4F55\u3092\u3057\u307E\u3057\u3087\u3046\u304B\uFF1F"
+  morningGreeting: "\u304A\u306F\u3088\u3046\u3054\u3056\u3044\u307E\u3059\u3002\u4ECA\u65E5\u3082\u3088\u308D\u3057\u304F\u304A\u9858\u3044\u3057\u307E\u3059\u306D\u3002"
+  goodNightGreeting: "\u3082\u3046\u591C\u3082\u9045\u3044\u3067\u3059\u306D\u3002\u304A\u3084\u3059\u307F\u306A\u3055\u3044\u3002\u307E\u305F\u660E\u65E5\u3002"
+  gameStartFallbackMessage: "\u65B0\u3057\u3044\u7269\u8A9E\u304C\u59CB\u307E\u308A\u307E\u3059\u3002"
+  gameStartFollowUpMessage: "\u4ECA\u65E5\u306F\u4F55\u3092\u8A71\u3057\u307E\u3057\u3087\u3046\u304B\uFF1F"
   conversationResourcePath: Heroines/DefaultHeroine/Conversations
   gameEventResourcePath: Heroines/DefaultHeroine/GameEvents
   actionResourcePath: Heroines/DefaultHeroine/Actions
