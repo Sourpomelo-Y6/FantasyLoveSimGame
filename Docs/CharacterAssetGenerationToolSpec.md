@@ -345,6 +345,9 @@ Unity Editor 拡張は `exportImagePath` から画像をコピーし、`unityIma
 取り込んだ画像は UI 表示に使えるよう、Unity の import 設定を `Sprite` に補正する。
 `GameManager` は `HeroineProfileData.defaultHeroineSprite` を `OutfitManager` に渡し、通常衣装 `Normal` の表示では profile の代表立ち絵を優先する。
 通常衣装以外は、衣装に `heroineSprite` が設定されている場合は従来どおり衣装画像を優先し、衣装画像がない場合だけ代表立ち絵へフォールバックする。
+`HeroineProfileData` は、朝の挨拶、夜の挨拶、行動後プロンプト、開始時 fallback 文などの共通セリフも持つ。
+Unity 側 importer は `heroine_profile_export.json` に同名フィールドがあれば取り込めるが、Tool 側の編集 UI と export はまだ未対応。
+後で Tool 側に共通セリフ編集欄を追加し、`initialDialogueMessage`、`nextActionPrompt`、`morningGreeting`、`goodNightGreeting`、`gameStartFallbackMessage`、`gameStartFollowUpMessage` を `heroine_profile_export.json` に出力する。
 `TestHeroine` の追加画像は容量節約のため Unity 側リポジトリへコミットせず、AssetTool 側の export サンプルまたはローカル import 結果として扱う。
 `Data/conversations_export.json` が存在する場合は、`Assets/Resources/Heroines/<HeroineId>/Conversations.asset` を生成、更新する。
 `Conversations.asset` は `ConversationData.items` に複数会話を持つ container として扱い、実行時には `GameManager` が従来の会話候補へ展開する。
