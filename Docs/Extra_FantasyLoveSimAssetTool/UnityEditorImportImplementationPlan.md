@@ -3,6 +3,9 @@
 このドキュメントは、`FantasyLoveSimAssetTool` の `Export/<HeroineId>/` を Unity プロジェクト側で取り込む Editor 拡張の実装メモである。
 データ契約そのものは `Docs/UnityImportPlan.md` を正とし、このドキュメントでは Unity 側に置くファイル、クラス、処理順、更新ルールを具体化する。
 
+Unity 側で手修正したデータを WPF Tool 側へ戻す逆方向同期は、通常 Import とは別機能として扱う。
+方針は `Docs/UnityToWpfSyncPlan.md` を参照する。
+
 ## 目的
 
 - WPF export の JSON と画像を Unity Editor 内で読み込む。

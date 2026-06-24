@@ -5,6 +5,8 @@
 現時点では WPF ツールは画像素材と prompt 記録の管理を主目的にしている。
 会話データは次の段階で追加する。
 
+`GameEvents` のカテゴリ、条件、イベントスチル参照の具体運用は `Docs/GameEventDataGuide.md` にまとめる。
+
 ## 基本方針
 
 - WPF ツールは会話、イベント、行動反応、エンディング本文をキャラクター単位で編集する。
@@ -148,6 +150,7 @@ Unity 側の対応先は `ConversationData` を想定する。
 
 ゲーム開始、日開始、場所イベント、予定イベントなど、イベント単位で発生する本文を扱う。
 イベントスチルを使う場合は `imageAssetIds` に `GameStartIntro_01` などを入れる。
+カテゴリ、発火条件、`once` とフラグの扱いは `Docs/GameEventDataGuide.md` を参照する。
 
 ```json
 {
@@ -157,7 +160,7 @@ Unity 側の対応先は `ConversationData` を想定する。
     {
       "id": "Event_GameStartIntro",
       "title": "ゲーム開始導入",
-      "category": "GameStart",
+      "category": "Intro",
       "conditions": {
         "once": true,
         "locationId": "",

@@ -5,6 +5,9 @@
 WPF ツールは Unity の ScriptableObject `.asset` を直接生成しない。
 WPF ツールは画像と中間 JSON を出力し、Unity Editor 拡張が Unity Editor 内で JSON を読み込んで `.asset` を生成、更新する。
 
+Unity 側で手修正したデータを WPF Tool 側へ戻す場合は、正方向 Import とは分けて `Docs/UnityToWpfSyncPlan.md` の FromUnity JSON 方針に従う。
+WPF Tool は Unity `.asset` YAML を直接読まない。
+
 ## 基本方針
 
 - WPF ツールと Unity プロジェクトは、原則として別リポジトリのまま運用する。
@@ -214,6 +217,7 @@ Data/
 このときも WPF 側から `.asset` を直接生成しない。
 Unity Editor 側で `ConversationData`、`GameEventData`、`ActionReactionData`、`EndingData` の `.asset` を生成、更新する。
 会話データの JSON スキーマと WPF 画面方針は `Docs/ConversationDataPlan.md` にまとめる。
+`GameEvents` のカテゴリ、条件、発火判定、イベントスチル参照の運用は `Docs/GameEventDataGuide.md` にまとめる。
 
 会話データの ScriptableObject は、各 JSON ファイルごとに1つの `.asset` を作る。
 各 `.asset` は `heroineId` と `items` 相当のリストを持つ。
@@ -236,6 +240,7 @@ WPF 側は同じ値を入力候補として表示し、Export 時に候補外の
 
 - prompt JSON を Unity プロジェクト内へコピーするか、WPF export フォルダ参照のままにするか
 - Import 時に既存画像を上書きするか、確認ダイアログを出すか
+- Unity 側で手修正した `ActionData`、会話、イベントを FromUnity JSON として WPF Tool 側へ戻す機能をどこまで自動 merge するか
 
 ## 表情、衣装の透過レイヤー方式
 

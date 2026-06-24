@@ -10,16 +10,16 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 92b5d3d53c514e3aa4a399b12e4c45dd, type: 3}
-  m_Name: Event_GameStartIntro
+  m_Name: Event_Quest_01
   m_EditorClassIdentifier: 
-  eventId: Event_GameStartIntro
+  eventId: Event_Quest_01
   triggerType: 2
   showOnce: 1
   isEnabled: 1
-  sortOrder: 100
+  sortOrder: 70
   minDay: 0
   maxDay: 0
-  minAffection: 0
+  minAffection: 10
   maxAffection: 100
   requiredShownEventIds: []
   blockedShownEventIds: []
@@ -32,7 +32,13 @@ MonoBehaviour:
   pages:
   - speakerType: 0
     speakerName: 
-    message: "\u306F\u3058\u3081\u307E\u3057\u3066\u3002\u3042\u306A\u305F\u304C\u4ECA\u65E5\u304B\u3089\u4E00\u7DD2\u306B\u904E\u3054\u3059\u4EBA\uFF1F"
+    message: "\u3042\u3093\u305F\u3001\u3061\u3087\u3063\u3068\u6642\u9593\u3042\u308B\uFF1F\u2026\u5225\u306B\u983C\u308A\u305F\u3044\u308F\u3051\u3058\u3083\u306A\u3044\u3051\u3069\u3002"
+    expressionId: Shy
+    stillId: 
+    stillSprite: {fileID: 0}
+  - speakerType: 0
+    speakerName: 
+    message: "\u8A71\u3057\u3066\u304F\u308C\u3002\u3067\u304D\u308B\u3053\u3068\u306A\u3089\u624B\u4F1D\u3046\u3002"
     expressionId: Neutral
-    stillId: Heroine_Normal
-    stillSprite: {fileID: 21300000, guid: 75760bce93a9a794498a3ef81175bafb, type: 3}
+    stillId: 
+    stillSprite: {fileID: 0}
