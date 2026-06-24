@@ -11,7 +11,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: c75e851e41fd427f8e73a9a5aaf50d13, type: 3}
   m_Name: HeroineAssetCatalog
-  m_EditorClassIdentifier: 
+  m_EditorClassIdentifier:
   heroineId: TestHeroine
   assets:
   - assetId: Heroine_Normal
@@ -27,7 +27,7 @@ MonoBehaviour:
     usage: Sprites
     status: Accepted
     fileName: Heroine_Smile.png
-    memo: 
+    memo:
     sprite: {fileID: 21300000, guid: 796086eb101301f43b48f9690646de9f, type: 3}
     unityImagePath: Assets/Images/Heroines/TestHeroine/Sprites/Heroine_Smile.png
     exportPromptPath: Prompts/Heroine_Smile.prompt.json
@@ -35,7 +35,7 @@ MonoBehaviour:
     usage: Sprites
     status: Accepted
     fileName: Heroine_BaseBody.png
-    memo: 
+    memo:
     sprite: {fileID: 21300000, guid: c469d79811cb2b54392c983e706a690e, type: 3}
     unityImagePath: Assets/Images/Heroines/TestHeroine/Sprites/Heroine_BaseBody.png
     exportPromptPath: Prompts/Heroine_BaseBody.prompt.json
@@ -43,7 +43,7 @@ MonoBehaviour:
     usage: Sprites
     status: Accepted
     fileName: Costume_Default.png
-    memo: 
+    memo:
     sprite: {fileID: 21300000, guid: a132a23ad4b54ef42b0de72893febb47, type: 3}
     unityImagePath: Assets/Images/Heroines/TestHeroine/Sprites/Costume_Default.png
     exportPromptPath: Prompts/Costume_Default.prompt.json
@@ -51,7 +51,7 @@ MonoBehaviour:
     usage: Sprites
     status: Accepted
     fileName: Expression_Neutral.png
-    memo: 
+    memo:
     sprite: {fileID: 21300000, guid: cd4712765ee2493428b33dc87b8c292c, type: 3}
     unityImagePath: Assets/Images/Heroines/TestHeroine/Sprites/Expression_Neutral.png
     exportPromptPath: Prompts/Expression_Neutral.prompt.json
@@ -59,7 +59,7 @@ MonoBehaviour:
     usage: Sprites
     status: Accepted
     fileName: Expression_Smile.png
-    memo: 
+    memo:
     sprite: {fileID: 21300000, guid: 0e2520de4ead5f54da76df13a4e5b758, type: 3}
     unityImagePath: Assets/Images/Heroines/TestHeroine/Sprites/Expression_Smile.png
     exportPromptPath: Prompts/Expression_Smile.prompt.json
@@ -67,7 +67,7 @@ MonoBehaviour:
     usage: Sprites
     status: Accepted
     fileName: Costume_Summer.png
-    memo: 
+    memo:
     sprite: {fileID: 21300000, guid: c5307bfcdb24efd4e97de55c108748bd, type: 3}
     unityImagePath: Assets/Images/Heroines/TestHeroine/Sprites/Costume_Summer.png
     exportPromptPath: Prompts/Costume_Summer.prompt.json
@@ -75,7 +75,7 @@ MonoBehaviour:
     usage: Sprites
     status: Accepted
     fileName: Expression_Angry.png
-    memo: 
+    memo:
     sprite: {fileID: 21300000, guid: 487e1ba0acce18348adf0e4c418ef6e8, type: 3}
     unityImagePath: Assets/Images/Heroines/TestHeroine/Sprites/Expression_Angry.png
     exportPromptPath: Prompts/Expression_Angry.prompt.json
@@ -83,7 +83,7 @@ MonoBehaviour:
     usage: Sprites
     status: Accepted
     fileName: Expression_Sad.png
-    memo: 
+    memo:
     sprite: {fileID: 21300000, guid: 7ad40c910b4fe6a4b894426ebceffc06, type: 3}
     unityImagePath: Assets/Images/Heroines/TestHeroine/Sprites/Expression_Sad.png
     exportPromptPath: Prompts/Expression_Sad.prompt.json
@@ -91,7 +91,7 @@ MonoBehaviour:
     usage: Sprites
     status: Accepted
     fileName: Expression_Shy.png
-    memo: 
+    memo:
     sprite: {fileID: 21300000, guid: ddaf1369c068cb048a02e6b1c350c467, type: 3}
     unityImagePath: Assets/Images/Heroines/TestHeroine/Sprites/Expression_Shy.png
     exportPromptPath: Prompts/Expression_Shy.prompt.json
@@ -99,7 +99,7 @@ MonoBehaviour:
     usage: Sprites
     status: Accepted
     fileName: Expression_Surprised.png
-    memo: 
+    memo:
     sprite: {fileID: 21300000, guid: 2adee551913a5ed40bc1938efbe4245a, type: 3}
     unityImagePath: Assets/Images/Heroines/TestHeroine/Sprites/Expression_Surprised.png
     exportPromptPath: Prompts/Expression_Surprised.prompt.json
@@ -107,23 +107,23 @@ MonoBehaviour:
     usage: Sprites
     status: Accepted
     fileName: Costume_Spring.png
-    memo: 
+    memo:
     sprite: {fileID: 21300000, guid: 7ffb4d06791f0d44ab4a8b74dcac7015, type: 3}
     unityImagePath: Assets/Images/Heroines/TestHeroine/Sprites/Costume_Spring.png
     exportPromptPath: Prompts/Costume_Spring.prompt.json
-  - assetId: Costure_Adventure
+  - assetId: Costume_Adventure
     usage: Sprites
     status: Accepted
     fileName: Costure_Adventure.png
-    memo: 
+    memo:
     sprite: {fileID: 21300000, guid: 5a01443eb8510c946acad7a4fd06cf5e, type: 3}
     unityImagePath: Assets/Images/Heroines/TestHeroine/Sprites/Costure_Adventure.png
-    exportPromptPath: Prompts/Costure_Adventure.prompt.json
+    exportPromptPath: Prompts/Costume_Adventure.prompt.json
   - assetId: Costume_Winter
     usage: Sprites
     status: Accepted
     fileName: Costume_Winter.png
-    memo: 
+    memo:
     sprite: {fileID: 21300000, guid: efa2ded0920196b419dea4ce0d04d117, type: 3}
     unityImagePath: Assets/Images/Heroines/TestHeroine/Sprites/Costume_Winter.png
     exportPromptPath: Prompts/Costume_Winter.prompt.json
@@ -131,39 +131,39 @@ MonoBehaviour:
     usage: Sprites
     status: Accepted
     fileName: Costume_Autumn.png
-    memo: 
+    memo:
     sprite: {fileID: 21300000, guid: 66fa10407a56132488a3264531c90b59, type: 3}
     unityImagePath: Assets/Images/Heroines/TestHeroine/Sprites/Costume_Autumn.png
     exportPromptPath: Prompts/Costume_Autumn.prompt.json
-  - assetId: Costume_Outdress
+  - assetId: Costume_Town
     usage: Sprites
     status: Accepted
     fileName: Costume_Outdress.png
-    memo: 
+    memo:
     sprite: {fileID: 21300000, guid: d8f4e503ccad7a24c9e079633ddefc30, type: 3}
     unityImagePath: Assets/Images/Heroines/TestHeroine/Sprites/Costume_Outdress.png
-    exportPromptPath: Prompts/Costume_Outdress.prompt.json
+    exportPromptPath: Prompts/Costume_Town.prompt.json
   - assetId: Costume_Raincoat
     usage: Sprites
     status: Accepted
     fileName: Costume_Raincoat.png
-    memo: 
+    memo:
     sprite: {fileID: 21300000, guid: d8a5eb338dfb9ee41a0e200269670f1e, type: 3}
     unityImagePath: Assets/Images/Heroines/TestHeroine/Sprites/Costume_Raincoat.png
     exportPromptPath: Prompts/Costume_Raincoat.prompt.json
-  - assetId: Costume_Pyjamas
+  - assetId: Costume_Room
     usage: Sprites
     status: Accepted
     fileName: Costume_Pyjamas.png
-    memo: 
+    memo:
     sprite: {fileID: 21300000, guid: 23c39265d906ed74487c1f97ca18dcc2, type: 3}
     unityImagePath: Assets/Images/Heroines/TestHeroine/Sprites/Costume_Pyjamas.png
-    exportPromptPath: Prompts/Costume_Pyjamas.prompt.json
+    exportPromptPath: Prompts/Costume_Room.prompt.json
   - assetId: Costume_Dress
     usage: Sprites
     status: Accepted
     fileName: Costume_Dress.png
-    memo: 
+    memo:
     sprite: {fileID: 21300000, guid: 616696386368db943ae5b06da4641b81, type: 3}
     unityImagePath: Assets/Images/Heroines/TestHeroine/Sprites/Costume_Dress.png
     exportPromptPath: Prompts/Costume_Dress.prompt.json
@@ -171,7 +171,7 @@ MonoBehaviour:
     usage: Sprites
     status: Accepted
     fileName: Costume_NightDress.png
-    memo: 
+    memo:
     sprite: {fileID: 21300000, guid: a51064206bbb8ae44ba88070ee00fa62, type: 3}
     unityImagePath: Assets/Images/Heroines/TestHeroine/Sprites/Costume_NightDress.png
     exportPromptPath: Prompts/Costume_NightDress.prompt.json

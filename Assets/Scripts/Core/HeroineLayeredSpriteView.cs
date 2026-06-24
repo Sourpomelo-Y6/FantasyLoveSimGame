@@ -50,20 +50,23 @@ public class HeroineLayeredSpriteView : MonoBehaviour
         LayerEntry costumeLayer = FindLayerByCostumeId(costumeId);
         LayerEntry expressionLayer = FindLayerByExpressionId(expressionId);
         LayerEntry accessoryLayer = FindAccessoryLayer(costumeLayer, expressionLayer);
+        LayerEntry visibleBaseBodyLayer = HasVisibleLayer(costumeLayer) ? null : baseBodyLayer;
 
-        if (!HasVisibleLayer(baseBodyLayer) && !warnedMissingBaseBody)
+        if (!HasVisibleLayer(baseBodyLayer) &&
+            !HasVisibleLayer(costumeLayer) &&
+            !warnedMissingBaseBody)
         {
             Debug.LogWarning("HeroineLayeredSpriteView: BaseBody レイヤーが見つからないため表示できません。");
             warnedMissingBaseBody = true;
         }
 
-        ApplyLayer(baseBodyImage, baseBodyLayer);
+        ApplyLayer(baseBodyImage, visibleBaseBodyLayer);
         ApplyLayer(costumeImage, costumeLayer);
         ApplyLayer(expressionImage, expressionLayer);
         ApplyLayer(accessoryImage, accessoryLayer);
         ApplyLayerSiblingOrder(
             baseBodyImage,
-            baseBodyLayer,
+            visibleBaseBodyLayer,
             costumeImage,
             costumeLayer,
             expressionImage,
@@ -71,7 +74,7 @@ public class HeroineLayeredSpriteView : MonoBehaviour
             accessoryImage,
             accessoryLayer);
 
-        return HasVisibleLayer(baseBodyLayer) ||
+        return HasVisibleLayer(visibleBaseBodyLayer) ||
             HasVisibleLayer(costumeLayer) ||
             HasVisibleLayer(expressionLayer) ||
             HasVisibleLayer(accessoryLayer);

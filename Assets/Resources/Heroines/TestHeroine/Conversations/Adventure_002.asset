@@ -1,0 +1,38 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cb5097099197776438840c7469e425ca, type: 3}
+  m_Name: Adventure_002
+  m_EditorClassIdentifier: 
+  conversationId: Adventure_002
+  genre: 2
+  type: 1
+  heroineLine: "\u3082\u3057\u6D1E\u7A9F\u3067\u9B54\u7269\u306B\u51FA\u4F1A\u3063\u305F\u3089\u3001\u3042\u306A\u305F\u306F\u3069\u3046\u3057\u307E\u3059\u304B\uFF1F"
+  choices:
+  - choiceText: "\u541B\u3092\u5B88\u308B"
+    responseText: "\u2026\u2026\u983C\u3082\u3057\u3044\u3067\u3059\u306D\u3002\u5C11\u3057\u3001\u5B89\u5FC3\u3057\u307E\u3057\u305F\u3002"
+    affectionChange: 7
+  - choiceText: "\u4E00\u7DD2\u306B\u6226\u304A\u3046"
+    responseText: "\u306F\u3044\u3002\u79C1\u3082\u8DB3\u624B\u307E\u3068\u3044\u306B\u306F\u306A\u308A\u305F\u304F\u3042\u308A\u307E\u305B\u3093\u3002"
+    affectionChange: 4
+  - choiceText: "\u3059\u3050\u9003\u3052\u308B"
+    responseText: "\u305D\u308C\u3082\u5927\u4E8B\u306A\u5224\u65AD\u3067\u3059\u306D\u3002\u7121\u4E8B\u3067\u3044\u308B\u3053\u3068\u304C\u4E00\u756A\u3067\u3059\u3002"
+    affectionChange: 2
+  priority: 0
+  showOnce: 0
+  minAffection: 0
+  maxAffection: 100
+  anyTimeSlot: 1
+  allowedTimeSlots: 
+  anySeason: 1
+  allowedSeasons: 
+  anyWeather: 1
+  allowedWeathers: 

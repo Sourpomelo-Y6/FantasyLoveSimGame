@@ -1,0 +1,34 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1f41d3cf9d66ee149ad7663c5cd19c24, type: 3}
+  m_Name: OutfitReactionAction
+  m_EditorClassIdentifier: 
+  actionId: OutfitReaction
+  displayName: "\u8863\u88C5\u3092\u898B\u308B"
+  displayColumn: 3
+  executionType: 3
+  resultMessage: "\u4ECA\u306E\u8863\u88C5\u306B\u3064\u3044\u3066\u3001\u3069\u3046\u53CD\u5FDC\u3057\u307E\u3059\u304B\uFF1F"
+  unavailableMessage: "\u4ECA\u306F\u3053\u306E\u884C\u52D5\u306F\u3067\u304D\u307E\u305B\u3093\u3002"
+  useHeroineNameAsSpeaker: 0
+  affectionChange: 0
+  advanceTime: 0
+  reactions: []
+  sortOrder: 65
+  isEnabled: 1
+  anyTimeSlot: 1
+  allowedTimeSlots: 
+  anyWeather: 1
+  allowedWeathers: 
+  anySeason: 1
+  allowedSeasons: 
+  minAffection: 0
+  maxAffection: 100
