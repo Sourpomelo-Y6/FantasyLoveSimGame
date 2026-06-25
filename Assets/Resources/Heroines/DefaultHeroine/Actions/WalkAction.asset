@@ -19,6 +19,8 @@ MonoBehaviour:
   resultMessage: "\u4E8C\u4EBA\u3067\u5C11\u3057\u6563\u6B69\u3057\u307E\u3057\u305F\u3002\u7A4F\u3084\u304B\u306A\u6642\u9593\u3092\u904E\u3054\u305B\u307E\u3057\u305F\u3002"
   unavailableMessage: "\u4ECA\u306F\u3053\u306E\u884C\u52D5\u306F\u3067\u304D\u307E\u305B\u3093\u3002"
   useHeroineNameAsSpeaker: 1
+  stillId: WithForest
+  stillSprite: {fileID: 21300000, guid: 9096d13c499c9464db052bad3c54d7e1, type: 3}
   affectionChange: 1
   advanceTime: 1
   reactions:

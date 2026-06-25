@@ -195,6 +195,7 @@ public class GameManager : MonoBehaviour
     private ScheduledEventDefinition pendingScheduledEvent;
     private bool startPendingScheduledEventAfterOutfitMessage = false;
     private bool returnToScheduledEventPromptAfterOutfitMessage = false;
+    private string currentHeroineId = "";
     private HeroineAssetCatalog heroineAssetCatalog;
     private Image dialogueSequenceStillImageTarget;
     private Sprite dialogueSequencePreviousStillSprite;
@@ -873,6 +874,7 @@ public class GameManager : MonoBehaviour
         }
 
         heroineProfile = profile;
+        currentHeroineId = profile.heroineId ?? "";
 
         if (heroineStatus != null)
         {
@@ -3713,7 +3715,7 @@ public class GameManager : MonoBehaviour
             }
         }
 
-        if (heroineAssetCatalog != null)
+        if (heroineAssetCatalog != null && currentHeroineId != "DefaultHeroine")
         {
             stillId = string.Empty;
             stillSprite = null;
@@ -3730,16 +3732,19 @@ public class GameManager : MonoBehaviour
             case ScheduleType.SoloForest:
             case ScheduleType.DuoForest:
                 AddStillCandidate(candidates, "WithForest_01");
+                AddStillCandidate(candidates, "WithForest");
                 break;
 
             case ScheduleType.SoloCave:
             case ScheduleType.DuoCave:
                 AddStillCandidate(candidates, "WithCave_01");
+                AddStillCandidate(candidates, "WithCave");
                 break;
 
             case ScheduleType.SoloLake:
             case ScheduleType.DuoLake:
                 AddStillCandidate(candidates, "WithLake_01");
+                AddStillCandidate(candidates, "WithLake");
                 break;
 
             case ScheduleType.SoloShopping:
