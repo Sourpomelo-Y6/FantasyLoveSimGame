@@ -59,6 +59,16 @@ public class EndingManager : MonoBehaviour
         }
 
         EndingData[] endings = Resources.LoadAll<EndingData>(resourcePath);
+        Debug.Log(
+            "EndingManager selection: heroineId=" +
+            EndingSelectionSettings.SelectedHeroineId +
+            " / selectedEndingId=" +
+            selectedEndingId +
+            " / resourcePath=" +
+            resourcePath +
+            " / loadedCount=" +
+            endings.Length);
+
         foreach (EndingData ending in endings)
         {
             if (ending == null || string.IsNullOrEmpty(ending.endingId))
@@ -68,6 +78,13 @@ public class EndingManager : MonoBehaviour
 
             if (ending.endingId == selectedEndingId)
             {
+                Debug.Log(
+                    "EndingManager selected EndingData: endingId=" +
+                    ending.endingId +
+                    " / displayName=" +
+                    ending.displayName +
+                    " / hasStillSprite=" +
+                    (ending.stillSprite != null));
                 return ending;
             }
         }
