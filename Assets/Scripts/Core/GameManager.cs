@@ -195,6 +195,7 @@ public class GameManager : MonoBehaviour
     private ScheduledEventDefinition pendingScheduledEvent;
     private bool startPendingScheduledEventAfterOutfitMessage = false;
     private bool returnToScheduledEventPromptAfterOutfitMessage = false;
+    private HeroineAssetCatalog heroineAssetCatalog;
     private Image dialogueSequenceStillImageTarget;
     private Sprite dialogueSequencePreviousStillSprite;
     private bool dialogueSequenceHasStillSpriteOverride = false;
@@ -884,6 +885,8 @@ public class GameManager : MonoBehaviour
             outfitManager.SetLayeredSpriteData(ResolveHeroineLayeredSpriteData(profile));
         }
 
+        heroineAssetCatalog = ResolveHeroineAssetCatalog(profile);
+
         conversationResourcePath = GetProfileResourcePath(
             profile.conversationResourcePath,
             conversationResourcePath);
@@ -936,6 +939,23 @@ public class GameManager : MonoBehaviour
 
         string resourcePath = "Heroines/" + profile.heroineId + "/HeroineLayeredSpriteData";
         return Resources.Load<HeroineLayeredSpriteData>(resourcePath);
+    }
+
+    private HeroineAssetCatalog ResolveHeroineAssetCatalog(HeroineProfileData profile)
+    {
+        if (profile == null || string.IsNullOrEmpty(profile.heroineId))
+        {
+            return null;
+        }
+
+        string resourcePath = "Heroines/" + profile.heroineId + "/HeroineAssetCatalog";
+        HeroineAssetCatalog catalog = Resources.Load<HeroineAssetCatalog>(resourcePath);
+        if (catalog == null)
+        {
+            Debug.LogWarning("HeroineAssetCatalog が見つかりません: " + resourcePath);
+        }
+
+        return catalog;
     }
 
     private void Start()
@@ -3646,24 +3666,125 @@ public class GameManager : MonoBehaviour
 
     private void ShowScheduledEventDialogue(ScheduledEventDefinition scheduledEvent)
     {
+        string stillId;
+        Sprite stillSprite;
+        ResolveScheduledEventStill(scheduledEvent, out stillId, out stillSprite);
+
         switch (scheduledEvent.EventSpeakerType)
         {
             case ScheduledEventSpeakerType.System:
-                ShowDialogue(DialogueSpeakerType.System, SystemSpeakerName, scheduledEvent.EventMessage, scheduledEvent.StillId, scheduledEvent.StillSprite);
+                ShowDialogue(DialogueSpeakerType.System, SystemSpeakerName, scheduledEvent.EventMessage, stillId, stillSprite);
                 return;
 
             case ScheduledEventSpeakerType.Schedule:
-                ShowDialogue(DialogueSpeakerType.Schedule, ScheduleSpeakerName, scheduledEvent.EventMessage, scheduledEvent.StillId, scheduledEvent.StillSprite);
+                ShowDialogue(DialogueSpeakerType.Schedule, ScheduleSpeakerName, scheduledEvent.EventMessage, stillId, stillSprite);
                 return;
 
             case ScheduledEventSpeakerType.Outfit:
-                ShowDialogue(DialogueSpeakerType.Outfit, OutfitSpeakerName, scheduledEvent.EventMessage, scheduledEvent.StillId, scheduledEvent.StillSprite);
+                ShowDialogue(DialogueSpeakerType.Outfit, OutfitSpeakerName, scheduledEvent.EventMessage, stillId, stillSprite);
                 return;
 
             default:
-                ShowDialogue(DialogueSpeakerType.Heroine, heroineStatus.HeroineName, scheduledEvent.EventMessage, scheduledEvent.StillId, scheduledEvent.StillSprite);
+                ShowDialogue(DialogueSpeakerType.Heroine, heroineStatus.HeroineName, scheduledEvent.EventMessage, stillId, stillSprite);
                 return;
         }
+    }
+
+    private void ResolveScheduledEventStill(
+        ScheduledEventDefinition scheduledEvent,
+        out string stillId,
+        out Sprite stillSprite)
+    {
+        stillId = scheduledEvent != null ? scheduledEvent.StillId : string.Empty;
+        stillSprite = scheduledEvent != null ? scheduledEvent.StillSprite : null;
+        if (scheduledEvent == null)
+        {
+            return;
+        }
+
+        List<string> candidates = GetScheduledEventStillIdCandidates(scheduledEvent);
+        foreach (string candidate in candidates)
+        {
+            if (TryResolveHeroineCatalogSprite(candidate, out Sprite catalogSprite))
+            {
+                stillId = candidate;
+                stillSprite = catalogSprite;
+                return;
+            }
+        }
+
+        if (heroineAssetCatalog != null)
+        {
+            stillId = string.Empty;
+            stillSprite = null;
+        }
+    }
+
+    private List<string> GetScheduledEventStillIdCandidates(ScheduledEventDefinition scheduledEvent)
+    {
+        List<string> candidates = new List<string>();
+        AddStillCandidate(candidates, scheduledEvent.StillId);
+
+        switch (scheduledEvent.ScheduleType)
+        {
+            case ScheduleType.SoloForest:
+            case ScheduleType.DuoForest:
+                AddStillCandidate(candidates, "WithForest_01");
+                break;
+
+            case ScheduleType.SoloCave:
+            case ScheduleType.DuoCave:
+                AddStillCandidate(candidates, "WithCave_01");
+                break;
+
+            case ScheduleType.SoloLake:
+            case ScheduleType.DuoLake:
+                AddStillCandidate(candidates, "WithLake_01");
+                break;
+
+            case ScheduleType.SoloShopping:
+            case ScheduleType.DuoShopping:
+                AddStillCandidate(candidates, "WithShopping_01");
+                AddStillCandidate(candidates, "WithTown_01");
+                break;
+        }
+
+        return candidates;
+    }
+
+    private static void AddStillCandidate(List<string> candidates, string stillId)
+    {
+        if (string.IsNullOrEmpty(stillId) || candidates.Contains(stillId))
+        {
+            return;
+        }
+
+        candidates.Add(stillId);
+    }
+
+    private bool TryResolveHeroineCatalogSprite(string assetId, out Sprite sprite)
+    {
+        sprite = null;
+        if (heroineAssetCatalog == null || heroineAssetCatalog.assets == null || string.IsNullOrEmpty(assetId))
+        {
+            return false;
+        }
+
+        foreach (HeroineAssetEntry asset in heroineAssetCatalog.assets)
+        {
+            if (asset == null || asset.sprite == null)
+            {
+                continue;
+            }
+
+            if (asset.assetId == assetId)
+            {
+                sprite = asset.sprite;
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private ScheduledEventDefinition GetScheduledEventDefinition(ScheduleType scheduleType)
