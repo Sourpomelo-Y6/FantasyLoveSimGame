@@ -34,8 +34,8 @@ MonoBehaviour:
     speakerName: 
     message: "\u3053\u306E\u9053\u3001\u524D\u306B\u306F\u306A\u304B\u3063\u305F\u306F\u305A\u3088\u3002\u3061\u3087\u3063\u3068\u3060\u3051\u898B\u3066\u3044\u304D\u307E\u3057\u3087\u3046\u304B\u3002"
     expressionId: Surprised
-    stillId: 
-    stillSprite: {fileID: 0}
+    stillId: WithForest_01
+    stillSprite: {fileID: 21300000, guid: b4020f7d0eb8d2e4eb588c4a527563c8, type: 3}
   - speakerType: 0
     speakerName: 
     message: "\u5371\u306A\u304F\u306A\u3044\u7BC4\u56F2\u3067\u884C\u3063\u3066\u307F\u3088\u3046\u3002"

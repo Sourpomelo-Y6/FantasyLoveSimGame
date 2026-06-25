@@ -12,6 +12,8 @@ public static class HeroineAssetImporter
     private const string SpriteLayersJsonRelativePath = "Data/sprite_layers_export.json";
     private const string ConversationsJsonRelativePath = "Data/conversations_export.json";
     private const string GameEventsJsonRelativePath = "Data/game_events_export.json";
+    private const string ActionReactionsJsonRelativePath = "Data/action_reactions_export.json";
+    private const string EndingsJsonRelativePath = "Data/endings_export.json";
     private const string DefaultHeroineSpriteAssetId = "Heroine_Normal";
     private const string DefaultHeroineSpriteFileName = "Heroine_Normal.png";
     private const bool OverwriteExistingImages = false;
@@ -73,6 +75,8 @@ public static class HeroineAssetImporter
         ImportSpriteLayers(exportFolder, profileExport.heroineId, report);
         ImportConversations(exportFolder, profileExport.heroineId, report);
         ImportGameEvents(exportFolder, profileExport.heroineId, report);
+        ImportActionReactions(exportFolder, profileExport.heroineId, report);
+        ImportEndings(exportFolder, profileExport.heroineId, report);
 
         EditorUtility.SetDirty(profile);
         AssetDatabase.SaveAssets();
@@ -786,6 +790,90 @@ public static class HeroineAssetImporter
         return string.Empty;
     }
 
+    private static string GetFirstLineText(ActionReactionExportItem item)
+    {
+        return GetFirstLineText(item == null ? null : item.lines);
+    }
+
+    private static string GetFirstLineText(EndingExportItem item)
+    {
+        return GetFirstLineText(item == null ? null : item.lines);
+    }
+
+    private static string GetFirstLineText(ConversationExportLine[] lines)
+    {
+        if (lines == null)
+        {
+            return string.Empty;
+        }
+
+        foreach (ConversationExportLine line in lines)
+        {
+            if (line != null && !string.IsNullOrWhiteSpace(line.text))
+            {
+                return line.text;
+            }
+        }
+
+        return string.Empty;
+    }
+
+    private static string JoinLineTexts(ConversationExportLine[] lines)
+    {
+        List<string> texts = new List<string>();
+        if (lines == null)
+        {
+            return string.Empty;
+        }
+
+        foreach (ConversationExportLine line in lines)
+        {
+            if (line != null && !string.IsNullOrWhiteSpace(line.text))
+            {
+                texts.Add(line.text);
+            }
+        }
+
+        return string.Join("\n", texts.ToArray());
+    }
+
+    private static bool UsesHeroineSpeaker(ActionReactionExportItem item)
+    {
+        if (item == null || item.lines == null)
+        {
+            return true;
+        }
+
+        foreach (ConversationExportLine line in item.lines)
+        {
+            if (line != null && !string.IsNullOrWhiteSpace(line.text))
+            {
+                return string.IsNullOrWhiteSpace(line.speaker)
+                    || string.Equals(line.speaker, "Heroine", StringComparison.OrdinalIgnoreCase);
+            }
+        }
+
+        return true;
+    }
+
+    private static string GetFirstImageAssetId(string[] imageAssetIds)
+    {
+        if (imageAssetIds == null)
+        {
+            return string.Empty;
+        }
+
+        foreach (string imageAssetId in imageAssetIds)
+        {
+            if (!string.IsNullOrWhiteSpace(imageAssetId))
+            {
+                return imageAssetId;
+            }
+        }
+
+        return string.Empty;
+    }
+
     private static void ApplyConversationLines(
         List<ConversationLineData> target,
         ConversationExportItem item)
@@ -1103,6 +1191,313 @@ public static class HeroineAssetImporter
         return ScheduledEventSpeakerType.Heroine;
     }
 
+    private static void ImportActionReactions(
+        string exportFolder,
+        string heroineId,
+        HeroineImportReport report)
+    {
+        string actionReactionsJsonPath = Path.Combine(exportFolder, ActionReactionsJsonRelativePath);
+        if (!File.Exists(actionReactionsJsonPath))
+        {
+            Debug.Log("action_reactions_export.json が見つからないため、行動反応 import はスキップしました: " + actionReactionsJsonPath);
+            return;
+        }
+
+        ActionReactionsExport actionReactionsExport;
+        try
+        {
+            string json = File.ReadAllText(actionReactionsJsonPath);
+            actionReactionsExport = JsonUtility.FromJson<ActionReactionsExport>(json);
+        }
+        catch (Exception ex)
+        {
+            Debug.LogError("action_reactions_export.json の読み込みに失敗しました: " + ex.Message);
+            return;
+        }
+
+        if (actionReactionsExport == null || actionReactionsExport.items == null)
+        {
+            report.Warn("action_reactions_export.json に items がありません。");
+            return;
+        }
+
+        if (!string.IsNullOrWhiteSpace(actionReactionsExport.heroineId)
+            && !string.Equals(actionReactionsExport.heroineId, heroineId, StringComparison.Ordinal))
+        {
+            report.Warn($"action_reactions_export.json の heroineId が profile と一致しません: {actionReactionsExport.heroineId} / {heroineId}");
+        }
+
+        string actionFolderPath = $"Assets/Resources/Heroines/{heroineId}/Actions";
+        EnsureFolder(actionFolderPath);
+
+        HeroineAssetCatalog catalog = LoadOrCreateAssetCatalog(heroineId);
+        Dictionary<string, Sprite> spritesByAssetId = CreateCatalogSpriteMap(catalog, report);
+        Dictionary<string, ActionData> actionsById = LoadActionsById(actionFolderPath, report);
+        HashSet<string> resetActionIds = new HashSet<string>(StringComparer.Ordinal);
+        HashSet<string> importedReactionIds = new HashSet<string>(StringComparer.Ordinal);
+        int importedCount = 0;
+
+        foreach (ActionReactionExportItem item in actionReactionsExport.items)
+        {
+            if (!CanImportActionReaction(item, importedReactionIds, report))
+            {
+                continue;
+            }
+
+            string actionId = item.conditions.actionId;
+            ActionData action = LoadOrCreateAction(actionId, item, actionFolderPath, actionsById);
+            if (resetActionIds.Add(actionId))
+            {
+                action.reactions.Clear();
+            }
+
+            action.reactions.Add(CreateActionReaction(item, spritesByAssetId, report));
+            EditorUtility.SetDirty(action);
+            importedCount++;
+        }
+
+        report.actionReactionCount = importedCount;
+    }
+
+    private static bool CanImportActionReaction(
+        ActionReactionExportItem item,
+        HashSet<string> importedReactionIds,
+        HeroineImportReport report)
+    {
+        if (item == null || string.IsNullOrWhiteSpace(item.id))
+        {
+            report.Warn("id が空の action reaction item をスキップしました。");
+            return false;
+        }
+
+        if (!importedReactionIds.Add(item.id))
+        {
+            report.Warn("id が重複している action reaction item をスキップしました: " + item.id);
+            return false;
+        }
+
+        if (item.conditions == null || string.IsNullOrWhiteSpace(item.conditions.actionId))
+        {
+            report.Warn("conditions.actionId が空の action reaction item をスキップしました: " + item.id);
+            return false;
+        }
+
+        if (string.IsNullOrWhiteSpace(GetFirstLineText(item)))
+        {
+            report.Warn("lines が空の action reaction item をスキップしました: " + item.id);
+            return false;
+        }
+
+        return true;
+    }
+
+    private static Dictionary<string, ActionData> LoadActionsById(
+        string actionFolderPath,
+        HeroineImportReport report)
+    {
+        Dictionary<string, ActionData> actionsById = new Dictionary<string, ActionData>(StringComparer.Ordinal);
+        string[] guids = AssetDatabase.FindAssets("t:ActionData", new[] { actionFolderPath });
+        foreach (string guid in guids)
+        {
+            string assetPath = AssetDatabase.GUIDToAssetPath(guid);
+            ActionData action = AssetDatabase.LoadAssetAtPath<ActionData>(assetPath);
+            if (action == null || string.IsNullOrWhiteSpace(action.actionId))
+            {
+                continue;
+            }
+
+            if (actionsById.ContainsKey(action.actionId))
+            {
+                report.Warn("ActionData の actionId が重複しています。先に見つかった asset を使います: " + action.actionId);
+                continue;
+            }
+
+            actionsById.Add(action.actionId, action);
+        }
+
+        return actionsById;
+    }
+
+    private static ActionData LoadOrCreateAction(
+        string actionId,
+        ActionReactionExportItem item,
+        string actionFolderPath,
+        Dictionary<string, ActionData> actionsById)
+    {
+        if (actionsById.TryGetValue(actionId, out ActionData action) && action != null)
+        {
+            return action;
+        }
+
+        string assetPath = $"{actionFolderPath}/{ToSafeAssetFileName(actionId)}.asset";
+        action = AssetDatabase.LoadAssetAtPath<ActionData>(assetPath);
+        if (action == null)
+        {
+            action = ScriptableObject.CreateInstance<ActionData>();
+            AssetDatabase.CreateAsset(action, assetPath);
+        }
+
+        action.name = actionId;
+        action.actionId = actionId;
+        action.displayName = string.IsNullOrWhiteSpace(item.category) ? actionId : item.category;
+        action.executionType = ActionExecutionType.SimpleAction;
+        action.isEnabled = true;
+        action.advanceTime = true;
+        actionsById[actionId] = action;
+        return action;
+    }
+
+    private static ActionReactionData CreateActionReaction(
+        ActionReactionExportItem item,
+        Dictionary<string, Sprite> spritesByAssetId,
+        HeroineImportReport report)
+    {
+        ActionReactionExportConditions conditions = item.conditions ?? new ActionReactionExportConditions();
+        string stillId = GetFirstImageAssetId(item.imageAssetIds);
+
+        ActionReactionData reaction = new ActionReactionData
+        {
+            reactionId = item.id,
+            resultMessage = GetFirstLineText(item),
+            useHeroineNameAsSpeaker = UsesHeroineSpeaker(item),
+            stillId = stillId,
+            stillSprite = ResolveFirstSprite(item.imageAssetIds, spritesByAssetId, report),
+            affectionChange = conditions.affectionChange,
+            advanceTime = conditions.advanceTime,
+            priority = item.priority,
+            minAffection = Math.Max(0, conditions.minAffection),
+            maxAffection = conditions.maxAffection > 0 ? conditions.maxAffection : 100
+        };
+
+        ApplySingleEnumCondition(
+            conditions.timeOfDay,
+            reaction.allowedTimeSlots,
+            value => reaction.anyTimeSlot = value,
+            report);
+        ApplySingleEnumCondition(
+            conditions.weather,
+            reaction.allowedWeathers,
+            value => reaction.anyWeather = value,
+            report);
+        ApplySingleEnumCondition(
+            conditions.season,
+            reaction.allowedSeasons,
+            value => reaction.anySeason = value,
+            report);
+
+        return reaction;
+    }
+
+    private static void ImportEndings(
+        string exportFolder,
+        string heroineId,
+        HeroineImportReport report)
+    {
+        string endingsJsonPath = Path.Combine(exportFolder, EndingsJsonRelativePath);
+        if (!File.Exists(endingsJsonPath))
+        {
+            Debug.Log("endings_export.json が見つからないため、エンディング import はスキップしました: " + endingsJsonPath);
+            return;
+        }
+
+        EndingsExport endingsExport;
+        try
+        {
+            string json = File.ReadAllText(endingsJsonPath);
+            endingsExport = JsonUtility.FromJson<EndingsExport>(json);
+        }
+        catch (Exception ex)
+        {
+            Debug.LogError("endings_export.json の読み込みに失敗しました: " + ex.Message);
+            return;
+        }
+
+        if (endingsExport == null || endingsExport.items == null)
+        {
+            report.Warn("endings_export.json に items がありません。");
+            return;
+        }
+
+        if (!string.IsNullOrWhiteSpace(endingsExport.heroineId)
+            && !string.Equals(endingsExport.heroineId, heroineId, StringComparison.Ordinal))
+        {
+            report.Warn($"endings_export.json の heroineId が profile と一致しません: {endingsExport.heroineId} / {heroineId}");
+        }
+
+        string endingFolderPath = $"Assets/Resources/Heroines/{heroineId}/Endings";
+        EnsureFolder(endingFolderPath);
+
+        HeroineAssetCatalog catalog = LoadOrCreateAssetCatalog(heroineId);
+        Dictionary<string, Sprite> spritesByAssetId = CreateCatalogSpriteMap(catalog, report);
+        HashSet<string> importedIds = new HashSet<string>(StringComparer.Ordinal);
+        int importedCount = 0;
+
+        foreach (EndingExportItem item in endingsExport.items)
+        {
+            if (!CanImportEnding(item, importedIds, report))
+            {
+                continue;
+            }
+
+            string assetPath = $"{endingFolderPath}/{ToSafeAssetFileName(item.id)}.asset";
+            EndingData ending = AssetDatabase.LoadAssetAtPath<EndingData>(assetPath);
+            if (ending == null)
+            {
+                ending = ScriptableObject.CreateInstance<EndingData>();
+                AssetDatabase.CreateAsset(ending, assetPath);
+            }
+
+            ApplyEnding(ending, item, spritesByAssetId, report);
+            EditorUtility.SetDirty(ending);
+            importedCount++;
+        }
+
+        report.endingCount = importedCount;
+    }
+
+    private static bool CanImportEnding(
+        EndingExportItem item,
+        HashSet<string> importedIds,
+        HeroineImportReport report)
+    {
+        if (item == null || string.IsNullOrWhiteSpace(item.id))
+        {
+            report.Warn("id が空の ending item をスキップしました。");
+            return false;
+        }
+
+        if (!importedIds.Add(item.id))
+        {
+            report.Warn("id が重複している ending item をスキップしました: " + item.id);
+            return false;
+        }
+
+        if (string.IsNullOrWhiteSpace(GetFirstLineText(item)))
+        {
+            report.Warn("lines が空の ending item をスキップしました: " + item.id);
+            return false;
+        }
+
+        return true;
+    }
+
+    private static void ApplyEnding(
+        EndingData ending,
+        EndingExportItem item,
+        Dictionary<string, Sprite> spritesByAssetId,
+        HeroineImportReport report)
+    {
+        EndingExportConditions conditions = item.conditions ?? new EndingExportConditions();
+
+        ending.name = item.id;
+        ending.endingId = item.id;
+        ending.displayName = string.IsNullOrWhiteSpace(item.title) ? item.id : item.title;
+        ending.message = JoinLineTexts(item.lines);
+        ending.stillSprite = ResolveFirstSprite(item.imageAssetIds, spritesByAssetId, report);
+        ending.requiredAffection = Math.Max(0, conditions.minAffection);
+        ending.requiredShownEventIds = conditions.requiredShownEventIds ?? conditions.requiredFlagIds ?? new string[0];
+    }
+
     private static Sprite ResolveFirstSprite(
         string[] imageAssetIds,
         Dictionary<string, Sprite> spritesByAssetId,
@@ -1126,7 +1521,7 @@ public static class HeroineAssetImporter
             return sprite;
         }
 
-        report.Warn("game event の imageAssetIds を Sprite に解決できませんでした: " + assetId);
+        report.Warn("imageAssetIds を Sprite に解決できませんでした: " + assetId);
         return null;
     }
 
@@ -1360,6 +1755,22 @@ public static class HeroineAssetImporter
     }
 
     [Serializable]
+    private sealed class ActionReactionsExport
+    {
+        public string schemaVersion;
+        public string heroineId;
+        public ActionReactionExportItem[] items;
+    }
+
+    [Serializable]
+    private sealed class EndingsExport
+    {
+        public string schemaVersion;
+        public string heroineId;
+        public EndingExportItem[] items;
+    }
+
+    [Serializable]
     private sealed class SpriteLayersExport
     {
         public string schemaVersion;
@@ -1440,6 +1851,53 @@ public static class HeroineAssetImporter
     }
 
     [Serializable]
+    private sealed class ActionReactionExportItem
+    {
+        public string id;
+        public string title;
+        public string category;
+        public ActionReactionExportConditions conditions;
+        public ConversationExportLine[] lines;
+        public string[] imageAssetIds;
+        public int priority;
+        public string memo;
+    }
+
+    [Serializable]
+    private sealed class ActionReactionExportConditions
+    {
+        public string actionId;
+        public int minAffection;
+        public int maxAffection;
+        public string weather;
+        public string season;
+        public string timeOfDay;
+        public int affectionChange;
+        public bool advanceTime = true;
+    }
+
+    [Serializable]
+    private sealed class EndingExportItem
+    {
+        public string id;
+        public string title;
+        public string category;
+        public EndingExportConditions conditions;
+        public ConversationExportLine[] lines;
+        public string[] imageAssetIds;
+        public int priority;
+        public string memo;
+    }
+
+    [Serializable]
+    private sealed class EndingExportConditions
+    {
+        public int minAffection;
+        public string[] requiredFlagIds;
+        public string[] requiredShownEventIds;
+    }
+
+    [Serializable]
     private sealed class ConversationExportLine
     {
         public string speaker;
@@ -1475,6 +1933,8 @@ public static class HeroineAssetImporter
         public int layerCount;
         public int conversationCount;
         public int gameEventCount;
+        public int actionReactionCount;
+        public int endingCount;
         public string defaultSpritePath;
         public readonly List<string> warnings = new List<string>();
 
@@ -1487,7 +1947,7 @@ public static class HeroineAssetImporter
         public void LogSummary(string assetPath)
         {
             Debug.Log(
-                $"Heroine export を import しました: {assetPath}, copied images: {copiedImageCount}, catalog assets: {catalogAssetCount}, layers: {layerCount}, conversations: {conversationCount}, game events: {gameEventCount}, warnings: {warnings.Count}");
+                $"Heroine export を import しました: {assetPath}, copied images: {copiedImageCount}, catalog assets: {catalogAssetCount}, layers: {layerCount}, conversations: {conversationCount}, game events: {gameEventCount}, action reactions: {actionReactionCount}, endings: {endingCount}, warnings: {warnings.Count}");
         }
 
         public string CreateDialogMessage(string assetPath)
@@ -1500,6 +1960,8 @@ public static class HeroineAssetImporter
                 "Layers: " + layerCount + "\n" +
                 "Conversations: " + conversationCount + "\n" +
                 "Game events: " + gameEventCount + "\n" +
+                "Action reactions: " + actionReactionCount + "\n" +
+                "Endings: " + endingCount + "\n" +
                 "Warnings: " + warnings.Count;
 
             if (warnings.Count == 0)

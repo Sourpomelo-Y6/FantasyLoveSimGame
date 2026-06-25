@@ -224,7 +224,10 @@ Unity 側の対応先は `GameEventData` を想定する。
 }
 ```
 
-Unity 側の対応先は `ActionReactionData` を想定する。
+Unity 側の対応先は `ActionData.reactions` 内の `ActionReactionData` とする。
+`conditions.actionId` に一致する `ActionData` を探し、その action の reactions を JSON 由来で置き換える。
+既存 action がない場合は最小の `ActionData` を作成する。
+`lines[0]` を `resultMessage`、`imageAssetIds[0]` を `stillId` / `stillSprite` に変換する。
 
 ## endings_export.json
 
@@ -261,7 +264,9 @@ Good、Normal、Bad などの結果条件と、対応するエンディングス
 }
 ```
 
-Unity 側の対応先は `EndingData` を想定する。
+Unity 側の対応先は `EndingData` とする。
+item ごとに `Assets/Resources/Heroines/<HeroineId>/Endings/<EndingId>.asset` を作成、更新する。
+`lines[]` は改行結合して `message` に入れ、`imageAssetIds[0]` をエンディングスチルとして解決する。
 
 ## WPF 画面案
 
