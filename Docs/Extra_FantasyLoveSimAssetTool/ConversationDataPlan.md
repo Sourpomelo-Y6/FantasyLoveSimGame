@@ -25,6 +25,7 @@ Export/
     Data/
       conversations_export.json
       game_events_export.json
+      scheduled_events_export.json
       action_reactions_export.json
       endings_export.json
 ```
@@ -64,8 +65,9 @@ Unity 側では、会話は JSON ファイルごとに1つの ScriptableObject `
 | --- | --- | --- |
 | `conversations_export.json` | `ConversationData` | `Assets/Resources/Heroines/<HeroineId>/Conversations.asset` |
 | `game_events_export.json` | `GameEventData` | `Assets/Resources/Heroines/<HeroineId>/GameEvents/<EventId>.asset` |
-| `action_reactions_export.json` | `ActionReactionData` | `Assets/Resources/Heroines/<HeroineId>/ActionReactions.asset` |
-| `endings_export.json` | `EndingData` | `Assets/Resources/Heroines/<HeroineId>/Endings.asset` |
+| `scheduled_events_export.json` | `ScheduledEventData` | `Assets/Resources/ScheduledEvents/<ScheduledEvent>.asset` |
+| `action_reactions_export.json` | `ActionData.reactions` | `Assets/Resources/Heroines/<HeroineId>/Actions/<Action>.asset` |
+| `endings_export.json` | `EndingData` | `Assets/Resources/Heroines/<HeroineId>/Endings/<EndingId>.asset` |
 
 JSON item と Unity 側 item のフィールド対応は次を基本にする。
 Unity 側の実装で別名を使う場合も、WPF 側の JSON 名はこの表の左列を維持する。
@@ -187,6 +189,46 @@ Unity 側の対応先は `ConversationData` を想定する。
 ```
 
 Unity 側の対応先は `GameEventData` を想定する。
+
+## scheduled_events_export.json
+
+翌日予定として発生する外出、デート、家で過ごす予定を扱う。
+通常行動の `Walk` や `ActionReactionData` とは別系統で、Unity 側の対応先は `ScheduledEventData` とする。
+保存先はヒロイン別ではなく、現行ランタイムが読む `Assets/Resources/ScheduledEvents/`。
+
+```json
+{
+  "schemaVersion": 1,
+  "heroineId": "TestHeroine",
+  "items": [
+    {
+      "id": "AutoWalkForest",
+      "title": "森への外出",
+      "category": "SoloForest",
+      "conditions": {
+        "scheduleType": "SoloForest",
+        "actionId": "AutoWalkForest",
+        "triggerTimeSlot": "Noon",
+        "outfitPromptMode": "Conditional",
+        "eventSpeakerType": "Heroine",
+        "affectionChange": 1
+      },
+      "preparationMessage": "今日は昼に森へ出かける予定です。",
+      "eventMessage": "森を歩きながら、静かな時間を過ごしました。",
+      "imageAssetIds": [
+        "Walk_Forest_01"
+      ],
+      "priority": 0,
+      "memo": ""
+    }
+  ]
+}
+```
+
+`conditions.scheduleType` は `SoloForest` / `SoloCave` / `SoloLake` / `SoloShopping` / `DuoForest` / `DuoCave` / `DuoLake` / `DuoShopping` / `StayHome` のいずれかを指定する。
+`preparationMessage` は朝の予定表示、`eventMessage` は予定実行時の本文に入る。
+`preparationMessage` / `eventMessage` が空の場合、Unity importer は `lines[0]` を準備文、`lines[1...]` を実行本文として補完する。
+`imageAssetIds[0]` は `stillId` / `stillSprite` に変換する。
 
 ## action_reactions_export.json
 
@@ -323,11 +365,12 @@ Unity Editor 拡張は、既存の画像 import と同じ `Export/<HeroineId>/Da
 3. 画像を import し、AssetId から Unity asset path へ解決できる辞書を作る。
 4. `conversations_export.json` を読む。
 5. `game_events_export.json` を読む。
-6. `action_reactions_export.json` を読む。
-7. `endings_export.json` を読む。
-8. 各 JSON から ScriptableObject `.asset` を生成、更新する。
-9. `imageAssetIds` は `assets_export.json` の情報を使って画像参照へ変換する。
-10. `AssetDatabase.SaveAssets` で保存する。
+6. `scheduled_events_export.json` を読む。
+7. `action_reactions_export.json` を読む。
+8. `endings_export.json` を読む。
+9. 各 JSON から ScriptableObject `.asset` を生成、更新する。
+10. `imageAssetIds` は `assets_export.json` の情報を使って画像参照へ変換する。
+11. `AssetDatabase.SaveAssets` で保存する。
 
 ## 検証観点
 

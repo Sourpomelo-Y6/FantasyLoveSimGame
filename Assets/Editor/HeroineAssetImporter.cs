@@ -12,6 +12,7 @@ public static class HeroineAssetImporter
     private const string SpriteLayersJsonRelativePath = "Data/sprite_layers_export.json";
     private const string ConversationsJsonRelativePath = "Data/conversations_export.json";
     private const string GameEventsJsonRelativePath = "Data/game_events_export.json";
+    private const string ScheduledEventsJsonRelativePath = "Data/scheduled_events_export.json";
     private const string ActionReactionsJsonRelativePath = "Data/action_reactions_export.json";
     private const string EndingsJsonRelativePath = "Data/endings_export.json";
     private const string DefaultHeroineSpriteAssetId = "Heroine_Normal";
@@ -75,6 +76,7 @@ public static class HeroineAssetImporter
         ImportSpriteLayers(exportFolder, profileExport.heroineId, report);
         ImportConversations(exportFolder, profileExport.heroineId, report);
         ImportGameEvents(exportFolder, profileExport.heroineId, report);
+        ImportScheduledEvents(exportFolder, profileExport.heroineId, report);
         ImportActionReactions(exportFolder, profileExport.heroineId, report);
         ImportEndings(exportFolder, profileExport.heroineId, report);
 
@@ -1191,6 +1193,207 @@ public static class HeroineAssetImporter
         return ScheduledEventSpeakerType.Heroine;
     }
 
+    private static void ImportScheduledEvents(
+        string exportFolder,
+        string heroineId,
+        HeroineImportReport report)
+    {
+        string scheduledEventsJsonPath = Path.Combine(exportFolder, ScheduledEventsJsonRelativePath);
+        if (!File.Exists(scheduledEventsJsonPath))
+        {
+            Debug.Log("scheduled_events_export.json が見つからないため、予定イベント import はスキップしました: " + scheduledEventsJsonPath);
+            return;
+        }
+
+        ScheduledEventsExport scheduledEventsExport;
+        try
+        {
+            string json = File.ReadAllText(scheduledEventsJsonPath);
+            scheduledEventsExport = JsonUtility.FromJson<ScheduledEventsExport>(json);
+        }
+        catch (Exception ex)
+        {
+            Debug.LogError("scheduled_events_export.json の読み込みに失敗しました: " + ex.Message);
+            return;
+        }
+
+        if (scheduledEventsExport == null || scheduledEventsExport.items == null)
+        {
+            report.Warn("scheduled_events_export.json に items がありません。");
+            return;
+        }
+
+        if (!string.IsNullOrWhiteSpace(scheduledEventsExport.heroineId)
+            && !string.Equals(scheduledEventsExport.heroineId, heroineId, StringComparison.Ordinal))
+        {
+            report.Warn($"scheduled_events_export.json の heroineId が profile と一致しません: {scheduledEventsExport.heroineId} / {heroineId}");
+        }
+
+        string scheduledEventFolderPath = "Assets/Resources/ScheduledEvents";
+        EnsureFolder(scheduledEventFolderPath);
+
+        HeroineAssetCatalog catalog = LoadOrCreateAssetCatalog(heroineId);
+        Dictionary<string, Sprite> spritesByAssetId = CreateCatalogSpriteMap(catalog, report);
+        HashSet<ScheduleType> importedScheduleTypes = new HashSet<ScheduleType>();
+        int importedCount = 0;
+
+        foreach (ScheduledEventExportItem item in scheduledEventsExport.items)
+        {
+            if (!TryResolveScheduledEventType(item, report, out ScheduleType scheduleType))
+            {
+                continue;
+            }
+
+            if (!importedScheduleTypes.Add(scheduleType))
+            {
+                report.Warn("scheduleType が重複している scheduled event item をスキップしました: " + scheduleType);
+                continue;
+            }
+
+            string assetPath = ResolveScheduledEventAssetPath(scheduledEventFolderPath, scheduleType, item);
+            ScheduledEventData scheduledEvent = AssetDatabase.LoadAssetAtPath<ScheduledEventData>(assetPath);
+            if (scheduledEvent == null)
+            {
+                scheduledEvent = ScriptableObject.CreateInstance<ScheduledEventData>();
+                AssetDatabase.CreateAsset(scheduledEvent, assetPath);
+            }
+
+            ApplyScheduledEvent(scheduledEvent, item, scheduleType, spritesByAssetId, report);
+            EditorUtility.SetDirty(scheduledEvent);
+            importedCount++;
+        }
+
+        report.scheduledEventCount = importedCount;
+    }
+
+    private static bool TryResolveScheduledEventType(
+        ScheduledEventExportItem item,
+        HeroineImportReport report,
+        out ScheduleType scheduleType)
+    {
+        scheduleType = ScheduleType.None;
+        if (item == null)
+        {
+            report.Warn("scheduled event item が空のためスキップしました。");
+            return false;
+        }
+
+        ScheduledEventExportConditions conditions = item.conditions ?? new ScheduledEventExportConditions();
+        string rawScheduleType = FirstNonEmpty(conditions.scheduleType, item.scheduleType, item.category);
+        if (string.IsNullOrWhiteSpace(rawScheduleType))
+        {
+            report.Warn("scheduleType が空の scheduled event item をスキップしました: " + item.id);
+            return false;
+        }
+
+        if (!Enum.TryParse(rawScheduleType, true, out scheduleType) || scheduleType == ScheduleType.None)
+        {
+            report.Warn("未知の scheduleType の scheduled event item をスキップしました: " + rawScheduleType);
+            return false;
+        }
+
+        return true;
+    }
+
+    private static string ResolveScheduledEventAssetPath(
+        string scheduledEventFolderPath,
+        ScheduleType scheduleType,
+        ScheduledEventExportItem item)
+    {
+        ScheduledEventExportConditions conditions = item.conditions ?? new ScheduledEventExportConditions();
+        string assetName = FirstNonEmpty(item.id, conditions.actionId, item.actionId, scheduleType.ToString());
+        return $"{scheduledEventFolderPath}/{ToSafeAssetFileName(assetName)}.asset";
+    }
+
+    private static void ApplyScheduledEvent(
+        ScheduledEventData scheduledEvent,
+        ScheduledEventExportItem item,
+        ScheduleType scheduleType,
+        Dictionary<string, Sprite> spritesByAssetId,
+        HeroineImportReport report)
+    {
+        ScheduledEventExportConditions conditions = item.conditions ?? new ScheduledEventExportConditions();
+        string actionId = FirstNonEmpty(conditions.actionId, item.actionId, item.id, scheduleType.ToString());
+        string title = string.IsNullOrWhiteSpace(item.title) ? actionId : item.title;
+        string stillId = GetFirstImageAssetId(item.imageAssetIds);
+
+        scheduledEvent.name = title;
+        scheduledEvent.scheduleType = scheduleType;
+        scheduledEvent.actionId = actionId;
+        scheduledEvent.triggerTimeSlot = ParseEnumOrDefault(
+            FirstNonEmpty(conditions.triggerTimeSlot, conditions.timeOfDay),
+            TimeSlot.Noon);
+        scheduledEvent.allowOutfitChangeBeforeStart = conditions.allowOutfitChangeBeforeStart;
+        scheduledEvent.outfitPromptMode = ParseEnumOrDefault(
+            conditions.outfitPromptMode,
+            ScheduledEventOutfitPromptMode.Conditional);
+        scheduledEvent.eventSpeakerType = ParseScheduledEventSpeakerType(
+            FirstNonEmpty(conditions.eventSpeakerType, conditions.speakerType, GetFirstLineSpeaker(item.lines)));
+        scheduledEvent.preparationMessage = ResolveScheduledPreparationMessage(item);
+        scheduledEvent.eventMessage = ResolveScheduledEventMessage(item);
+        scheduledEvent.stillId = stillId;
+        scheduledEvent.stillSprite = ResolveFirstSprite(item.imageAssetIds, spritesByAssetId, report);
+        scheduledEvent.affectionChange = conditions.affectionChange;
+    }
+
+    private static string ResolveScheduledPreparationMessage(ScheduledEventExportItem item)
+    {
+        if (!string.IsNullOrWhiteSpace(item.preparationMessage))
+        {
+            return item.preparationMessage;
+        }
+
+        if (item.lines != null && item.lines.Length >= 2)
+        {
+            return item.lines[0]?.text ?? string.Empty;
+        }
+
+        return string.Empty;
+    }
+
+    private static string ResolveScheduledEventMessage(ScheduledEventExportItem item)
+    {
+        if (!string.IsNullOrWhiteSpace(item.eventMessage))
+        {
+            return item.eventMessage;
+        }
+
+        if (item.lines == null || item.lines.Length == 0)
+        {
+            return string.Empty;
+        }
+
+        int startIndex = item.lines.Length >= 2 ? 1 : 0;
+        List<string> texts = new List<string>();
+        for (int i = startIndex; i < item.lines.Length; i++)
+        {
+            if (item.lines[i] != null && !string.IsNullOrWhiteSpace(item.lines[i].text))
+            {
+                texts.Add(item.lines[i].text);
+            }
+        }
+
+        return string.Join("\n", texts);
+    }
+
+    private static string GetFirstLineSpeaker(ConversationExportLine[] lines)
+    {
+        if (lines == null)
+        {
+            return string.Empty;
+        }
+
+        foreach (ConversationExportLine line in lines)
+        {
+            if (line != null && !string.IsNullOrWhiteSpace(line.speaker))
+            {
+                return line.speaker;
+            }
+        }
+
+        return string.Empty;
+    }
+
     private static void ImportActionReactions(
         string exportFolder,
         string heroineId,
@@ -1553,6 +1756,24 @@ public static class HeroineAssetImporter
         return fileName;
     }
 
+    private static string FirstNonEmpty(params string[] values)
+    {
+        if (values == null)
+        {
+            return string.Empty;
+        }
+
+        foreach (string value in values)
+        {
+            if (!string.IsNullOrWhiteSpace(value))
+            {
+                return value;
+            }
+        }
+
+        return string.Empty;
+    }
+
     private static void ApplySingleEnumCondition<T>(
         string rawValue,
         List<T> target,
@@ -1755,6 +1976,14 @@ public static class HeroineAssetImporter
     }
 
     [Serializable]
+    private sealed class ScheduledEventsExport
+    {
+        public string schemaVersion;
+        public string heroineId;
+        public ScheduledEventExportItem[] items;
+    }
+
+    [Serializable]
     private sealed class ActionReactionsExport
     {
         public string schemaVersion;
@@ -1851,6 +2080,37 @@ public static class HeroineAssetImporter
     }
 
     [Serializable]
+    private sealed class ScheduledEventExportItem
+    {
+        public string id;
+        public string title;
+        public string category;
+        public string scheduleType;
+        public string actionId;
+        public ScheduledEventExportConditions conditions;
+        public string preparationMessage;
+        public string eventMessage;
+        public ConversationExportLine[] lines;
+        public string[] imageAssetIds;
+        public int priority;
+        public string memo;
+    }
+
+    [Serializable]
+    private sealed class ScheduledEventExportConditions
+    {
+        public string scheduleType;
+        public string actionId;
+        public string triggerTimeSlot;
+        public string timeOfDay;
+        public bool allowOutfitChangeBeforeStart = true;
+        public string outfitPromptMode;
+        public string eventSpeakerType;
+        public string speakerType;
+        public int affectionChange;
+    }
+
+    [Serializable]
     private sealed class ActionReactionExportItem
     {
         public string id;
@@ -1933,6 +2193,7 @@ public static class HeroineAssetImporter
         public int layerCount;
         public int conversationCount;
         public int gameEventCount;
+        public int scheduledEventCount;
         public int actionReactionCount;
         public int endingCount;
         public string defaultSpritePath;
@@ -1947,7 +2208,7 @@ public static class HeroineAssetImporter
         public void LogSummary(string assetPath)
         {
             Debug.Log(
-                $"Heroine export を import しました: {assetPath}, copied images: {copiedImageCount}, catalog assets: {catalogAssetCount}, layers: {layerCount}, conversations: {conversationCount}, game events: {gameEventCount}, action reactions: {actionReactionCount}, endings: {endingCount}, warnings: {warnings.Count}");
+                $"Heroine export を import しました: {assetPath}, copied images: {copiedImageCount}, catalog assets: {catalogAssetCount}, layers: {layerCount}, conversations: {conversationCount}, game events: {gameEventCount}, scheduled events: {scheduledEventCount}, action reactions: {actionReactionCount}, endings: {endingCount}, warnings: {warnings.Count}");
         }
 
         public string CreateDialogMessage(string assetPath)
@@ -1960,6 +2221,7 @@ public static class HeroineAssetImporter
                 "Layers: " + layerCount + "\n" +
                 "Conversations: " + conversationCount + "\n" +
                 "Game events: " + gameEventCount + "\n" +
+                "Scheduled events: " + scheduledEventCount + "\n" +
                 "Action reactions: " + actionReactionCount + "\n" +
                 "Endings: " + endingCount + "\n" +
                 "Warnings: " + warnings.Count;
