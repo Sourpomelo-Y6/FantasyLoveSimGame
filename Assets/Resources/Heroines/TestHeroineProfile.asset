@@ -24,4 +24,5 @@ MonoBehaviour:
   conversationResourcePath: Heroines/TestHeroine
   gameEventResourcePath: Heroines/TestHeroine/GameEvents
   actionResourcePath: Heroines/TestHeroine/Actions
+  scheduledEventResourcePath: Heroines/TestHeroine/ScheduledEvents
   endingResourcePath: Heroines/TestHeroine/Endings

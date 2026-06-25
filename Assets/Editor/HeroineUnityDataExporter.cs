@@ -60,6 +60,7 @@ public static class HeroineUnityDataExporter
         ExportActions(profile, outputFolder, report);
         ExportConversations(profile, outputFolder, report);
         ExportGameEvents(profile, outputFolder, report);
+        ExportScheduledEvents(profile, outputFolder, report);
         ExportEndings(profile, outputFolder, report);
         WriteReport(profile, outputFolder, report);
 
@@ -72,6 +73,8 @@ public static class HeroineUnityDataExporter
             report.conversationCount +
             " / game events: " +
             report.gameEventCount +
+            " / scheduled events: " +
+            report.scheduledEventCount +
             " / endings: " +
             report.endingCount +
             " / warnings: " +
@@ -250,6 +253,50 @@ public static class HeroineUnityDataExporter
 
         report.gameEventCount = export.items.Count;
         WriteJson(Path.Combine(outputFolder, "game_events_from_unity.json"), export);
+    }
+
+    private static void ExportScheduledEvents(
+        HeroineProfileData profile,
+        string outputFolder,
+        HeroineUnityExportReport report)
+    {
+        string scheduledEventResourcePath = string.IsNullOrWhiteSpace(profile.scheduledEventResourcePath)
+            ? "ScheduledEvents"
+            : profile.scheduledEventResourcePath;
+        ScheduledEventData[] scheduledEvents = Resources.LoadAll<ScheduledEventData>(scheduledEventResourcePath);
+        Array.Sort(scheduledEvents, CompareScheduledEventData);
+
+        ScheduledEventsFromUnityExport export = new ScheduledEventsFromUnityExport
+        {
+            schemaVersion = SchemaVersion,
+            heroineId = profile.heroineId,
+            source = "Unity",
+            scheduledEventResourcePath = scheduledEventResourcePath,
+            items = new List<ScheduledEventFromUnityItem>()
+        };
+
+        HashSet<ScheduleType> scheduleTypes = new HashSet<ScheduleType>();
+        foreach (ScheduledEventData scheduledEvent in scheduledEvents)
+        {
+            if (scheduledEvent == null)
+            {
+                continue;
+            }
+
+            if (scheduledEvent.scheduleType == ScheduleType.None)
+            {
+                report.Warn("scheduleType が None の ScheduledEventData があります: " + scheduledEvent.name);
+            }
+            else if (!scheduleTypes.Add(scheduledEvent.scheduleType))
+            {
+                report.Warn("scheduleType が重複しています: " + scheduledEvent.scheduleType);
+            }
+
+            export.items.Add(CreateScheduledEventItem(scheduledEvent, report));
+        }
+
+        report.scheduledEventCount = export.items.Count;
+        WriteJson(Path.Combine(outputFolder, "scheduled_events_from_unity.json"), export);
     }
 
     private static void ExportEndings(
@@ -446,6 +493,70 @@ public static class HeroineUnityDataExporter
                 hasStillSprite = ending.stillSprite != null
             }
         };
+    }
+
+    private static ScheduledEventFromUnityItem CreateScheduledEventItem(
+        ScheduledEventData scheduledEvent,
+        HeroineUnityExportReport report)
+    {
+        string id = string.IsNullOrWhiteSpace(scheduledEvent.actionId)
+            ? scheduledEvent.name
+            : scheduledEvent.actionId;
+
+        return new ScheduledEventFromUnityItem
+        {
+            id = id,
+            title = scheduledEvent.name,
+            category = scheduledEvent.scheduleType.ToString(),
+            scheduleType = scheduledEvent.scheduleType.ToString(),
+            actionId = scheduledEvent.actionId ?? string.Empty,
+            conditions = new ScheduledEventFromUnityConditions
+            {
+                scheduleType = scheduledEvent.scheduleType.ToString(),
+                actionId = scheduledEvent.actionId ?? string.Empty,
+                triggerTimeSlot = scheduledEvent.triggerTimeSlot.ToString(),
+                timeOfDay = scheduledEvent.triggerTimeSlot.ToString(),
+                allowOutfitChangeBeforeStart = scheduledEvent.allowOutfitChangeBeforeStart,
+                outfitPromptMode = scheduledEvent.outfitPromptMode.ToString(),
+                eventSpeakerType = scheduledEvent.eventSpeakerType.ToString(),
+                speakerType = scheduledEvent.eventSpeakerType.ToString(),
+                affectionChange = scheduledEvent.affectionChange
+            },
+            preparationMessage = scheduledEvent.preparationMessage ?? string.Empty,
+            eventMessage = scheduledEvent.eventMessage ?? string.Empty,
+            lines = CreateScheduledEventLines(scheduledEvent),
+            imageAssetIds = CreateImageAssetIds(scheduledEvent.stillId, scheduledEvent.stillSprite, report),
+            priority = 0,
+            memo = "Unity側から逆export"
+        };
+    }
+
+    private static List<FromUnityLine> CreateScheduledEventLines(ScheduledEventData scheduledEvent)
+    {
+        List<FromUnityLine> lines = new List<FromUnityLine>();
+        if (!string.IsNullOrWhiteSpace(scheduledEvent.preparationMessage))
+        {
+            lines.Add(
+                new FromUnityLine
+                {
+                    speaker = "Schedule",
+                    text = scheduledEvent.preparationMessage,
+                    expression = string.Empty
+                });
+        }
+
+        if (!string.IsNullOrWhiteSpace(scheduledEvent.eventMessage))
+        {
+            lines.Add(
+                new FromUnityLine
+                {
+                    speaker = scheduledEvent.eventSpeakerType.ToString(),
+                    text = scheduledEvent.eventMessage,
+                    expression = string.Empty
+                });
+        }
+
+        return lines;
     }
 
     private static string CreateEndingCategory(EndingData ending)
@@ -954,6 +1065,17 @@ public static class HeroineUnityDataExporter
         return string.Compare(left.endingId, right.endingId, StringComparison.Ordinal);
     }
 
+    private static int CompareScheduledEventData(ScheduledEventData left, ScheduledEventData right)
+    {
+        int scheduleComparison = left.scheduleType.CompareTo(right.scheduleType);
+        if (scheduleComparison != 0)
+        {
+            return scheduleComparison;
+        }
+
+        return string.Compare(left.actionId, right.actionId, StringComparison.Ordinal);
+    }
+
     private static List<string> CreateEnumList<T>(bool any, List<T> values)
     {
         List<string> result = new List<string>();
@@ -983,6 +1105,7 @@ public static class HeroineUnityDataExporter
             actionCount = report.actionCount,
             conversationCount = report.conversationCount,
             gameEventCount = report.gameEventCount,
+            scheduledEventCount = report.scheduledEventCount,
             endingCount = report.endingCount,
             warnings = report.warnings
         };
@@ -1101,6 +1224,16 @@ public static class HeroineUnityDataExporter
     }
 
     [Serializable]
+    private sealed class ScheduledEventsFromUnityExport
+    {
+        public int schemaVersion;
+        public string heroineId;
+        public string source;
+        public string scheduledEventResourcePath;
+        public List<ScheduledEventFromUnityItem> items;
+    }
+
+    [Serializable]
     private sealed class GameEventFromUnityItem
     {
         public string id;
@@ -1128,6 +1261,37 @@ public static class HeroineUnityDataExporter
         public List<string> requiredShownEventIds;
         public string memo;
         public EndingSourceMetadata sourceMetadata;
+    }
+
+    [Serializable]
+    private sealed class ScheduledEventFromUnityItem
+    {
+        public string id;
+        public string title;
+        public string category;
+        public string scheduleType;
+        public string actionId;
+        public ScheduledEventFromUnityConditions conditions;
+        public string preparationMessage;
+        public string eventMessage;
+        public List<FromUnityLine> lines;
+        public List<string> imageAssetIds;
+        public int priority;
+        public string memo;
+    }
+
+    [Serializable]
+    private sealed class ScheduledEventFromUnityConditions
+    {
+        public string scheduleType;
+        public string actionId;
+        public string triggerTimeSlot;
+        public string timeOfDay;
+        public bool allowOutfitChangeBeforeStart;
+        public string outfitPromptMode;
+        public string eventSpeakerType;
+        public string speakerType;
+        public int affectionChange;
     }
 
     [Serializable]
@@ -1218,6 +1382,7 @@ public static class HeroineUnityDataExporter
         public int actionCount;
         public int conversationCount;
         public int gameEventCount;
+        public int scheduledEventCount;
         public int endingCount;
         public List<string> warnings;
     }
@@ -1227,6 +1392,7 @@ public static class HeroineUnityDataExporter
         public int actionCount;
         public int conversationCount;
         public int gameEventCount;
+        public int scheduledEventCount;
         public int endingCount;
         public readonly List<string> warnings = new List<string>();
 
@@ -1244,6 +1410,7 @@ public static class HeroineUnityDataExporter
                 "Actions: " + actionCount + "\n" +
                 "Conversations: " + conversationCount + "\n" +
                 "Game events: " + gameEventCount + "\n" +
+                "Scheduled events: " + scheduledEventCount + "\n" +
                 "Endings: " + endingCount + "\n" +
                 "Warnings: " + warnings.Count;
         }

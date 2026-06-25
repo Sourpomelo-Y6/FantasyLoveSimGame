@@ -106,7 +106,7 @@
 - [`Assets/Scripts/Schedule/`](../Assets/Scripts/Schedule): 予定管理と予定パネル制御
 - [`Assets/Scripts/Schedule/ScheduledEventData.cs`](../Assets/Scripts/Schedule/ScheduledEventData.cs): 予定イベントの ScriptableObject 定義
 - [`Assets/Scripts/Schedule/ScheduledEventDefinition.cs`](../Assets/Scripts/Schedule/ScheduledEventDefinition.cs): 実行時に使う予定イベント定義
-- [`Assets/Resources/ScheduledEvents/`](../Assets/Resources/ScheduledEvents): 予定イベントデータの実体
+- [`Assets/Resources/Heroines/<HeroineId>/ScheduledEvents/`](../Assets/Resources/Heroines): ヒロイン別の予定イベントデータの実体。該当 `ScheduleType` がない場合は [`Assets/Resources/ScheduledEvents/`](../Assets/Resources/ScheduledEvents) を共通フォールバックとして使う
 - [`Assets/Resources/Heroines/DefaultHeroine/Actions/`](../Assets/Resources/Heroines/DefaultHeroine/Actions): 現在ヒロインの行動データの実体
 - [`Assets/Resources/Heroines/DefaultHeroine/Actions/ScheduleAction.asset`](../Assets/Resources/Heroines/DefaultHeroine/Actions/ScheduleAction.asset): 予定パネルを開く行動アセット
 - [`Assets/Resources/Heroines/DefaultHeroine/Endings/`](../Assets/Resources/Heroines/DefaultHeroine/Endings): 現在ヒロインのエンディングデータの実体
@@ -468,7 +468,8 @@ Importer は完了時に copied images、catalog assets、layers、conversations
 `Conditional` は今の衣装が予定に対して問題ない場合は確認を省略し、`Hidden` は確認を出しません。
 現在は昼発動の固定メッセージ中心ですが、今後は予定ごとに昼・夜などの発動時間を拡張できます。
 
-予定イベントを増やす場合は、`Assets/Resources/ScheduledEvents/` に `ScheduledEventData` アセットを追加します。
+予定イベントを増やす場合は、対象ヒロインの `HeroineProfileData.scheduledEventResourcePath` 配下に `ScheduledEventData` アセットを追加します。
+ヒロイン別データがない `ScheduleType` は、共通 `Assets/Resources/ScheduledEvents/` のデータで補完されます。
 同じ `ScheduleType` のアセットがある場合、`GameManager` はそのデータを優先し、アセットがない場合だけコード内の既定定義へフォールバックします。
 予定イベント本文の話者は `ScheduledEventData.eventSpeakerType` で指定でき、`Heroine` / `System` / `Schedule` / `Outfit` から選べます。
 

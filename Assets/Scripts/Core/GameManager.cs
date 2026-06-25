@@ -8,6 +8,8 @@ using UnityEngine.SceneManagement;
 
 public class GameManager : MonoBehaviour
 {
+    private const string CommonScheduledEventResourcePath = "ScheduledEvents";
+
     private enum ConversationFlowState
     {
         Idle,
@@ -898,6 +900,9 @@ public class GameManager : MonoBehaviour
         actionResourcePath = GetProfileResourcePath(
             profile.actionResourcePath,
             actionResourcePath);
+        scheduledEventResourcePath = GetProfileResourcePath(
+            profile.scheduledEventResourcePath,
+            scheduledEventResourcePath);
     }
 
     private HeroineProfileData ResolveHeroineProfile()
@@ -2121,12 +2126,44 @@ public class GameManager : MonoBehaviour
 
     private void LoadScheduledEventsFromResources()
     {
-        ScheduledEventData[] loadedScheduledEvents =
+        ScheduledEventData[] heroineScheduledEvents =
             Resources.LoadAll<ScheduledEventData>(scheduledEventResourcePath);
 
-        scheduledEvents = new List<ScheduledEventData>(loadedScheduledEvents);
+        scheduledEvents = new List<ScheduledEventData>(heroineScheduledEvents);
+        HashSet<ScheduleType> heroineScheduleTypes = new HashSet<ScheduleType>();
+        foreach (ScheduledEventData scheduledEvent in heroineScheduledEvents)
+        {
+            if (scheduledEvent != null && scheduledEvent.scheduleType != ScheduleType.None)
+            {
+                heroineScheduleTypes.Add(scheduledEvent.scheduleType);
+            }
+        }
 
-        Debug.Log("Loaded Scheduled Events: " + scheduledEvents.Count);
+        if (scheduledEventResourcePath != CommonScheduledEventResourcePath)
+        {
+            ScheduledEventData[] commonScheduledEvents =
+                Resources.LoadAll<ScheduledEventData>(CommonScheduledEventResourcePath);
+            foreach (ScheduledEventData scheduledEvent in commonScheduledEvents)
+            {
+                if (scheduledEvent == null)
+                {
+                    continue;
+                }
+
+                if (heroineScheduleTypes.Contains(scheduledEvent.scheduleType))
+                {
+                    continue;
+                }
+
+                scheduledEvents.Add(scheduledEvent);
+            }
+        }
+
+        Debug.Log(
+            "Loaded Scheduled Events: " +
+            scheduledEvents.Count +
+            " / HeroinePath: " +
+            scheduledEventResourcePath);
 
         foreach (ScheduledEventData scheduledEvent in scheduledEvents)
         {

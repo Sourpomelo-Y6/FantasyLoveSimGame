@@ -124,6 +124,7 @@ public static class HeroineAssetImporter
         profile.conversationResourcePath = $"Heroines/{profileExport.heroineId}";
         profile.gameEventResourcePath = $"Heroines/{profileExport.heroineId}/GameEvents";
         profile.actionResourcePath = $"Heroines/{profileExport.heroineId}/Actions";
+        profile.scheduledEventResourcePath = $"Heroines/{profileExport.heroineId}/ScheduledEvents";
         profile.endingResourcePath = $"Heroines/{profileExport.heroineId}/Endings";
     }
 
@@ -1229,7 +1230,7 @@ public static class HeroineAssetImporter
             report.Warn($"scheduled_events_export.json の heroineId が profile と一致しません: {scheduledEventsExport.heroineId} / {heroineId}");
         }
 
-        string scheduledEventFolderPath = "Assets/Resources/ScheduledEvents";
+        string scheduledEventFolderPath = $"Assets/Resources/Heroines/{heroineId}/ScheduledEvents";
         EnsureFolder(scheduledEventFolderPath);
 
         HeroineAssetCatalog catalog = LoadOrCreateAssetCatalog(heroineId);

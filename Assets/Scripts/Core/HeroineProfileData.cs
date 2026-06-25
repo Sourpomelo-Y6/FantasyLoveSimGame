@@ -31,5 +31,6 @@ public class HeroineProfileData : ScriptableObject
     public string conversationResourcePath = "Conversations";
     public string gameEventResourcePath = "GameEvents";
     public string actionResourcePath = "Actions";
+    public string scheduledEventResourcePath = "ScheduledEvents";
     public string endingResourcePath = "Endings";
 }

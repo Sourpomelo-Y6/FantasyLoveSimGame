@@ -24,4 +24,5 @@ MonoBehaviour:
   conversationResourcePath: Heroines/DefaultHeroine/Conversations
   gameEventResourcePath: Heroines/DefaultHeroine/GameEvents
   actionResourcePath: Heroines/DefaultHeroine/Actions
+  scheduledEventResourcePath: Heroines/DefaultHeroine/ScheduledEvents
   endingResourcePath: Heroines/DefaultHeroine/Endings

@@ -65,7 +65,7 @@ Unity 側では、会話は JSON ファイルごとに1つの ScriptableObject `
 | --- | --- | --- |
 | `conversations_export.json` | `ConversationData` | `Assets/Resources/Heroines/<HeroineId>/Conversations.asset` |
 | `game_events_export.json` | `GameEventData` | `Assets/Resources/Heroines/<HeroineId>/GameEvents/<EventId>.asset` |
-| `scheduled_events_export.json` | `ScheduledEventData` | `Assets/Resources/ScheduledEvents/<ScheduledEvent>.asset` |
+| `scheduled_events_export.json` | `ScheduledEventData` | `Assets/Resources/Heroines/<HeroineId>/ScheduledEvents/<ScheduledEvent>.asset` |
 | `action_reactions_export.json` | `ActionData.reactions` | `Assets/Resources/Heroines/<HeroineId>/Actions/<Action>.asset` |
 | `endings_export.json` | `EndingData` | `Assets/Resources/Heroines/<HeroineId>/Endings/<EndingId>.asset` |
 
@@ -194,7 +194,8 @@ Unity 側の対応先は `GameEventData` を想定する。
 
 翌日予定として発生する外出、デート、家で過ごす予定を扱う。
 通常行動の `Walk` や `ActionReactionData` とは別系統で、Unity 側の対応先は `ScheduledEventData` とする。
-保存先はヒロイン別ではなく、現行ランタイムが読む `Assets/Resources/ScheduledEvents/`。
+保存先は `Assets/Resources/Heroines/<HeroineId>/ScheduledEvents/`。
+実行時は `HeroineProfileData.scheduledEventResourcePath` を優先して読み、該当 `ScheduleType` がない場合だけ共通 `Assets/Resources/ScheduledEvents/` をフォールバックとして使う。
 
 ```json
 {
