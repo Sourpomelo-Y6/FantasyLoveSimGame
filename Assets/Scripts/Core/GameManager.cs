@@ -3685,6 +3685,11 @@ public class GameManager : MonoBehaviour
             return null;
         }
 
+        ScheduledEventData fallback = null;
+        ScheduledEventData preferred = null;
+        string preferredActionId = GetDefaultScheduledEventActionId(scheduleType);
+        int matchCount = 0;
+
         foreach (ScheduledEventData scheduledEvent in scheduledEvents)
         {
             if (scheduledEvent == null)
@@ -3694,11 +3699,54 @@ public class GameManager : MonoBehaviour
 
             if (scheduledEvent.scheduleType == scheduleType)
             {
-                return scheduledEvent.ToDefinition();
+                matchCount++;
+                if (fallback == null)
+                {
+                    fallback = scheduledEvent;
+                }
+
+                if (!string.IsNullOrEmpty(preferredActionId)
+                    && scheduledEvent.actionId == preferredActionId)
+                {
+                    preferred = scheduledEvent;
+                }
             }
         }
 
-        return null;
+        if (matchCount > 1)
+        {
+            Debug.LogWarning("ScheduledEventData の scheduleType が重複しています: " + scheduleType);
+        }
+
+        ScheduledEventData selected = preferred != null ? preferred : fallback;
+        return selected != null ? selected.ToDefinition() : null;
+    }
+
+    private string GetDefaultScheduledEventActionId(ScheduleType scheduleType)
+    {
+        switch (scheduleType)
+        {
+            case ScheduleType.SoloForest:
+                return "AutoWalkForest";
+            case ScheduleType.SoloCave:
+                return "AutoWalkCave";
+            case ScheduleType.SoloLake:
+                return "AutoWalkLake";
+            case ScheduleType.SoloShopping:
+                return "AutoWalkShopping";
+            case ScheduleType.DuoForest:
+                return "AutoDuoForest";
+            case ScheduleType.DuoCave:
+                return "AutoDuoCave";
+            case ScheduleType.DuoLake:
+                return "AutoDuoLake";
+            case ScheduleType.DuoShopping:
+                return "AutoDuoShopping";
+            case ScheduleType.StayHome:
+                return "AutoStayHome";
+            default:
+                return string.Empty;
+        }
     }
 
     private ScheduledEventDefinition GetDefaultScheduledEventDefinition(ScheduleType scheduleType)

@@ -1250,7 +1250,7 @@ public static class HeroineAssetImporter
                 continue;
             }
 
-            string assetPath = ResolveScheduledEventAssetPath(scheduledEventFolderPath, scheduleType, item);
+            string assetPath = ResolveScheduledEventAssetPath(scheduledEventFolderPath, scheduleType, item, report);
             ScheduledEventData scheduledEvent = AssetDatabase.LoadAssetAtPath<ScheduledEventData>(assetPath);
             if (scheduledEvent == null)
             {
@@ -1298,11 +1298,89 @@ public static class HeroineAssetImporter
     private static string ResolveScheduledEventAssetPath(
         string scheduledEventFolderPath,
         ScheduleType scheduleType,
-        ScheduledEventExportItem item)
+        ScheduledEventExportItem item,
+        HeroineImportReport report)
     {
         ScheduledEventExportConditions conditions = item.conditions ?? new ScheduledEventExportConditions();
         string assetName = FirstNonEmpty(item.id, conditions.actionId, item.actionId, scheduleType.ToString());
+        string existingPath = FindScheduledEventAssetPathByScheduleType(
+            scheduledEventFolderPath,
+            scheduleType,
+            report);
+        if (!string.IsNullOrEmpty(existingPath))
+        {
+            return existingPath;
+        }
+
         return $"{scheduledEventFolderPath}/{ToSafeAssetFileName(assetName)}.asset";
+    }
+
+    private static string FindScheduledEventAssetPathByScheduleType(
+        string scheduledEventFolderPath,
+        ScheduleType scheduleType,
+        HeroineImportReport report)
+    {
+        string[] guids = AssetDatabase.FindAssets("t:ScheduledEventData", new[] { scheduledEventFolderPath });
+        string fallbackPath = string.Empty;
+        string preferredPath = string.Empty;
+        string preferredActionId = GetDefaultScheduledEventActionId(scheduleType);
+        int matchCount = 0;
+
+        foreach (string guid in guids)
+        {
+            string assetPath = AssetDatabase.GUIDToAssetPath(guid);
+            ScheduledEventData scheduledEvent = AssetDatabase.LoadAssetAtPath<ScheduledEventData>(assetPath);
+            if (scheduledEvent == null || scheduledEvent.scheduleType != scheduleType)
+            {
+                continue;
+            }
+
+            matchCount++;
+            if (string.IsNullOrEmpty(fallbackPath))
+            {
+                fallbackPath = assetPath;
+            }
+
+            if (!string.IsNullOrEmpty(preferredActionId)
+                && scheduledEvent.actionId == preferredActionId)
+            {
+                preferredPath = assetPath;
+            }
+        }
+
+        if (matchCount > 1)
+        {
+            report.Warn("ScheduledEventData の scheduleType が重複しています。import は既存 asset を優先して更新します: " + scheduleType);
+        }
+
+        return !string.IsNullOrEmpty(preferredPath) ? preferredPath : fallbackPath;
+    }
+
+    private static string GetDefaultScheduledEventActionId(ScheduleType scheduleType)
+    {
+        switch (scheduleType)
+        {
+            case ScheduleType.SoloForest:
+                return "AutoWalkForest";
+            case ScheduleType.SoloCave:
+                return "AutoWalkCave";
+            case ScheduleType.SoloLake:
+                return "AutoWalkLake";
+            case ScheduleType.SoloShopping:
+                return "AutoWalkShopping";
+            case ScheduleType.DuoForest:
+                return "AutoDuoForest";
+            case ScheduleType.DuoCave:
+                return "AutoDuoCave";
+            case ScheduleType.DuoLake:
+                return "AutoDuoLake";
+            case ScheduleType.DuoShopping:
+                return "AutoDuoShopping";
+            case ScheduleType.StayHome:
+                return "AutoStayHome";
+            default:
+                return string.Empty;
+        }
     }
 
     private static void ApplyScheduledEvent(
