@@ -167,3 +167,102 @@ MonoBehaviour:
     sprite: {fileID: 21300000, guid: 616696386368db943ae5b06da4641b81, type: 3}
     unityImagePath: Assets/Images/Heroines/TestHeroine/Sprites/Costume_Dress.png
     exportPromptPath: Prompts/Costume_Dress.prompt.json
+  - assetId: GameStartIntro_01
+    usage: Event
+    status: Accepted
+    fileName: GameStartIntro_01.png
+    memo: 
+    sprite: {fileID: 21300000, guid: 4be2626cfd96d3b4eb166d03c2d29a41, type: 3}
+    unityImagePath: Assets/Images/Heroines/TestHeroine/Event/GameStartIntro_01.png
+    exportPromptPath: Prompts/GameStartIntro_01.prompt.json
+  - assetId: GoodEnding_01
+    usage: Ending
+    status: Accepted
+    fileName: GoodEnding_01.png
+    memo: "\u30B9\u30C1\u30EB\u4E00\u89A7\u304B\u3089\u4F5C\u6210\u3057\u305F prompt
+      \u4F5C\u696D\u7528\u30EC\u30B3\u30FC\u30C9"
+    sprite: {fileID: 21300000, guid: fae9ab984173a9b45a62a636d2d80786, type: 3}
+    unityImagePath: Assets/Images/Heroines/TestHeroine/Ending/GoodEnding_01.png
+    exportPromptPath: Prompts/GoodEnding_01.prompt.json
+  - assetId: Tea_01
+    usage: Actions
+    status: Accepted
+    fileName: Tea_01.png
+    memo: "\u30B9\u30C1\u30EB\u4E00\u89A7\u304B\u3089\u4F5C\u6210\u3057\u305F prompt
+      \u4F5C\u696D\u7528\u30EC\u30B3\u30FC\u30C9"
+    sprite: {fileID: 21300000, guid: b775034d4cb9d61478c553a3b913378c, type: 3}
+    unityImagePath: Assets/Images/Heroines/TestHeroine/Actions/Tea_01.png
+    exportPromptPath: Prompts/Tea_01.prompt.json
+  - assetId: NormalEnding_01
+    usage: Ending
+    status: Accepted
+    fileName: NormalEnding_01.png
+    memo: 
+    sprite: {fileID: 21300000, guid: 3a40146931911654aaaa036fd0ee6a02, type: 3}
+    unityImagePath: Assets/Images/Heroines/TestHeroine/Ending/NormalEnding_01.png
+    exportPromptPath: Prompts/NormalEnding_01.prompt.json
+  - assetId: BadEnding_01
+    usage: Ending
+    status: Accepted
+    fileName: BadEnding_01.png
+    memo: 
+    sprite: {fileID: 21300000, guid: 8b4c61aff71538f46b27061ee799ea60, type: 3}
+    unityImagePath: Assets/Images/Heroines/TestHeroine/Ending/BadEnding_01.png
+    exportPromptPath: Prompts/BadEnding_01.prompt.json
+  - assetId: WithForest_01
+    usage: Event
+    status: Accepted
+    fileName: WithForest_01.png
+    memo: 
+    sprite: {fileID: 21300000, guid: b4020f7d0eb8d2e4eb588c4a527563c8, type: 3}
+    unityImagePath: Assets/Images/Heroines/TestHeroine/Event/WithForest_01.png
+    exportPromptPath: Prompts/WithForest_01.prompt.json
+  - assetId: WithLake_01
+    usage: Event
+    status: Accepted
+    fileName: WithLake_01.png
+    memo: 
+    sprite: {fileID: 21300000, guid: 3e84dcac498e02745a7cf0e22dccbfb1, type: 3}
+    unityImagePath: Assets/Images/Heroines/TestHeroine/Event/WithLake_01.png
+    exportPromptPath: Prompts/WithLake_01.prompt.json
+  - assetId: WithCave_01
+    usage: Event
+    status: Accepted
+    fileName: WithCave_01.png
+    memo: 
+    sprite: {fileID: 21300000, guid: d850547152329164586fe14f8e7e2311, type: 3}
+    unityImagePath: Assets/Images/Heroines/TestHeroine/Event/WithCave_01.png
+    exportPromptPath: Prompts/WithCave_01.prompt.json
+  - assetId: Rest_01
+    usage: Actions
+    status: Accepted
+    fileName: Rest_01.png
+    memo: 
+    sprite: {fileID: 21300000, guid: 06d3c0e09c340d2438cd9c93faa3e7b3, type: 3}
+    unityImagePath: Assets/Images/Heroines/TestHeroine/Actions/Rest_01.png
+    exportPromptPath: Prompts/Rest_01.prompt.json
+  - assetId: Walk_01
+    usage: Actions
+    status: Accepted
+    fileName: Walk_01.png
+    memo: 
+    sprite: {fileID: 21300000, guid: c4061e7108e077a489b8e2a1c3e1430a, type: 3}
+    unityImagePath: Assets/Images/Heroines/TestHeroine/Actions/Walk_01.png
+    exportPromptPath: Prompts/Walk_01.prompt.json
+  - assetId: DayStart_Rainy_01
+    usage: Event
+    status: Accepted
+    fileName: DayStart_Rainy_01.png
+    memo: 
+    sprite: {fileID: 21300000, guid: 51b1f899a650fb043a04d94146132dbf, type: 3}
+    unityImagePath: Assets/Images/Heroines/TestHeroine/Event/DayStart_Rainy_01.png
+    exportPromptPath: Prompts/DayStart_Rainy_01.prompt.json
+  - assetId: DayStart_Routine_01
+    usage: Event
+    status: Accepted
+    fileName: DayStart_Routine_01.png
+    memo: "\u30B9\u30C1\u30EB\u4E00\u89A7\u304B\u3089\u4F5C\u6210\u3057\u305F prompt
+      \u4F5C\u696D\u7528\u30EC\u30B3\u30FC\u30C9"
+    sprite: {fileID: 21300000, guid: 7f9d482f70babbf458493d4cd04e3fa9, type: 3}
+    unityImagePath: Assets/Images/Heroines/TestHeroine/Event/DayStart_Routine_01.png
+    exportPromptPath: Prompts/DayStart_Routine_01.prompt.json

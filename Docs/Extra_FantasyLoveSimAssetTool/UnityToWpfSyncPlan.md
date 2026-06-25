@@ -118,7 +118,7 @@ WPF 側では `ConversationEntries` の `Kind=GameEvents` へ merge する候補
 メニュー:
 
 ```text
-FantasyLoveSim/Export Heroine Unity Data
+Tools/FantasyLoveSim/Export Heroine Unity Data...
 ```
 
 処理:
@@ -131,13 +131,6 @@ FantasyLoveSim/Export Heroine Unity Data
 6. 件数と warning を `export_report.json` と Console に出す。
 
 Unity Editor 拡張側で型付き ScriptableObject を読むため、WPF Tool 側は Unity 固有の `.asset` 形式を知らなくてよい。
-
-現状の Unity 側実装では、`Assets/Editor/HeroineUnityDataExporter.cs` を追加済み。
-選択中またはファイル選択した `HeroineProfileData` の `actionResourcePath` から `ActionData` を読み、`actions_from_unity.json` と `export_report.json` を出力する。
-Sprite 参照そのものは出力せず、`stillId` がある場合だけ `imageAssetIds` に戻す。
-`conversationResourcePath` から `ConversationData` も読み、`conversations_from_unity.json` を出力する。
-コンテナ形式の `items` と単体 `ConversationData` の両方を展開し、`id`、`category`、`conditions`、`lines`、`priority` を戻す。
-選択肢は WPF 正本フィールドへ直接混ぜず、`sourceMetadata.choices` に退避する。
 
 ## WPF Tool 側 Import 案
 
@@ -157,6 +150,16 @@ Sprite 参照そのものは出力せず、`stillId` がある場合だけ `imag
 - WPF Tool の `ImportPreview/FromUnity/<HeroineId>/` にコピーする。
 - 差分 summary をテキスト表示する。
 - 反映は手作業または限定的な `新規のみ追加` にする。
+
+現在の WPF Tool 側の初期実装では、`会話データ` タブの `Unity Action読込` から `actions_from_unity.json` を選び、`ActionReactions` の `ConversationEntry` として新規追加する。
+同じ `Id` または同じ `ActionId` が既に存在する場合は上書きせずスキップする。
+`Unity 会話読込` から `conversations_from_unity.json` を選んだ場合は、`Conversations` の `ConversationEntry` として新規追加する。
+同じ `Id` の通常会話が既に存在する場合は上書きせずスキップする。
+`Unity Event読込` から `game_events_from_unity.json` を選んだ場合は、`GameEvents` の `ConversationEntry` として新規追加する。
+同じ `Id` のイベントが既に存在する場合は上書きせずスキップする。
+Unity 側 exporter が `sourceMetadata.choices` に退避した選択肢は、WPF 側の `Choices` に取り込む。
+保持する項目は `choiceText`、`responseText`、`affectionChange` とする。
+差分表示、既存データの選択更新、削除同期はまだ行わない。
 
 ## Merge 方針
 
@@ -254,10 +257,10 @@ WPF Tool 側の import preview で出す warning:
 
 ## 実装順
 
-1. この方針を Unity 側にも共有する。完了。
-2. Unity Editor 拡張に `Export Heroine Unity Data` メニューを追加する。完了。
-3. `ActionData` だけを `actions_from_unity.json` として出力する。完了。
+1. この方針を Unity 側にも共有する。
+2. Unity Editor 拡張に `Export Heroine Unity Data...` の空メニューを追加する。
+3. `ActionData` だけを `actions_from_unity.json` として出力する。
 4. WPF Tool 側に `actions_from_unity.json` の読み込み preview を追加する。
 5. 新規 action のみ追加できるようにする。
 6. 差分表示と選択 merge を追加する。
-7. ConversationData、GameEventData に対象を広げる。ConversationData は完了。
+7. ConversationData、GameEventData に対象を広げる。

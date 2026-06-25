@@ -59,6 +59,7 @@ public static class HeroineUnityDataExporter
         HeroineUnityExportReport report = new HeroineUnityExportReport();
         ExportActions(profile, outputFolder, report);
         ExportConversations(profile, outputFolder, report);
+        ExportGameEvents(profile, outputFolder, report);
         WriteReport(profile, outputFolder, report);
 
         Debug.Log(
@@ -68,6 +69,8 @@ public static class HeroineUnityDataExporter
             report.actionCount +
             " / conversations: " +
             report.conversationCount +
+            " / game events: " +
+            report.gameEventCount +
             " / warnings: " +
             report.warnings.Count);
         EditorUtility.DisplayDialog(
@@ -202,6 +205,50 @@ public static class HeroineUnityDataExporter
         WriteJson(Path.Combine(outputFolder, "conversations_from_unity.json"), export);
     }
 
+    private static void ExportGameEvents(
+        HeroineProfileData profile,
+        string outputFolder,
+        HeroineUnityExportReport report)
+    {
+        string gameEventResourcePath = string.IsNullOrWhiteSpace(profile.gameEventResourcePath)
+            ? "GameEvents"
+            : profile.gameEventResourcePath;
+        GameEventData[] gameEvents = Resources.LoadAll<GameEventData>(gameEventResourcePath);
+        Array.Sort(gameEvents, (left, right) => left.sortOrder.CompareTo(right.sortOrder));
+
+        GameEventsFromUnityExport export = new GameEventsFromUnityExport
+        {
+            schemaVersion = SchemaVersion,
+            heroineId = profile.heroineId,
+            source = "Unity",
+            gameEventResourcePath = gameEventResourcePath,
+            items = new List<GameEventFromUnityItem>()
+        };
+
+        HashSet<string> eventIds = new HashSet<string>(StringComparer.Ordinal);
+        foreach (GameEventData gameEvent in gameEvents)
+        {
+            if (gameEvent == null)
+            {
+                continue;
+            }
+
+            if (string.IsNullOrWhiteSpace(gameEvent.eventId))
+            {
+                report.Warn("eventId が空の GameEventData があります: " + gameEvent.name);
+            }
+            else if (!eventIds.Add(gameEvent.eventId))
+            {
+                report.Warn("eventId が重複しています: " + gameEvent.eventId);
+            }
+
+            export.items.Add(CreateGameEventItem(gameEvent, report));
+        }
+
+        report.gameEventCount = export.items.Count;
+        WriteJson(Path.Combine(outputFolder, "game_events_from_unity.json"), export);
+    }
+
     private static ActionFromUnityItem CreateActionItem(
         ActionData action,
         HeroineUnityExportReport report)
@@ -308,6 +355,24 @@ public static class HeroineUnityDataExporter
         items.Add(item);
     }
 
+    private static GameEventFromUnityItem CreateGameEventItem(
+        GameEventData gameEvent,
+        HeroineUnityExportReport report)
+    {
+        return new GameEventFromUnityItem
+        {
+            id = gameEvent.eventId,
+            title = gameEvent.eventId,
+            category = gameEvent.triggerType.ToString(),
+            conditions = CreateGameEventConditions(gameEvent),
+            lines = CreateGameEventLines(gameEvent.pages, report),
+            imageAssetIds = CreateGameEventImageAssetIds(gameEvent, report),
+            priority = gameEvent.sortOrder,
+            memo = "Unity側から逆export",
+            sourceMetadata = CreateGameEventSourceMetadata(gameEvent)
+        };
+    }
+
     private static List<ActionReactionFromUnityItem> CreateActionReactions(
         ActionData action,
         HeroineUnityExportReport report)
@@ -393,6 +458,40 @@ public static class HeroineUnityDataExporter
         return lines;
     }
 
+    private static List<FromUnityLine> CreateGameEventLines(
+        List<GameEventPageData> pages,
+        HeroineUnityExportReport report)
+    {
+        List<FromUnityLine> lines = new List<FromUnityLine>();
+        if (pages == null)
+        {
+            return lines;
+        }
+
+        foreach (GameEventPageData page in pages)
+        {
+            if (page == null)
+            {
+                continue;
+            }
+
+            lines.Add(
+                new FromUnityLine
+                {
+                    speaker = page.speakerType.ToString(),
+                    text = page.message ?? string.Empty,
+                    expression = page.expressionId ?? string.Empty
+                });
+
+            if (string.IsNullOrWhiteSpace(page.stillId) && page.stillSprite != null)
+            {
+                report.Warn("GameEvent page に Sprite 参照はありますが stillId が空です: " + page.stillSprite.name);
+            }
+        }
+
+        return lines;
+    }
+
     private static List<string> CreateImageAssetIds(
         string stillId,
         Sprite stillSprite,
@@ -465,6 +564,100 @@ public static class HeroineUnityDataExporter
         };
     }
 
+    private static GameEventFromUnityConditions CreateGameEventConditions(GameEventData gameEvent)
+    {
+        return new GameEventFromUnityConditions
+        {
+            once = gameEvent.showOnce,
+            locationId = string.Empty,
+            minDay = gameEvent.minDay,
+            maxDay = gameEvent.maxDay,
+            minAffection = gameEvent.minAffection,
+            maxAffection = gameEvent.maxAffection,
+            weather = CreateSingleEnumValue(gameEvent.anyWeather, gameEvent.allowedWeathers),
+            season = string.Empty,
+            timeOfDay = string.Empty,
+            requiredShownEventIds = CreateStringList(gameEvent.requiredShownEventIds),
+            blockedShownEventIds = CreateStringList(gameEvent.blockedShownEventIds),
+            requiredOutfitIds = CreateOutfitIdList(gameEvent.requiredOutfitIds, gameEvent.requiredOutfits),
+            blockedOutfitIds = CreateOutfitIdList(gameEvent.blockedOutfitIds, gameEvent.blockedOutfits)
+        };
+    }
+
+    private static List<string> CreateGameEventImageAssetIds(
+        GameEventData gameEvent,
+        HeroineUnityExportReport report)
+    {
+        List<string> imageAssetIds = new List<string>();
+        HashSet<string> addedIds = new HashSet<string>(StringComparer.Ordinal);
+        if (gameEvent.pages == null)
+        {
+            return imageAssetIds;
+        }
+
+        foreach (GameEventPageData page in gameEvent.pages)
+        {
+            if (page == null)
+            {
+                continue;
+            }
+
+            if (!string.IsNullOrWhiteSpace(page.stillId))
+            {
+                if (addedIds.Add(page.stillId))
+                {
+                    imageAssetIds.Add(page.stillId);
+                }
+            }
+            else if (page.stillSprite != null)
+            {
+                report.Warn("GameEvent page に Sprite 参照はありますが stillId が空です: " + page.stillSprite.name);
+            }
+        }
+
+        return imageAssetIds;
+    }
+
+    private static GameEventSourceMetadata CreateGameEventSourceMetadata(GameEventData gameEvent)
+    {
+        return new GameEventSourceMetadata
+        {
+            sourceAssetName = gameEvent.name,
+            isEnabled = gameEvent.isEnabled,
+            pages = CreateGameEventPageMetadata(gameEvent.pages)
+        };
+    }
+
+    private static List<GameEventPageSourceMetadata> CreateGameEventPageMetadata(
+        List<GameEventPageData> pages)
+    {
+        List<GameEventPageSourceMetadata> metadata = new List<GameEventPageSourceMetadata>();
+        if (pages == null)
+        {
+            return metadata;
+        }
+
+        for (int i = 0; i < pages.Count; i++)
+        {
+            GameEventPageData page = pages[i];
+            if (page == null)
+            {
+                continue;
+            }
+
+            metadata.Add(
+                new GameEventPageSourceMetadata
+                {
+                    index = i,
+                    speakerName = page.speakerName ?? string.Empty,
+                    stillId = page.stillId ?? string.Empty,
+                    hasStillSprite = page.stillSprite != null
+                });
+        }
+
+        return metadata;
+    }
+
     private static ConversationSourceMetadata CreateConversationSourceMetadata(
         string sourceAssetName,
         bool showOnce,
@@ -512,6 +705,51 @@ public static class HeroineUnityDataExporter
         }
 
         return choices;
+    }
+
+    private static List<string> CreateStringList(List<string> values)
+    {
+        List<string> result = new List<string>();
+        if (values == null)
+        {
+            return result;
+        }
+
+        foreach (string value in values)
+        {
+            if (!string.IsNullOrWhiteSpace(value) && !result.Contains(value))
+            {
+                result.Add(value);
+            }
+        }
+
+        return result;
+    }
+
+    private static List<string> CreateOutfitIdList(
+        List<string> outfitIds,
+        List<OutfitData> outfits)
+    {
+        List<string> result = CreateStringList(outfitIds);
+        if (outfits == null)
+        {
+            return result;
+        }
+
+        foreach (OutfitData outfit in outfits)
+        {
+            if (outfit == null || string.IsNullOrWhiteSpace(outfit.outfitId))
+            {
+                continue;
+            }
+
+            if (!result.Contains(outfit.outfitId))
+            {
+                result.Add(outfit.outfitId);
+            }
+        }
+
+        return result;
     }
 
     private static string CreateSingleEnumValue<T>(bool any, List<T> values)
@@ -570,6 +808,7 @@ public static class HeroineUnityDataExporter
             source = "Unity",
             actionCount = report.actionCount,
             conversationCount = report.conversationCount,
+            gameEventCount = report.gameEventCount,
             warnings = report.warnings
         };
 
@@ -667,6 +906,65 @@ public static class HeroineUnityDataExporter
     }
 
     [Serializable]
+    private sealed class GameEventsFromUnityExport
+    {
+        public int schemaVersion;
+        public string heroineId;
+        public string source;
+        public string gameEventResourcePath;
+        public List<GameEventFromUnityItem> items;
+    }
+
+    [Serializable]
+    private sealed class GameEventFromUnityItem
+    {
+        public string id;
+        public string title;
+        public string category;
+        public GameEventFromUnityConditions conditions;
+        public List<FromUnityLine> lines;
+        public List<string> imageAssetIds;
+        public int priority;
+        public string memo;
+        public GameEventSourceMetadata sourceMetadata;
+    }
+
+    [Serializable]
+    private sealed class GameEventFromUnityConditions
+    {
+        public bool once;
+        public string locationId;
+        public int minDay;
+        public int maxDay;
+        public int minAffection;
+        public int maxAffection;
+        public string weather;
+        public string season;
+        public string timeOfDay;
+        public List<string> requiredShownEventIds;
+        public List<string> blockedShownEventIds;
+        public List<string> requiredOutfitIds;
+        public List<string> blockedOutfitIds;
+    }
+
+    [Serializable]
+    private sealed class GameEventSourceMetadata
+    {
+        public string sourceAssetName;
+        public bool isEnabled;
+        public List<GameEventPageSourceMetadata> pages;
+    }
+
+    [Serializable]
+    private sealed class GameEventPageSourceMetadata
+    {
+        public int index;
+        public string speakerName;
+        public string stillId;
+        public bool hasStillSprite;
+    }
+
+    [Serializable]
     private sealed class ActionReactionFromUnityItem
     {
         public string id;
@@ -704,6 +1002,7 @@ public static class HeroineUnityDataExporter
         public string source;
         public int actionCount;
         public int conversationCount;
+        public int gameEventCount;
         public List<string> warnings;
     }
 
@@ -711,6 +1010,7 @@ public static class HeroineUnityDataExporter
     {
         public int actionCount;
         public int conversationCount;
+        public int gameEventCount;
         public readonly List<string> warnings = new List<string>();
 
         public void Warn(string message)
@@ -726,6 +1026,7 @@ public static class HeroineUnityDataExporter
                 "Output: " + outputFolder + "\n" +
                 "Actions: " + actionCount + "\n" +
                 "Conversations: " + conversationCount + "\n" +
+                "Game events: " + gameEventCount + "\n" +
                 "Warnings: " + warnings.Count;
         }
     }

@@ -13919,6 +13919,7 @@ MonoBehaviour:
   outfitPreferenceManager: {fileID: 1954279209}
   scheduleManager: {fileID: 0}
   heroineImage: {fileID: 559065451}
+  layeredSpriteView: {fileID: 0}
   outfitResourcePath: Outfits
 --- !u!4 &2013305974
 Transform:

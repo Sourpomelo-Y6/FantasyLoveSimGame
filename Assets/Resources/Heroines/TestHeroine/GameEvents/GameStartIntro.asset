@@ -11,7 +11,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 92b5d3d53c514e3aa4a399b12e4c45dd, type: 3}
   m_Name: GameStartIntro
-  m_EditorClassIdentifier:
+  m_EditorClassIdentifier: 
   eventId: GameStartIntro
   triggerType: 0
   showOnce: 1
@@ -20,7 +20,7 @@ MonoBehaviour:
   minDay: 0
   maxDay: 0
   minAffection: 0
-  maxAffection: 0
+  maxAffection: 100
   requiredShownEventIds: []
   blockedShownEventIds: []
   requiredOutfitIds: []
@@ -28,15 +28,17 @@ MonoBehaviour:
   requiredOutfits: []
   blockedOutfits: []
   anyWeather: 1
-  allowedWeathers: []
+  allowedWeathers: 
   pages:
   - speakerType: 0
-    speakerName: ""
-    message: "テストヒロインの開始イベントです。"
+    speakerName: 
+    message: "\u30C6\u30B9\u30C8\u30D2\u30ED\u30A4\u30F3\u306E\u958B\u59CB\u30A4\u30D9\u30F3\u30C8\u3067\u3059\u3002"
+    expressionId: 
     stillId: GameStartIntro_01
-    stillSprite: {fileID: 21300000, guid: d69e064e3bad3ef449ab7ed8b1862e43, type: 3}
+    stillSprite: {fileID: 21300000, guid: 4be2626cfd96d3b4eb166d03c2d29a41, type: 3}
   - speakerType: 0
-    speakerName: ""
-    message: "この表示が出れば、GameEvents の差し替え確認は成功です。"
-    stillId:
+    speakerName: 
+    message: "\u3053\u306E\u8868\u793A\u304C\u51FA\u308C\u3070\u3001GameEvents \u306E\u5DEE\u3057\u66FF\u3048\u78BA\u8A8D\u306F\u6210\u529F\u3067\u3059\u3002"
+    expressionId: 
+    stillId: 
     stillSprite: {fileID: 0}
