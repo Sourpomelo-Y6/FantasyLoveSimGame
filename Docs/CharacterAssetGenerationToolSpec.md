@@ -353,6 +353,8 @@ Unity 側 importer は `heroine_profile_export.json` に同名フィールドが
 `Conversations.asset` は `ConversationData.items` に複数会話を持つ container として扱い、実行時には `GameManager` が従来の会話候補へ展開する。
 会話 import は `lines[]` を `ConversationDataItem.lines` に保持する。
 互換用に最初の本文は `ConversationDataItem.heroineLine`、最初の表情は `expressionId` にも反映する。
+`choices[]` がある場合は `ConversationDataItem.choices` に復元し、`ConversationType.Choice` として扱う。
+Unity 側の現行 UI は選択肢 3 件までのため、4 件以上ある場合は import warning に残す。
 実行時は複数行会話として表示し、`lines[].expression` を `HeroineLayeredSpriteView` の表情レイヤー切り替えに使う。
 既存の個別 `ConversationData` asset も互換のため読み込めるが、新規 import は `Conversations.asset` にまとめる。
 `Data/sprite_layers_export.json` が存在する場合は、`Assets/Resources/Heroines/<HeroineId>/HeroineLayeredSpriteData.asset` を生成、更新する。

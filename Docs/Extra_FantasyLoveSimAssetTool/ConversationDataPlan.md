@@ -304,6 +304,8 @@ Export 時は `ConversationEntries` を種別ごとに分け、`conversations_ex
 
 複雑なノード分岐、条件付き選択肢、演出命令、音声参照は後回しにする。
 現時点の選択肢は Unity 側の `ConversationChoice` に合わせ、`choiceText`、`responseText`、`affectionChange` の単純な分岐だけを扱う。
+Unity importer は `choices[]` を `ConversationDataItem.choices` に復元し、選択肢が 1 件以上ある場合は `ConversationType.Choice` にする。
+Unity 側の現行 UI は選択肢 3 件までのため、4 件以上ある場合は warning を出す。
 
 ## Unity Import 対応
 

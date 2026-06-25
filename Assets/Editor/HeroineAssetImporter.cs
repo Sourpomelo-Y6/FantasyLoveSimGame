@@ -727,7 +727,7 @@ public static class HeroineAssetImporter
         conversation.heroineLine = GetFirstLineText(item);
         conversation.expressionId = GetFirstLineExpression(item);
         ApplyConversationLines(conversation.lines, item);
-        conversation.choices.Clear();
+        ApplyConversationChoices(conversation, item, report);
         conversation.priority = item.priority;
         conversation.showOnce = conditions.once;
         conversation.minAffection = Math.Max(0, conditions.minAffection);
@@ -813,6 +813,56 @@ public static class HeroineAssetImporter
 
             target.Add(conversationLine);
         }
+    }
+
+    private static void ApplyConversationChoices(
+        ConversationDataItem conversation,
+        ConversationExportItem item,
+        HeroineImportReport report)
+    {
+        conversation.choices.Clear();
+        if (item == null || item.choices == null || item.choices.Length == 0)
+        {
+            conversation.type = ConversationType.Simple;
+            return;
+        }
+
+        if (item.choices.Length > 3)
+        {
+            report.Warn("Unity 側 UI は選択肢 3 件までのため、4 件目以降は表示されません: " + item.id);
+        }
+
+        foreach (ConversationChoiceExport choiceExport in item.choices)
+        {
+            if (choiceExport == null)
+            {
+                continue;
+            }
+
+            if (string.IsNullOrWhiteSpace(choiceExport.choiceText))
+            {
+                report.Warn("choiceText が空の選択肢をスキップしました: " + item.id);
+                continue;
+            }
+
+            if (string.IsNullOrWhiteSpace(choiceExport.responseText))
+            {
+                report.Warn("responseText が空の選択肢をスキップしました: " + item.id + " / " + choiceExport.choiceText);
+                continue;
+            }
+
+            conversation.choices.Add(
+                new ConversationChoice
+                {
+                    choiceText = choiceExport.choiceText,
+                    responseText = choiceExport.responseText,
+                    affectionChange = choiceExport.affectionChange
+                });
+        }
+
+        conversation.type = conversation.choices.Count > 0
+            ? ConversationType.Choice
+            : ConversationType.Simple;
     }
 
     private static void ImportGameEvents(
@@ -1340,6 +1390,7 @@ public static class HeroineAssetImporter
         public string category;
         public ConversationExportConditions conditions;
         public ConversationExportLine[] lines;
+        public ConversationChoiceExport[] choices;
         public string[] imageAssetIds;
         public int priority;
         public string memo;
@@ -1394,6 +1445,14 @@ public static class HeroineAssetImporter
         public string speaker;
         public string text;
         public string expression;
+    }
+
+    [Serializable]
+    private sealed class ConversationChoiceExport
+    {
+        public string choiceText;
+        public string responseText;
+        public int affectionChange;
     }
 
     [Serializable]
