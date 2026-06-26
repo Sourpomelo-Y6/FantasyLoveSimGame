@@ -23,7 +23,8 @@ MonoBehaviour:
   maxAffection: 100
   requiredShownEventIds: []
   blockedShownEventIds: []
-  requiredOutfitIds: []
+  requiredOutfitIds:
+  - Raincoat
   blockedOutfitIds: []
   requiredOutfits: []
   blockedOutfits: []

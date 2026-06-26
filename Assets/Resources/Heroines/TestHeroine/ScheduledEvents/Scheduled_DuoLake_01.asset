@@ -17,6 +17,7 @@ MonoBehaviour:
   triggerTimeSlot: 1
   allowOutfitChangeBeforeStart: 1
   outfitPromptMode: 1
+  costumeId: 
   eventSpeakerType: 0
   preparationMessage: "\u4ECA\u65E5\u306F\u663C\u306B\u68EE\u3078\u51FA\u304B\u3051\u308B\u4E88\u5B9A\u3067\u3059\u3002"
   eventMessage: "\u68EE\u3092\u6B69\u304D\u306A\u304C\u3089\u3001\u9759\u304B\u306A\u6642\u9593\u3092\u904E\u3054\u3057\u307E\u3057\u305F\u3002"

@@ -28,6 +28,7 @@ MonoBehaviour:
   showOnce: 0
   minAffection: 0
   maxAffection: 100
+  costumeId: 
   anyTimeSlot: 1
   allowedTimeSlots: 
   anySeason: 1
