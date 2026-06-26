@@ -145,9 +145,12 @@ Unity 側の ScriptableObject 型は次を基本にする。
   - `outfitId`
   - `lockedMessage`
   - `changedMessage`
+  - 今後追加: `lockedExpressionId`
+  - 今後追加: `changedExpressionId`
 - `outfitReactionMessageOverrides`
   - `reactionType`: `Praise`, `Dislike`, `Bored`, `Change`
   - `message`
+  - 今後追加: `expressionId`
 
 Unity Editor 拡張は `heroineId` をキーにして既存 `.asset` を検索する。
 既存 `.asset` があれば更新し、なければ新規作成する。

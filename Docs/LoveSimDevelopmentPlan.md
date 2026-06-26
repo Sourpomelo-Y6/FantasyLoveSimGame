@@ -275,6 +275,8 @@ AssetTool の `sprite_layers_export.json` は importer で `HeroineLayeredSprite
 実際の表示に使う `HeroineLayeredSpriteView` は追加済み。
 現在衣装の `costumeId` と会話行の `expressionId` から `BaseBody`、`Costume`、`Expression`、条件一致 `Accessory` を選び、指定がない場合は `Default` 衣装と `Neutral` 表情へ fallback する。
 会話 import は `lines[]` を保持し、実行時に `expression` を表情レイヤー切り替えへ渡す。
+今後は会話とイベントだけでなく、衣装変更時のヒロインメッセージと `衣装を見る` 実行後のヒロイン反応にも `expressionId` を持たせる。
+`HeroineProfileData.outfitMessageOverrides` と `outfitReactionMessageOverrides` に表情指定を追加し、衣装変更成功時、未解放時、褒める/嫌う/退屈/着替える反応時に `HeroineLayeredSpriteView` の表情を切り替えられるようにする。
 本番用ヒロインを追加する前に、まずこの profile で差し替え導線を手動確認する。
 
 新しいヒロインを追加するときは、次のチェックリストを使う。
