@@ -121,6 +121,10 @@ public static class HeroineAssetImporter
             profileExport.gameStartFollowUpMessage,
             profile.gameStartFollowUpMessage,
             "今日は何を話しましょうか？");
+        ApplyOutfitMessageOverrides(profile.outfitMessageOverrides, profileExport.outfitMessageOverrides);
+        ApplyOutfitReactionMessageOverrides(
+            profile.outfitReactionMessageOverrides,
+            profileExport.outfitReactionMessageOverrides);
         profile.conversationResourcePath = $"Heroines/{profileExport.heroineId}/Conversations";
         profile.gameEventResourcePath = $"Heroines/{profileExport.heroineId}/GameEvents";
         profile.actionResourcePath = $"Heroines/{profileExport.heroineId}/Actions";
@@ -141,6 +145,57 @@ public static class HeroineAssetImporter
         }
 
         return fallback;
+    }
+
+    private static void ApplyOutfitMessageOverrides(
+        List<OutfitMessageOverride> target,
+        OutfitMessageOverrideExport[] source)
+    {
+        if (target == null || source == null)
+        {
+            return;
+        }
+
+        target.Clear();
+        foreach (OutfitMessageOverrideExport item in source)
+        {
+            if (item == null || string.IsNullOrWhiteSpace(item.outfitId))
+            {
+                continue;
+            }
+
+            target.Add(new OutfitMessageOverride
+            {
+                outfitId = item.outfitId,
+                lockedMessage = item.lockedMessage ?? string.Empty,
+                changedMessage = item.changedMessage ?? string.Empty
+            });
+        }
+    }
+
+    private static void ApplyOutfitReactionMessageOverrides(
+        List<OutfitReactionMessageOverride> target,
+        OutfitReactionMessageOverrideExport[] source)
+    {
+        if (target == null || source == null)
+        {
+            return;
+        }
+
+        target.Clear();
+        foreach (OutfitReactionMessageOverrideExport item in source)
+        {
+            if (item == null || string.IsNullOrWhiteSpace(item.message))
+            {
+                continue;
+            }
+
+            target.Add(new OutfitReactionMessageOverride
+            {
+                reactionType = ParseEnumOrDefault(item.reactionType, OutfitReactionType.Praise),
+                message = item.message
+            });
+        }
     }
 
     private static void ApplyDefaultHeroineSprite(
@@ -2169,12 +2224,29 @@ public static class HeroineAssetImporter
         public string goodNightGreeting;
         public string gameStartFallbackMessage;
         public string gameStartFollowUpMessage;
+        public OutfitMessageOverrideExport[] outfitMessageOverrides;
+        public OutfitReactionMessageOverrideExport[] outfitReactionMessageOverrides;
         public string appearancePrompt;
         public string stillCommonPositivePrompt;
         public string actionReactionPolicy;
         public string endingPolicy;
         public string[] likes;
         public string[] dislikes;
+    }
+
+    [Serializable]
+    private sealed class OutfitMessageOverrideExport
+    {
+        public string outfitId;
+        public string lockedMessage;
+        public string changedMessage;
+    }
+
+    [Serializable]
+    private sealed class OutfitReactionMessageOverrideExport
+    {
+        public string reactionType;
+        public string message;
     }
 
     [Serializable]

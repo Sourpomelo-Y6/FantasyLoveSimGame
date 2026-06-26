@@ -57,6 +57,7 @@ public static class HeroineUnityDataExporter
         Directory.CreateDirectory(outputFolder);
 
         HeroineUnityExportReport report = new HeroineUnityExportReport();
+        ExportProfile(profile, outputFolder, report);
         ExportActions(profile, outputFolder, report);
         ExportConversations(profile, outputFolder, report);
         ExportGameEvents(profile, outputFolder, report);
@@ -112,6 +113,32 @@ public static class HeroineUnityDataExporter
 
         string relativeAssetPath = normalizedPath.Substring(projectRoot.Length + 1);
         return AssetDatabase.LoadAssetAtPath<HeroineProfileData>(relativeAssetPath);
+    }
+
+    private static void ExportProfile(
+        HeroineProfileData profile,
+        string outputFolder,
+        HeroineUnityExportReport report)
+    {
+        HeroineProfileFromUnityExport export = new HeroineProfileFromUnityExport
+        {
+            schemaVersion = SchemaVersion,
+            heroineId = profile.heroineId,
+            source = "Unity",
+            displayName = profile.displayName,
+            initialDialogueMessage = profile.initialDialogueMessage,
+            nextActionPrompt = profile.nextActionPrompt,
+            morningGreeting = profile.morningGreeting,
+            goodNightGreeting = profile.goodNightGreeting,
+            gameStartFallbackMessage = profile.gameStartFallbackMessage,
+            gameStartFollowUpMessage = profile.gameStartFollowUpMessage,
+            outfitMessageOverrides = CreateOutfitMessageOverrides(profile.outfitMessageOverrides),
+            outfitReactionMessageOverrides =
+                CreateOutfitReactionMessageOverrides(profile.outfitReactionMessageOverrides)
+        };
+
+        WriteJson(Path.Combine(outputFolder, "heroine_profile_from_unity.json"), export);
+        report.profileExported = true;
     }
 
     private static void ExportActions(
@@ -1007,6 +1034,60 @@ public static class HeroineUnityDataExporter
         return result;
     }
 
+    private static List<OutfitMessageOverrideFromUnity> CreateOutfitMessageOverrides(
+        List<OutfitMessageOverride> overrides)
+    {
+        List<OutfitMessageOverrideFromUnity> result = new List<OutfitMessageOverrideFromUnity>();
+        if (overrides == null)
+        {
+            return result;
+        }
+
+        foreach (OutfitMessageOverride item in overrides)
+        {
+            if (item == null || string.IsNullOrWhiteSpace(item.outfitId))
+            {
+                continue;
+            }
+
+            result.Add(new OutfitMessageOverrideFromUnity
+            {
+                outfitId = item.outfitId,
+                lockedMessage = item.lockedMessage ?? string.Empty,
+                changedMessage = item.changedMessage ?? string.Empty
+            });
+        }
+
+        return result;
+    }
+
+    private static List<OutfitReactionMessageOverrideFromUnity> CreateOutfitReactionMessageOverrides(
+        List<OutfitReactionMessageOverride> overrides)
+    {
+        List<OutfitReactionMessageOverrideFromUnity> result =
+            new List<OutfitReactionMessageOverrideFromUnity>();
+        if (overrides == null)
+        {
+            return result;
+        }
+
+        foreach (OutfitReactionMessageOverride item in overrides)
+        {
+            if (item == null || string.IsNullOrWhiteSpace(item.message))
+            {
+                continue;
+            }
+
+            result.Add(new OutfitReactionMessageOverrideFromUnity
+            {
+                reactionType = item.reactionType.ToString(),
+                message = item.message
+            });
+        }
+
+        return result;
+    }
+
     private static List<string> CreateOutfitIdList(
         List<string> outfitIds,
         List<OutfitData> outfits)
@@ -1117,6 +1198,7 @@ public static class HeroineUnityDataExporter
             schemaVersion = SchemaVersion,
             heroineId = profile.heroineId,
             source = "Unity",
+            profileExported = report.profileExported,
             actionCount = report.actionCount,
             conversationCount = report.conversationCount,
             gameEventCount = report.gameEventCount,
@@ -1132,6 +1214,38 @@ public static class HeroineUnityDataExporter
     {
         string json = JsonUtility.ToJson(value, true);
         File.WriteAllText(path, json);
+    }
+
+    [Serializable]
+    private sealed class HeroineProfileFromUnityExport
+    {
+        public int schemaVersion;
+        public string heroineId;
+        public string source;
+        public string displayName;
+        public string initialDialogueMessage;
+        public string nextActionPrompt;
+        public string morningGreeting;
+        public string goodNightGreeting;
+        public string gameStartFallbackMessage;
+        public string gameStartFollowUpMessage;
+        public List<OutfitMessageOverrideFromUnity> outfitMessageOverrides;
+        public List<OutfitReactionMessageOverrideFromUnity> outfitReactionMessageOverrides;
+    }
+
+    [Serializable]
+    private sealed class OutfitMessageOverrideFromUnity
+    {
+        public string outfitId;
+        public string lockedMessage;
+        public string changedMessage;
+    }
+
+    [Serializable]
+    private sealed class OutfitReactionMessageOverrideFromUnity
+    {
+        public string reactionType;
+        public string message;
     }
 
     [Serializable]
@@ -1399,6 +1513,7 @@ public static class HeroineUnityDataExporter
         public int schemaVersion;
         public string heroineId;
         public string source;
+        public bool profileExported;
         public int actionCount;
         public int conversationCount;
         public int gameEventCount;
@@ -1414,6 +1529,7 @@ public static class HeroineUnityDataExporter
         public int gameEventCount;
         public int scheduledEventCount;
         public int endingCount;
+        public bool profileExported;
         public readonly List<string> warnings = new List<string>();
 
         public void Warn(string message)

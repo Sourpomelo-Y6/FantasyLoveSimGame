@@ -78,6 +78,13 @@ Tools/FantasyLoveSim/Import Heroine Export...
 - `stillCommonPositivePrompt`
 - `actionReactionPolicy`
 - `endingPolicy`
+- `outfitMessageOverrides`
+  - `outfitId`
+  - `lockedMessage`
+  - `changedMessage`
+- `outfitReactionMessageOverrides`
+  - `reactionType`: `Praise`, `Dislike`, `Bored`, `Change`
+  - `message`
 
 ### HeroineAssetCatalog
 

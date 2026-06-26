@@ -141,9 +141,18 @@ Unity 側の ScriptableObject 型は次を基本にする。
 - `stillCommonPositivePrompt`
 - `actionReactionPolicy`
 - `endingPolicy`
+- `outfitMessageOverrides`
+  - `outfitId`
+  - `lockedMessage`
+  - `changedMessage`
+- `outfitReactionMessageOverrides`
+  - `reactionType`: `Praise`, `Dislike`, `Bored`, `Change`
+  - `message`
 
 Unity Editor 拡張は `heroineId` をキーにして既存 `.asset` を検索する。
 既存 `.asset` があれば更新し、なければ新規作成する。
+`outfitMessageOverrides` と `outfitReactionMessageOverrides` が JSON に存在する場合は、Unity 側の `HeroineProfileData` の同名リストを置き換える。
+JSON に存在しない場合は、Unity 側で手修正した既存リストを保持する。
 
 ## assets_export.json
 

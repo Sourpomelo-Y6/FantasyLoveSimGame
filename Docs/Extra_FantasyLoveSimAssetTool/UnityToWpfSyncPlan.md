@@ -36,6 +36,7 @@ WPF Tool 側ではそのフォルダを選んで読み込む。
 UnityImport/
   FromUnity/
     <HeroineId>/
+      heroine_profile_from_unity.json
       actions_from_unity.json
       conversations_from_unity.json
       game_events_from_unity.json
@@ -47,7 +48,34 @@ UnityImport/
 
 ## 対象優先順位
 
-### 1. ActionData
+### 1. HeroineProfileData
+
+衣装メッセージ、衣装反応メッセージ、共通挨拶などのヒロイン基本テキストを戻す。
+
+出力:
+
+```text
+heroine_profile_from_unity.json
+```
+
+戻す主な項目:
+
+- `heroineId`
+- `displayName`
+- `initialDialogueMessage`
+- `nextActionPrompt`
+- `morningGreeting`
+- `goodNightGreeting`
+- `gameStartFallbackMessage`
+- `gameStartFollowUpMessage`
+- `outfitMessageOverrides`
+- `outfitReactionMessageOverrides`
+
+`outfitMessageOverrides` は `outfitId`、`lockedMessage`、`changedMessage` を持つ。
+`outfitReactionMessageOverrides` は `reactionType` と `message` を持つ。
+WPF Tool 側では、同じ `outfitId` / `reactionType` の既存データを無条件上書きせず、差分確認または新規追加候補として扱う。
+
+### 2. ActionData
 
 最初の対象にする。
 
@@ -66,7 +94,7 @@ actions_from_unity.json
 WPF 側では、最初から完全統合せず、内容確認用の import preview として扱う。
 将来的に `ActionReactions` または専用 action 定義へ merge する。
 
-### 2. ConversationData
+### 3. ConversationData
 
 Unity 側で通常会話を追加、修正した場合の救済用。
 
@@ -79,7 +107,7 @@ conversations_from_unity.json
 WPF 側では `ConversationEntries` の `Kind=Conversations` へ merge する候補にする。
 同じ `id` がある場合は自動上書きせず、差分確認を行う。
 
-### 3. GameEventData
+### 4. GameEventData
 
 Unity 側で GameStart、DayStart、Manual、Location などのイベント本文やスチル ID を修正した場合の救済用。
 
@@ -92,7 +120,7 @@ game_events_from_unity.json
 WPF 側では `ConversationEntries` の `Kind=GameEvents` へ merge する候補にする。
 `category` と `conditions` は `Docs/GameEventDataGuide.md` の運用へ寄せる。
 
-### 4. HeroineAssetCatalog / HeroineLayeredSpriteData
+### 5. HeroineAssetCatalog / HeroineLayeredSpriteData
 
 画像実体を戻すのではなく、ID 対応を戻す用途に限定する。
 
@@ -115,7 +143,7 @@ WPF 側では `ConversationEntries` の `Kind=GameEvents` へ merge する候補
 
 画像本体は WPF Tool の生成物、Export、または手元の素材フォルダを正とする。
 
-### 5. EndingData
+### 6. EndingData
 
 Unity 側でエンディング本文、条件、スチル参照を手修正した場合の救済用。
 
@@ -131,7 +159,7 @@ Tool 側の `endings_export.json` と合わせるため、`category`、`conditio
 `EndingData` には `stillId` がないため、`imageAssetIds` には `stillSprite.name` を入れる。
 画像ファイル本体や Unity の GUID / fileID は戻さない。
 
-### 6. ScheduledEventData
+### 7. ScheduledEventData
 
 Unity 側でヒロイン別の翌日予定、お出かけ、デート本文を手修正した場合の救済用。
 
@@ -156,7 +184,7 @@ Tools/FantasyLoveSim/Export Heroine Unity Data...
 
 1. `HeroineProfileData` または HeroineId を選ぶ。
 2. `Assets/Resources/Heroines/<HeroineId>/` を基準に関連 ScriptableObject を探す。
-3. `ActionData`、`ConversationData`、`GameEventData`、`ScheduledEventData`、`EndingData`、`HeroineAssetCatalog`、`HeroineLayeredSpriteData` を読む。
+3. `HeroineProfileData`、`ActionData`、`ConversationData`、`GameEventData`、`ScheduledEventData`、`EndingData`、`HeroineAssetCatalog`、`HeroineLayeredSpriteData` を読む。
 4. FromUnity JSON DTO へ変換する。
 5. `UnityImport/FromUnity/<HeroineId>/` へ JSON を出す。
 6. 件数と warning を `export_report.json` と Console に出す。
