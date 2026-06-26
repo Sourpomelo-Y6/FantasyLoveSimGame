@@ -475,6 +475,11 @@ Importer は完了時に copied images、catalog assets、layers、conversations
 同じ `ScheduleType` のアセットがある場合、`GameManager` はそのデータを優先し、アセットがない場合だけコード内の既定定義へフォールバックします。
 予定イベント本文の話者は `ScheduledEventData.eventSpeakerType` で指定でき、`Heroine` / `System` / `Schedule` / `Outfit` から選べます。
 
+今後の大きな拡張として、`DuoShopping` など二人で買い物へ行く予定では、アイテムや衣服を購入できる専用フローを追加する。
+買い物で購入した衣服は `OutfitData` の解放状態と連動させ、購入アイテムはイベント条件や将来の戦闘、ステータスに使えるようにする。
+買い物以外のお出かけは、現在のスチル表示中心のイベントから、RPG でよくある探索・戦闘要素を持つ行動へ拡張する予定。
+そのため、プレイヤーとヒロインの状態には HP、攻撃、防御、素早さ、所持金、装備または衣装補正などの戦闘用パラメータを追加し、`StatusDetailPanel` に表示できるようにする。
+
 ### 会話を増やす
 
 新規 import では、対象ヒロインの `Assets/Resources/Heroines/<HeroineId>/Conversations/<ConversationId>.asset` に会話を個別保存します。
