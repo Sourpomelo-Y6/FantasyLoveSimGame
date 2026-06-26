@@ -11,6 +11,7 @@ public class ScheduledEventDefinition
     public string PreparationMessage { get; private set; }
     public string EventMessage { get; private set; }
     public int AffectionChange { get; private set; }
+    public string CostumeId { get; private set; }
     public string StillId { get; private set; }
     public Sprite StillSprite { get; private set; }
 
@@ -24,6 +25,7 @@ public class ScheduledEventDefinition
         string preparationMessage,
         string eventMessage,
         int affectionChange,
+        string costumeId = "",
         string stillId = "",
         Sprite stillSprite = null)
     {
@@ -36,6 +38,7 @@ public class ScheduledEventDefinition
         PreparationMessage = preparationMessage;
         EventMessage = eventMessage;
         AffectionChange = affectionChange;
+        CostumeId = costumeId;
         StillId = stillId;
         StillSprite = stillSprite;
     }

@@ -28,6 +28,9 @@ public class ActionReactionData
     public int minAffection = 0;
     public int maxAffection = 100;
 
+    [Header("Costume Condition")]
+    public string costumeId;
+
     [Header("Time Slot Condition")]
     public bool anyTimeSlot = true;
     public List<TimeSlot> allowedTimeSlots = new List<TimeSlot>();

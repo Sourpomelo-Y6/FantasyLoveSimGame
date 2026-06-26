@@ -12,6 +12,9 @@ public class ScheduledEventData : ScriptableObject
     public bool allowOutfitChangeBeforeStart = true;
     public ScheduledEventOutfitPromptMode outfitPromptMode = ScheduledEventOutfitPromptMode.Conditional;
 
+    [Header("Costume Condition")]
+    public string costumeId;
+
     [Header("Messages")]
     public ScheduledEventSpeakerType eventSpeakerType = ScheduledEventSpeakerType.Heroine;
 
@@ -40,6 +43,7 @@ public class ScheduledEventData : ScriptableObject
             preparationMessage,
             eventMessage,
             affectionChange,
+            costumeId,
             stillId,
             stillSprite
         );

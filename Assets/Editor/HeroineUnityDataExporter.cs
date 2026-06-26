@@ -479,6 +479,7 @@ public static class HeroineUnityDataExporter
             conditions = new EndingFromUnityConditions
             {
                 minAffection = ending.requiredAffection,
+                costumeId = ending.costumeId ?? string.Empty,
                 requiredFlagIds = CreateStringArrayList(ending.requiredShownEventIds)
             },
             lines = CreateEndingLines(ending.message),
@@ -516,6 +517,7 @@ public static class HeroineUnityDataExporter
                 actionId = scheduledEvent.actionId ?? string.Empty,
                 triggerTimeSlot = scheduledEvent.triggerTimeSlot.ToString(),
                 timeOfDay = scheduledEvent.triggerTimeSlot.ToString(),
+                costumeId = scheduledEvent.costumeId ?? string.Empty,
                 allowOutfitChangeBeforeStart = scheduledEvent.allowOutfitChangeBeforeStart,
                 outfitPromptMode = scheduledEvent.outfitPromptMode.ToString(),
                 eventSpeakerType = scheduledEvent.eventSpeakerType.ToString(),
@@ -727,7 +729,8 @@ public static class HeroineUnityDataExporter
             maxAffection = action.maxAffection,
             timeSlots = CreateEnumList(action.anyTimeSlot, action.allowedTimeSlots),
             weathers = CreateEnumList(action.anyWeather, action.allowedWeathers),
-            seasons = CreateEnumList(action.anySeason, action.allowedSeasons)
+            seasons = CreateEnumList(action.anySeason, action.allowedSeasons),
+            costumeId = string.Empty
         };
     }
 
@@ -739,7 +742,8 @@ public static class HeroineUnityDataExporter
             maxAffection = reaction.maxAffection,
             timeSlots = CreateEnumList(reaction.anyTimeSlot, reaction.allowedTimeSlots),
             weathers = CreateEnumList(reaction.anyWeather, reaction.allowedWeathers),
-            seasons = CreateEnumList(reaction.anySeason, reaction.allowedSeasons)
+            seasons = CreateEnumList(reaction.anySeason, reaction.allowedSeasons),
+            costumeId = reaction.costumeId ?? string.Empty
         };
     }
 
@@ -753,7 +757,8 @@ public static class HeroineUnityDataExporter
             maxAffection = conversation.maxAffection,
             weather = CreateSingleEnumValue(conversation.anyWeather, conversation.allowedWeathers),
             season = CreateSingleEnumValue(conversation.anySeason, conversation.allowedSeasons),
-            timeOfDay = CreateSingleEnumValue(conversation.anyTimeSlot, conversation.allowedTimeSlots)
+            timeOfDay = CreateSingleEnumValue(conversation.anyTimeSlot, conversation.allowedTimeSlots),
+            costumeId = conversation.costumeId ?? string.Empty
         };
     }
 
@@ -767,7 +772,8 @@ public static class HeroineUnityDataExporter
             maxAffection = item.maxAffection,
             weather = CreateSingleEnumValue(item.anyWeather, item.allowedWeathers),
             season = CreateSingleEnumValue(item.anySeason, item.allowedSeasons),
-            timeOfDay = CreateSingleEnumValue(item.anyTimeSlot, item.allowedTimeSlots)
+            timeOfDay = CreateSingleEnumValue(item.anyTimeSlot, item.allowedTimeSlots),
+            costumeId = item.costumeId ?? string.Empty
         };
     }
 
@@ -784,6 +790,7 @@ public static class HeroineUnityDataExporter
             weather = CreateSingleEnumValue(gameEvent.anyWeather, gameEvent.allowedWeathers),
             season = string.Empty,
             timeOfDay = string.Empty,
+            costumeId = CreateFirstOutfitId(gameEvent.requiredOutfitIds, gameEvent.requiredOutfits),
             requiredShownEventIds = CreateStringList(gameEvent.requiredShownEventIds),
             blockedShownEventIds = CreateStringList(gameEvent.blockedShownEventIds),
             requiredOutfitIds = CreateOutfitIdList(gameEvent.requiredOutfitIds, gameEvent.requiredOutfits),
@@ -1026,6 +1033,14 @@ public static class HeroineUnityDataExporter
         return result;
     }
 
+    private static string CreateFirstOutfitId(
+        List<string> outfitIds,
+        List<OutfitData> outfits)
+    {
+        List<string> ids = CreateOutfitIdList(outfitIds, outfits);
+        return ids.Count > 0 ? ids[0] : string.Empty;
+    }
+
     private static string CreateSingleEnumValue<T>(bool any, List<T> values)
     {
         if (any || values == null || values.Count == 0)
@@ -1185,6 +1200,7 @@ public static class HeroineUnityDataExporter
         public string weather;
         public string season;
         public string timeOfDay;
+        public string costumeId;
     }
 
     [Serializable]
@@ -1287,6 +1303,7 @@ public static class HeroineUnityDataExporter
         public string actionId;
         public string triggerTimeSlot;
         public string timeOfDay;
+        public string costumeId;
         public bool allowOutfitChangeBeforeStart;
         public string outfitPromptMode;
         public string eventSpeakerType;
@@ -1298,6 +1315,7 @@ public static class HeroineUnityDataExporter
     private sealed class EndingFromUnityConditions
     {
         public int minAffection;
+        public string costumeId;
         public List<string> requiredFlagIds;
     }
 
@@ -1313,6 +1331,7 @@ public static class HeroineUnityDataExporter
         public string weather;
         public string season;
         public string timeOfDay;
+        public string costumeId;
         public List<string> requiredShownEventIds;
         public List<string> blockedShownEventIds;
         public List<string> requiredOutfitIds;
@@ -1371,6 +1390,7 @@ public static class HeroineUnityDataExporter
         public List<string> timeSlots;
         public List<string> weathers;
         public List<string> seasons;
+        public string costumeId;
     }
 
     [Serializable]

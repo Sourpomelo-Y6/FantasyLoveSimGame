@@ -11,5 +11,6 @@ public class EndingData : ScriptableObject
 
     public Sprite stillSprite;
     public int requiredAffection = 100;
+    public string costumeId;
     public string[] requiredShownEventIds;
 }

@@ -1225,6 +1225,7 @@ public class GameManager : MonoBehaviour
         conversation.showOnce = item.showOnce;
         conversation.minAffection = item.minAffection;
         conversation.maxAffection = item.maxAffection;
+        conversation.costumeId = item.costumeId;
         conversation.anyTimeSlot = item.anyTimeSlot;
         conversation.allowedTimeSlots = item.allowedTimeSlots == null
             ? new List<TimeSlot>()
@@ -1358,6 +1359,11 @@ public class GameManager : MonoBehaviour
         }
 
         if (heroineStatus.Affection > conversation.maxAffection)
+        {
+            return false;
+        }
+
+        if (!IsCostumeConditionMatch(conversation.costumeId))
         {
             return false;
         }
@@ -1765,11 +1771,85 @@ public class GameManager : MonoBehaviour
             return;
         }
 
-        EndingSelectionSettings.SelectedEndingId = defaultEndingId;
+        EndingSelectionSettings.SelectedEndingId = ResolveEndingIdForCurrentState();
         EndingSelectionSettings.SelectedHeroineId = heroineProfile != null ? heroineProfile.heroineId : "";
         EndingSelectionSettings.EndingResourcePath =
             heroineProfile != null ? heroineProfile.endingResourcePath : "";
         SceneManager.LoadScene(endingSceneName);
+    }
+
+    private string ResolveEndingIdForCurrentState()
+    {
+        string resourcePath = heroineProfile != null ? heroineProfile.endingResourcePath : "";
+        if (string.IsNullOrEmpty(resourcePath))
+        {
+            return defaultEndingId;
+        }
+
+        EndingData[] endings = Resources.LoadAll<EndingData>(resourcePath);
+        EndingData selected = null;
+        foreach (EndingData ending in endings)
+        {
+            if (!CanSelectEnding(ending))
+            {
+                continue;
+            }
+
+            if (selected == null || ending.requiredAffection > selected.requiredAffection)
+            {
+                selected = ending;
+            }
+        }
+
+        if (selected == null || string.IsNullOrEmpty(selected.endingId))
+        {
+            return defaultEndingId;
+        }
+
+        Debug.Log(
+            "Selected EndingData: endingId=" +
+            selected.endingId +
+            " / requiredAffection=" +
+            selected.requiredAffection +
+            " / costumeId=" +
+            selected.costumeId);
+        return selected.endingId;
+    }
+
+    private bool CanSelectEnding(EndingData ending)
+    {
+        if (ending == null || string.IsNullOrEmpty(ending.endingId))
+        {
+            return false;
+        }
+
+        if (heroineStatus != null && heroineStatus.Affection < ending.requiredAffection)
+        {
+            return false;
+        }
+
+        if (!IsCostumeConditionMatch(ending.costumeId))
+        {
+            return false;
+        }
+
+        if (ending.requiredShownEventIds != null)
+        {
+            foreach (string eventId in ending.requiredShownEventIds)
+            {
+                if (string.IsNullOrEmpty(eventId))
+                {
+                    continue;
+                }
+
+                if (!IsGameEventShown(eventId))
+                {
+                    return false;
+                }
+            }
+        }
+
+        return true;
     }
 
     public void RefreshUI()
@@ -2275,6 +2355,8 @@ public class GameManager : MonoBehaviour
                 scheduledEvent.actionId +
                 " / Trigger: " +
                 scheduledEvent.triggerTimeSlot +
+                " / CostumeId: " +
+                scheduledEvent.costumeId +
                 " / StillId: " +
                 scheduledEvent.stillId
             );
@@ -2706,6 +2788,18 @@ public class GameManager : MonoBehaviour
         }
 
         return outfitManager.CurrentOutfit.outfitId;
+    }
+
+    private bool IsCostumeConditionMatch(string costumeId)
+    {
+        if (string.IsNullOrWhiteSpace(costumeId))
+        {
+            return true;
+        }
+
+        string currentOutfitId = GetCurrentOutfitId();
+        return !string.IsNullOrEmpty(currentOutfitId) &&
+            string.Equals(currentOutfitId, costumeId, StringComparison.Ordinal);
     }
 
     private bool HasRequiredShownGameEvents(List<string> eventIds)
@@ -3237,6 +3331,11 @@ public class GameManager : MonoBehaviour
         }
 
         if (heroineStatus.Affection > reaction.maxAffection)
+        {
+            return false;
+        }
+
+        if (!IsCostumeConditionMatch(reaction.costumeId))
         {
             return false;
         }
@@ -3951,6 +4050,8 @@ public class GameManager : MonoBehaviour
 
         ScheduledEventData fallback = null;
         ScheduledEventData preferred = null;
+        ScheduledEventData costumeFallback = null;
+        ScheduledEventData costumePreferred = null;
         string preferredActionId = GetDefaultScheduledEventActionId(scheduleType);
         int matchCount = 0;
 
@@ -3964,6 +4065,13 @@ public class GameManager : MonoBehaviour
             if (scheduledEvent.scheduleType == scheduleType)
             {
                 matchCount++;
+
+                bool hasCostumeCondition = !string.IsNullOrWhiteSpace(scheduledEvent.costumeId);
+                if (hasCostumeCondition && !IsCostumeConditionMatch(scheduledEvent.costumeId))
+                {
+                    continue;
+                }
+
                 if (fallback == null)
                 {
                     fallback = scheduledEvent;
@@ -3974,6 +4082,20 @@ public class GameManager : MonoBehaviour
                 {
                     preferred = scheduledEvent;
                 }
+
+                if (hasCostumeCondition)
+                {
+                    if (costumeFallback == null)
+                    {
+                        costumeFallback = scheduledEvent;
+                    }
+
+                    if (!string.IsNullOrEmpty(preferredActionId)
+                        && scheduledEvent.actionId == preferredActionId)
+                    {
+                        costumePreferred = scheduledEvent;
+                    }
+                }
             }
         }
 
@@ -3982,7 +4104,13 @@ public class GameManager : MonoBehaviour
             Debug.LogWarning("ScheduledEventData の scheduleType が重複しています: " + scheduleType);
         }
 
-        ScheduledEventData selected = preferred != null ? preferred : fallback;
+        ScheduledEventData selected = costumePreferred != null
+            ? costumePreferred
+            : costumeFallback != null
+                ? costumeFallback
+                : preferred != null
+                    ? preferred
+                    : fallback;
         return selected != null ? selected.ToDefinition() : null;
     }
 

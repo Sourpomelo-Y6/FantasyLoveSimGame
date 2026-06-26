@@ -765,6 +765,7 @@ public static class HeroineAssetImporter
         conversation.showOnce = conditions.once;
         conversation.minAffection = Math.Max(0, conditions.minAffection);
         conversation.maxAffection = conditions.maxAffection > 0 ? conditions.maxAffection : 100;
+        conversation.costumeId = conditions.costumeId ?? string.Empty;
 
         ApplySingleEnumCondition(
             conditions.timeOfDay,
@@ -801,6 +802,7 @@ public static class HeroineAssetImporter
         conversation.showOnce = conditions.once;
         conversation.minAffection = Math.Max(0, conditions.minAffection);
         conversation.maxAffection = conditions.maxAffection > 0 ? conditions.maxAffection : 100;
+        conversation.costumeId = conditions.costumeId ?? string.Empty;
 
         ApplySingleEnumCondition(
             conditions.timeOfDay,
@@ -1183,6 +1185,7 @@ public static class HeroineAssetImporter
         ApplyStringList(gameEvent.requiredShownEventIds, conditions.requiredShownEventIds);
         ApplyStringList(gameEvent.blockedShownEventIds, conditions.blockedShownEventIds);
         ApplyStringList(gameEvent.requiredOutfitIds, conditions.requiredOutfitIds);
+        AddStringIfNotExists(gameEvent.requiredOutfitIds, conditions.costumeId);
         ApplyStringList(gameEvent.blockedOutfitIds, conditions.blockedOutfitIds);
         gameEvent.requiredOutfits.Clear();
         gameEvent.blockedOutfits.Clear();
@@ -1515,6 +1518,7 @@ public static class HeroineAssetImporter
             FirstNonEmpty(conditions.triggerTimeSlot, conditions.timeOfDay),
             TimeSlot.Noon);
         scheduledEvent.allowOutfitChangeBeforeStart = conditions.allowOutfitChangeBeforeStart;
+        scheduledEvent.costumeId = conditions.costumeId ?? string.Empty;
         scheduledEvent.outfitPromptMode = ParseEnumOrDefault(
             conditions.outfitPromptMode,
             ScheduledEventOutfitPromptMode.Conditional);
@@ -1760,7 +1764,8 @@ public static class HeroineAssetImporter
             advanceTime = conditions.advanceTime,
             priority = item.priority,
             minAffection = Math.Max(0, conditions.minAffection),
-            maxAffection = conditions.maxAffection > 0 ? conditions.maxAffection : 100
+            maxAffection = conditions.maxAffection > 0 ? conditions.maxAffection : 100,
+            costumeId = conditions.costumeId ?? string.Empty
         };
 
         ApplySingleEnumCondition(
@@ -1889,6 +1894,7 @@ public static class HeroineAssetImporter
         ending.message = JoinLineTexts(item.lines);
         ending.stillSprite = ResolveFirstSprite(item.imageAssetIds, spritesByAssetId, report);
         ending.requiredAffection = Math.Max(0, conditions.minAffection);
+        ending.costumeId = conditions.costumeId ?? string.Empty;
         ending.requiredShownEventIds = conditions.requiredShownEventIds ?? conditions.requiredFlagIds ?? new string[0];
     }
 
@@ -1933,6 +1939,19 @@ public static class HeroineAssetImporter
             {
                 target.Add(value);
             }
+        }
+    }
+
+    private static void AddStringIfNotExists(List<string> target, string value)
+    {
+        if (target == null || string.IsNullOrWhiteSpace(value))
+        {
+            return;
+        }
+
+        if (!target.Contains(value))
+        {
+            target.Add(value);
         }
     }
 
@@ -2237,6 +2256,7 @@ public static class HeroineAssetImporter
         public string weather;
         public string season;
         public string timeOfDay;
+        public string costumeId;
     }
 
     [Serializable]
@@ -2264,6 +2284,7 @@ public static class HeroineAssetImporter
         public string weather;
         public string season;
         public string timeOfDay;
+        public string costumeId;
         public string[] requiredShownEventIds;
         public string[] blockedShownEventIds;
         public string[] requiredOutfitIds;
@@ -2294,6 +2315,7 @@ public static class HeroineAssetImporter
         public string actionId;
         public string triggerTimeSlot;
         public string timeOfDay;
+        public string costumeId;
         public bool allowOutfitChangeBeforeStart = true;
         public string outfitPromptMode;
         public string eventSpeakerType;
@@ -2323,6 +2345,7 @@ public static class HeroineAssetImporter
         public string weather;
         public string season;
         public string timeOfDay;
+        public string costumeId;
         public int affectionChange;
         public bool advanceTime = true;
     }
@@ -2344,6 +2367,7 @@ public static class HeroineAssetImporter
     private sealed class EndingExportConditions
     {
         public int minAffection;
+        public string costumeId;
         public string[] requiredFlagIds;
         public string[] requiredShownEventIds;
     }
