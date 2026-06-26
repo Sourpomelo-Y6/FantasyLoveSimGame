@@ -960,6 +960,12 @@ public class GameManager : MonoBehaviour
 
     private HeroineProfileData ResolveHeroineProfile()
     {
+        HeroineProfileData selectedProfile = ResolveSelectedHeroineProfile();
+        if (selectedProfile != null)
+        {
+            return selectedProfile;
+        }
+
         if (heroineProfile != null)
         {
             return heroineProfile;
@@ -978,6 +984,38 @@ public class GameManager : MonoBehaviour
         }
 
         return profile;
+    }
+
+    private HeroineProfileData ResolveSelectedHeroineProfile()
+    {
+        if (!GameStartSettings.ShouldPlayGameStartEvent ||
+            GameStartSettings.ShouldLoadOnStart ||
+            string.IsNullOrWhiteSpace(GameStartSettings.SelectedHeroineId))
+        {
+            return null;
+        }
+
+        HeroineProfileData[] profiles = Resources.LoadAll<HeroineProfileData>("Heroines");
+        foreach (HeroineProfileData profile in profiles)
+        {
+            if (profile == null)
+            {
+                continue;
+            }
+
+            if (string.Equals(
+                profile.heroineId,
+                GameStartSettings.SelectedHeroineId,
+                StringComparison.Ordinal))
+            {
+                return profile;
+            }
+        }
+
+        Debug.LogWarning(
+            "選択された HeroineProfileData が見つかりません: " +
+            GameStartSettings.SelectedHeroineId);
+        return null;
     }
 
     private string GetProfileResourcePath(string profilePath, string fallbackPath)

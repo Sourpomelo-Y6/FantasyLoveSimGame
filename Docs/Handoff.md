@@ -544,6 +544,8 @@ UI デザインは手作業で行っています。
 - `Game Manager` は空のままでよい
 - `ContinueButton` から `SaveLoadPanel.OpenLoad()` を呼ぶ
 - 将来のギャラリーモードでは、タイトル画面に `GalleryButton` とキャラクター選択 UI を追加し、選択したヒロインの解放済みスチルを表示する画面へ遷移する
+- キャラクター選択 UI を使う場合は、`TitleManager` の `Heroine Select Button`、`Heroine Select Panel`、`Previous Heroine Button`、`Next Heroine Button`、`Confirm Heroine Button`、`Close Heroine Select Button`、`Heroine Preview Image`、`Heroine Name Text`、`Heroine Info Text` を Inspector で割り当てる。未選択時に優先するキャラクターは `Default Heroine Id` で指定する
+- `TitleManager` は `Resources.LoadAll<HeroineProfileData>("Heroines")` で候補を列挙し、決定した `heroineId` を `GameStartSettings.SelectedHeroineId` に渡す。`NewGameButton` で開始した場合のみ `GameManager` がこの選択を使う
 - タイトルでは保存しないため `OpenSave()` は使わない
 - `TitleManager.Start()` の `continueButton.onClick.AddListener(OnClickContinue)` は使わず、Inspector の OnClick でロードパネルを開く
 
