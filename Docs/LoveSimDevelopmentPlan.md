@@ -178,6 +178,14 @@ Unity Editor で `MainScene` を直接開いて再生した場合は、開発確
 `GameEventData` の `DayStart` は翌朝メッセージに混ぜて自動再生し、`Manual` は `GameManager.TryStartManualGameEvent(string eventId)` で明示起動する。
 開発時の確認用に、`GameManager` の `debugManualGameEventId` を `F7` で起動する入口もある。
 テスト用の手動イベントとして `TestManualEvent` を用意しており、`debugManualGameEventId` に設定すると `F7` で繰り返し再生できる。
+
+タイトル画面には、将来的にキャラクター選択ボタンを追加する。
+実行時にファイルシステム上のフォルダを直接探索するのではなく、`Resources.LoadAll<HeroineProfileData>("Heroines")` で存在する `HeroineProfileData` を列挙する方式にすると、Editor とビルド後の両方で扱いやすい。
+選択画面では、候補リスト、選択中ヒロインの `displayName`、`defaultHeroineSprite`、必要なら説明文や口調メモを表示する。
+決定ボタンを押したら選択した `heroineId` または profile resource path をゲーム開始設定へ保存し、新規ゲーム開始時に `GameManager` がその `HeroineProfileData` を読み込む。
+ロード時はセーブデータに保存されたヒロイン ID を優先し、タイトル画面で選んだヒロインで既存セーブを上書きしない。
+この機能を入れる場合は、`GameStartSettings` に選択中ヒロイン ID を持たせ、`SaveData` にも保存済みヒロイン ID を追加する。
+
 解放後の実効果は `StatusAbilityData.effectType` で分岐し、`StatusAbilityKind` は表示種別や旧データ互換の分類として使う。
 `effectType` が `UseAbilityKind` の場合は従来通り `StatusAbilityKind` から衣装確認能力を推測し、`None` の場合は効果なし能力として `abilityId` の取得済み状態だけを保存する。
 これにより、テスト用能力や将来の表示カテゴリを追加しても、実効果の有無をデータ側で明示できる。
