@@ -903,6 +903,18 @@ public class GameManager : MonoBehaviour
         scheduledEventResourcePath = GetProfileResourcePath(
             profile.scheduledEventResourcePath,
             scheduledEventResourcePath);
+
+        Debug.Log(
+            "Applied HeroineProfile resource paths: heroineId=" +
+            currentHeroineId +
+            " / conversations=" +
+            conversationResourcePath +
+            " / gameEvents=" +
+            gameEventResourcePath +
+            " / actions=" +
+            actionResourcePath +
+            " / scheduledEvents=" +
+            scheduledEventResourcePath);
     }
 
     private HeroineProfileData ResolveHeroineProfile()
@@ -2130,15 +2142,24 @@ public class GameManager : MonoBehaviour
             Resources.LoadAll<ScheduledEventData>(scheduledEventResourcePath);
 
         scheduledEvents = new List<ScheduledEventData>(heroineScheduledEvents);
+        Dictionary<ScheduledEventData, string> scheduledEventSources =
+            new Dictionary<ScheduledEventData, string>();
         HashSet<ScheduleType> heroineScheduleTypes = new HashSet<ScheduleType>();
         foreach (ScheduledEventData scheduledEvent in heroineScheduledEvents)
         {
-            if (scheduledEvent != null && scheduledEvent.scheduleType != ScheduleType.None)
+            if (scheduledEvent == null)
+            {
+                continue;
+            }
+
+            scheduledEventSources[scheduledEvent] = "Heroine";
+            if (scheduledEvent.scheduleType != ScheduleType.None)
             {
                 heroineScheduleTypes.Add(scheduledEvent.scheduleType);
             }
         }
 
+        int fallbackScheduledEventCount = 0;
         if (scheduledEventResourcePath != CommonScheduledEventResourcePath)
         {
             ScheduledEventData[] commonScheduledEvents =
@@ -2156,6 +2177,8 @@ public class GameManager : MonoBehaviour
                 }
 
                 scheduledEvents.Add(scheduledEvent);
+                scheduledEventSources[scheduledEvent] = "CommonFallback";
+                fallbackScheduledEventCount++;
             }
         }
 
@@ -2163,19 +2186,32 @@ public class GameManager : MonoBehaviour
             "Loaded Scheduled Events: " +
             scheduledEvents.Count +
             " / HeroinePath: " +
-            scheduledEventResourcePath);
+            scheduledEventResourcePath +
+            " / HeroineCount: " +
+            heroineScheduledEvents.Length +
+            " / FallbackPath: " +
+            CommonScheduledEventResourcePath +
+            " / FallbackAdded: " +
+            fallbackScheduledEventCount);
 
         foreach (ScheduledEventData scheduledEvent in scheduledEvents)
         {
+            string source = scheduledEventSources.TryGetValue(scheduledEvent, out string value)
+                ? value
+                : "Unknown";
             Debug.Log(
                 "Scheduled Event: " +
                 scheduledEvent.name +
+                " / Source: " +
+                source +
                 " / Schedule: " +
                 scheduledEvent.scheduleType +
                 " / ActionId: " +
                 scheduledEvent.actionId +
                 " / Trigger: " +
-                scheduledEvent.triggerTimeSlot
+                scheduledEvent.triggerTimeSlot +
+                " / StillId: " +
+                scheduledEvent.stillId
             );
         }
     }
