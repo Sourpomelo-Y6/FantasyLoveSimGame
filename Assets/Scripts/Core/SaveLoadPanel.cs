@@ -30,6 +30,7 @@ public class SaveLoadPanel : MonoBehaviour
     [SerializeField] private string saveSlotLabelFormat = "Slot {0}";
     [SerializeField] private string emptySlotSuffix = " / Empty";
     [SerializeField] private string savedSlotSuffix = " / Saved";
+    [SerializeField] private string savedSlotHeroineFormat = " / {0}";
     [SerializeField] private string savedSlotDetailFormat = " / Day {0} / Affection {1}";
 
     [Header("Confirmation")]
@@ -367,6 +368,27 @@ public class SaveLoadPanel : MonoBehaviour
             return label + savedSlotSuffix;
         }
 
+        string heroineName = GetHeroineDisplayName(saveData);
+        if (!string.IsNullOrWhiteSpace(heroineName))
+        {
+            label += string.Format(savedSlotHeroineFormat, heroineName);
+        }
+
         return label + string.Format(savedSlotDetailFormat, saveData.day, saveData.affection);
+    }
+
+    private static string GetHeroineDisplayName(SaveData saveData)
+    {
+        if (saveData == null)
+        {
+            return "";
+        }
+
+        if (!string.IsNullOrWhiteSpace(saveData.heroineDisplayName))
+        {
+            return saveData.heroineDisplayName;
+        }
+
+        return saveData.heroineId;
     }
 }

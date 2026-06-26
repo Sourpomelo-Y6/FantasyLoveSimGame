@@ -905,6 +905,11 @@ public class GameManager : MonoBehaviour
     private void ApplyHeroineProfileSettings()
     {
         HeroineProfileData profile = ResolveHeroineProfile();
+        ApplyHeroineProfileSettings(profile);
+    }
+
+    private void ApplyHeroineProfileSettings(HeroineProfileData profile)
+    {
         if (profile == null)
         {
             return;
@@ -1016,6 +1021,60 @@ public class GameManager : MonoBehaviour
             "選択された HeroineProfileData が見つかりません: " +
             GameStartSettings.SelectedHeroineId);
         return null;
+    }
+
+    private bool TryApplyHeroineProfileById(string heroineId)
+    {
+        if (string.IsNullOrWhiteSpace(heroineId))
+        {
+            return false;
+        }
+
+        HeroineProfileData profile = FindHeroineProfileById(heroineId);
+        if (profile == null)
+        {
+            Debug.LogWarning("セーブデータの HeroineProfileData が見つかりません: " + heroineId);
+            return false;
+        }
+
+        ApplyHeroineProfileSettings(profile);
+        ReloadHeroineRuntimeData();
+        return true;
+    }
+
+    private HeroineProfileData FindHeroineProfileById(string heroineId)
+    {
+        if (string.IsNullOrWhiteSpace(heroineId))
+        {
+            return null;
+        }
+
+        HeroineProfileData[] profiles = Resources.LoadAll<HeroineProfileData>("Heroines");
+        foreach (HeroineProfileData profile in profiles)
+        {
+            if (profile == null)
+            {
+                continue;
+            }
+
+            if (string.Equals(profile.heroineId, heroineId, StringComparison.Ordinal))
+            {
+                return profile;
+            }
+        }
+
+        return null;
+    }
+
+    private void ReloadHeroineRuntimeData()
+    {
+        LoadConversationsFromResources();
+        LoadActionsFromResources();
+        LoadGameEventsFromResources();
+        LoadScheduledEventsFromResources();
+        CreateGenreButtons();
+        CreateActionButtons();
+        CreateOutfitButtons();
     }
 
     private string GetProfileResourcePath(string profilePath, string fallbackPath)
@@ -1927,6 +1986,8 @@ public class GameManager : MonoBehaviour
 
         saveData.saveSlotIndex = GameStartSettings.SelectedSaveSlotIndex;
         saveData.savedAt = DateTime.Now.ToString("o");
+        saveData.heroineId = currentHeroineId;
+        saveData.heroineDisplayName = heroineStatus != null ? heroineStatus.HeroineName : "";
 
         saveData.day = timeManager.Day;
         saveData.currentTimeSlot = timeManager.CurrentTimeSlot;
@@ -1982,6 +2043,8 @@ public class GameManager : MonoBehaviour
             ShowSystemDialogue("セーブデータがありません。");
             return;
         }
+
+        TryApplyHeroineProfileById(saveData.heroineId);
 
         timeManager.SetTimeState(
             saveData.day,
