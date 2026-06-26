@@ -24,6 +24,7 @@ public class GameManager : MonoBehaviour
     private enum DialogueSpeakerType
     {
         Heroine,
+        Player,
         System,
         Schedule,
         Outfit
@@ -118,6 +119,8 @@ public class GameManager : MonoBehaviour
     [SerializeField] private TMP_Text dialogueText;
     [SerializeField] private Color heroineSpeakerColor = Color.white;
     [SerializeField] private Color heroineDialogueColor = Color.white;
+    [SerializeField] private Color playerSpeakerColor = new Color32(255, 230, 160, 255);
+    [SerializeField] private Color playerDialogueColor = Color.white;
     [SerializeField] private Color systemSpeakerColor = new Color32(210, 210, 210, 255);
     [SerializeField] private Color systemDialogueColor = new Color32(210, 210, 210, 255);
     [SerializeField] private Color scheduleSpeakerColor = new Color32(120, 180, 255, 255);
@@ -215,6 +218,7 @@ public class GameManager : MonoBehaviour
     private Sprite blankStillSprite;
 
     private const string SystemSpeakerName = "SYSTEM";
+    private const string PlayerSpeakerName = "主人公";
     private const string ScheduleSpeakerName = "予定";
     private const string OutfitSpeakerName = "衣装";
 
@@ -575,6 +579,11 @@ public class GameManager : MonoBehaviour
             return DialogueSpeakerType.System;
         }
 
+        if (speakerName == PlayerSpeakerName)
+        {
+            return DialogueSpeakerType.Player;
+        }
+
         if (speakerName == ScheduleSpeakerName)
         {
             return DialogueSpeakerType.Schedule;
@@ -592,6 +601,8 @@ public class GameManager : MonoBehaviour
     {
         switch (speakerType)
         {
+            case DialogueSpeakerType.Player:
+                return playerSpeakerColor;
             case DialogueSpeakerType.System:
                 return systemSpeakerColor;
             case DialogueSpeakerType.Schedule:
@@ -607,6 +618,8 @@ public class GameManager : MonoBehaviour
     {
         switch (speakerType)
         {
+            case DialogueSpeakerType.Player:
+                return playerDialogueColor;
             case DialogueSpeakerType.System:
                 return systemDialogueColor;
             case DialogueSpeakerType.Schedule:
@@ -773,6 +786,11 @@ public class GameManager : MonoBehaviour
             return DialogueSpeakerType.System;
         }
 
+        if (IsPlayerSpeaker(speaker))
+        {
+            return DialogueSpeakerType.Player;
+        }
+
         return DialogueSpeakerType.Heroine;
     }
 
@@ -783,7 +801,24 @@ public class GameManager : MonoBehaviour
             return SystemSpeakerName;
         }
 
+        if (speakerType == DialogueSpeakerType.Player)
+        {
+            return PlayerSpeakerName;
+        }
+
         return heroineStatus.HeroineName;
+    }
+
+    private static bool IsPlayerSpeaker(string speaker)
+    {
+        return string.Equals(speaker, "Player", StringComparison.OrdinalIgnoreCase) ||
+            string.Equals(speaker, "Protagonist", StringComparison.OrdinalIgnoreCase) ||
+            string.Equals(speaker, "MainCharacter", StringComparison.OrdinalIgnoreCase) ||
+            string.Equals(speaker, "Main Character", StringComparison.OrdinalIgnoreCase) ||
+            string.Equals(speaker, "PC", StringComparison.OrdinalIgnoreCase) ||
+            string.Equals(speaker, "User", StringComparison.OrdinalIgnoreCase) ||
+            string.Equals(speaker, "You", StringComparison.OrdinalIgnoreCase) ||
+            string.Equals(speaker, PlayerSpeakerName, StringComparison.OrdinalIgnoreCase);
     }
 
     private void ShowHeroineDialogue(string message)
