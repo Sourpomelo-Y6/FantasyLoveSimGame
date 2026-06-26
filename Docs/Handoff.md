@@ -379,6 +379,9 @@
 - 保存済みスロットのラベルは `Slot 1 / Day 3 / Affection 42` のように日数と好感度を表示する
 - スロット一覧表示では `SaveManager.LoadPreview(int slotIndex)` でセーブデータを読み、現在選択中スロットは変更しない
 - `MainScene` でスロットからロードした後は `SaveLoadPanel.Close()` でパネルを閉じる
+- 今後はセーブデータとヒロインを連動させ、セーブをキャラクター個別に扱う。`SaveData` に `heroineId` を保存し、タイトル画面のキャラクター選択で新規ゲーム用ヒロインを選び、ロード時はセーブデータ側の `heroineId` を優先する
+- セーブ画面は広めのレイアウトにし、保存時にセーブ画面を開く直前のスクリーンショットを縮小サムネイルとして保存、表示する。ロード画面でも同じサムネイルを使い、どの場面のセーブか判別しやすくする
+- タイトル画面にはギャラリーモードを追加する。キャラクター選択から対象ヒロインを選び、そのヒロインの解放済みスチル一覧へ移動して表示する
 
 ### 参照漏れ時の症状
 
@@ -533,12 +536,14 @@ UI デザインは手作業で行っています。
 - `Slot Labels` に各スロットの TMP ラベルを順番に割り当てる
 - `Auto Wire Slot Buttons` を有効にすると、配列順で `SelectSlot(0..)` が自動接続される
 - 現在は `SlotButton_0` から `SlotButton_3` までの4スロット
+- 将来のセーブサムネイル対応では、各スロットにサムネイル Image を追加し、保存時のスクリーンショット縮小画像を表示する
 
 `TitleScene` 側の接続:
 
 - `Title Manager` にシーン上の `TitleManager` を割り当てる
 - `Game Manager` は空のままでよい
 - `ContinueButton` から `SaveLoadPanel.OpenLoad()` を呼ぶ
+- 将来のギャラリーモードでは、タイトル画面に `GalleryButton` とキャラクター選択 UI を追加し、選択したヒロインの解放済みスチルを表示する画面へ遷移する
 - タイトルでは保存しないため `OpenSave()` は使わない
 - `TitleManager.Start()` の `continueButton.onClick.AddListener(OnClickContinue)` は使わず、Inspector の OnClick でロードパネルを開く
 
