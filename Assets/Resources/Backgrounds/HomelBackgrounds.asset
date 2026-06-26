@@ -11,7 +11,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: c6d2f5229e8e44fcae72402a05f5146d, type: 3}
   m_Name: HomelBackgrounds
-  m_EditorClassIdentifier:
+  m_EditorClassIdentifier: 
   entries:
   - timeSlot: 0
     weather: 0
@@ -55,6 +55,6 @@ MonoBehaviour:
   - timeSlot: 1
     weather: 4
     sprite: {fileID: 21300000, guid: c2afcb519ba1927429a73dab025cc708, type: 3}
-  - timeSlot: 0
+  - timeSlot: 2
     weather: 4
     sprite: {fileID: 21300000, guid: 065317eaf24f69c4f819478ca0447778, type: 3}
