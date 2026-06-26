@@ -2948,6 +2948,8 @@ public class GameManager : MonoBehaviour
                 return DialogueSpeakerType.Schedule;
             case ScheduledEventSpeakerType.Outfit:
                 return DialogueSpeakerType.Outfit;
+            case ScheduledEventSpeakerType.Player:
+                return DialogueSpeakerType.Player;
             default:
                 return DialogueSpeakerType.Heroine;
         }
@@ -2963,6 +2965,8 @@ public class GameManager : MonoBehaviour
                 return ScheduleSpeakerName;
             case ScheduledEventSpeakerType.Outfit:
                 return OutfitSpeakerName;
+            case ScheduledEventSpeakerType.Player:
+                return PlayerSpeakerName;
             default:
                 return heroineStatus != null ? heroineStatus.HeroineName : "";
         }
@@ -3921,6 +3925,10 @@ public class GameManager : MonoBehaviour
 
             case ScheduledEventSpeakerType.Outfit:
                 ShowDialogue(DialogueSpeakerType.Outfit, OutfitSpeakerName, scheduledEvent.EventMessage, stillId, stillSprite);
+                return;
+
+            case ScheduledEventSpeakerType.Player:
+                ShowDialogue(DialogueSpeakerType.Player, PlayerSpeakerName, scheduledEvent.EventMessage, stillId, stillSprite);
                 return;
 
             default:

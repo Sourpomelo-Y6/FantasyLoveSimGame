@@ -31,7 +31,7 @@ MonoBehaviour:
   anyWeather: 0
   allowedWeathers: 02000000
   pages:
-  - speakerType: 0
+  - speakerType: 4
     speakerName: 
     message: "\u4ECA\u65E5\u306F\u96E8\u304C\u5F37\u3044\u306A\u3002"
     expressionId: Neutral

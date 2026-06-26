@@ -1301,12 +1301,29 @@ public static class HeroineAssetImporter
             return ScheduledEventSpeakerType.Heroine;
         }
 
+        if (IsPlayerSpeaker(speaker))
+        {
+            return ScheduledEventSpeakerType.Player;
+        }
+
         if (Enum.TryParse(speaker, true, out ScheduledEventSpeakerType speakerType))
         {
             return speakerType;
         }
 
         return ScheduledEventSpeakerType.Heroine;
+    }
+
+    private static bool IsPlayerSpeaker(string speaker)
+    {
+        return string.Equals(speaker, "Player", StringComparison.OrdinalIgnoreCase) ||
+            string.Equals(speaker, "Protagonist", StringComparison.OrdinalIgnoreCase) ||
+            string.Equals(speaker, "MainCharacter", StringComparison.OrdinalIgnoreCase) ||
+            string.Equals(speaker, "Main Character", StringComparison.OrdinalIgnoreCase) ||
+            string.Equals(speaker, "PC", StringComparison.OrdinalIgnoreCase) ||
+            string.Equals(speaker, "User", StringComparison.OrdinalIgnoreCase) ||
+            string.Equals(speaker, "You", StringComparison.OrdinalIgnoreCase) ||
+            string.Equals(speaker, "主人公", StringComparison.OrdinalIgnoreCase);
     }
 
     private static void ImportScheduledEvents(
