@@ -52,6 +52,15 @@ MonoBehaviour:
   - outfitId: Adventure
     lockedMessage: ""
     changedMessage: "探索するなら動きやすい服に決まってるでしょ。危ない時は、ちゃんと前に出なさいよ。"
+  outfitReactionMessageOverrides:
+  - reactionType: 0
+    message: "べ、別に褒められて嬉しいわけじゃないけど……その、少しは見る目があるじゃない。"
+  - reactionType: 1
+    message: "そ、そう。気に入らないなら別の服にするわよ。……少しは言い方ってものがあるでしょ。"
+  - reactionType: 2
+    message: "確かに最近こればかりだったかもね。べつに、あんたに飽きられたくないとかじゃないけど。"
+  - reactionType: 3
+    message: "別の服にするの？ 仕方ないわね。少しくらいなら付き合ってあげる。"
   conversationResourcePath: Heroines/TestHeroine/Conversations
   gameEventResourcePath: Heroines/TestHeroine/GameEvents
   actionResourcePath: Heroines/TestHeroine/Actions

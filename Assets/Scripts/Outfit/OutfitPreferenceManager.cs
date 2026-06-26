@@ -4,8 +4,29 @@ using UnityEngine;
 public class OutfitPreferenceManager : MonoBehaviour
 {
     private readonly List<OutfitPreference> preferences = new List<OutfitPreference>();
+    private readonly Dictionary<OutfitReactionType, string> reactionMessageOverrides =
+        new Dictionary<OutfitReactionType, string>();
 
     public IReadOnlyList<OutfitPreference> Preferences => preferences;
+
+    public void SetReactionMessageOverrides(List<OutfitReactionMessageOverride> overrides)
+    {
+        reactionMessageOverrides.Clear();
+        if (overrides == null)
+        {
+            return;
+        }
+
+        foreach (OutfitReactionMessageOverride messageOverride in overrides)
+        {
+            if (messageOverride == null || string.IsNullOrWhiteSpace(messageOverride.message))
+            {
+                continue;
+            }
+
+            reactionMessageOverrides[messageOverride.reactionType] = messageOverride.message;
+        }
+    }
 
     public OutfitPreference GetOrCreatePreference(string outfitId)
     {
@@ -64,7 +85,9 @@ public class OutfitPreferenceManager : MonoBehaviour
                     heroineStatus.AddAffection(1);
                 }
 
-                return "「本当ですか？ そう言ってもらえると嬉しいです」\nヒロインは少し照れながら笑っています。";
+                return GetReactionMessage(
+                    OutfitReactionType.Praise,
+                    "「本当ですか？ そう言ってもらえると嬉しいです」\nヒロインは少し照れながら笑っています。");
 
             case OutfitReactionType.Dislike:
                 preference.score -= 2;
@@ -75,20 +98,33 @@ public class OutfitPreferenceManager : MonoBehaviour
                     heroineStatus.AddAffection(-1);
                 }
 
-                return "「そうですか……次は別の服にしてみます」\nヒロインは少し残念そうです。";
+                return GetReactionMessage(
+                    OutfitReactionType.Dislike,
+                    "「そうですか……次は別の服にしてみます」\nヒロインは少し残念そうです。");
 
             case OutfitReactionType.Bored:
                 preference.score -= 1;
                 preference.boredCount++;
 
-                return "「確かに、最近こればかりでしたね。次は違う服にしてみます」";
+                return GetReactionMessage(
+                    OutfitReactionType.Bored,
+                    "「確かに、最近こればかりでしたね。次は違う服にしてみます」");
 
             case OutfitReactionType.Change:
-                return "別の衣装を選んでください。";
+                return GetReactionMessage(
+                    OutfitReactionType.Change,
+                    "別の衣装を選んでください。");
 
             default:
                 return "";
         }
+    }
+
+    private string GetReactionMessage(OutfitReactionType reactionType, string fallback)
+    {
+        return reactionMessageOverrides.TryGetValue(reactionType, out string message)
+            ? message
+            : fallback;
     }
 
     public int GetScore(string outfitId)

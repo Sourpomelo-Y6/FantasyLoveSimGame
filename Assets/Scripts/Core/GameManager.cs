@@ -925,6 +925,11 @@ public class GameManager : MonoBehaviour
             outfitManager.SetLayeredSpriteData(ResolveHeroineLayeredSpriteData(profile));
         }
 
+        if (outfitPreferenceManager != null)
+        {
+            outfitPreferenceManager.SetReactionMessageOverrides(profile.outfitReactionMessageOverrides);
+        }
+
         heroineAssetCatalog = ResolveHeroineAssetCatalog(profile);
 
         conversationResourcePath = GetProfileResourcePath(

@@ -14,6 +14,15 @@ public class OutfitMessageOverride
     public string changedMessage;
 }
 
+[Serializable]
+public class OutfitReactionMessageOverride
+{
+    public OutfitReactionType reactionType;
+
+    [TextArea(2, 4)]
+    public string message;
+}
+
 [CreateAssetMenu(menuName = "LoveSim/Heroine Profile Data")]
 public class HeroineProfileData : ScriptableObject
 {
@@ -43,6 +52,8 @@ public class HeroineProfileData : ScriptableObject
 
     [Header("Outfit Dialogue Overrides")]
     public List<OutfitMessageOverride> outfitMessageOverrides = new List<OutfitMessageOverride>();
+    public List<OutfitReactionMessageOverride> outfitReactionMessageOverrides =
+        new List<OutfitReactionMessageOverride>();
 
     [Header("Resource Paths")]
     public string conversationResourcePath = "Conversations";

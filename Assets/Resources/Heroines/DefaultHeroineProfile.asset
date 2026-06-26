@@ -22,6 +22,7 @@ MonoBehaviour:
   gameStartFallbackMessage: "\u65B0\u3057\u3044\u7269\u8A9E\u304C\u59CB\u307E\u308A\u307E\u3059\u3002"
   gameStartFollowUpMessage: "\u4ECA\u65E5\u306F\u4F55\u3092\u8A71\u3057\u307E\u3057\u3087\u3046\u304B\uFF1F"
   outfitMessageOverrides: []
+  outfitReactionMessageOverrides: []
   conversationResourcePath: Heroines/DefaultHeroine/Conversations
   gameEventResourcePath: Heroines/DefaultHeroine/GameEvents
   actionResourcePath: Heroines/DefaultHeroine/Actions
