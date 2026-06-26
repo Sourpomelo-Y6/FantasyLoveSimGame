@@ -1062,13 +1062,19 @@ public class GameManager : MonoBehaviour
             Resources.LoadAll<ConversationData>(conversationResourcePath);
 
         conversations = new List<ConversationData>();
-        HashSet<string> loadedConversationIds = new HashSet<string>();
+        Dictionary<string, string> loadedConversationSources = new Dictionary<string, string>();
         foreach (ConversationData loadedConversation in loadedConversations)
         {
-            AddLoadedConversationData(loadedConversation, loadedConversationIds);
+            AddLoadedConversationData(loadedConversation, loadedConversationSources);
         }
 
-        Debug.Log("Loaded Conversations: " + conversations.Count);
+        Debug.Log(
+            "Loaded Conversations: " +
+            conversations.Count +
+            " / ResourcePath: " +
+            conversationResourcePath +
+            " / RawAssets: " +
+            loadedConversations.Length);
 
         foreach (ConversationData conversation in conversations)
         {
@@ -1087,12 +1093,16 @@ public class GameManager : MonoBehaviour
 
     private void AddLoadedConversationData(
         ConversationData loadedConversation,
-        HashSet<string> loadedConversationIds)
+        Dictionary<string, string> loadedConversationSources)
     {
         if (loadedConversation == null)
         {
             return;
         }
+
+        string sourceName = string.IsNullOrEmpty(loadedConversation.name)
+            ? loadedConversation.ToString()
+            : loadedConversation.name;
 
         if (loadedConversation.items != null && loadedConversation.items.Count > 0)
         {
@@ -1103,19 +1113,26 @@ public class GameManager : MonoBehaviour
                     item);
                 if (expandedConversation != null)
                 {
-                    AddConversationIfNotDuplicate(expandedConversation, loadedConversationIds);
+                    AddConversationIfNotDuplicate(
+                        expandedConversation,
+                        loadedConversationSources,
+                        sourceName + ".items/" + item.conversationId);
                 }
             }
 
             return;
         }
 
-        AddConversationIfNotDuplicate(loadedConversation, loadedConversationIds);
+        AddConversationIfNotDuplicate(
+            loadedConversation,
+            loadedConversationSources,
+            sourceName);
     }
 
     private void AddConversationIfNotDuplicate(
         ConversationData conversation,
-        HashSet<string> loadedConversationIds)
+        Dictionary<string, string> loadedConversationSources,
+        string sourceName)
     {
         if (conversation == null)
         {
@@ -1123,10 +1140,23 @@ public class GameManager : MonoBehaviour
         }
 
         if (!string.IsNullOrEmpty(conversation.conversationId)
-            && !loadedConversationIds.Add(conversation.conversationId))
+            && loadedConversationSources.TryGetValue(conversation.conversationId, out string existingSource))
         {
-            Debug.LogWarning("Conversation Id が重複しているためスキップしました: " + conversation.conversationId);
+            Debug.LogWarning(
+                "Conversation Id が重複しているためスキップしました: " +
+                conversation.conversationId +
+                " / Existing: " +
+                existingSource +
+                " / Skipped: " +
+                sourceName +
+                " / ResourcePath: " +
+                conversationResourcePath);
             return;
+        }
+
+        if (!string.IsNullOrEmpty(conversation.conversationId))
+        {
+            loadedConversationSources[conversation.conversationId] = sourceName;
         }
 
         conversations.Add(conversation);

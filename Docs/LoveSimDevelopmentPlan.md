@@ -244,7 +244,7 @@ Canvas
 将来ヒロインを増やす段階で、Resources 配下を次のように分ける。
 
 ```text
-Assets/Resources/Heroines/DefaultHeroine/Conversations.asset
+Assets/Resources/Heroines/DefaultHeroine/Conversations/
 Assets/Resources/Heroines/DefaultHeroine/HeroineAssetCatalog.asset
 Assets/Resources/Heroines/DefaultHeroine/HeroineLayeredSpriteData.asset
 Assets/Resources/Heroines/DefaultHeroine/GameEvents/
@@ -267,7 +267,7 @@ Assets/Images/Heroines/DefaultHeroine/Ending/
 画像フォルダ整理も `DefaultHeroine` については実施済み。
 
 差し替え確認用として `Assets/Resources/Heroines/TestHeroineProfile.asset` を追加済み。
-`Heroines/TestHeroine/Actions` / `Conversations.asset` / `GameEvents` / `Endings` には最小確認用データだけを置く。
+`Heroines/TestHeroine/Actions` / `Conversations` / `GameEvents` / `Endings` には最小確認用データだけを置く。
 `MainScene` の `GameManager.heroineProfile` に `TestHeroineProfile` を割り当てると、ヒロイン名、開始イベント、会話、エンディングの読み込み元が切り替わるか確認できる。
 `HeroineProfileData.defaultHeroineSprite` は通常衣装 `Normal` の立ち絵として `OutfitManager` に渡し、通常衣装以外は衣装側の `heroineSprite` を優先する。
 AssetTool の `assets_export.json` は importer で `HeroineAssetCatalog.asset` に変換し、画像の `assetId`、用途、Unity asset path、Sprite 参照を保持する。
@@ -289,7 +289,7 @@ AssetTool の `sprite_layers_export.json` は importer で `HeroineLayeredSprite
 - 透過レイヤー方式を使う場合は `HeroineLayeredSpriteData.asset` に `BaseBody`、`Default` 衣装、`Neutral` 表情が入っているか確認する
 - `HeroineLayeredSpriteView` の `BaseBodyImage`、`CostumeImage`、`ExpressionImage`、`AccessoryImage` が同じ親の下にあり、表情会話で `Neutral`、`Smile`、`Sad` などが切り替わるか確認する
 - `Actions` には行動名、行動結果、行動反応、行動スチルを用意する
-- `Conversations.asset` にはジャンル会話、好感度条件会話、天候・時間帯・季節条件会話を用意する
+- `Conversations/` にはジャンル会話、好感度条件会話、天候・時間帯・季節条件会話を個別 `ConversationData` として用意する
 - `GameEvents` には `GameStart`、`DayStart`、`Manual` 確認用イベントを用意する
 - `Endings` には少なくとも `defaultEndingId` と一致する `EndingData` を用意する
 - `Images/Heroines/<HeroineId>/Sprites/` には通常立ち絵と、必要なら衣装・表情差分を用意する
@@ -302,9 +302,9 @@ AssetTool の `sprite_layers_export.json` は importer で `HeroineLayeredSprite
 ### ConversationData
 
 会話は引き続き `ConversationData` で管理します。
-新規 import では、対象ヒロインの `Assets/Resources/Heroines/<HeroineId>/Conversations.asset` に `ConversationData.items` として複数会話をまとめる。
-`GameManager` は `ConversationData.items` を読み込み時に従来の会話候補へ展開する。
-既存互換として、個別の `ConversationData` アセットも読み込める。
+新規 import では、対象ヒロインの `Assets/Resources/Heroines/<HeroineId>/Conversations/<ConversationId>.asset` に会話を個別保存する。
+`GameManager` は個別の `ConversationData` アセットを会話候補として読み込む。
+既存互換として、旧 `Conversations.asset` container の `ConversationData.items` も展開できる。
 会話IDは `カテゴリ_条件_連番` を基本にし、`showOnce` は一度だけ見せる会話に限って使う。
 `minAffection` / `maxAffection` は会話の入口条件、`allowedTimeSlots` / `allowedWeathers` / `allowedSeasons` は必要な場合だけ使う。条件が重なる会話は `priority` で解決する。
 同じ条件の会話が複数ある場合でも、`conversationId` から用途が分かるようにしておく。

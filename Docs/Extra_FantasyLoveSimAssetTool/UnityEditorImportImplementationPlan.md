@@ -130,12 +130,12 @@ Tools/FantasyLoveSim/Import Heroine Export...
 
 ### ConversationData 系
 
-会話は JSON ファイルごとに1つの `.asset` を作る。
+会話は item ごとに個別 `.asset` を作る。
 ゲームイベントは既存の `GameManager` が `Resources.LoadAll<GameEventData>` で読むため、item ごとに個別 `.asset` を作る。
 予定イベントは `HeroineProfileData.scheduledEventResourcePath` から読むため、item ごとにヒロイン別 `ScheduledEvents` フォルダへ個別 `.asset` を作る。
 行動反応は既存 `ActionData.reactions` を更新し、エンディングは item ごとに個別 `.asset` を作る。
 
-- `conversations_export.json` -> `Conversations.asset`
+- `conversations_export.json` -> `Conversations/<ConversationId>.asset`
 - `game_events_export.json` -> `GameEvents/<EventId>.asset`
 - `scheduled_events_export.json` -> `ScheduledEvents/<ScheduledEvent>.asset`
 - `action_reactions_export.json` -> `Actions/<Action>.asset` の `ActionData.reactions`
@@ -183,7 +183,8 @@ Assets/Resources/Heroines/<HeroineId>/
   HeroineProfileData.asset
   HeroineAssetCatalog.asset
   HeroineLayeredSpriteData.asset
-  Conversations.asset
+  Conversations/
+    <ConversationId>.asset
   GameEvents/
     <EventId>.asset
   ActionReactions.asset

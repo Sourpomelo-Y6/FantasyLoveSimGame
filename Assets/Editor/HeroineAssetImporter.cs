@@ -121,7 +121,7 @@ public static class HeroineAssetImporter
             profileExport.gameStartFollowUpMessage,
             profile.gameStartFollowUpMessage,
             "今日は何を話しましょうか？");
-        profile.conversationResourcePath = $"Heroines/{profileExport.heroineId}";
+        profile.conversationResourcePath = $"Heroines/{profileExport.heroineId}/Conversations";
         profile.gameEventResourcePath = $"Heroines/{profileExport.heroineId}/GameEvents";
         profile.actionResourcePath = $"Heroines/{profileExport.heroineId}/Actions";
         profile.scheduledEventResourcePath = $"Heroines/{profileExport.heroineId}/ScheduledEvents";
@@ -661,21 +661,12 @@ public static class HeroineAssetImporter
             report.Warn($"conversations_export.json の heroineId が profile と一致しません: {conversationsExport.heroineId} / {heroineId}");
         }
 
-        string heroineResourceFolderPath = $"Assets/Resources/Heroines/{heroineId}";
-        EnsureFolder(heroineResourceFolderPath);
-
-        string assetPath = $"{heroineResourceFolderPath}/Conversations.asset";
-        ConversationData conversationContainer = AssetDatabase.LoadAssetAtPath<ConversationData>(assetPath);
-        if (conversationContainer == null)
-        {
-            conversationContainer = ScriptableObject.CreateInstance<ConversationData>();
-            AssetDatabase.CreateAsset(conversationContainer, assetPath);
-        }
+        string conversationFolderPath = $"Assets/Resources/Heroines/{heroineId}/Conversations";
+        EnsureFolder(conversationFolderPath);
+        DeleteLegacyConversationContainer(heroineId, report);
 
         int importedCount = 0;
         HashSet<string> importedIds = new HashSet<string>(StringComparer.Ordinal);
-        conversationContainer.heroineId = heroineId;
-        conversationContainer.items.Clear();
         foreach (ConversationExportItem item in conversationsExport.items)
         {
             if (!CanImportConversation(item, importedIds, report))
@@ -683,15 +674,50 @@ public static class HeroineAssetImporter
                 continue;
             }
 
-            ConversationDataItem conversation = new ConversationDataItem();
+            string assetPath = $"{conversationFolderPath}/{ToSafeAssetFileName(item.id)}.asset";
+            ConversationData conversation = AssetDatabase.LoadAssetAtPath<ConversationData>(assetPath);
+            if (conversation == null)
+            {
+                conversation = ScriptableObject.CreateInstance<ConversationData>();
+                AssetDatabase.CreateAsset(conversation, assetPath);
+            }
+
+            conversation.name = item.id;
+            conversation.heroineId = heroineId;
+            conversation.items.Clear();
             ApplyConversation(conversation, item, report);
-            conversationContainer.items.Add(conversation);
+            EditorUtility.SetDirty(conversation);
             importedIds.Add(item.id);
             importedCount++;
         }
 
         report.conversationCount = importedCount;
-        EditorUtility.SetDirty(conversationContainer);
+    }
+
+    private static void DeleteLegacyConversationContainer(
+        string heroineId,
+        HeroineImportReport report)
+    {
+        string legacyAssetPath = $"Assets/Resources/Heroines/{heroineId}/Conversations.asset";
+        ConversationData legacyContainer = AssetDatabase.LoadAssetAtPath<ConversationData>(legacyAssetPath);
+        if (legacyContainer == null)
+        {
+            return;
+        }
+
+        if (legacyContainer.items == null || legacyContainer.items.Count == 0)
+        {
+            return;
+        }
+
+        if (AssetDatabase.DeleteAsset(legacyAssetPath))
+        {
+            report.Warn("旧 Conversations.asset container を削除しました: " + legacyAssetPath);
+        }
+        else
+        {
+            report.Warn("旧 Conversations.asset container の削除に失敗しました: " + legacyAssetPath);
+        }
     }
 
     private static bool CanImportConversation(
@@ -723,6 +749,42 @@ public static class HeroineAssetImporter
 
     private static void ApplyConversation(
         ConversationDataItem conversation,
+        ConversationExportItem item,
+        HeroineImportReport report)
+    {
+        ConversationExportConditions conditions = item.conditions ?? new ConversationExportConditions();
+
+        conversation.conversationId = item.id;
+        conversation.genre = ParseEnumOrDefault(item.category, ConversationGenre.Daily);
+        conversation.type = ConversationType.Simple;
+        conversation.heroineLine = GetFirstLineText(item);
+        conversation.expressionId = GetFirstLineExpression(item);
+        ApplyConversationLines(conversation.lines, item);
+        ApplyConversationChoices(conversation, item, report);
+        conversation.priority = item.priority;
+        conversation.showOnce = conditions.once;
+        conversation.minAffection = Math.Max(0, conditions.minAffection);
+        conversation.maxAffection = conditions.maxAffection > 0 ? conditions.maxAffection : 100;
+
+        ApplySingleEnumCondition(
+            conditions.timeOfDay,
+            conversation.allowedTimeSlots,
+            value => conversation.anyTimeSlot = value,
+            report);
+        ApplySingleEnumCondition(
+            conditions.season,
+            conversation.allowedSeasons,
+            value => conversation.anySeason = value,
+            report);
+        ApplySingleEnumCondition(
+            conditions.weather,
+            conversation.allowedWeathers,
+            value => conversation.anyWeather = value,
+            report);
+    }
+
+    private static void ApplyConversation(
+        ConversationData conversation,
         ConversationExportItem item,
         HeroineImportReport report)
     {
@@ -908,6 +970,56 @@ public static class HeroineAssetImporter
 
     private static void ApplyConversationChoices(
         ConversationDataItem conversation,
+        ConversationExportItem item,
+        HeroineImportReport report)
+    {
+        conversation.choices.Clear();
+        if (item == null || item.choices == null || item.choices.Length == 0)
+        {
+            conversation.type = ConversationType.Simple;
+            return;
+        }
+
+        if (item.choices.Length > 3)
+        {
+            report.Warn("Unity 側 UI は選択肢 3 件までのため、4 件目以降は表示されません: " + item.id);
+        }
+
+        foreach (ConversationChoiceExport choiceExport in item.choices)
+        {
+            if (choiceExport == null)
+            {
+                continue;
+            }
+
+            if (string.IsNullOrWhiteSpace(choiceExport.choiceText))
+            {
+                report.Warn("choiceText が空の選択肢をスキップしました: " + item.id);
+                continue;
+            }
+
+            if (string.IsNullOrWhiteSpace(choiceExport.responseText))
+            {
+                report.Warn("responseText が空の選択肢をスキップしました: " + item.id + " / " + choiceExport.choiceText);
+                continue;
+            }
+
+            conversation.choices.Add(
+                new ConversationChoice
+                {
+                    choiceText = choiceExport.choiceText,
+                    responseText = choiceExport.responseText,
+                    affectionChange = choiceExport.affectionChange
+                });
+        }
+
+        conversation.type = conversation.choices.Count > 0
+            ? ConversationType.Choice
+            : ConversationType.Simple;
+    }
+
+    private static void ApplyConversationChoices(
+        ConversationData conversation,
         ConversationExportItem item,
         HeroineImportReport report)
     {

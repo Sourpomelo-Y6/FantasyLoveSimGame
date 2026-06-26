@@ -353,14 +353,13 @@ Unity Editor 拡張は `exportImagePath` から画像をコピーし、`unityIma
 Unity 側 importer は `heroine_profile_export.json` に同名フィールドがあれば取り込めるが、Tool 側の編集 UI と export はまだ未対応。
 後で Tool 側に共通セリフ編集欄を追加し、`initialDialogueMessage`、`nextActionPrompt`、`morningGreeting`、`goodNightGreeting`、`gameStartFallbackMessage`、`gameStartFollowUpMessage` を `heroine_profile_export.json` に出力する。
 `TestHeroine` の追加画像は容量節約のため Unity 側リポジトリへコミットせず、AssetTool 側の export サンプルまたはローカル import 結果として扱う。
-`Data/conversations_export.json` が存在する場合は、`Assets/Resources/Heroines/<HeroineId>/Conversations.asset` を生成、更新する。
-`Conversations.asset` は `ConversationData.items` に複数会話を持つ container として扱い、実行時には `GameManager` が従来の会話候補へ展開する。
-会話 import は `lines[]` を `ConversationDataItem.lines` に保持する。
-互換用に最初の本文は `ConversationDataItem.heroineLine`、最初の表情は `expressionId` にも反映する。
-`choices[]` がある場合は `ConversationDataItem.choices` に復元し、`ConversationType.Choice` として扱う。
+`Data/conversations_export.json` が存在する場合は、item ごとに `Assets/Resources/Heroines/<HeroineId>/Conversations/<ConversationId>.asset` を生成、更新する。
+会話 import は `lines[]` を `ConversationData.lines` に保持する。
+互換用に最初の本文は `ConversationData.heroineLine`、最初の表情は `expressionId` にも反映する。
+`choices[]` がある場合は `ConversationData.choices` に復元し、`ConversationType.Choice` として扱う。
 Unity 側の現行 UI は選択肢 3 件までのため、4 件以上ある場合は import warning に残す。
 実行時は複数行会話として表示し、`lines[].expression` を `HeroineLayeredSpriteView` の表情レイヤー切り替えに使う。
-既存の個別 `ConversationData` asset も互換のため読み込めるが、新規 import は `Conversations.asset` にまとめる。
+旧 `Conversations.asset` container は互換用に残せるが、通常の profile は `Heroines/<HeroineId>/Conversations` を読み込み、container と個別 asset を同時に読む構成にはしない。
 `Data/sprite_layers_export.json` が存在する場合は、`Assets/Resources/Heroines/<HeroineId>/HeroineLayeredSpriteData.asset` を生成、更新する。
 レイヤーは `BaseBody` / `Costume` / `Expression` / `Accessory` に分類し、`assetId` から `HeroineAssetCatalog` の Sprite を参照する。
 `BaseBody` なし、`Default` 衣装なし、`Neutral` 表情なし、未知 `layerKind`、Sprite 解決失敗は Import warning に残す。
@@ -419,7 +418,7 @@ Data/
 
 このときもツール側から `.asset` を直接生成しない。
 Unity Editor 側で `ConversationData`、`GameEventData`、`ScheduledEventData`、`ActionReactionData`、`EndingData` の `.asset` を生成、更新する。
-会話データは item ごとに個別 `.asset` を分けず、まずは `Conversations.asset` 1つにまとめる。
+会話データは item ごとに個別 `.asset` として `Conversations/` 配下へ出力する。
 
 Tool 側で先に作る最小機能:
 

@@ -12,17 +12,24 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cb5097099197776438840c7469e425ca, type: 3}
   m_Name: Night_Love_001
   m_EditorClassIdentifier: 
+  heroineId: TestHeroine
+  items: []
   conversationId: Night_Love_001
   genre: 3
   type: 0
-  heroineLine: "\u591C\u306B\u306A\u308B\u3068\u3001\u5C11\u3057\u3060\u3051\u7D20\u76F4\u306A\u3053\u3068\u3092\u8A00\u3044\u305F\u304F\u306A\u308B\u3093\u3067\u3059\u3002\u3042\u306A\u305F\u3068\u8A71\u305B\u3066\u3001\u5B09\u3057\u3044\u3067\u3059\u3002"
+  heroineLine: "\u591C\u3060\u3068\u3001\u5C11\u3057\u3060\u3051\u7D20\u76F4\u306A\u3053\u3068\u3092\u8A00\u3063\u3066\u3082\u3044\u3044\u6C17\u304C\u3059\u308B\u306E\u3002\u3042\u3093\u305F\u3068\u8A71\u305B\u3066\u2026\u2026\u5C11\u3057\u5B89\u5FC3\u3057\u305F\u308F\u3002"
+  expressionId: Shy
+  lines:
+  - speaker: Heroine
+    text: "\u591C\u3060\u3068\u3001\u5C11\u3057\u3060\u3051\u7D20\u76F4\u306A\u3053\u3068\u3092\u8A00\u3063\u3066\u3082\u3044\u3044\u6C17\u304C\u3059\u308B\u306E\u3002\u3042\u3093\u305F\u3068\u8A71\u305B\u3066\u2026\u2026\u5C11\u3057\u5B89\u5FC3\u3057\u305F\u308F\u3002"
+    expressionId: Shy
   choices: []
   priority: 0
   showOnce: 0
   minAffection: 20
   maxAffection: 100
   anyTimeSlot: 0
-  allowedTimeSlots: 0200000003000000
+  allowedTimeSlots: 03000000
   anySeason: 1
   allowedSeasons: 
   anyWeather: 1
