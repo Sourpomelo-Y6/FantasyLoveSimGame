@@ -1,4 +1,18 @@
+using System;
+using System.Collections.Generic;
 using UnityEngine;
+
+[Serializable]
+public class OutfitMessageOverride
+{
+    public string outfitId;
+
+    [TextArea(2, 4)]
+    public string lockedMessage;
+
+    [TextArea(2, 4)]
+    public string changedMessage;
+}
 
 [CreateAssetMenu(menuName = "LoveSim/Heroine Profile Data")]
 public class HeroineProfileData : ScriptableObject
@@ -26,6 +40,9 @@ public class HeroineProfileData : ScriptableObject
 
     [TextArea(2, 4)]
     public string gameStartFollowUpMessage = "今日は何を話しましょうか？";
+
+    [Header("Outfit Dialogue Overrides")]
+    public List<OutfitMessageOverride> outfitMessageOverrides = new List<OutfitMessageOverride>();
 
     [Header("Resource Paths")]
     public string conversationResourcePath = "Conversations";

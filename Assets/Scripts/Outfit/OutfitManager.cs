@@ -29,9 +29,30 @@ public class OutfitManager : MonoBehaviour
     private Sprite defaultHeroineSprite;
     private HeroineLayeredSpriteData layeredSpriteData;
     private string currentExpressionId = "";
+    private readonly Dictionary<string, OutfitMessageOverride> messageOverrides =
+        new Dictionary<string, OutfitMessageOverride>();
 
     public OutfitData CurrentOutfit => currentOutfit;
     public IReadOnlyList<OutfitData> Outfits => outfits;
+
+    public void SetMessageOverrides(List<OutfitMessageOverride> overrides)
+    {
+        messageOverrides.Clear();
+        if (overrides == null)
+        {
+            return;
+        }
+
+        foreach (OutfitMessageOverride messageOverride in overrides)
+        {
+            if (messageOverride == null || string.IsNullOrWhiteSpace(messageOverride.outfitId))
+            {
+                continue;
+            }
+
+            messageOverrides[messageOverride.outfitId] = messageOverride;
+        }
+    }
 
     private void Awake()
     {
@@ -151,9 +172,10 @@ public class OutfitManager : MonoBehaviour
 
         if (!CanWearOutfit(outfit))
         {
-            if (!string.IsNullOrEmpty(outfit.lockedMessage))
+            string lockedMessage = GetLockedMessage(outfit);
+            if (!string.IsNullOrEmpty(lockedMessage))
             {
-                message = outfit.lockedMessage;
+                message = lockedMessage;
             }
             else
             {
@@ -187,9 +209,10 @@ public class OutfitManager : MonoBehaviour
             ApplyDefaultHeroineSprite();
         }
 
-        if (!string.IsNullOrEmpty(outfit.changedMessage))
+        string changedMessage = GetChangedMessage(outfit);
+        if (!string.IsNullOrEmpty(changedMessage))
         {
-            message = outfit.changedMessage;
+            message = changedMessage;
         }
         else
         {
@@ -332,6 +355,39 @@ public class OutfitManager : MonoBehaviour
         return true;
     }
 
+    private string GetLockedMessage(OutfitData outfit)
+    {
+        OutfitMessageOverride messageOverride = FindMessageOverride(outfit);
+        if (messageOverride != null && !string.IsNullOrEmpty(messageOverride.lockedMessage))
+        {
+            return messageOverride.lockedMessage;
+        }
+
+        return outfit != null ? outfit.lockedMessage : "";
+    }
+
+    private string GetChangedMessage(OutfitData outfit)
+    {
+        OutfitMessageOverride messageOverride = FindMessageOverride(outfit);
+        if (messageOverride != null && !string.IsNullOrEmpty(messageOverride.changedMessage))
+        {
+            return messageOverride.changedMessage;
+        }
+
+        return outfit != null ? outfit.changedMessage : "";
+    }
+
+    private OutfitMessageOverride FindMessageOverride(OutfitData outfit)
+    {
+        if (outfit == null || string.IsNullOrEmpty(outfit.outfitId))
+        {
+            return null;
+        }
+
+        messageOverrides.TryGetValue(outfit.outfitId, out OutfitMessageOverride messageOverride);
+        return messageOverride;
+    }
+
     private string GetLayeredCostumeId(OutfitData outfit)
     {
         if (outfit == null || IsNormalOutfit(outfit))
@@ -450,7 +506,7 @@ public class OutfitManager : MonoBehaviour
 
         bool success = TryChangeOutfit(selectedOutfit, out message);
 
-        if (success)
+        if (success && string.IsNullOrEmpty(message))
         {
             message = "ヒロインは今日の服として「" + selectedOutfit.displayName + "」を選びました。";
         }

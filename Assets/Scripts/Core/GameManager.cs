@@ -920,6 +920,7 @@ public class GameManager : MonoBehaviour
 
         if (outfitManager != null)
         {
+            outfitManager.SetMessageOverrides(profile.outfitMessageOverrides);
             outfitManager.SetDefaultHeroineSprite(profile.defaultHeroineSprite);
             outfitManager.SetLayeredSpriteData(ResolveHeroineLayeredSpriteData(profile));
         }
