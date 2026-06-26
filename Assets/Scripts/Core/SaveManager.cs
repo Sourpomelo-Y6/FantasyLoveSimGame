@@ -4,6 +4,7 @@ using UnityEngine;
 public class SaveManager : MonoBehaviour
 {
     [SerializeField] private string saveFileName = "save.json";
+    [SerializeField] private string thumbnailFileNameFormat = "save_slot_{0}_thumbnail.png";
     [SerializeField] private int saveSlotCount = 3;
 
     private int currentSlotIndex = 0;
@@ -120,6 +121,53 @@ public class SaveManager : MonoBehaviour
             File.Delete(savePath);
             Debug.Log("Deleted save file: " + savePath);
         }
+
+        string thumbnailPath = GetThumbnailPath(slotIndex);
+        if (File.Exists(thumbnailPath))
+        {
+            File.Delete(thumbnailPath);
+            Debug.Log("Deleted save thumbnail: " + thumbnailPath);
+        }
+    }
+
+    public string SaveThumbnail(Texture2D texture, int slotIndex)
+    {
+        if (texture == null)
+        {
+            return "";
+        }
+
+        slotIndex = NormalizeSlotIndex(slotIndex);
+        string fileName = GetThumbnailFileName(slotIndex);
+        string thumbnailPath = Path.Combine(Application.persistentDataPath, fileName);
+        byte[] bytes = texture.EncodeToPNG();
+        File.WriteAllBytes(thumbnailPath, bytes);
+        Debug.Log("Saved thumbnail: " + thumbnailPath);
+        return fileName;
+    }
+
+    public Texture2D LoadThumbnail(string thumbnailFileName)
+    {
+        if (string.IsNullOrWhiteSpace(thumbnailFileName))
+        {
+            return null;
+        }
+
+        string thumbnailPath = Path.Combine(Application.persistentDataPath, thumbnailFileName);
+        if (!File.Exists(thumbnailPath))
+        {
+            return null;
+        }
+
+        byte[] bytes = File.ReadAllBytes(thumbnailPath);
+        Texture2D texture = new Texture2D(2, 2, TextureFormat.RGBA32, false);
+        if (!texture.LoadImage(bytes))
+        {
+            Destroy(texture);
+            return null;
+        }
+
+        return texture;
     }
 
     private string GetSavePath(int slotIndex)
@@ -136,6 +184,17 @@ public class SaveManager : MonoBehaviour
         string slotFileName = fileNameWithoutExtension + "_slot_" + slotIndex + extension;
 
         return Path.Combine(Application.persistentDataPath, slotFileName);
+    }
+
+    private string GetThumbnailPath(int slotIndex)
+    {
+        return Path.Combine(Application.persistentDataPath, GetThumbnailFileName(slotIndex));
+    }
+
+    private string GetThumbnailFileName(int slotIndex)
+    {
+        slotIndex = NormalizeSlotIndex(slotIndex);
+        return string.Format(thumbnailFileNameFormat, slotIndex);
     }
 
     private bool IsValidSlotIndex(int slotIndex)

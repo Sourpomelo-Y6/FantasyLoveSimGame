@@ -216,6 +216,10 @@ public class GameManager : MonoBehaviour
     private Vector3 dialogueSequencePreviousBackgroundZoomScale;
     private Vector2 dialogueSequencePreviousBackgroundZoomPosition;
     private Sprite blankStillSprite;
+    private Texture2D pendingSaveThumbnail;
+
+    private const int SaveThumbnailWidth = 320;
+    private const int SaveThumbnailHeight = 180;
 
     private const string SystemSpeakerName = "SYSTEM";
     private const string PlayerSpeakerName = "主人公";
@@ -1978,6 +1982,28 @@ public class GameManager : MonoBehaviour
         SaveGameToSlot(GameStartSettings.SelectedSaveSlotIndex);
     }
 
+    public void CaptureSaveThumbnailPreview()
+    {
+        ClearPendingSaveThumbnail();
+
+        Texture2D screenshot = ScreenCapture.CaptureScreenshotAsTexture();
+        if (screenshot == null)
+        {
+            return;
+        }
+
+        pendingSaveThumbnail = CreateScaledTexture(
+            screenshot,
+            SaveThumbnailWidth,
+            SaveThumbnailHeight);
+        Destroy(screenshot);
+    }
+
+    public void ClearSaveThumbnailPreview()
+    {
+        ClearPendingSaveThumbnail();
+    }
+
     public void SaveGameToSlot(int slotIndex)
     {
         SelectSaveSlot(slotIndex);
@@ -1988,6 +2014,7 @@ public class GameManager : MonoBehaviour
         saveData.savedAt = DateTime.Now.ToString("o");
         saveData.heroineId = currentHeroineId;
         saveData.heroineDisplayName = heroineStatus != null ? heroineStatus.HeroineName : "";
+        saveData.thumbnailFileName = SavePendingThumbnail(GameStartSettings.SelectedSaveSlotIndex);
 
         saveData.day = timeManager.Day;
         saveData.currentTimeSlot = timeManager.CurrentTimeSlot;
@@ -2025,6 +2052,42 @@ public class GameManager : MonoBehaviour
         saveManager.Save(saveData, GameStartSettings.SelectedSaveSlotIndex);
 
         ShowSystemDialogue("セーブしました。");
+    }
+
+    private string SavePendingThumbnail(int slotIndex)
+    {
+        if (saveManager == null || pendingSaveThumbnail == null)
+        {
+            return "";
+        }
+
+        string fileName = saveManager.SaveThumbnail(pendingSaveThumbnail, slotIndex);
+        return fileName;
+    }
+
+    private void ClearPendingSaveThumbnail()
+    {
+        if (pendingSaveThumbnail != null)
+        {
+            Destroy(pendingSaveThumbnail);
+            pendingSaveThumbnail = null;
+        }
+    }
+
+    private static Texture2D CreateScaledTexture(Texture2D source, int width, int height)
+    {
+        RenderTexture previous = RenderTexture.active;
+        RenderTexture renderTexture = RenderTexture.GetTemporary(width, height, 0, RenderTextureFormat.ARGB32);
+        Graphics.Blit(source, renderTexture);
+        RenderTexture.active = renderTexture;
+
+        Texture2D scaled = new Texture2D(width, height, TextureFormat.RGBA32, false);
+        scaled.ReadPixels(new Rect(0, 0, width, height), 0, 0);
+        scaled.Apply();
+
+        RenderTexture.active = previous;
+        RenderTexture.ReleaseTemporary(renderTexture);
+        return scaled;
     }
 
     public void LoadGame()

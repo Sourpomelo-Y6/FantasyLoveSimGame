@@ -380,7 +380,7 @@
 - スロット一覧表示では `SaveManager.LoadPreview(int slotIndex)` でセーブデータを読み、現在選択中スロットは変更しない
 - `MainScene` でスロットからロードした後は `SaveLoadPanel.Close()` でパネルを閉じる
 - セーブデータとヒロインは連動済み。`SaveData.heroineId` / `heroineDisplayName` に保存時のヒロインを記録し、ロード時はセーブデータ側の `heroineId` を優先して `HeroineProfileData`、会話、行動、イベント、予定データを切り替える
-- セーブ画面は広めのレイアウトにし、保存時にセーブ画面を開く直前のスクリーンショットを縮小サムネイルとして保存、表示する。ロード画面でも同じサムネイルを使い、どの場面のセーブか判別しやすくする
+- セーブ画面サムネイルは実装済み。`SaveData.thumbnailFileName` にスロット別 PNG 名を保存し、画像本体は git 管理外の `Application.persistentDataPath` に置く。`SaveLoadPanel.OpenSave()` 時点で、セーブ画面を開く直前の画面を縮小キャプチャし、保存時にスロット別サムネイルとして書き出す
 - タイトル画面にはギャラリーモードを追加する。キャラクター選択から対象ヒロインを選び、そのヒロインの解放済みスチル一覧へ移動して表示する
 
 ### 参照漏れ時の症状
@@ -536,7 +536,7 @@ UI デザインは手作業で行っています。
 - `Slot Labels` に各スロットの TMP ラベルを順番に割り当てる
 - `Auto Wire Slot Buttons` を有効にすると、配列順で `SelectSlot(0..)` が自動接続される
 - 現在は `SlotButton_0` から `SlotButton_3` までの4スロット
-- 将来のセーブサムネイル対応では、各スロットにサムネイル Image を追加し、保存時のスクリーンショット縮小画像を表示する
+- セーブサムネイルを表示する場合は、各スロットにサムネイル Image を追加し、`SaveLoadPanel` の `Slot Thumbnail Images` にスロット順で割り当てる
 
 `TitleScene` 側の接続:
 

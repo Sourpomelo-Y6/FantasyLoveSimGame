@@ -4179,6 +4179,30 @@ PrefabInstance:
       propertyPath: m_AnchoredPosition.y
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 4475211189701153404, guid: 3f5c5cbe39b4b2145b1769370730dac6, type: 3}
+      propertyPath: m_AnchorMax.x
+      value: 0.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 4475211189701153404, guid: 3f5c5cbe39b4b2145b1769370730dac6, type: 3}
+      propertyPath: m_AnchorMax.y
+      value: 0.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 4475211189701153404, guid: 3f5c5cbe39b4b2145b1769370730dac6, type: 3}
+      propertyPath: m_AnchorMin.x
+      value: 0.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 4475211189701153404, guid: 3f5c5cbe39b4b2145b1769370730dac6, type: 3}
+      propertyPath: m_AnchorMin.y
+      value: 0.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 4475211189701153404, guid: 3f5c5cbe39b4b2145b1769370730dac6, type: 3}
+      propertyPath: m_AnchoredPosition.x
+      value: -600
+      objectReference: {fileID: 0}
+    - target: {fileID: 4475211189701153404, guid: 3f5c5cbe39b4b2145b1769370730dac6, type: 3}
+      propertyPath: m_AnchoredPosition.y
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 5637945555519224012, guid: 3f5c5cbe39b4b2145b1769370730dac6, type: 3}
       propertyPath: m_SizeDelta.y
       value: 0
@@ -9083,6 +9107,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   saveFileName: save.json
+  thumbnailFileNameFormat: save_slot_{0}_thumbnail.png
   saveSlotCount: 4
 --- !u!4 &1309631652
 Transform:
@@ -10367,6 +10392,8 @@ MonoBehaviour:
   dialogueText: {fileID: 360591824}
   heroineSpeakerColor: {r: 1, g: 1, b: 1, a: 1}
   heroineDialogueColor: {r: 1, g: 1, b: 1, a: 1}
+  playerSpeakerColor: {r: 1, g: 0.9019608, b: 0.627451, a: 1}
+  playerDialogueColor: {r: 1, g: 1, b: 1, a: 1}
   systemSpeakerColor: {r: 0.8235294, g: 0.8235294, b: 0.8235294, a: 1}
   systemDialogueColor: {r: 0.8235294, g: 0.8235294, b: 0.8235294, a: 1}
   scheduleSpeakerColor: {r: 0.47058824, g: 0.7058824, b: 1, a: 1}

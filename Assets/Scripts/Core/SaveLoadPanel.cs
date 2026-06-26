@@ -23,6 +23,7 @@ public class SaveLoadPanel : MonoBehaviour
     [Header("Slot Buttons")]
     [SerializeField] private Button[] slotButtons;
     [SerializeField] private TextMeshProUGUI[] slotLabels;
+    [SerializeField] private Image[] slotThumbnailImages;
     [SerializeField] private bool autoWireSlotButtons = true;
     [SerializeField] private int slotCount = 3;
 
@@ -44,6 +45,7 @@ public class SaveLoadPanel : MonoBehaviour
     private SaveLoadPanelMode currentMode = SaveLoadPanelMode.Load;
     private SaveLoadPanelMode pendingMode = SaveLoadPanelMode.Load;
     private int pendingSlotIndex = -1;
+    private Sprite[] loadedThumbnailSprites;
 
     private GameObject PanelRoot
     {
@@ -83,6 +85,11 @@ public class SaveLoadPanel : MonoBehaviour
 
     public void OpenSave()
     {
+        if (gameManager != null)
+        {
+            gameManager.CaptureSaveThumbnailPreview();
+        }
+
         currentMode = SaveLoadPanelMode.Save;
         ClearPendingAction();
         ApplyModeVisuals();
@@ -119,6 +126,11 @@ public class SaveLoadPanel : MonoBehaviour
     public void Close()
     {
         ClearPendingAction();
+        if (gameManager != null)
+        {
+            gameManager.ClearSaveThumbnailPreview();
+        }
+
         PanelRoot.SetActive(false);
     }
 
@@ -185,6 +197,12 @@ public class SaveLoadPanel : MonoBehaviour
             {
                 SaveData saveData = hasSaveData ? GetSavePreview(i) : null;
                 slotLabels[i].text = CreateSlotLabel(i, hasSaveData, saveData);
+                RefreshSlotThumbnail(i, hasSaveData, saveData);
+            }
+            else
+            {
+                SaveData saveData = hasSaveData ? GetSavePreview(i) : null;
+                RefreshSlotThumbnail(i, hasSaveData, saveData);
             }
         }
     }
@@ -337,6 +355,91 @@ public class SaveLoadPanel : MonoBehaviour
         }
 
         return null;
+    }
+
+    private void RefreshSlotThumbnail(int slotIndex, bool hasSaveData, SaveData saveData)
+    {
+        EnsureThumbnailSpriteArray();
+        if (slotThumbnailImages == null ||
+            slotIndex < 0 ||
+            slotIndex >= slotThumbnailImages.Length ||
+            slotThumbnailImages[slotIndex] == null)
+        {
+            return;
+        }
+
+        ClearLoadedThumbnailSprite(slotIndex);
+
+        if (!hasSaveData || saveData == null || saveManager == null)
+        {
+            slotThumbnailImages[slotIndex].sprite = null;
+            slotThumbnailImages[slotIndex].gameObject.SetActive(false);
+            return;
+        }
+
+        Texture2D texture = saveManager.LoadThumbnail(saveData.thumbnailFileName);
+        if (texture == null)
+        {
+            slotThumbnailImages[slotIndex].sprite = null;
+            slotThumbnailImages[slotIndex].gameObject.SetActive(false);
+            return;
+        }
+
+        Sprite sprite = Sprite.Create(
+            texture,
+            new Rect(0f, 0f, texture.width, texture.height),
+            new Vector2(0.5f, 0.5f));
+        loadedThumbnailSprites[slotIndex] = sprite;
+        slotThumbnailImages[slotIndex].sprite = sprite;
+        slotThumbnailImages[slotIndex].preserveAspect = true;
+        slotThumbnailImages[slotIndex].gameObject.SetActive(true);
+    }
+
+    private void EnsureThumbnailSpriteArray()
+    {
+        int length = slotThumbnailImages != null ? slotThumbnailImages.Length : 0;
+        if (loadedThumbnailSprites == null || loadedThumbnailSprites.Length != length)
+        {
+            loadedThumbnailSprites = new Sprite[length];
+        }
+    }
+
+    private void ClearLoadedThumbnailSprite(int slotIndex)
+    {
+        if (loadedThumbnailSprites == null ||
+            slotIndex < 0 ||
+            slotIndex >= loadedThumbnailSprites.Length)
+        {
+            return;
+        }
+
+        Sprite sprite = loadedThumbnailSprites[slotIndex];
+        if (sprite == null)
+        {
+            return;
+        }
+
+        Texture texture = sprite.texture;
+        Destroy(sprite);
+        if (texture != null)
+        {
+            Destroy(texture);
+        }
+
+        loadedThumbnailSprites[slotIndex] = null;
+    }
+
+    private void OnDestroy()
+    {
+        if (loadedThumbnailSprites == null)
+        {
+            return;
+        }
+
+        for (int i = 0; i < loadedThumbnailSprites.Length; i++)
+        {
+            ClearLoadedThumbnailSprite(i);
+        }
     }
 
     private int GetSlotCount()

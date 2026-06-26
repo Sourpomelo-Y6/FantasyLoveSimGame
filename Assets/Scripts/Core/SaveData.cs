@@ -4,11 +4,12 @@ using System.Collections.Generic;
 [Serializable]
 public class SaveData
 {
-    public int saveVersion = 2;
+    public int saveVersion = 3;
     public int saveSlotIndex;
     public string savedAt;
     public string heroineId;
     public string heroineDisplayName;
+    public string thumbnailFileName;
 
     public int day;
     public TimeSlot currentTimeSlot;
