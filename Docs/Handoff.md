@@ -449,6 +449,7 @@ Importer は完了時に copied images、catalog assets、layers、conversations
 - 行動スチルは `Assets/Images/Heroines/<HeroineId>/Actions/` に置き、`ActionData` または `ActionReactionData` に割り当てる
 - エンディングスチルは `Assets/Images/Heroines/<HeroineId>/Ending/` に置き、`EndingData` に割り当てる
 - `MainScene` の `GameManager.heroineProfile` を切り替えて読み込み確認する
+- Unity Editor の `FantasyLoveSim > Validate Heroine Data` を実行し、ResourcePath、ID 重複、別ヒロイン画像参照、衣装セリフ override の重複 warning を確認する
 
 ### 行動を増やす
 
