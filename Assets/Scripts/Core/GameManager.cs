@@ -446,7 +446,10 @@ public class GameManager : MonoBehaviour
         Sprite stillSprite,
         string expressionId)
     {
-        ApplyHeroineExpression(expressionId);
+        if (!string.IsNullOrEmpty(expressionId))
+        {
+            ApplyHeroineExpression(expressionId);
+        }
 
         if (stillSprite != null)
         {
