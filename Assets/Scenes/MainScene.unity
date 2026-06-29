@@ -10985,6 +10985,7 @@ MonoBehaviour:
   debugAddMoneyKey: 289
   debugSpendMoneyKey: 290
   debugMoneyAmount: 100
+  duoShoppingShopCatalog: {fileID: 11400000, guid: ad18c2c94615465993559c7dbd75600a, type: 2}
   duoShoppingShopItem: {fileID: 11400000, guid: da7cd39b898a49be8c6a7d0f030937b4, type: 2}
   duoShoppingTestCost: 100
   duoShoppingTestItemId: ShoppingTestItem_01

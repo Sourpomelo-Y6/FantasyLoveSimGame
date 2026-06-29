@@ -287,6 +287,7 @@ public class GameManager : MonoBehaviour
     [SerializeField] private int debugMoneyAmount = 100;
 
     [Header("Shopping Test")]
+    [SerializeField] private ShopCatalogData duoShoppingShopCatalog;
     [SerializeField] private ShopItemData duoShoppingShopItem;
     [SerializeField] private int duoShoppingTestCost = 100;
     [SerializeField] private string duoShoppingTestItemId = "ShoppingTestItem_01";
@@ -4359,9 +4360,10 @@ public class GameManager : MonoBehaviour
 
     private string GetDuoShoppingItemId()
     {
-        if (duoShoppingShopItem != null && !string.IsNullOrEmpty(duoShoppingShopItem.itemId))
+        ShopItemData shopItem = GetDuoShoppingShopItem();
+        if (shopItem != null && !string.IsNullOrEmpty(shopItem.itemId))
         {
-            return duoShoppingShopItem.itemId;
+            return shopItem.itemId;
         }
 
         return duoShoppingTestItemId;
@@ -4369,9 +4371,10 @@ public class GameManager : MonoBehaviour
 
     private string GetDuoShoppingItemName()
     {
-        if (duoShoppingShopItem != null && !string.IsNullOrEmpty(duoShoppingShopItem.displayName))
+        ShopItemData shopItem = GetDuoShoppingShopItem();
+        if (shopItem != null && !string.IsNullOrEmpty(shopItem.displayName))
         {
-            return duoShoppingShopItem.displayName;
+            return shopItem.displayName;
         }
 
         return duoShoppingTestItemName;
@@ -4379,9 +4382,10 @@ public class GameManager : MonoBehaviour
 
     private int GetDuoShoppingItemPrice()
     {
-        if (duoShoppingShopItem != null)
+        ShopItemData shopItem = GetDuoShoppingShopItem();
+        if (shopItem != null)
         {
-            return duoShoppingShopItem.price;
+            return shopItem.price;
         }
 
         return duoShoppingTestCost;
@@ -4389,9 +4393,10 @@ public class GameManager : MonoBehaviour
 
     private List<string> GetDuoShoppingUnlockedOutfitIds()
     {
-        if (duoShoppingShopItem != null)
+        ShopItemData shopItem = GetDuoShoppingShopItem();
+        if (shopItem != null)
         {
-            return duoShoppingShopItem.GetUnlockedOutfitIds();
+            return shopItem.GetUnlockedOutfitIds();
         }
 
         if (duoShoppingUnlockedOutfitIds != null && duoShoppingUnlockedOutfitIds.Count > 0)
@@ -4400,6 +4405,20 @@ public class GameManager : MonoBehaviour
         }
 
         return new List<string> { "Spring", "Summer", "Autumn", "Winter" };
+    }
+
+    private ShopItemData GetDuoShoppingShopItem()
+    {
+        if (duoShoppingShopCatalog != null)
+        {
+            ShopItemData catalogItem = duoShoppingShopCatalog.GetFirstItem();
+            if (catalogItem != null)
+            {
+                return catalogItem;
+            }
+        }
+
+        return duoShoppingShopItem;
     }
 
     private static string AppendLine(string baseMessage, string appendedMessage)
