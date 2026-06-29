@@ -80,6 +80,17 @@ public class GameManager : MonoBehaviour
         }
     }
 
+    private struct SimpleBattleResult
+    {
+        public bool PlayerWon;
+        public int Turns;
+        public int PlayerDamageTaken;
+        public int HeroineDamageTaken;
+        public int RewardMoney;
+        public int AffectionChange;
+        public string Message;
+    }
+
     public struct StillGalleryItem
     {
         public readonly string StillId;
@@ -4353,6 +4364,13 @@ public class GameManager : MonoBehaviour
         int appliedPlayerHpChange = ApplyPlayerHpChange(playerHpChange);
         int appliedHeroineHpChange = ApplyHeroineHpChange(heroineHpChange);
         EnemyData enemy = ResolveExplorationEnemy(scheduleType);
+        SimpleBattleResult battleResult = new SimpleBattleResult();
+        bool hasBattleResult = false;
+        if (enemy != null)
+        {
+            battleResult = ResolveSimpleBattle(enemy, IsDuoExplorationSchedule(scheduleType));
+            hasBattleResult = true;
+        }
 
         RefreshStatusDetailPanel();
 
@@ -4379,7 +4397,19 @@ public class GameManager : MonoBehaviour
                 "（現在 " + heroineStatus.CurrentHp + "/" + heroineStatus.MaxHp + "）";
         }
 
+        if (hasBattleResult)
+        {
+            resultMessage += "\n" + battleResult.Message;
+        }
+
         return AppendLine(baseMessage, resultMessage);
+    }
+
+    private static bool IsDuoExplorationSchedule(ScheduleType scheduleType)
+    {
+        return scheduleType == ScheduleType.DuoForest ||
+            scheduleType == ScheduleType.DuoCave ||
+            scheduleType == ScheduleType.DuoLake;
     }
 
     private EnemyData ResolveExplorationEnemy(ScheduleType scheduleType)
@@ -4418,6 +4448,207 @@ public class GameManager : MonoBehaviour
             default:
                 return "";
         }
+    }
+
+    private SimpleBattleResult ResolveSimpleBattle(EnemyData enemy, bool includeHeroine)
+    {
+        SimpleBattleResult result = new SimpleBattleResult();
+        if (enemy == null || playerStatus == null)
+        {
+            result.Message = "戦闘処理を確認できませんでした。";
+            return result;
+        }
+
+        BattleStatusData enemyStatus = enemy.CreateBattleStatus();
+        BattleStatusData playerBattleStatus = playerStatus.BattleStatus;
+        BattleStatusData heroineBattleStatus =
+            includeHeroine && heroineStatus != null ? heroineStatus.BattleStatus : null;
+        bool playerActsFirst = playerBattleStatus == null ||
+            playerBattleStatus.speed >= GetSpeed(enemyStatus);
+        const int maxTurns = 20;
+
+        for (int turn = 1; turn <= maxTurns; turn++)
+        {
+            result.Turns = turn;
+
+            if (playerActsFirst)
+            {
+                AttackEnemy(playerBattleStatus, enemyStatus);
+                if (enemyStatus.currentHp <= 0)
+                {
+                    ApplySimpleBattleVictory(enemy, ref result);
+                    return result;
+                }
+
+                AttackEnemy(heroineBattleStatus, enemyStatus);
+                if (enemyStatus.currentHp <= 0)
+                {
+                    ApplySimpleBattleVictory(enemy, ref result);
+                    return result;
+                }
+
+                AttackParty(enemyStatus, includeHeroine, turn, ref result);
+            }
+            else
+            {
+                AttackParty(enemyStatus, includeHeroine, turn, ref result);
+                if (playerStatus.CurrentHp <= 0)
+                {
+                    ApplySimpleBattleDefeat(enemy, ref result);
+                    return result;
+                }
+
+                AttackEnemy(playerBattleStatus, enemyStatus);
+                if (enemyStatus.currentHp <= 0)
+                {
+                    ApplySimpleBattleVictory(enemy, ref result);
+                    return result;
+                }
+
+                AttackEnemy(heroineBattleStatus, enemyStatus);
+                if (enemyStatus.currentHp <= 0)
+                {
+                    ApplySimpleBattleVictory(enemy, ref result);
+                    return result;
+                }
+            }
+
+            if (playerStatus.CurrentHp <= 0)
+            {
+                ApplySimpleBattleDefeat(enemy, ref result);
+                return result;
+            }
+        }
+
+        ApplySimpleBattleDefeat(enemy, ref result);
+        return result;
+    }
+
+    private static void AttackEnemy(BattleStatusData attacker, BattleStatusData enemyStatus)
+    {
+        if (attacker == null || enemyStatus == null || attacker.currentHp <= 0 || enemyStatus.currentHp <= 0)
+        {
+            return;
+        }
+
+        enemyStatus.currentHp -= CalculateBattleDamage(attacker, enemyStatus);
+        enemyStatus.Clamp();
+    }
+
+    private void AttackParty(
+        BattleStatusData enemyStatus,
+        bool includeHeroine,
+        int turn,
+        ref SimpleBattleResult result)
+    {
+        if (enemyStatus == null || enemyStatus.currentHp <= 0)
+        {
+            return;
+        }
+
+        bool canAttackHeroine = includeHeroine && heroineStatus != null && heroineStatus.CurrentHp > 0;
+        if (canAttackHeroine && turn % 2 == 0)
+        {
+            int heroineDamage = heroineStatus.DamageHp(CalculateBattleDamage(enemyStatus, heroineStatus.BattleStatus));
+            result.HeroineDamageTaken += heroineDamage;
+            return;
+        }
+
+        int playerDamage = playerStatus.DamageHp(CalculateBattleDamage(enemyStatus, playerStatus.BattleStatus));
+        result.PlayerDamageTaken += playerDamage;
+    }
+
+    private void ApplySimpleBattleVictory(EnemyData enemy, ref SimpleBattleResult result)
+    {
+        result.PlayerWon = true;
+        result.RewardMoney = enemy != null ? Math.Max(0, enemy.rewardMoney) : 0;
+        result.AffectionChange = enemy != null ? enemy.affectionChangeOnWin : 0;
+
+        if (result.RewardMoney > 0 && playerStatus != null)
+        {
+            playerStatus.AddMoney(result.RewardMoney);
+        }
+
+        if (result.AffectionChange != 0 && heroineStatus != null)
+        {
+            heroineStatus.AddAffection(result.AffectionChange);
+        }
+
+        string message = enemy != null && !string.IsNullOrEmpty(enemy.victoryMessage)
+            ? enemy.victoryMessage
+            : "戦闘に勝利しました。";
+        result.Message =
+            message +
+            "\n戦闘結果：勝利（" + result.Turns + "ターン）" +
+            "\nプレイヤー被ダメージ：" + result.PlayerDamageTaken +
+            BuildHeroineDamageMessage(result.HeroineDamageTaken) +
+            BuildBattleRewardMessage(result);
+    }
+
+    private void ApplySimpleBattleDefeat(EnemyData enemy, ref SimpleBattleResult result)
+    {
+        result.PlayerWon = false;
+        if (playerStatus != null && playerStatus.CurrentHp <= 0)
+        {
+            playerStatus.SetCurrentHp(1);
+        }
+
+        if (heroineStatus != null && heroineStatus.CurrentHp <= 0)
+        {
+            heroineStatus.SetCurrentHp(1);
+        }
+
+        string message = enemy != null && !string.IsNullOrEmpty(enemy.defeatMessage)
+            ? enemy.defeatMessage
+            : "戦闘に敗北しました。";
+        result.Message =
+            message +
+            "\n戦闘結果：敗北（" + result.Turns + "ターン）" +
+            "\nプレイヤー被ダメージ：" + result.PlayerDamageTaken +
+            BuildHeroineDamageMessage(result.HeroineDamageTaken) +
+            "\nHP 1 で撤退しました。";
+    }
+
+    private static int CalculateBattleDamage(BattleStatusData attacker, BattleStatusData defender)
+    {
+        if (attacker == null)
+        {
+            return 1;
+        }
+
+        int defense = defender != null ? defender.defense : 0;
+        return Math.Max(1, attacker.attack - defense);
+    }
+
+    private static int GetSpeed(BattleStatusData status)
+    {
+        return status != null ? status.speed : 0;
+    }
+
+    private static string BuildHeroineDamageMessage(int heroineDamageTaken)
+    {
+        if (heroineDamageTaken <= 0)
+        {
+            return "";
+        }
+
+        return "\nヒロイン被ダメージ：" + heroineDamageTaken;
+    }
+
+    private static string BuildBattleRewardMessage(SimpleBattleResult result)
+    {
+        string message = "";
+        if (result.RewardMoney > 0)
+        {
+            message += "\n戦闘報酬：" + result.RewardMoney;
+        }
+
+        if (result.AffectionChange != 0)
+        {
+            message += "\n勝利時好感度：" + FormatSignedValue(result.AffectionChange);
+        }
+
+        return message;
     }
 
     private int ApplyPlayerHpChange(int value)
