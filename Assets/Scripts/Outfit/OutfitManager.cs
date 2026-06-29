@@ -132,6 +132,26 @@ public class OutfitManager : MonoBehaviour
         return true;
     }
 
+    public bool IsOutfitVisibleInDressUp(OutfitData outfit)
+    {
+        if (outfit == null)
+        {
+            return false;
+        }
+
+        if (!outfit.isEnabled)
+        {
+            return false;
+        }
+
+        if (!outfit.isUnlockedByDefault)
+        {
+            return unlockedOutfitIds.Contains(outfit.outfitId);
+        }
+
+        return true;
+    }
+
     public bool IsCurrentOutfitSuitableForSchedule(ScheduleType scheduleType)
     {
         return IsOutfitSuitableForSchedule(currentOutfit, scheduleType);

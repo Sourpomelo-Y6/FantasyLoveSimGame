@@ -3723,12 +3723,7 @@ public class GameManager : MonoBehaviour
 
         foreach (OutfitData outfit in outfitManager.Outfits)
         {
-            if (outfit == null)
-            {
-                continue;
-            }
-
-            if (!outfit.isEnabled)
+            if (!outfitManager.IsOutfitVisibleInDressUp(outfit))
             {
                 continue;
             }
