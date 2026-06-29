@@ -478,6 +478,7 @@ Unity 上で明示配置したい場合は、`GameManager.playerStatus` に `Pla
 HP 増減は `PlayerStatus` / `HeroineStatus` の `DamageHp()` / `RecoverHp()` で行い、`BattleStatusData.Clamp()` により 0 から最大 HP の範囲へ丸める。
 敵データは `EnemyData` ScriptableObject として用意し、敵 ID、表示名、`BattleStatusData`、報酬所持金、勝利時好感度変化、勝利/敗北メッセージを持つ。
 探索用の初期敵アセットは `Assets/Resources/Enemies/` に置き、森は `ForestSlime`、洞窟は `CaveBat`、湖は `LakeSpirit` を使う。
+初期バランスは、森は安全でほぼ勝てる、洞窟は HP を削られやすいが報酬高め、湖は回復/好感度寄りで危険度低めにする。
 `GameManager.ResolveExplorationEnemy()` は探索予定から敵候補を読み込む。
 `GameManager.ResolveSimpleBattle()` は敵とプレイヤー、Duo 探索時はヒロインを含めて最大 20 ターンの自動戦闘を解決する。
 勝利時は `EnemyData.rewardMoney` と `affectionChangeOnWin` を反映し、敗北時は HP 1 で撤退する。
