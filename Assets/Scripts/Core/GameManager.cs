@@ -27,7 +27,8 @@ public class GameManager : MonoBehaviour
         Player,
         System,
         Schedule,
-        Outfit
+        Outfit,
+        BattleLog
     }
 
     private struct DialogueMessage
@@ -238,6 +239,7 @@ public class GameManager : MonoBehaviour
     private const string PlayerSpeakerName = "主人公";
     private const string ScheduleSpeakerName = "予定";
     private const string OutfitSpeakerName = "衣装";
+    private const string BattleLogSpeakerName = "戦闘ログ";
 
     public OutfitPromptAbilitySet PlayerOutfitPromptAbilities => playerOutfitPromptAbilities;
     public PlayerStatus PlayerStatus => playerStatus;
@@ -249,7 +251,7 @@ public class GameManager : MonoBehaviour
     private readonly HashSet<string> purchasedItemIds = new HashSet<string>();
     private readonly HashSet<string> unlockedOutfitIds = new HashSet<string>();
     private readonly Queue<DialogueMessage> queuedDialogueMessages = new Queue<DialogueMessage>();
-    private readonly List<string> pendingScheduledEventFollowUpMessages = new List<string>();
+    private readonly List<DialogueMessage> pendingScheduledEventFollowUpMessages = new List<DialogueMessage>();
     private readonly List<MessageLogPanel.MessageLogEntry> messageLogEntries =
         new List<MessageLogPanel.MessageLogEntry>();
 
@@ -643,6 +645,11 @@ public class GameManager : MonoBehaviour
             return DialogueSpeakerType.Outfit;
         }
 
+        if (speakerName == BattleLogSpeakerName)
+        {
+            return DialogueSpeakerType.BattleLog;
+        }
+
         return DialogueSpeakerType.Heroine;
     }
 
@@ -658,6 +665,8 @@ public class GameManager : MonoBehaviour
                 return scheduleSpeakerColor;
             case DialogueSpeakerType.Outfit:
                 return outfitSpeakerColor;
+            case DialogueSpeakerType.BattleLog:
+                return scheduleSpeakerColor;
             default:
                 return heroineSpeakerColor;
         }
@@ -675,6 +684,8 @@ public class GameManager : MonoBehaviour
                 return scheduleDialogueColor;
             case DialogueSpeakerType.Outfit:
                 return outfitDialogueColor;
+            case DialogueSpeakerType.BattleLog:
+                return scheduleDialogueColor;
             default:
                 return heroineDialogueColor;
         }
@@ -4420,15 +4431,9 @@ public class GameManager : MonoBehaviour
             return;
         }
 
-        foreach (string message in pendingScheduledEventFollowUpMessages)
+        foreach (DialogueMessage message in pendingScheduledEventFollowUpMessages)
         {
-            if (string.IsNullOrEmpty(message))
-            {
-                continue;
-            }
-
-            queuedDialogueMessages.Enqueue(
-                new DialogueMessage(DialogueSpeakerType.Schedule, ScheduleSpeakerName, message));
+            queuedDialogueMessages.Enqueue(message);
         }
 
         pendingScheduledEventFollowUpMessages.Clear();
@@ -4453,7 +4458,8 @@ public class GameManager : MonoBehaviour
                 message += "\n" + result.LogLines[i];
             }
 
-            pendingScheduledEventFollowUpMessages.Add(message);
+            pendingScheduledEventFollowUpMessages.Add(
+                new DialogueMessage(DialogueSpeakerType.BattleLog, BattleLogSpeakerName, message));
         }
     }
 
