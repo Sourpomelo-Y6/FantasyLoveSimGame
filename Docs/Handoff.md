@@ -490,7 +490,9 @@ Importer は完了時に copied images、catalog assets、layers、conversations
 所持金は案Aとして `PlayerStatus` だけが持つ。`SaveData` は `playerBattleStatus`、`playerMoney`、`heroineBattleStatus` を保存し、ロード時に復元する。
 `StatusDetailPanel` はプレイヤー詳細に HP、攻撃、防御、素早さ、所持金を表示し、ヒロイン詳細に HP、攻撃、防御、素早さを表示する。
 所持金を増減するテスト処理は実装済み。`GameManager.debugAddMoneyKey` は F8、`debugSpendMoneyKey` は F9、`debugMoneyAmount` は 100 がデフォルト。
-`DuoShopping` 予定からの簡易買い物イベントも実装済み。`DuoShopping` 実行時に `GameManager.duoShoppingShopCatalog` の先頭商品の価格を所持金から消費し、結果を予定イベント本文に追記する。
+`DuoShopping` 予定からの簡易買い物イベントも実装済み。`DuoShopping` 実行時に専用 `ShopPanel` を開き、`GameManager.duoShoppingShopCatalog` の商品を一覧表示する。
+商品を選ぶとその商品の価格を所持金から消費し、結果を予定イベント本文に追記する。`ShopPanel` を閉じた場合は予定を消費しない。
+`ShopPanel` は他のパネルと同じく自動生成せず、Canvas 直下に手動配置して `GameManager.shopPanel` に割り当てる。必要な UI は `ShopPanel` ルート、`TitleText`、`EmptyText`、`ShopItemList`、`ShopItemButtonPrefab`、`CloseButton`。
 カタログが未設定または空の場合は `GameManager.duoShoppingShopItem`、それも未設定の場合は従来の固定テスト値へフォールバックする。
 テスト商品 `ShoppingTestItem_01` は `Assets/Resources/ShopItems/ShoppingTestItem_01.asset` の `ShopItemData` で定義済み。価格 100、解放衣装 `Spring` / `Summer` / `Autumn` / `Winter` を持つ。
 購入済み ID は `SaveData.purchasedItemIds` に保存し、`StatusDetailPanel` のプレイヤー詳細に表示する。

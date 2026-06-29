@@ -62,7 +62,6 @@ public class StillGalleryPanel : MonoBehaviour
         }
 
         HideTemplateButton();
-        Close();
     }
 
     private void OnEnable()

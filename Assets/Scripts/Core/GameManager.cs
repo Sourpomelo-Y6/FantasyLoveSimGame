@@ -289,6 +289,7 @@ public class GameManager : MonoBehaviour
     [Header("Shopping Test")]
     [SerializeField] private ShopCatalogData duoShoppingShopCatalog;
     [SerializeField] private ShopItemData duoShoppingShopItem;
+    [SerializeField] private ShopPanel shopPanel;
     [SerializeField] private int duoShoppingTestCost = 100;
     [SerializeField] private string duoShoppingTestItemId = "ShoppingTestItem_01";
     [SerializeField] private string duoShoppingTestItemName = "買い物テスト商品";
@@ -4210,9 +4211,19 @@ public class GameManager : MonoBehaviour
             return;
         }
 
+        if (IsShoppingSchedule(scheduledEvent.ScheduleType) && TryOpenDuoShoppingShopPanel(scheduledEvent))
+        {
+            return;
+        }
+
+        CompleteScheduledEvent(scheduledEvent, null);
+    }
+
+    private void CompleteScheduledEvent(ScheduledEventDefinition scheduledEvent, ShopItemData selectedShopItem)
+    {
         scheduleManager.MarkTodayScheduleEventExecuted();
         heroineStatus.AddAffection(scheduledEvent.AffectionChange);
-        string eventMessage = ResolveScheduledEventMessage(scheduledEvent);
+        string eventMessage = ResolveScheduledEventMessage(scheduledEvent, selectedShopItem);
         pendingScheduledEvent = null;
         startPendingScheduledEventAfterOutfitMessage = false;
         returnToScheduledEventPromptAfterOutfitMessage = false;
@@ -4234,22 +4245,93 @@ public class GameManager : MonoBehaviour
         RefreshUI();
     }
 
-    private string ResolveScheduledEventMessage(ScheduledEventDefinition scheduledEvent)
+    private string ResolveScheduledEventMessage(ScheduledEventDefinition scheduledEvent, ShopItemData selectedShopItem)
     {
         if (scheduledEvent == null)
         {
             return "";
         }
 
-        if (scheduledEvent.ScheduleType == ScheduleType.DuoShopping)
+        if (IsShoppingSchedule(scheduledEvent.ScheduleType))
         {
-            return ApplyDuoShoppingTestPurchase(scheduledEvent.EventMessage);
+            return ApplyDuoShoppingTestPurchase(scheduledEvent.EventMessage, selectedShopItem);
         }
 
         return scheduledEvent.EventMessage;
     }
 
-    private string ApplyDuoShoppingTestPurchase(string baseMessage)
+    private static bool IsShoppingSchedule(ScheduleType scheduleType)
+    {
+        return scheduleType == ScheduleType.SoloShopping || scheduleType == ScheduleType.DuoShopping;
+    }
+
+    private bool TryOpenDuoShoppingShopPanel(ScheduledEventDefinition scheduledEvent)
+    {
+        List<ShopItemData> shopItems = GetDuoShoppingShopItems();
+        if (shopItems.Count == 0)
+        {
+            return false;
+        }
+
+        EnsureShopPanel();
+        if (shopPanel == null)
+        {
+            ShowScheduleDialogue("ShopPanel が設定されていないため、買い物を開始できません。");
+            flowState = ConversationFlowState.Idle;
+            RefreshUI();
+            return true;
+        }
+
+        pendingScheduledEvent = scheduledEvent;
+        startPendingScheduledEventAfterOutfitMessage = false;
+        returnToScheduledEventPromptAfterOutfitMessage = false;
+        currentConversation = null;
+        pendingAdvanceTime = false;
+        pendingGoodNight = false;
+
+        actionButtonArea.SetActive(false);
+        genreButtonArea.SetActive(false);
+        choiceButtonArea.SetActive(false);
+        outfitPanel.SetActive(false);
+        outfitReactionPanel.SetActive(false);
+        nextButton.gameObject.SetActive(false);
+
+        ShowScheduleDialogue("購入する商品を選んでください。");
+        shopPanel.Open(shopItems, IsShopItemPurchased, OnSelectDuoShoppingShopItem, OnCloseDuoShoppingShopPanel);
+
+        flowState = ConversationFlowState.Idle;
+        RefreshUI();
+        return true;
+    }
+
+    private void OnSelectDuoShoppingShopItem(ShopItemData item)
+    {
+        ScheduledEventDefinition scheduledEvent = pendingScheduledEvent;
+        if (scheduledEvent == null)
+        {
+            return;
+        }
+
+        CompleteScheduledEvent(scheduledEvent, item);
+    }
+
+    private void OnCloseDuoShoppingShopPanel()
+    {
+        pendingScheduledEvent = null;
+        actionButtonArea.SetActive(true);
+        genreButtonArea.SetActive(false);
+        choiceButtonArea.SetActive(false);
+        nextButton.gameObject.SetActive(false);
+        ShowScheduleDialogue("買い物をやめました。");
+        RefreshUI();
+    }
+
+    private bool IsShopItemPurchased(ShopItemData item)
+    {
+        return item != null && IsPurchasedItem(item.itemId);
+    }
+
+    private string ApplyDuoShoppingTestPurchase(string baseMessage, ShopItemData selectedShopItem)
     {
         EnsureCoreStatusReferences();
 
@@ -4258,9 +4340,9 @@ public class GameManager : MonoBehaviour
             return AppendLine(baseMessage, "買い物処理を確認できませんでした。プレイヤーステータスが設定されていません。");
         }
 
-        string itemId = GetDuoShoppingItemId();
-        string itemName = GetDuoShoppingItemName();
-        int itemPrice = GetDuoShoppingItemPrice();
+        string itemId = GetShopItemId(selectedShopItem);
+        string itemName = GetShopItemName(selectedShopItem);
+        int itemPrice = GetShopItemPrice(selectedShopItem);
 
         if (string.IsNullOrEmpty(itemId))
         {
@@ -4269,7 +4351,7 @@ public class GameManager : MonoBehaviour
 
         if (IsPurchasedItem(itemId))
         {
-            List<string> unlockedOutfitIdsForPurchasedItem = GetDuoShoppingUnlockedOutfitIds();
+            List<string> unlockedOutfitIdsForPurchasedItem = GetShopItemUnlockedOutfitIds(selectedShopItem);
             bool alreadyUnlocked = AreOutfitsUnlocked(unlockedOutfitIdsForPurchasedItem);
             RegisterUnlockedOutfits(unlockedOutfitIdsForPurchasedItem);
             RefreshStatusDetailPanel();
@@ -4301,7 +4383,7 @@ public class GameManager : MonoBehaviour
         }
 
         RegisterPurchasedItem(itemId);
-        List<string> unlockedOutfitIdsForPurchase = GetDuoShoppingUnlockedOutfitIds();
+        List<string> unlockedOutfitIdsForPurchase = GetShopItemUnlockedOutfitIds(selectedShopItem);
         RegisterUnlockedOutfits(unlockedOutfitIdsForPurchase);
         RefreshStatusDetailPanel();
         string resultMessage =
@@ -4360,51 +4442,22 @@ public class GameManager : MonoBehaviour
 
     private string GetDuoShoppingItemId()
     {
-        ShopItemData shopItem = GetDuoShoppingShopItem();
-        if (shopItem != null && !string.IsNullOrEmpty(shopItem.itemId))
-        {
-            return shopItem.itemId;
-        }
-
-        return duoShoppingTestItemId;
+        return GetShopItemId(GetDuoShoppingShopItem());
     }
 
     private string GetDuoShoppingItemName()
     {
-        ShopItemData shopItem = GetDuoShoppingShopItem();
-        if (shopItem != null && !string.IsNullOrEmpty(shopItem.displayName))
-        {
-            return shopItem.displayName;
-        }
-
-        return duoShoppingTestItemName;
+        return GetShopItemName(GetDuoShoppingShopItem());
     }
 
     private int GetDuoShoppingItemPrice()
     {
-        ShopItemData shopItem = GetDuoShoppingShopItem();
-        if (shopItem != null)
-        {
-            return shopItem.price;
-        }
-
-        return duoShoppingTestCost;
+        return GetShopItemPrice(GetDuoShoppingShopItem());
     }
 
     private List<string> GetDuoShoppingUnlockedOutfitIds()
     {
-        ShopItemData shopItem = GetDuoShoppingShopItem();
-        if (shopItem != null)
-        {
-            return shopItem.GetUnlockedOutfitIds();
-        }
-
-        if (duoShoppingUnlockedOutfitIds != null && duoShoppingUnlockedOutfitIds.Count > 0)
-        {
-            return duoShoppingUnlockedOutfitIds;
-        }
-
-        return new List<string> { "Spring", "Summer", "Autumn", "Winter" };
+        return GetShopItemUnlockedOutfitIds(GetDuoShoppingShopItem());
     }
 
     private ShopItemData GetDuoShoppingShopItem()
@@ -4419,6 +4472,71 @@ public class GameManager : MonoBehaviour
         }
 
         return duoShoppingShopItem;
+    }
+
+    private List<ShopItemData> GetDuoShoppingShopItems()
+    {
+        if (duoShoppingShopCatalog != null)
+        {
+            List<ShopItemData> catalogItems = duoShoppingShopCatalog.GetAvailableItems();
+            if (catalogItems.Count > 0)
+            {
+                return catalogItems;
+            }
+        }
+
+        List<ShopItemData> shopItems = new List<ShopItemData>();
+        if (duoShoppingShopItem != null)
+        {
+            shopItems.Add(duoShoppingShopItem);
+        }
+
+        return shopItems;
+    }
+
+    private string GetShopItemId(ShopItemData shopItem)
+    {
+        if (shopItem != null && !string.IsNullOrEmpty(shopItem.itemId))
+        {
+            return shopItem.itemId;
+        }
+
+        return duoShoppingTestItemId;
+    }
+
+    private string GetShopItemName(ShopItemData shopItem)
+    {
+        if (shopItem != null && !string.IsNullOrEmpty(shopItem.displayName))
+        {
+            return shopItem.displayName;
+        }
+
+        return duoShoppingTestItemName;
+    }
+
+    private int GetShopItemPrice(ShopItemData shopItem)
+    {
+        if (shopItem != null)
+        {
+            return shopItem.price;
+        }
+
+        return duoShoppingTestCost;
+    }
+
+    private List<string> GetShopItemUnlockedOutfitIds(ShopItemData shopItem)
+    {
+        if (shopItem != null)
+        {
+            return shopItem.GetUnlockedOutfitIds();
+        }
+
+        if (duoShoppingUnlockedOutfitIds != null && duoShoppingUnlockedOutfitIds.Count > 0)
+        {
+            return duoShoppingUnlockedOutfitIds;
+        }
+
+        return new List<string> { "Spring", "Summer", "Autumn", "Winter" };
     }
 
     private static string AppendLine(string baseMessage, string appendedMessage)
@@ -5119,6 +5237,27 @@ public class GameManager : MonoBehaviour
         }
 
         messageLogPanel.Initialize(this);
+    }
+
+    private void EnsureShopPanel()
+    {
+        if (shopPanel == null)
+        {
+            Debug.LogWarning("ShopPanel が設定されていません。Canvas 配下に手動で配置し、GameManager に参照を割り当ててください。");
+            return;
+        }
+
+        shopPanel.Initialize(this);
+    }
+
+    public void OnShopPanelClosedByPanel()
+    {
+        if (pendingScheduledEvent == null)
+        {
+            return;
+        }
+
+        OnCloseDuoShoppingShopPanel();
     }
 
 

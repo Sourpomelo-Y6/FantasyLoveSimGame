@@ -24,4 +24,23 @@ public class ShopCatalogData : ScriptableObject
 
         return null;
     }
+
+    public List<ShopItemData> GetAvailableItems()
+    {
+        List<ShopItemData> availableItems = new List<ShopItemData>();
+        if (items == null)
+        {
+            return availableItems;
+        }
+
+        foreach (ShopItemData item in items)
+        {
+            if (item != null)
+            {
+                availableItems.Add(item);
+            }
+        }
+
+        return availableItems;
+    }
 }

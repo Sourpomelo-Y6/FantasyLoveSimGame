@@ -37,11 +37,6 @@ public class MessageLogPanel : MonoBehaviour
     {
         EnsureReferences();
 
-        if (panelRoot != null)
-        {
-            panelRoot.SetActive(false);
-        }
-
         if (closeButton != null)
         {
             closeButton.onClick.RemoveListener(Close);

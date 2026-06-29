@@ -459,7 +459,10 @@ Unity 上で明示配置したい場合は、`GameManager.playerStatus` に `Pla
 テスト商品は `ShopItemData` で定義し、`ShopCatalogData` に並べて `GameManager.duoShoppingShopCatalog` に設定する。
 現在は `Assets/Resources/ShopItems/ShoppingTestItem_01.asset` が価格 100、解放衣装 `Spring` / `Summer` / `Autumn` / `Winter` を持つ。
 `Assets/Resources/ShopItems/DuoShoppingCatalog.asset` は `ShoppingTestItem_01` を持つ。
-簡易買い物イベントとして、`DuoShopping` 予定の実行時にカタログ先頭の商品価格を消費する。
+簡易買い物イベントとして、`DuoShopping` 予定の実行時に専用 `ShopPanel` を開き、カタログの商品を一覧表示する。
+商品を選ぶとその商品の価格を消費し、選択前に `ShopPanel` を閉じた場合は予定を消費しない。
+`ShopPanel` は他のパネルと同じく自動生成せず、Canvas 直下に手動配置して `GameManager.shopPanel` に割り当てる。
+必要な UI は `ShopPanel` ルート、`TitleText`、`EmptyText`、`ShopItemList`、`ShopItemButtonPrefab`、`CloseButton`。
 所持金が足りない場合は、買い物できなかった旨を予定イベント本文に追記する。
 `GameManager.duoShoppingShopCatalog` が未設定または空の場合は `duoShoppingShopItem` を使い、それも未設定の場合は従来の `duoShoppingTestItemId` / `duoShoppingTestCost` / `duoShoppingUnlockedOutfitIds` にフォールバックする。
 購入済み ID は `SaveData.purchasedItemIds` に保存し、ロード時に復元する。
