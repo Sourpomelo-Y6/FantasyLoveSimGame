@@ -491,7 +491,8 @@ Importer は完了時に copied images、catalog assets、layers、conversations
 `StatusDetailPanel` はプレイヤー詳細に HP、攻撃、防御、素早さ、所持金を表示し、ヒロイン詳細に HP、攻撃、防御、素早さを表示する。
 所持金を増減するテスト処理は実装済み。`GameManager.debugAddMoneyKey` は F8、`debugSpendMoneyKey` は F9、`debugMoneyAmount` は 100 がデフォルト。
 `DuoShopping` 予定からの簡易買い物イベントも実装済み。`DuoShopping` 実行時に `GameManager.duoShoppingTestCost`、デフォルト 100 を所持金から消費し、結果を予定イベント本文に追記する。
-次に進める場合は、買い物でアイテムまたは衣装を購入し、所持金消費と解放状態を反映する。
+固定テスト商品 `ShoppingTestItem_01` の購入済み保存も実装済み。購入済み ID は `SaveData.purchasedItemIds` に保存し、`StatusDetailPanel` のプレイヤー詳細に表示する。
+次に進める場合は、購入済みアイテムを衣装解放またはアイテム効果に接続する。
 
 ### 会話を増やす
 

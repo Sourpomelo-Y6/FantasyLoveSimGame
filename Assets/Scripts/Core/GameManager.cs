@@ -234,6 +234,7 @@ public class GameManager : MonoBehaviour
     private readonly HashSet<string> shownGameEventIds = new HashSet<string>();
     private readonly HashSet<string> unlockedStatusAbilityIds = new HashSet<string>();
     private readonly HashSet<string> unlockedStillIds = new HashSet<string>();
+    private readonly HashSet<string> purchasedItemIds = new HashSet<string>();
     private readonly Queue<DialogueMessage> queuedDialogueMessages = new Queue<DialogueMessage>();
     private readonly List<MessageLogPanel.MessageLogEntry> messageLogEntries =
         new List<MessageLogPanel.MessageLogEntry>();
@@ -286,6 +287,8 @@ public class GameManager : MonoBehaviour
 
     [Header("Shopping Test")]
     [SerializeField] private int duoShoppingTestCost = 100;
+    [SerializeField] private string duoShoppingTestItemId = "ShoppingTestItem_01";
+    [SerializeField] private string duoShoppingTestItemName = "買い物テスト商品";
 
 
     private void Update()
@@ -2085,6 +2088,7 @@ public class GameManager : MonoBehaviour
                 : new OutfitPromptAbilitySet();
         saveData.unlockedStatusAbilityIds = new List<string>(unlockedStatusAbilityIds);
         saveData.unlockedStillIds = new List<string>(unlockedStillIds);
+        saveData.purchasedItemIds = new List<string>(purchasedItemIds);
 
         saveData.shownConversationIds = new List<string>(shownConversationIds);
         saveData.shownGameEventIds = new List<string>(shownGameEventIds);
@@ -2200,6 +2204,17 @@ public class GameManager : MonoBehaviour
                 }
             }
         }
+        purchasedItemIds.Clear();
+        if (saveData.purchasedItemIds != null)
+        {
+            foreach (string itemId in saveData.purchasedItemIds)
+            {
+                if (!string.IsNullOrEmpty(itemId))
+                {
+                    purchasedItemIds.Add(itemId);
+                }
+            }
+        }
 
         outfitPreferenceManager.SetPreferences(saveData.outfitPreferences);
 
@@ -2286,6 +2301,24 @@ public class GameManager : MonoBehaviour
         }
 
         unlockedStatusAbilityIds.Add(abilityId);
+    }
+
+    public bool IsPurchasedItem(string itemId)
+    {
+        return !string.IsNullOrEmpty(itemId) && purchasedItemIds.Contains(itemId);
+    }
+
+    public List<string> GetPurchasedItemIds()
+    {
+        return new List<string>(purchasedItemIds);
+    }
+
+    private void RegisterPurchasedItem(string itemId)
+    {
+        if (!string.IsNullOrEmpty(itemId))
+        {
+            purchasedItemIds.Add(itemId);
+        }
     }
 
     public bool IsGameEventShown(string eventId)
@@ -4157,6 +4190,18 @@ public class GameManager : MonoBehaviour
             return AppendLine(baseMessage, "買い物処理を確認できませんでした。プレイヤーステータスが設定されていません。");
         }
 
+        if (string.IsNullOrEmpty(duoShoppingTestItemId))
+        {
+            return AppendLine(baseMessage, "買い物テスト商品 ID が設定されていません。");
+        }
+
+        if (IsPurchasedItem(duoShoppingTestItemId))
+        {
+            return AppendLine(
+                baseMessage,
+                duoShoppingTestItemName + " は購入済みです。現在の所持金：" + playerStatus.Money);
+        }
+
         if (duoShoppingTestCost <= 0)
         {
             return AppendLine(baseMessage, "買い物テスト費用が 0 以下のため、所持金は変化しませんでした。");
@@ -4169,10 +4214,11 @@ public class GameManager : MonoBehaviour
                 "買い物をしようとしましたが、所持金が足りませんでした。現在の所持金：" + playerStatus.Money);
         }
 
+        RegisterPurchasedItem(duoShoppingTestItemId);
         RefreshStatusDetailPanel();
         return AppendLine(
             baseMessage,
-            "買い物テストとして " + duoShoppingTestCost + " 使いました。現在の所持金：" + playerStatus.Money);
+            duoShoppingTestItemName + " を " + duoShoppingTestCost + " で購入しました。現在の所持金：" + playerStatus.Money);
     }
 
     private static string AppendLine(string baseMessage, string appendedMessage)

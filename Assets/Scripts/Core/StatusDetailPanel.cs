@@ -326,6 +326,7 @@ public class StatusDetailPanel : MonoBehaviour
             "\n防御：" + GetDefense(status) +
             "\n素早さ：" + GetSpeed(status) +
             "\n所持金：" + (playerStatus != null ? playerStatus.Money : 0) +
+            "\n購入済み：" + BuildPurchasedItemSummary() +
             "\n衣装確認モード：" + conditionalLabel +
             "\nHidden解放：" + hiddenLabel;
     }
@@ -367,6 +368,23 @@ public class StatusDetailPanel : MonoBehaviour
     private static int GetSpeed(BattleStatusData status)
     {
         return status != null ? status.speed : 0;
+    }
+
+    private string BuildPurchasedItemSummary()
+    {
+        if (gameManager == null)
+        {
+            return "なし";
+        }
+
+        List<string> purchasedItems = gameManager.GetPurchasedItemIds();
+        if (purchasedItems == null || purchasedItems.Count == 0)
+        {
+            return "なし";
+        }
+
+        purchasedItems.Sort();
+        return string.Join(", ", purchasedItems.ToArray());
     }
 
     private string BuildAbilityButtonLabel(StatusAbilityData ability)
