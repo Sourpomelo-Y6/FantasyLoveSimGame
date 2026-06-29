@@ -473,7 +473,7 @@ Unity 上で明示配置したい場合は、`GameManager.playerStatus` に `Pla
 未購入の衣装は「好感度不足」ではなく「まだ所持していない」状態として扱う。
 春夏秋冬など `isUnlockedByDefault=false` かつ `unlockedOutfitIds` に含まれない衣装は、DressUp の衣装ボタン自体を表示しない方針にする。
 `lockedMessage` は好感度やイベント条件など、存在は見えているが条件不足で着られない場合の文言に限定する。
-次の実装では、衣装ボタン生成側で未所持衣装を一覧から除外する判定を追加する。
+衣装ボタン生成側では、`OutfitManager.IsOutfitVisibleInDressUp()` により未所持衣装を一覧から除外する判定を実装済み。
 
 ## 実装メモ
 
@@ -493,6 +493,7 @@ Unity 上で明示配置したい場合は、`GameManager.playerStatus` に `Pla
 - `TitleScene` の `ContinueButton` は `SaveLoadPanel.OpenLoad()` でロード用スロット選択を開く
 - `MainScene` の `SaveButton` / `LoadButton` は `SaveLoadPanel.OpenSave()` / `OpenLoad()` でスロット選択を開く
 - `SaveLoadPanel` はセーブ時に青背景・`セーブ`、ロード時にオレンジ背景・`ロード` に切り替える
+- `MessageLogPanel` / `StillGalleryPanel` / `ShopPanel` / `SaveLoadPanel` は、非アクティブ状態から初回表示したときに `Awake()` が `Open()` を打ち消さないよう、`Awake()` 内で panel root を閉じない方針に統一済み
 - 保存済みスロットは `Day` と `Affection` をラベルに表示する
 - `MainScene` でロードした後は `SaveLoadPanel` を閉じる
 - セーブ/ロード回帰確認では、好感度、日付、時間帯、曜日、季節、天気、現在衣装、衣装評価、今日/明日の予定、当日予定イベントの発動済み状態、能力取得状態、衣装確認モード解放状態を確認する
