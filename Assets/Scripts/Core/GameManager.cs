@@ -4257,12 +4257,92 @@ public class GameManager : MonoBehaviour
             return ApplyDuoShoppingTestPurchase(scheduledEvent.EventMessage, selectedShopItem);
         }
 
+        if (IsExplorationSchedule(scheduledEvent.ScheduleType))
+        {
+            return ApplySimpleExplorationResult(scheduledEvent.EventMessage, scheduledEvent.ScheduleType);
+        }
+
         return scheduledEvent.EventMessage;
     }
 
     private static bool IsShoppingSchedule(ScheduleType scheduleType)
     {
         return scheduleType == ScheduleType.SoloShopping || scheduleType == ScheduleType.DuoShopping;
+    }
+
+    private static bool IsExplorationSchedule(ScheduleType scheduleType)
+    {
+        return scheduleType == ScheduleType.SoloForest ||
+            scheduleType == ScheduleType.SoloCave ||
+            scheduleType == ScheduleType.SoloLake ||
+            scheduleType == ScheduleType.DuoForest ||
+            scheduleType == ScheduleType.DuoCave ||
+            scheduleType == ScheduleType.DuoLake;
+    }
+
+    private string ApplySimpleExplorationResult(string baseMessage, ScheduleType scheduleType)
+    {
+        EnsureCoreStatusReferences();
+
+        if (playerStatus == null)
+        {
+            return AppendLine(baseMessage, "探索結果を確認できませんでした。プレイヤーステータスが設定されていません。");
+        }
+
+        string locationName;
+        int rewardMoney;
+        switch (scheduleType)
+        {
+            case ScheduleType.SoloForest:
+                locationName = "森";
+                rewardMoney = 20;
+                break;
+
+            case ScheduleType.DuoForest:
+                locationName = "二人で森";
+                rewardMoney = 25;
+                break;
+
+            case ScheduleType.SoloCave:
+                locationName = "洞窟";
+                rewardMoney = 50;
+                break;
+
+            case ScheduleType.DuoCave:
+                locationName = "二人で洞窟";
+                rewardMoney = 60;
+                break;
+
+            case ScheduleType.SoloLake:
+                locationName = "湖";
+                rewardMoney = 10;
+                break;
+
+            case ScheduleType.DuoLake:
+                locationName = "二人で湖";
+                rewardMoney = 15;
+                break;
+
+            default:
+                locationName = "探索";
+                rewardMoney = 0;
+                break;
+        }
+
+        if (rewardMoney > 0)
+        {
+            playerStatus.AddMoney(rewardMoney);
+        }
+
+        RefreshStatusDetailPanel();
+
+        string resultMessage = locationName + "の探索を終えました。";
+        if (rewardMoney > 0)
+        {
+            resultMessage += "\n探索報酬として " + rewardMoney + " を入手しました。現在の所持金：" + playerStatus.Money;
+        }
+
+        return AppendLine(baseMessage, resultMessage);
     }
 
     private bool TryOpenDuoShoppingShopPanel(ScheduledEventDefinition scheduledEvent)
