@@ -89,6 +89,7 @@ public class GameManager : MonoBehaviour
         public int RewardMoney;
         public int AffectionChange;
         public string Message;
+        public List<string> LogLines;
     }
 
     public struct StillGalleryItem
@@ -4453,6 +4454,7 @@ public class GameManager : MonoBehaviour
     private SimpleBattleResult ResolveSimpleBattle(EnemyData enemy, bool includeHeroine)
     {
         SimpleBattleResult result = new SimpleBattleResult();
+        result.LogLines = new List<string>();
         if (enemy == null || playerStatus == null)
         {
             result.Message = "戦闘処理を確認できませんでした。";
@@ -4473,14 +4475,20 @@ public class GameManager : MonoBehaviour
 
             if (playerActsFirst)
             {
-                AttackEnemy(playerBattleStatus, enemyStatus);
+                int playerDamage = AttackEnemy(playerBattleStatus, enemyStatus);
+                AddBattleLogLine(ref result, turn + "T: プレイヤー -> 敵 " + playerDamage);
                 if (enemyStatus.currentHp <= 0)
                 {
                     ApplySimpleBattleVictory(enemy, ref result);
                     return result;
                 }
 
-                AttackEnemy(heroineBattleStatus, enemyStatus);
+                int heroineDamage = AttackEnemy(heroineBattleStatus, enemyStatus);
+                if (heroineDamage > 0)
+                {
+                    AddBattleLogLine(ref result, turn + "T: ヒロイン -> 敵 " + heroineDamage);
+                }
+
                 if (enemyStatus.currentHp <= 0)
                 {
                     ApplySimpleBattleVictory(enemy, ref result);
@@ -4498,14 +4506,20 @@ public class GameManager : MonoBehaviour
                     return result;
                 }
 
-                AttackEnemy(playerBattleStatus, enemyStatus);
+                int playerDamage = AttackEnemy(playerBattleStatus, enemyStatus);
+                AddBattleLogLine(ref result, turn + "T: プレイヤー -> 敵 " + playerDamage);
                 if (enemyStatus.currentHp <= 0)
                 {
                     ApplySimpleBattleVictory(enemy, ref result);
                     return result;
                 }
 
-                AttackEnemy(heroineBattleStatus, enemyStatus);
+                int heroineDamage = AttackEnemy(heroineBattleStatus, enemyStatus);
+                if (heroineDamage > 0)
+                {
+                    AddBattleLogLine(ref result, turn + "T: ヒロイン -> 敵 " + heroineDamage);
+                }
+
                 if (enemyStatus.currentHp <= 0)
                 {
                     ApplySimpleBattleVictory(enemy, ref result);
@@ -4524,15 +4538,17 @@ public class GameManager : MonoBehaviour
         return result;
     }
 
-    private static void AttackEnemy(BattleStatusData attacker, BattleStatusData enemyStatus)
+    private static int AttackEnemy(BattleStatusData attacker, BattleStatusData enemyStatus)
     {
         if (attacker == null || enemyStatus == null || attacker.currentHp <= 0 || enemyStatus.currentHp <= 0)
         {
-            return;
+            return 0;
         }
 
-        enemyStatus.currentHp -= CalculateBattleDamage(attacker, enemyStatus);
+        int damage = CalculateBattleDamage(attacker, enemyStatus);
+        enemyStatus.currentHp -= damage;
         enemyStatus.Clamp();
+        return damage;
     }
 
     private void AttackParty(
@@ -4551,11 +4567,13 @@ public class GameManager : MonoBehaviour
         {
             int heroineDamage = heroineStatus.DamageHp(CalculateBattleDamage(enemyStatus, heroineStatus.BattleStatus));
             result.HeroineDamageTaken += heroineDamage;
+            AddBattleLogLine(ref result, turn + "T: 敵 -> ヒロイン " + heroineDamage);
             return;
         }
 
         int playerDamage = playerStatus.DamageHp(CalculateBattleDamage(enemyStatus, playerStatus.BattleStatus));
         result.PlayerDamageTaken += playerDamage;
+        AddBattleLogLine(ref result, turn + "T: 敵 -> プレイヤー " + playerDamage);
     }
 
     private void ApplySimpleBattleVictory(EnemyData enemy, ref SimpleBattleResult result)
@@ -4585,7 +4603,8 @@ public class GameManager : MonoBehaviour
             BuildPlayerHpMessage() +
             BuildHeroineDamageMessage(result.HeroineDamageTaken) +
             BuildHeroineHpMessage() +
-            BuildBattleRewardMessage(result);
+            BuildBattleRewardMessage(result) +
+            BuildBattleLogMessage(result);
     }
 
     private void ApplySimpleBattleDefeat(EnemyData enemy, ref SimpleBattleResult result)
@@ -4614,7 +4633,8 @@ public class GameManager : MonoBehaviour
             BuildHeroineHpMessage() +
             "\n報酬なし" +
             "\nHP 1 で撤退しました。" +
-            "\n予定は消費済みです。";
+            "\n予定は消費済みです。" +
+            BuildBattleLogMessage(result);
     }
 
     private static int CalculateBattleDamage(BattleStatusData attacker, BattleStatusData defender)
@@ -4685,6 +4705,44 @@ public class GameManager : MonoBehaviour
         if (result.AffectionChange != 0)
         {
             message += "\n勝利時好感度：" + FormatSignedValue(result.AffectionChange);
+        }
+
+        return message;
+    }
+
+    private static void AddBattleLogLine(ref SimpleBattleResult result, string line)
+    {
+        if (string.IsNullOrEmpty(line))
+        {
+            return;
+        }
+
+        if (result.LogLines == null)
+        {
+            result.LogLines = new List<string>();
+        }
+
+        result.LogLines.Add(line);
+    }
+
+    private static string BuildBattleLogMessage(SimpleBattleResult result)
+    {
+        if (result.LogLines == null || result.LogLines.Count == 0)
+        {
+            return "";
+        }
+
+        const int maxLogLines = 8;
+        string message = "\n戦闘ログ:";
+        int count = Math.Min(maxLogLines, result.LogLines.Count);
+        for (int i = 0; i < count; i++)
+        {
+            message += "\n" + result.LogLines[i];
+        }
+
+        if (result.LogLines.Count > maxLogLines)
+        {
+            message += "\n...";
         }
 
         return message;
