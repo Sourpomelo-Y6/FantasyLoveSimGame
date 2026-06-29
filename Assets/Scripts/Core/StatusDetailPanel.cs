@@ -327,6 +327,7 @@ public class StatusDetailPanel : MonoBehaviour
             "\n素早さ：" + GetSpeed(status) +
             "\n所持金：" + (playerStatus != null ? playerStatus.Money : 0) +
             "\n購入済み：" + BuildPurchasedItemSummary() +
+            "\n解放衣装：" + BuildUnlockedOutfitSummary() +
             "\n衣装確認モード：" + conditionalLabel +
             "\nHidden解放：" + hiddenLabel;
     }
@@ -385,6 +386,23 @@ public class StatusDetailPanel : MonoBehaviour
 
         purchasedItems.Sort();
         return string.Join(", ", purchasedItems.ToArray());
+    }
+
+    private string BuildUnlockedOutfitSummary()
+    {
+        if (gameManager == null)
+        {
+            return "なし";
+        }
+
+        List<string> unlockedOutfits = gameManager.GetUnlockedOutfitIds();
+        if (unlockedOutfits == null || unlockedOutfits.Count == 0)
+        {
+            return "なし";
+        }
+
+        unlockedOutfits.Sort();
+        return string.Join(", ", unlockedOutfits.ToArray());
     }
 
     private string BuildAbilityButtonLabel(StatusAbilityData ability)

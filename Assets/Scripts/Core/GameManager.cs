@@ -235,6 +235,7 @@ public class GameManager : MonoBehaviour
     private readonly HashSet<string> unlockedStatusAbilityIds = new HashSet<string>();
     private readonly HashSet<string> unlockedStillIds = new HashSet<string>();
     private readonly HashSet<string> purchasedItemIds = new HashSet<string>();
+    private readonly HashSet<string> unlockedOutfitIds = new HashSet<string>();
     private readonly Queue<DialogueMessage> queuedDialogueMessages = new Queue<DialogueMessage>();
     private readonly List<MessageLogPanel.MessageLogEntry> messageLogEntries =
         new List<MessageLogPanel.MessageLogEntry>();
@@ -289,6 +290,8 @@ public class GameManager : MonoBehaviour
     [SerializeField] private int duoShoppingTestCost = 100;
     [SerializeField] private string duoShoppingTestItemId = "ShoppingTestItem_01";
     [SerializeField] private string duoShoppingTestItemName = "買い物テスト商品";
+    [SerializeField] private List<string> duoShoppingUnlockedOutfitIds =
+        new List<string> { "Spring", "Summer", "Autumn", "Winter" };
 
 
     private void Update()
@@ -2089,6 +2092,7 @@ public class GameManager : MonoBehaviour
         saveData.unlockedStatusAbilityIds = new List<string>(unlockedStatusAbilityIds);
         saveData.unlockedStillIds = new List<string>(unlockedStillIds);
         saveData.purchasedItemIds = new List<string>(purchasedItemIds);
+        saveData.unlockedOutfitIds = new List<string>(unlockedOutfitIds);
 
         saveData.shownConversationIds = new List<string>(shownConversationIds);
         saveData.shownGameEventIds = new List<string>(shownGameEventIds);
@@ -2215,6 +2219,19 @@ public class GameManager : MonoBehaviour
                 }
             }
         }
+        unlockedOutfitIds.Clear();
+        if (saveData.unlockedOutfitIds != null)
+        {
+            foreach (string outfitId in saveData.unlockedOutfitIds)
+            {
+                if (!string.IsNullOrEmpty(outfitId))
+                {
+                    unlockedOutfitIds.Add(outfitId);
+                }
+            }
+        }
+        ApplyPurchasedItemOutfitUnlocks();
+        ApplyUnlockedOutfitsToManager();
 
         outfitPreferenceManager.SetPreferences(saveData.outfitPreferences);
 
@@ -2313,11 +2330,61 @@ public class GameManager : MonoBehaviour
         return new List<string>(purchasedItemIds);
     }
 
+    public List<string> GetUnlockedOutfitIds()
+    {
+        return new List<string>(unlockedOutfitIds);
+    }
+
     private void RegisterPurchasedItem(string itemId)
     {
         if (!string.IsNullOrEmpty(itemId))
         {
             purchasedItemIds.Add(itemId);
+        }
+    }
+
+    private void RegisterUnlockedOutfit(string outfitId)
+    {
+        if (string.IsNullOrEmpty(outfitId))
+        {
+            return;
+        }
+
+        unlockedOutfitIds.Add(outfitId);
+        ApplyUnlockedOutfitsToManager();
+    }
+
+    private void RegisterUnlockedOutfits(IEnumerable<string> outfitIds)
+    {
+        if (outfitIds == null)
+        {
+            return;
+        }
+
+        foreach (string outfitId in outfitIds)
+        {
+            if (!string.IsNullOrEmpty(outfitId))
+            {
+                unlockedOutfitIds.Add(outfitId);
+            }
+        }
+
+        ApplyUnlockedOutfitsToManager();
+    }
+
+    private void ApplyPurchasedItemOutfitUnlocks()
+    {
+        if (IsPurchasedItem(duoShoppingTestItemId))
+        {
+            RegisterUnlockedOutfits(GetDuoShoppingUnlockedOutfitIds());
+        }
+    }
+
+    private void ApplyUnlockedOutfitsToManager()
+    {
+        if (outfitManager != null)
+        {
+            outfitManager.SetUnlockedOutfitIds(unlockedOutfitIds);
         }
     }
 
@@ -4215,10 +4282,53 @@ public class GameManager : MonoBehaviour
         }
 
         RegisterPurchasedItem(duoShoppingTestItemId);
+        List<string> unlockedOutfitIdsForPurchase = GetDuoShoppingUnlockedOutfitIds();
+        RegisterUnlockedOutfits(unlockedOutfitIdsForPurchase);
         RefreshStatusDetailPanel();
-        return AppendLine(
-            baseMessage,
-            duoShoppingTestItemName + " を " + duoShoppingTestCost + " で購入しました。現在の所持金：" + playerStatus.Money);
+        string resultMessage =
+            duoShoppingTestItemName + " を " + duoShoppingTestCost + " で購入しました。現在の所持金：" + playerStatus.Money;
+
+        string unlockedOutfitMessage = BuildUnlockedOutfitMessage(unlockedOutfitIdsForPurchase);
+        if (!string.IsNullOrEmpty(unlockedOutfitMessage))
+        {
+            resultMessage += "\n" + unlockedOutfitMessage;
+        }
+
+        return AppendLine(baseMessage, resultMessage);
+    }
+
+    private static string BuildUnlockedOutfitMessage(List<string> outfitIds)
+    {
+        if (outfitIds == null || outfitIds.Count == 0)
+        {
+            return "";
+        }
+
+        List<string> validOutfitIds = new List<string>();
+        foreach (string outfitId in outfitIds)
+        {
+            if (!string.IsNullOrEmpty(outfitId))
+            {
+                validOutfitIds.Add(outfitId);
+            }
+        }
+
+        if (validOutfitIds.Count == 0)
+        {
+            return "";
+        }
+
+        return "衣装 `" + string.Join(", ", validOutfitIds.ToArray()) + "` が解放されました。";
+    }
+
+    private List<string> GetDuoShoppingUnlockedOutfitIds()
+    {
+        if (duoShoppingUnlockedOutfitIds != null && duoShoppingUnlockedOutfitIds.Count > 0)
+        {
+            return duoShoppingUnlockedOutfitIds;
+        }
+
+        return new List<string> { "Spring", "Summer", "Autumn", "Winter" };
     }
 
     private static string AppendLine(string baseMessage, string appendedMessage)

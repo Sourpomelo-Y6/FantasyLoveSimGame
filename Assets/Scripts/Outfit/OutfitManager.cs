@@ -31,9 +31,27 @@ public class OutfitManager : MonoBehaviour
     private string currentExpressionId = "";
     private readonly Dictionary<string, OutfitMessageOverride> messageOverrides =
         new Dictionary<string, OutfitMessageOverride>();
+    private readonly HashSet<string> unlockedOutfitIds = new HashSet<string>();
 
     public OutfitData CurrentOutfit => currentOutfit;
     public IReadOnlyList<OutfitData> Outfits => outfits;
+
+    public void SetUnlockedOutfitIds(IEnumerable<string> outfitIds)
+    {
+        unlockedOutfitIds.Clear();
+        if (outfitIds == null)
+        {
+            return;
+        }
+
+        foreach (string outfitId in outfitIds)
+        {
+            if (!string.IsNullOrEmpty(outfitId))
+            {
+                unlockedOutfitIds.Add(outfitId);
+            }
+        }
+    }
 
     public void SetMessageOverrides(List<OutfitMessageOverride> overrides)
     {
@@ -103,10 +121,7 @@ public class OutfitManager : MonoBehaviour
 
         if (!outfit.isUnlockedByDefault)
         {
-            if (heroineStatus.Affection < outfit.requiredAffection)
-            {
-                return false;
-            }
+            return unlockedOutfitIds.Contains(outfit.outfitId);
         }
 
         if (heroineStatus.Affection < outfit.requiredAffection)

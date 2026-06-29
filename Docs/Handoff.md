@@ -492,7 +492,9 @@ Importer は完了時に copied images、catalog assets、layers、conversations
 所持金を増減するテスト処理は実装済み。`GameManager.debugAddMoneyKey` は F8、`debugSpendMoneyKey` は F9、`debugMoneyAmount` は 100 がデフォルト。
 `DuoShopping` 予定からの簡易買い物イベントも実装済み。`DuoShopping` 実行時に `GameManager.duoShoppingTestCost`、デフォルト 100 を所持金から消費し、結果を予定イベント本文に追記する。
 固定テスト商品 `ShoppingTestItem_01` の購入済み保存も実装済み。購入済み ID は `SaveData.purchasedItemIds` に保存し、`StatusDetailPanel` のプレイヤー詳細に表示する。
-次に進める場合は、購入済みアイテムを衣装解放またはアイテム効果に接続する。
+`ShoppingTestItem_01` 購入時に `Spring` / `Summer` / `Autumn` / `Winter` 衣装を解放する処理も実装済み。解放済み衣装 ID は `SaveData.unlockedOutfitIds` に保存し、`OutfitManager` の着用可否判定に渡す。
+春夏秋冬の衣装アセットは手作業で `isUnlockedByDefault=false` に変更済み。購入解放された衣装は好感度条件を無視して着用できる。
+次に進める場合は、固定商品ではなく商品定義をデータ化するか、複数の季節衣装を商品として扱う。
 
 ### 会話を増やす
 
