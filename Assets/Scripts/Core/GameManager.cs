@@ -3460,6 +3460,7 @@ public class GameManager : MonoBehaviour
         actionButtonArea.SetActive(false);
         genreButtonArea.SetActive(false);
         choiceButtonArea.SetActive(false);
+        CreateOutfitButtons();
         outfitPanel.SetActive(true);
         outfitReactionPanel.SetActive(false);
 
@@ -3872,6 +3873,7 @@ public class GameManager : MonoBehaviour
         genreButtonArea.SetActive(false);
         choiceButtonArea.SetActive(false);
         outfitReactionPanel.SetActive(false);
+        CreateOutfitButtons();
         outfitPanel.SetActive(true);
         nextButton.gameObject.SetActive(false);
 
@@ -4183,6 +4185,7 @@ public class GameManager : MonoBehaviour
         genreButtonArea.SetActive(false);
         choiceButtonArea.SetActive(false);
         outfitReactionPanel.SetActive(false);
+        CreateOutfitButtons();
         outfitPanel.SetActive(true);
         nextButton.gameObject.SetActive(false);
 
@@ -4259,9 +4262,23 @@ public class GameManager : MonoBehaviour
 
         if (IsPurchasedItem(duoShoppingTestItemId))
         {
-            return AppendLine(
-                baseMessage,
-                duoShoppingTestItemName + " は購入済みです。現在の所持金：" + playerStatus.Money);
+            List<string> unlockedOutfitIdsForPurchasedItem = GetDuoShoppingUnlockedOutfitIds();
+            bool alreadyUnlocked = AreOutfitsUnlocked(unlockedOutfitIdsForPurchasedItem);
+            RegisterUnlockedOutfits(unlockedOutfitIdsForPurchasedItem);
+            RefreshStatusDetailPanel();
+
+            string purchasedMessage =
+                duoShoppingTestItemName + " は購入済みです。現在の所持金：" + playerStatus.Money;
+            if (!alreadyUnlocked)
+            {
+                string purchasedItemUnlockMessage = BuildUnlockedOutfitMessage(unlockedOutfitIdsForPurchasedItem);
+                if (!string.IsNullOrEmpty(purchasedItemUnlockMessage))
+                {
+                    purchasedMessage += "\n購入済み商品の衣装解放を反映しました。\n" + purchasedItemUnlockMessage;
+                }
+            }
+
+            return AppendLine(baseMessage, purchasedMessage);
         }
 
         if (duoShoppingTestCost <= 0)
@@ -4314,6 +4331,24 @@ public class GameManager : MonoBehaviour
         }
 
         return "衣装 `" + string.Join(", ", validOutfitIds.ToArray()) + "` が解放されました。";
+    }
+
+    private bool AreOutfitsUnlocked(List<string> outfitIds)
+    {
+        if (outfitIds == null || outfitIds.Count == 0)
+        {
+            return true;
+        }
+
+        foreach (string outfitId in outfitIds)
+        {
+            if (!string.IsNullOrEmpty(outfitId) && !unlockedOutfitIds.Contains(outfitId))
+            {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     private List<string> GetDuoShoppingUnlockedOutfitIds()
