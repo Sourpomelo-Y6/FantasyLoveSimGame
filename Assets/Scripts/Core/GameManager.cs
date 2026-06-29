@@ -284,6 +284,9 @@ public class GameManager : MonoBehaviour
     [SerializeField] private KeyCode debugSpendMoneyKey = KeyCode.F9;
     [SerializeField] private int debugMoneyAmount = 100;
 
+    [Header("Shopping Test")]
+    [SerializeField] private int duoShoppingTestCost = 100;
+
 
     private void Update()
     {
@@ -4108,6 +4111,7 @@ public class GameManager : MonoBehaviour
 
         scheduleManager.MarkTodayScheduleEventExecuted();
         heroineStatus.AddAffection(scheduledEvent.AffectionChange);
+        string eventMessage = ResolveScheduledEventMessage(scheduledEvent);
         pendingScheduledEvent = null;
         startPendingScheduledEventAfterOutfitMessage = false;
         returnToScheduledEventPromptAfterOutfitMessage = false;
@@ -4121,7 +4125,7 @@ public class GameManager : MonoBehaviour
         outfitPanel.SetActive(false);
         outfitReactionPanel.SetActive(false);
 
-        ShowScheduledEventDialogue(scheduledEvent);
+        ShowScheduledEventDialogue(scheduledEvent, eventMessage);
 
         flowState = ConversationFlowState.ShowingActionResult;
         nextButton.gameObject.SetActive(true);
@@ -4129,7 +4133,64 @@ public class GameManager : MonoBehaviour
         RefreshUI();
     }
 
-    private void ShowScheduledEventDialogue(ScheduledEventDefinition scheduledEvent)
+    private string ResolveScheduledEventMessage(ScheduledEventDefinition scheduledEvent)
+    {
+        if (scheduledEvent == null)
+        {
+            return "";
+        }
+
+        if (scheduledEvent.ScheduleType == ScheduleType.DuoShopping)
+        {
+            return ApplyDuoShoppingTestPurchase(scheduledEvent.EventMessage);
+        }
+
+        return scheduledEvent.EventMessage;
+    }
+
+    private string ApplyDuoShoppingTestPurchase(string baseMessage)
+    {
+        EnsureCoreStatusReferences();
+
+        if (playerStatus == null)
+        {
+            return AppendLine(baseMessage, "買い物処理を確認できませんでした。プレイヤーステータスが設定されていません。");
+        }
+
+        if (duoShoppingTestCost <= 0)
+        {
+            return AppendLine(baseMessage, "買い物テスト費用が 0 以下のため、所持金は変化しませんでした。");
+        }
+
+        if (!playerStatus.TrySpendMoney(duoShoppingTestCost))
+        {
+            return AppendLine(
+                baseMessage,
+                "買い物をしようとしましたが、所持金が足りませんでした。現在の所持金：" + playerStatus.Money);
+        }
+
+        RefreshStatusDetailPanel();
+        return AppendLine(
+            baseMessage,
+            "買い物テストとして " + duoShoppingTestCost + " 使いました。現在の所持金：" + playerStatus.Money);
+    }
+
+    private static string AppendLine(string baseMessage, string appendedMessage)
+    {
+        if (string.IsNullOrEmpty(baseMessage))
+        {
+            return appendedMessage;
+        }
+
+        if (string.IsNullOrEmpty(appendedMessage))
+        {
+            return baseMessage;
+        }
+
+        return baseMessage + "\n" + appendedMessage;
+    }
+
+    private void ShowScheduledEventDialogue(ScheduledEventDefinition scheduledEvent, string eventMessage)
     {
         string stillId;
         Sprite stillSprite;
@@ -4138,23 +4199,23 @@ public class GameManager : MonoBehaviour
         switch (scheduledEvent.EventSpeakerType)
         {
             case ScheduledEventSpeakerType.System:
-                ShowDialogue(DialogueSpeakerType.System, SystemSpeakerName, scheduledEvent.EventMessage, stillId, stillSprite);
+                ShowDialogue(DialogueSpeakerType.System, SystemSpeakerName, eventMessage, stillId, stillSprite);
                 return;
 
             case ScheduledEventSpeakerType.Schedule:
-                ShowDialogue(DialogueSpeakerType.Schedule, ScheduleSpeakerName, scheduledEvent.EventMessage, stillId, stillSprite);
+                ShowDialogue(DialogueSpeakerType.Schedule, ScheduleSpeakerName, eventMessage, stillId, stillSprite);
                 return;
 
             case ScheduledEventSpeakerType.Outfit:
-                ShowDialogue(DialogueSpeakerType.Outfit, OutfitSpeakerName, scheduledEvent.EventMessage, stillId, stillSprite);
+                ShowDialogue(DialogueSpeakerType.Outfit, OutfitSpeakerName, eventMessage, stillId, stillSprite);
                 return;
 
             case ScheduledEventSpeakerType.Player:
-                ShowDialogue(DialogueSpeakerType.Player, PlayerSpeakerName, scheduledEvent.EventMessage, stillId, stillSprite);
+                ShowDialogue(DialogueSpeakerType.Player, PlayerSpeakerName, eventMessage, stillId, stillSprite);
                 return;
 
             default:
-                ShowDialogue(DialogueSpeakerType.Heroine, heroineStatus.HeroineName, scheduledEvent.EventMessage, stillId, stillSprite);
+                ShowDialogue(DialogueSpeakerType.Heroine, heroineStatus.HeroineName, eventMessage, stillId, stillSprite);
                 return;
         }
     }
