@@ -18,6 +18,10 @@ public class StillGalleryPanel : MonoBehaviour
     [SerializeField] private Image stillImage;
     [SerializeField] private TextMeshProUGUI titleText;
     [SerializeField] private TextMeshProUGUI emptyText;
+    [SerializeField] private int itemsPerPage = 8;
+    [SerializeField] private Button previousPageButton;
+    [SerializeField] private Button nextPageButton;
+    [SerializeField] private TextMeshProUGUI pageText;
 
     [Header("Labels")]
     [SerializeField] private string defaultTitle = "イベント回想";
@@ -25,6 +29,8 @@ public class StillGalleryPanel : MonoBehaviour
     [SerializeField] private string lockedStillLabel = "???";
 
     private bool hasWarnedMissingReferences = false;
+    private readonly List<GameManager.StillGalleryItem> cachedItems = new List<GameManager.StillGalleryItem>();
+    private int currentPageIndex = 0;
 
     private GameObject PanelRoot
     {
@@ -38,6 +44,16 @@ public class StillGalleryPanel : MonoBehaviour
         if (closeButton != null)
         {
             closeButton.onClick.AddListener(Close);
+        }
+
+        if (previousPageButton != null)
+        {
+            previousPageButton.onClick.AddListener(ShowPreviousPage);
+        }
+
+        if (nextPageButton != null)
+        {
+            nextPageButton.onClick.AddListener(ShowNextPage);
         }
 
         if (stillImage != null)
@@ -64,6 +80,7 @@ public class StillGalleryPanel : MonoBehaviour
     {
         EnsureUiReferences();
         PanelRoot.SetActive(true);
+        currentPageIndex = 0;
         Refresh();
     }
 
@@ -86,6 +103,7 @@ public class StillGalleryPanel : MonoBehaviour
             titleText.text = defaultTitle;
         }
 
+        cachedItems.Clear();
         ClearList();
         HideTemplateButton();
 
@@ -93,6 +111,7 @@ public class StillGalleryPanel : MonoBehaviour
         {
             SetEmptyState(true);
             ClearPreview();
+            UpdatePageControls();
             return;
         }
 
@@ -101,17 +120,41 @@ public class StillGalleryPanel : MonoBehaviour
         {
             SetEmptyState(true);
             ClearPreview();
+            UpdatePageControls();
+            return;
+        }
+
+        cachedItems.AddRange(items);
+        ClampCurrentPageIndex();
+        SetEmptyState(false);
+        RefreshPageItems();
+    }
+
+    private void RefreshPageItems()
+    {
+        ClearList();
+        HideTemplateButton();
+
+        if (cachedItems.Count == 0)
+        {
+            SetEmptyState(true);
+            ClearPreview();
+            UpdatePageControls();
             return;
         }
 
         SetEmptyState(false);
 
-        foreach (GameManager.StillGalleryItem item in items)
+        int startIndex = currentPageIndex * GetItemsPerPage();
+        int endIndex = Mathf.Min(startIndex + GetItemsPerPage(), cachedItems.Count);
+
+        for (int i = startIndex; i < endIndex; i++)
         {
-            CreateGalleryButton(item);
+            CreateGalleryButton(cachedItems[i]);
         }
 
-        ShowFirstUnlockedStill(items);
+        ShowFirstUnlockedStillInCurrentPage();
+        UpdatePageControls();
     }
 
     private void CreateGalleryButton(GameManager.StillGalleryItem item)
@@ -138,16 +181,20 @@ public class StillGalleryPanel : MonoBehaviour
         }
     }
 
-    private void ShowFirstUnlockedStill(List<GameManager.StillGalleryItem> items)
+    private void ShowFirstUnlockedStillInCurrentPage()
     {
-        if (items == null || gameManager == null)
+        if (gameManager == null)
         {
             ClearPreview();
             return;
         }
 
-        foreach (GameManager.StillGalleryItem item in items)
+        int startIndex = currentPageIndex * GetItemsPerPage();
+        int endIndex = Mathf.Min(startIndex + GetItemsPerPage(), cachedItems.Count);
+
+        for (int i = startIndex; i < endIndex; i++)
         {
+            GameManager.StillGalleryItem item = cachedItems[i];
             if (gameManager.IsStillUnlocked(item.StillId))
             {
                 ShowStill(item);
@@ -156,6 +203,79 @@ public class StillGalleryPanel : MonoBehaviour
         }
 
         ClearPreview();
+    }
+
+    private void ShowPreviousPage()
+    {
+        if (currentPageIndex <= 0)
+        {
+            return;
+        }
+
+        currentPageIndex--;
+        RefreshPageItems();
+    }
+
+    private void ShowNextPage()
+    {
+        int totalPages = GetTotalPages();
+        if (currentPageIndex >= totalPages - 1)
+        {
+            return;
+        }
+
+        currentPageIndex++;
+        RefreshPageItems();
+    }
+
+    private void UpdatePageControls()
+    {
+        int totalPages = GetTotalPages();
+        bool hasMultiplePages = totalPages > 1;
+
+        if (previousPageButton != null)
+        {
+            previousPageButton.interactable = hasMultiplePages && currentPageIndex > 0;
+        }
+
+        if (nextPageButton != null)
+        {
+            nextPageButton.interactable = hasMultiplePages && currentPageIndex < totalPages - 1;
+        }
+
+        if (pageText != null)
+        {
+            pageText.text = totalPages > 0
+                ? (currentPageIndex + 1) + " / " + totalPages
+                : "0 / 0";
+        }
+    }
+
+    private int GetItemsPerPage()
+    {
+        return Mathf.Max(1, itemsPerPage);
+    }
+
+    private int GetTotalPages()
+    {
+        if (cachedItems.Count == 0)
+        {
+            return 0;
+        }
+
+        return Mathf.CeilToInt((float)cachedItems.Count / GetItemsPerPage());
+    }
+
+    private void ClampCurrentPageIndex()
+    {
+        int totalPages = GetTotalPages();
+        if (totalPages <= 0)
+        {
+            currentPageIndex = 0;
+            return;
+        }
+
+        currentPageIndex = Mathf.Clamp(currentPageIndex, 0, totalPages - 1);
     }
 
     private void ShowStill(GameManager.StillGalleryItem item)

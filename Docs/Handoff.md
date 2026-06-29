@@ -68,7 +68,7 @@
 - 背景は `BackgroundSpriteData` で時間帯と天候に対応する Sprite を管理する。`GameManager.backgroundSpriteData` に割り当てると、`RefreshUI()` 時に現在の時間帯と天候から背景が切り替わる。未設定の組み合わせは従来の `dayBackgroundSprite` / `nightBackgroundSprite` にフォールバックする。
 - スチル回想は、イベント既読の `shownGameEventIds` とは別に `SaveData.unlockedStillIds` で保存する。`GameEventPageData.stillId` を追加済みで、スチル表示時に解放済みへ登録する
 - 回想 UI は `StillGalleryPanel` で制御する。`StillGalleryAction` から開き、解放済みスチルは押せるボタン、未解放スチルは `???` の無効ボタンとして一覧表示する。初期 UI は Unity 上に手作業配置済み
-- スチル回想は後でページングを追加する。`itemsPerPage`、前へ/次へボタン、ページ表示 Text を持たせ、固定件数でページを切り替える案を優先する
+- スチル回想のページングは `StillGalleryPanel` に実装済み。`itemsPerPage`、前へ/次へボタン、ページ表示 Text を持ち、固定件数でページを切り替える。前へ/次へボタンとページ表示 Text は未割り当てでも従来の一覧表示として動く
 - 回想項目のサムネイル Image は、スチル数が増えて一覧の視認性が問題になってから検討する。当面は Text ボタンだけでよい
 - `StatusDetailPanel` の画面部品は Unity 上で手作業配置し、Inspector で参照を割り当てる
 - 必須参照は `panelRoot`、各 `TextMeshProUGUI`、各 `Button`、`abilityListParent`、`abilityButtonPrefab`、`abilityAcquirePanel` 周辺
@@ -584,10 +584,9 @@ UI デザインは手作業で行っています。
 2. 会話データの分類ルール整理
 3. エンディング分岐条件の自動選択
 4. 立ち絵切り替えと表情差分の整理
-5. スチル回想のページング
-6. セーブ/ロードの強化
-7. メッセージ表示ウィンドウのクリック進行 ON/OFF オプション
-8. UI の見た目調整
+5. セーブ/ロードの強化
+6. メッセージ表示ウィンドウのクリック進行 ON/OFF オプション
+7. UI の見た目調整
 
 ## デバッグ時の確認項目
 
