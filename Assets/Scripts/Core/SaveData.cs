@@ -4,7 +4,7 @@ using System.Collections.Generic;
 [Serializable]
 public class SaveData
 {
-    public int saveVersion = 3;
+    public int saveVersion = 4;
     public int saveSlotIndex;
     public string savedAt;
     public string heroineId;
@@ -18,6 +18,16 @@ public class SaveData
     public Weather currentWeather;
 
     public int affection;
+    public BattleStatusData playerBattleStatus = new BattleStatusData();
+    public int playerMoney = 1000;
+    public BattleStatusData heroineBattleStatus = new BattleStatusData
+    {
+        currentHp = 80,
+        maxHp = 80,
+        attack = 8,
+        defense = 4,
+        speed = 6
+    };
 
     public string currentOutfitId;
 

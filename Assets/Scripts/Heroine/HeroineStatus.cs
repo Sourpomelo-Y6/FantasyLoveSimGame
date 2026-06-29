@@ -9,13 +9,29 @@ public class HeroineStatus : MonoBehaviour
     [SerializeField] private int affection = 0;
     [SerializeField] private int maxAffection = 100;
 
+    [Header("Battle")]
+    [SerializeField] private BattleStatusData battleStatus = new BattleStatusData
+    {
+        currentHp = 80,
+        maxHp = 80,
+        attack = 8,
+        defense = 4,
+        speed = 6
+    };
+
     [Header("Outfit Prompt Ability")]
     [SerializeField] private OutfitPromptAbilitySet outfitPromptAbilities = new OutfitPromptAbilitySet();
 
     public string HeroineName => heroineName;
     public int Affection => affection;
     public int MaxAffection => maxAffection;
+    public BattleStatusData BattleStatus => battleStatus;
     public OutfitPromptAbilitySet OutfitPromptAbilities => outfitPromptAbilities;
+
+    private void Awake()
+    {
+        NormalizeBattleStatus();
+    }
 
     public void SetHeroineName(string value)
     {
@@ -28,6 +44,12 @@ public class HeroineStatus : MonoBehaviour
     public void SetOutfitPromptAbilities(OutfitPromptAbilitySet source)
     {
         outfitPromptAbilities.CopyFrom(source);
+    }
+
+    public void SetBattleStatus(BattleStatusData source)
+    {
+        NormalizeBattleStatus();
+        battleStatus.CopyFrom(source);
     }
 
     public void AddAffection(int value)
@@ -88,5 +110,22 @@ public class HeroineStatus : MonoBehaviour
         {
             affection = maxAffection;
         }
+    }
+
+    private void NormalizeBattleStatus()
+    {
+        if (battleStatus == null)
+        {
+            battleStatus = new BattleStatusData
+            {
+                currentHp = 80,
+                maxHp = 80,
+                attack = 8,
+                defense = 4,
+                speed = 6
+            };
+        }
+
+        battleStatus.Clamp();
     }
 }

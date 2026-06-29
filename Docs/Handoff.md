@@ -486,6 +486,10 @@ Importer は完了時に copied images、catalog assets、layers、conversations
 この拡張は、戦闘 UI や敵 AI からではなく、共通基盤になるステータス追加から少しずつ進める。
 最初の到達点は、プレイヤーとヒロインの HP、最大 HP、攻撃、防御、素早さ、所持金を `StatusDetailPanel` に表示し、`SaveData` でセーブ/ロード復元できる状態にすること。
 その後、所持金の増減テスト、`DuoShopping` 予定からの簡易買い物、衣装またはアイテム購入、簡易探索、簡易戦闘の順で追加する。
+基礎ステータスは実装済み。共通の `BattleStatusData`、プレイヤー用の `PlayerStatus`、ヒロイン側の `HeroineStatus.BattleStatus` を使う。
+所持金は案Aとして `PlayerStatus` だけが持つ。`SaveData` は `playerBattleStatus`、`playerMoney`、`heroineBattleStatus` を保存し、ロード時に復元する。
+`StatusDetailPanel` はプレイヤー詳細に HP、攻撃、防御、素早さ、所持金を表示し、ヒロイン詳細に HP、攻撃、防御、素早さを表示する。
+次に進める場合は、所持金を増減するテスト処理を追加する。
 
 ### 会話を増やす
 

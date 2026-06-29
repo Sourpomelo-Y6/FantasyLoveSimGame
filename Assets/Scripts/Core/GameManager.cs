@@ -94,6 +94,7 @@ public class GameManager : MonoBehaviour
 
     [Header("Managers")]
     [SerializeField] private TimeManager timeManager;
+    [SerializeField] private PlayerStatus playerStatus;
     [SerializeField] private HeroineStatus heroineStatus;
     [SerializeField] private SaveManager saveManager;
     [SerializeField] private OutfitManager outfitManager;
@@ -227,6 +228,7 @@ public class GameManager : MonoBehaviour
     private const string OutfitSpeakerName = "衣装";
 
     public OutfitPromptAbilitySet PlayerOutfitPromptAbilities => playerOutfitPromptAbilities;
+    public PlayerStatus PlayerStatus => playerStatus;
 
     private readonly HashSet<string> shownConversationIds = new HashSet<string>();
     private readonly HashSet<string> shownGameEventIds = new HashSet<string>();
@@ -1121,6 +1123,7 @@ public class GameManager : MonoBehaviour
 
     private void Start()
     {
+        EnsureCoreStatusReferences();
         ApplyHeroineProfileSettings();
 
         LoadConversationsFromResources();
@@ -1196,6 +1199,19 @@ public class GameManager : MonoBehaviour
         RefreshUI();
         SetSaveLoadButtonsVisible(true);
         EnsureStatusDetailPanel();
+    }
+
+    private void EnsureCoreStatusReferences()
+    {
+        if (playerStatus == null)
+        {
+            playerStatus = FindObjectOfType<PlayerStatus>();
+        }
+
+        if (playerStatus == null)
+        {
+            playerStatus = gameObject.AddComponent<PlayerStatus>();
+        }
     }
 
     private void LoadConversationsFromResources()
@@ -2023,6 +2039,16 @@ public class GameManager : MonoBehaviour
         saveData.currentWeather = timeManager.CurrentWeather;
 
         saveData.affection = heroineStatus.Affection;
+        if (playerStatus != null)
+        {
+            saveData.playerBattleStatus = playerStatus.BattleStatus.Clone();
+            saveData.playerMoney = playerStatus.Money;
+        }
+
+        if (heroineStatus != null)
+        {
+            saveData.heroineBattleStatus = heroineStatus.BattleStatus.Clone();
+        }
 
         if (outfitManager.CurrentOutfit != null)
         {
@@ -2118,6 +2144,17 @@ public class GameManager : MonoBehaviour
         );
 
         heroineStatus.SetAffection(saveData.affection);
+        if (saveData.saveVersion >= 4 && playerStatus != null)
+        {
+            playerStatus.SetBattleStatus(saveData.playerBattleStatus);
+            playerStatus.SetMoney(saveData.playerMoney);
+        }
+
+        if (saveData.saveVersion >= 4 && heroineStatus != null)
+        {
+            heroineStatus.SetBattleStatus(saveData.heroineBattleStatus);
+        }
+
         playerOutfitPromptAbilities.CopyFrom(saveData.playerOutfitPromptAbilities);
         if (heroineStatus != null)
         {

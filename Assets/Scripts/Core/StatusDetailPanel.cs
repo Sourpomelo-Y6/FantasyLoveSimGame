@@ -7,6 +7,7 @@ public class StatusDetailPanel : MonoBehaviour
 {
     [Header("Managers")]
     [SerializeField] private GameManager gameManager;
+    [SerializeField] private PlayerStatus playerStatus;
     [SerializeField] private HeroineStatus heroineStatus;
     [SerializeField] private TimeManager timeManager;
 
@@ -35,8 +36,8 @@ public class StatusDetailPanel : MonoBehaviour
     [Header("Labels")]
     [SerializeField] private string playerTitle = "プレイヤー詳細ステータス";
     [SerializeField] private string heroineTitle = "ヒロイン詳細ステータス";
-    [SerializeField] private string playerSummaryFormat = "プレイヤー能力\n衣装確認モード：{0}\nHidden解放：{1}";
-    [SerializeField] private string heroineSummaryFormat = "ヒロイン能力\n衣装確認モード：{0}\nHidden解放：{1}";
+    [SerializeField] private string playerSummaryTitle = "プレイヤー能力";
+    [SerializeField] private string heroineSummaryTitle = "ヒロイン能力";
     [SerializeField] private string conditionalAbilityName = "衣装確認モード: 条件表示";
     [SerializeField] private string hiddenAbilityName = "衣装確認モード: 非表示";
     [SerializeField] private string conditionalAbilityDescription = "衣装が予定に対して問題ない場合は、出発前の確認を省略できるようにします。";
@@ -89,6 +90,7 @@ public class StatusDetailPanel : MonoBehaviour
     {
         gameManager = manager;
         heroineStatus = heroine;
+        playerStatus = manager != null ? manager.PlayerStatus : playerStatus;
         EnsureUiReferences();
     }
 
@@ -97,6 +99,7 @@ public class StatusDetailPanel : MonoBehaviour
         gameManager = manager;
         heroineStatus = heroine;
         timeManager = time;
+        playerStatus = manager != null ? manager.PlayerStatus : playerStatus;
         EnsureUiReferences();
     }
 
@@ -297,11 +300,68 @@ public class StatusDetailPanel : MonoBehaviour
         string conditionalLabel = abilities.canUseConditionalMode ? unlockedLabel : lockedLabel;
         string hiddenLabel = abilities.canUseHiddenMode ? unlockedLabel : lockedLabel;
 
-        string format = currentRole == StatusDetailRole.Player
-            ? playerSummaryFormat
-            : heroineSummaryFormat;
+        if (currentRole == StatusDetailRole.Player)
+        {
+            BattleStatusData playerBattleStatus = playerStatus != null ? playerStatus.BattleStatus : null;
+            return BuildPlayerStatusSummary(playerBattleStatus, conditionalLabel, hiddenLabel);
+        }
 
-        return string.Format(format, conditionalLabel, hiddenLabel);
+        BattleStatusData heroineBattleStatus = heroineStatus != null ? heroineStatus.BattleStatus : null;
+        return BuildHeroineStatusSummary(heroineBattleStatus, conditionalLabel, hiddenLabel);
+    }
+
+    private string BuildPlayerStatusSummary(
+        BattleStatusData status,
+        string conditionalLabel,
+        string hiddenLabel)
+    {
+        return playerSummaryTitle +
+            "\nHP：" + GetCurrentHp(status) + "/" + GetMaxHp(status) +
+            "\n攻撃：" + GetAttack(status) +
+            "\n防御：" + GetDefense(status) +
+            "\n素早さ：" + GetSpeed(status) +
+            "\n所持金：" + (playerStatus != null ? playerStatus.Money : 0) +
+            "\n衣装確認モード：" + conditionalLabel +
+            "\nHidden解放：" + hiddenLabel;
+    }
+
+    private string BuildHeroineStatusSummary(
+        BattleStatusData status,
+        string conditionalLabel,
+        string hiddenLabel)
+    {
+        return heroineSummaryTitle +
+            "\nHP：" + GetCurrentHp(status) + "/" + GetMaxHp(status) +
+            "\n攻撃：" + GetAttack(status) +
+            "\n防御：" + GetDefense(status) +
+            "\n素早さ：" + GetSpeed(status) +
+            "\n衣装確認モード：" + conditionalLabel +
+            "\nHidden解放：" + hiddenLabel;
+    }
+
+    private static int GetCurrentHp(BattleStatusData status)
+    {
+        return status != null ? status.currentHp : 0;
+    }
+
+    private static int GetMaxHp(BattleStatusData status)
+    {
+        return status != null ? status.maxHp : 0;
+    }
+
+    private static int GetAttack(BattleStatusData status)
+    {
+        return status != null ? status.attack : 0;
+    }
+
+    private static int GetDefense(BattleStatusData status)
+    {
+        return status != null ? status.defense : 0;
+    }
+
+    private static int GetSpeed(BattleStatusData status)
+    {
+        return status != null ? status.speed : 0;
     }
 
     private string BuildAbilityButtonLabel(StatusAbilityData ability)
@@ -542,6 +602,11 @@ public class StatusDetailPanel : MonoBehaviour
 
     private void EnsureUiReferences()
     {
+        if (playerStatus == null && gameManager != null)
+        {
+            playerStatus = gameManager.PlayerStatus;
+        }
+
         if (HasRequiredReferences() || hasWarnedMissingReferences)
         {
             return;
