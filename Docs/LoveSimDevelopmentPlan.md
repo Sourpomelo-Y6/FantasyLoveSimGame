@@ -464,6 +464,10 @@ Unity 上で明示配置したい場合は、`GameManager.playerStatus` に `Pla
 `ShoppingTestItem_01` 購入時は `GameManager.duoShoppingUnlockedOutfitIds`、デフォルト `Spring` / `Summer` / `Autumn` / `Winter` を `SaveData.unlockedOutfitIds` に保存する。
 `OutfitManager.CanWearOutfit()` は `isUnlockedByDefault=false` の衣装について、`unlockedOutfitIds` に含まれていれば着用可能とする。
 購入で解放された衣装は好感度条件を無視して着用できる方針にする。
+未購入の衣装は「好感度不足」ではなく「まだ所持していない」状態として扱う。
+春夏秋冬など `isUnlockedByDefault=false` かつ `unlockedOutfitIds` に含まれない衣装は、DressUp の衣装ボタン自体を表示しない方針にする。
+`lockedMessage` は好感度やイベント条件など、存在は見えているが条件不足で着られない場合の文言に限定する。
+次の実装では、衣装ボタン生成側で未所持衣装を一覧から除外する判定を追加する。
 
 ## 実装メモ
 

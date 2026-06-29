@@ -494,6 +494,8 @@ Importer は完了時に copied images、catalog assets、layers、conversations
 固定テスト商品 `ShoppingTestItem_01` の購入済み保存も実装済み。購入済み ID は `SaveData.purchasedItemIds` に保存し、`StatusDetailPanel` のプレイヤー詳細に表示する。
 `ShoppingTestItem_01` 購入時に `Spring` / `Summer` / `Autumn` / `Winter` 衣装を解放する処理も実装済み。解放済み衣装 ID は `SaveData.unlockedOutfitIds` に保存し、`OutfitManager` の着用可否判定に渡す。
 春夏秋冬の衣装アセットは手作業で `isUnlockedByDefault=false` に変更済み。購入解放された衣装は好感度条件を無視して着用できる。
+未購入の衣装は好感度不足ではなく未所持として扱う。購入前の春夏秋冬など `isUnlockedByDefault=false` かつ `unlockedOutfitIds` に含まれない衣装は、DressUp の衣装ボタンを表示しない方針にする。
+`lockedMessage` は好感度やイベント条件など、存在は見えているが条件不足で着られない場合に限定する。
 次に進める場合は、固定商品ではなく商品定義をデータ化するか、複数の季節衣装を商品として扱う。
 
 ### 会話を増やす
