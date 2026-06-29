@@ -489,7 +489,8 @@ Importer は完了時に copied images、catalog assets、layers、conversations
 基礎ステータスは実装済み。共通の `BattleStatusData`、プレイヤー用の `PlayerStatus`、ヒロイン側の `HeroineStatus.BattleStatus` を使う。
 所持金は案Aとして `PlayerStatus` だけが持つ。`SaveData` は `playerBattleStatus`、`playerMoney`、`heroineBattleStatus` を保存し、ロード時に復元する。
 `StatusDetailPanel` はプレイヤー詳細に HP、攻撃、防御、素早さ、所持金を表示し、ヒロイン詳細に HP、攻撃、防御、素早さを表示する。
-次に進める場合は、所持金を増減するテスト処理を追加する。
+所持金を増減するテスト処理は実装済み。`GameManager.debugAddMoneyKey` は F8、`debugSpendMoneyKey` は F9、`debugMoneyAmount` は 100 がデフォルト。
+次に進める場合は、`DuoShopping` 予定から簡易買い物イベントを起動する。
 
 ### 会話を増やす
 

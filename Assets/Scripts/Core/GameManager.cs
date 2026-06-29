@@ -279,6 +279,11 @@ public class GameManager : MonoBehaviour
     [SerializeField] private string debugManualGameEventId = "";
     [SerializeField] private KeyCode debugManualGameEventKey = KeyCode.F7;
 
+    [Header("Money Debug")]
+    [SerializeField] private KeyCode debugAddMoneyKey = KeyCode.F8;
+    [SerializeField] private KeyCode debugSpendMoneyKey = KeyCode.F9;
+    [SerializeField] private int debugMoneyAmount = 100;
+
 
     private void Update()
     {
@@ -298,6 +303,16 @@ public class GameManager : MonoBehaviour
         if (Input.GetKeyDown(KeyCode.P))
         {
             OpenSchedulePanel();
+        }
+
+        if (Input.GetKeyDown(debugAddMoneyKey))
+        {
+            AddPlayerMoney(debugMoneyAmount);
+        }
+
+        if (Input.GetKeyDown(debugSpendMoneyKey))
+        {
+            TrySpendPlayerMoney(debugMoneyAmount);
         }
     }
 
@@ -4656,6 +4671,64 @@ public class GameManager : MonoBehaviour
         }
 
         statusDetailPanel.OpenPlayerDetail();
+    }
+
+    public void AddPlayerMoney(int amount)
+    {
+        EnsureCoreStatusReferences();
+
+        if (amount <= 0)
+        {
+            ShowSystemMessage("増やす所持金は 1 以上にしてください。");
+            return;
+        }
+
+        if (playerStatus == null)
+        {
+            ShowSystemMessage("プレイヤーステータスが設定されていません。");
+            return;
+        }
+
+        playerStatus.AddMoney(amount);
+        RefreshStatusDetailPanel();
+        ShowSystemMessage("所持金が " + amount + " 増えました。現在の所持金：" + playerStatus.Money);
+    }
+
+    public bool TrySpendPlayerMoney(int amount)
+    {
+        EnsureCoreStatusReferences();
+
+        if (amount <= 0)
+        {
+            ShowSystemMessage("使う所持金は 1 以上にしてください。");
+            return false;
+        }
+
+        if (playerStatus == null)
+        {
+            ShowSystemMessage("プレイヤーステータスが設定されていません。");
+            return false;
+        }
+
+        if (!playerStatus.TrySpendMoney(amount))
+        {
+            ShowSystemMessage("所持金が足りません。現在の所持金：" + playerStatus.Money);
+            return false;
+        }
+
+        RefreshStatusDetailPanel();
+        ShowSystemMessage("所持金を " + amount + " 使いました。現在の所持金：" + playerStatus.Money);
+        return true;
+    }
+
+    private void RefreshStatusDetailPanel()
+    {
+        EnsureStatusDetailPanel();
+
+        if (statusDetailPanel != null)
+        {
+            statusDetailPanel.RefreshStatusDisplay();
+        }
     }
 
     public void OpenStillGalleryPanel()

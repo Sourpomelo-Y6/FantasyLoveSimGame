@@ -124,6 +124,11 @@ public class StatusDetailPanel : MonoBehaviour
         PanelRoot.SetActive(false);
     }
 
+    public void RefreshStatusDisplay()
+    {
+        Refresh();
+    }
+
     public void ShowAbilityAcquirePanelForConditional()
     {
         EnsureUiReferences();
