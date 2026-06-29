@@ -4291,41 +4291,57 @@ public class GameManager : MonoBehaviour
 
         string locationName;
         int rewardMoney;
+        int playerHpChange;
+        int heroineHpChange;
         switch (scheduleType)
         {
             case ScheduleType.SoloForest:
                 locationName = "森";
                 rewardMoney = 20;
+                playerHpChange = 0;
+                heroineHpChange = 0;
                 break;
 
             case ScheduleType.DuoForest:
                 locationName = "二人で森";
                 rewardMoney = 25;
+                playerHpChange = 0;
+                heroineHpChange = 0;
                 break;
 
             case ScheduleType.SoloCave:
                 locationName = "洞窟";
                 rewardMoney = 50;
+                playerHpChange = -10;
+                heroineHpChange = 0;
                 break;
 
             case ScheduleType.DuoCave:
                 locationName = "二人で洞窟";
                 rewardMoney = 60;
+                playerHpChange = -8;
+                heroineHpChange = -6;
                 break;
 
             case ScheduleType.SoloLake:
                 locationName = "湖";
                 rewardMoney = 10;
+                playerHpChange = 10;
+                heroineHpChange = 0;
                 break;
 
             case ScheduleType.DuoLake:
                 locationName = "二人で湖";
                 rewardMoney = 15;
+                playerHpChange = 10;
+                heroineHpChange = 8;
                 break;
 
             default:
                 locationName = "探索";
                 rewardMoney = 0;
+                playerHpChange = 0;
+                heroineHpChange = 0;
                 break;
         }
 
@@ -4333,6 +4349,9 @@ public class GameManager : MonoBehaviour
         {
             playerStatus.AddMoney(rewardMoney);
         }
+
+        int appliedPlayerHpChange = ApplyPlayerHpChange(playerHpChange);
+        int appliedHeroineHpChange = ApplyHeroineHpChange(heroineHpChange);
 
         RefreshStatusDetailPanel();
 
@@ -4342,7 +4361,59 @@ public class GameManager : MonoBehaviour
             resultMessage += "\n探索報酬として " + rewardMoney + " を入手しました。現在の所持金：" + playerStatus.Money;
         }
 
+        if (appliedPlayerHpChange != 0)
+        {
+            resultMessage += "\nプレイヤーHP " + FormatSignedValue(appliedPlayerHpChange) +
+                "（現在 " + playerStatus.CurrentHp + "/" + playerStatus.MaxHp + "）";
+        }
+
+        if (appliedHeroineHpChange != 0 && heroineStatus != null)
+        {
+            resultMessage += "\n" + heroineStatus.HeroineName + " HP " + FormatSignedValue(appliedHeroineHpChange) +
+                "（現在 " + heroineStatus.CurrentHp + "/" + heroineStatus.MaxHp + "）";
+        }
+
         return AppendLine(baseMessage, resultMessage);
+    }
+
+    private int ApplyPlayerHpChange(int value)
+    {
+        if (playerStatus == null || value == 0)
+        {
+            return 0;
+        }
+
+        if (value < 0)
+        {
+            return -playerStatus.DamageHp(-value);
+        }
+
+        return playerStatus.RecoverHp(value);
+    }
+
+    private int ApplyHeroineHpChange(int value)
+    {
+        if (heroineStatus == null || value == 0)
+        {
+            return 0;
+        }
+
+        if (value < 0)
+        {
+            return -heroineStatus.DamageHp(-value);
+        }
+
+        return heroineStatus.RecoverHp(value);
+    }
+
+    private static string FormatSignedValue(int value)
+    {
+        if (value > 0)
+        {
+            return "+" + value;
+        }
+
+        return value.ToString();
     }
 
     private bool TryOpenDuoShoppingShopPanel(ScheduledEventDefinition scheduledEvent)

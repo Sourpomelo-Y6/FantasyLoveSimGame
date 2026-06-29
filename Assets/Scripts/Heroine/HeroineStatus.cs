@@ -26,6 +26,8 @@ public class HeroineStatus : MonoBehaviour
     public int Affection => affection;
     public int MaxAffection => maxAffection;
     public BattleStatusData BattleStatus => battleStatus;
+    public int CurrentHp => battleStatus != null ? battleStatus.currentHp : 0;
+    public int MaxHp => battleStatus != null ? battleStatus.maxHp : 0;
     public OutfitPromptAbilitySet OutfitPromptAbilities => outfitPromptAbilities;
 
     private void Awake()
@@ -50,6 +52,41 @@ public class HeroineStatus : MonoBehaviour
     {
         NormalizeBattleStatus();
         battleStatus.CopyFrom(source);
+    }
+
+    public void SetCurrentHp(int value)
+    {
+        NormalizeBattleStatus();
+        battleStatus.currentHp = value;
+        battleStatus.Clamp();
+    }
+
+    public int DamageHp(int value)
+    {
+        if (value <= 0)
+        {
+            return 0;
+        }
+
+        NormalizeBattleStatus();
+        int before = battleStatus.currentHp;
+        battleStatus.currentHp -= value;
+        battleStatus.Clamp();
+        return before - battleStatus.currentHp;
+    }
+
+    public int RecoverHp(int value)
+    {
+        if (value <= 0)
+        {
+            return 0;
+        }
+
+        NormalizeBattleStatus();
+        int before = battleStatus.currentHp;
+        battleStatus.currentHp += value;
+        battleStatus.Clamp();
+        return battleStatus.currentHp - before;
     }
 
     public void AddAffection(int value)
