@@ -4579,9 +4579,12 @@ public class GameManager : MonoBehaviour
             : "戦闘に勝利しました。";
         result.Message =
             message +
+            BuildBattleEnemyMessage(enemy) +
             "\n戦闘結果：勝利（" + result.Turns + "ターン）" +
             "\nプレイヤー被ダメージ：" + result.PlayerDamageTaken +
+            BuildPlayerHpMessage() +
             BuildHeroineDamageMessage(result.HeroineDamageTaken) +
+            BuildHeroineHpMessage() +
             BuildBattleRewardMessage(result);
     }
 
@@ -4603,10 +4606,15 @@ public class GameManager : MonoBehaviour
             : "戦闘に敗北しました。";
         result.Message =
             message +
+            BuildBattleEnemyMessage(enemy) +
             "\n戦闘結果：敗北（" + result.Turns + "ターン）" +
             "\nプレイヤー被ダメージ：" + result.PlayerDamageTaken +
+            BuildPlayerHpMessage() +
             BuildHeroineDamageMessage(result.HeroineDamageTaken) +
-            "\nHP 1 で撤退しました。";
+            BuildHeroineHpMessage() +
+            "\n報酬なし" +
+            "\nHP 1 で撤退しました。" +
+            "\n予定は消費済みです。";
     }
 
     private static int CalculateBattleDamage(BattleStatusData attacker, BattleStatusData defender)
@@ -4633,6 +4641,37 @@ public class GameManager : MonoBehaviour
         }
 
         return "\nヒロイン被ダメージ：" + heroineDamageTaken;
+    }
+
+    private static string BuildBattleEnemyMessage(EnemyData enemy)
+    {
+        if (enemy == null)
+        {
+            return "";
+        }
+
+        return "\n敵：" + enemy.GetDisplayName();
+    }
+
+    private string BuildPlayerHpMessage()
+    {
+        if (playerStatus == null)
+        {
+            return "";
+        }
+
+        return "\nプレイヤー現在 HP：" + playerStatus.CurrentHp + "/" + playerStatus.MaxHp;
+    }
+
+    private string BuildHeroineHpMessage()
+    {
+        if (heroineStatus == null)
+        {
+            return "";
+        }
+
+        return "\n" + heroineStatus.HeroineName + " 現在 HP：" +
+            heroineStatus.CurrentHp + "/" + heroineStatus.MaxHp;
     }
 
     private static string BuildBattleRewardMessage(SimpleBattleResult result)
