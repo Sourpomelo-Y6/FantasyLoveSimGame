@@ -10985,9 +10985,15 @@ MonoBehaviour:
   debugAddMoneyKey: 289
   debugSpendMoneyKey: 290
   debugMoneyAmount: 100
+  duoShoppingShopItem: {fileID: 11400000, guid: da7cd39b898a49be8c6a7d0f030937b4, type: 2}
   duoShoppingTestCost: 100
   duoShoppingTestItemId: ShoppingTestItem_01
   duoShoppingTestItemName: "\u8CB7\u3044\u7269\u30C6\u30B9\u30C8\u5546\u54C1"
+  duoShoppingUnlockedOutfitIds:
+  - Spring
+  - Summer
+  - Autumn
+  - Winter
 --- !u!224 &1490559564
 RectTransform:
   m_ObjectHideFlags: 0
@@ -12443,7 +12449,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -620, y: 120}
+  m_AnchoredPosition: {x: 682, y: 55}
   m_SizeDelta: {x: 360, y: 660}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1723073668

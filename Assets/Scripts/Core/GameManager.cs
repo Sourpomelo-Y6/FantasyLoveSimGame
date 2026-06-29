@@ -287,6 +287,7 @@ public class GameManager : MonoBehaviour
     [SerializeField] private int debugMoneyAmount = 100;
 
     [Header("Shopping Test")]
+    [SerializeField] private ShopItemData duoShoppingShopItem;
     [SerializeField] private int duoShoppingTestCost = 100;
     [SerializeField] private string duoShoppingTestItemId = "ShoppingTestItem_01";
     [SerializeField] private string duoShoppingTestItemName = "買い物テスト商品";
@@ -2374,7 +2375,8 @@ public class GameManager : MonoBehaviour
 
     private void ApplyPurchasedItemOutfitUnlocks()
     {
-        if (IsPurchasedItem(duoShoppingTestItemId))
+        string duoShoppingItemId = GetDuoShoppingItemId();
+        if (IsPurchasedItem(duoShoppingItemId))
         {
             RegisterUnlockedOutfits(GetDuoShoppingUnlockedOutfitIds());
         }
@@ -4255,12 +4257,16 @@ public class GameManager : MonoBehaviour
             return AppendLine(baseMessage, "買い物処理を確認できませんでした。プレイヤーステータスが設定されていません。");
         }
 
-        if (string.IsNullOrEmpty(duoShoppingTestItemId))
+        string itemId = GetDuoShoppingItemId();
+        string itemName = GetDuoShoppingItemName();
+        int itemPrice = GetDuoShoppingItemPrice();
+
+        if (string.IsNullOrEmpty(itemId))
         {
             return AppendLine(baseMessage, "買い物テスト商品 ID が設定されていません。");
         }
 
-        if (IsPurchasedItem(duoShoppingTestItemId))
+        if (IsPurchasedItem(itemId))
         {
             List<string> unlockedOutfitIdsForPurchasedItem = GetDuoShoppingUnlockedOutfitIds();
             bool alreadyUnlocked = AreOutfitsUnlocked(unlockedOutfitIdsForPurchasedItem);
@@ -4268,7 +4274,7 @@ public class GameManager : MonoBehaviour
             RefreshStatusDetailPanel();
 
             string purchasedMessage =
-                duoShoppingTestItemName + " は購入済みです。現在の所持金：" + playerStatus.Money;
+                itemName + " は購入済みです。現在の所持金：" + playerStatus.Money;
             if (!alreadyUnlocked)
             {
                 string purchasedItemUnlockMessage = BuildUnlockedOutfitMessage(unlockedOutfitIdsForPurchasedItem);
@@ -4281,24 +4287,24 @@ public class GameManager : MonoBehaviour
             return AppendLine(baseMessage, purchasedMessage);
         }
 
-        if (duoShoppingTestCost <= 0)
+        if (itemPrice <= 0)
         {
             return AppendLine(baseMessage, "買い物テスト費用が 0 以下のため、所持金は変化しませんでした。");
         }
 
-        if (!playerStatus.TrySpendMoney(duoShoppingTestCost))
+        if (!playerStatus.TrySpendMoney(itemPrice))
         {
             return AppendLine(
                 baseMessage,
                 "買い物をしようとしましたが、所持金が足りませんでした。現在の所持金：" + playerStatus.Money);
         }
 
-        RegisterPurchasedItem(duoShoppingTestItemId);
+        RegisterPurchasedItem(itemId);
         List<string> unlockedOutfitIdsForPurchase = GetDuoShoppingUnlockedOutfitIds();
         RegisterUnlockedOutfits(unlockedOutfitIdsForPurchase);
         RefreshStatusDetailPanel();
         string resultMessage =
-            duoShoppingTestItemName + " を " + duoShoppingTestCost + " で購入しました。現在の所持金：" + playerStatus.Money;
+            itemName + " を " + itemPrice + " で購入しました。現在の所持金：" + playerStatus.Money;
 
         string unlockedOutfitMessage = BuildUnlockedOutfitMessage(unlockedOutfitIdsForPurchase);
         if (!string.IsNullOrEmpty(unlockedOutfitMessage))
@@ -4351,8 +4357,43 @@ public class GameManager : MonoBehaviour
         return true;
     }
 
+    private string GetDuoShoppingItemId()
+    {
+        if (duoShoppingShopItem != null && !string.IsNullOrEmpty(duoShoppingShopItem.itemId))
+        {
+            return duoShoppingShopItem.itemId;
+        }
+
+        return duoShoppingTestItemId;
+    }
+
+    private string GetDuoShoppingItemName()
+    {
+        if (duoShoppingShopItem != null && !string.IsNullOrEmpty(duoShoppingShopItem.displayName))
+        {
+            return duoShoppingShopItem.displayName;
+        }
+
+        return duoShoppingTestItemName;
+    }
+
+    private int GetDuoShoppingItemPrice()
+    {
+        if (duoShoppingShopItem != null)
+        {
+            return duoShoppingShopItem.price;
+        }
+
+        return duoShoppingTestCost;
+    }
+
     private List<string> GetDuoShoppingUnlockedOutfitIds()
     {
+        if (duoShoppingShopItem != null)
+        {
+            return duoShoppingShopItem.GetUnlockedOutfitIds();
+        }
+
         if (duoShoppingUnlockedOutfitIds != null && duoShoppingUnlockedOutfitIds.Count > 0)
         {
             return duoShoppingUnlockedOutfitIds;

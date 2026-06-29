@@ -490,8 +490,9 @@ Importer は完了時に copied images、catalog assets、layers、conversations
 所持金は案Aとして `PlayerStatus` だけが持つ。`SaveData` は `playerBattleStatus`、`playerMoney`、`heroineBattleStatus` を保存し、ロード時に復元する。
 `StatusDetailPanel` はプレイヤー詳細に HP、攻撃、防御、素早さ、所持金を表示し、ヒロイン詳細に HP、攻撃、防御、素早さを表示する。
 所持金を増減するテスト処理は実装済み。`GameManager.debugAddMoneyKey` は F8、`debugSpendMoneyKey` は F9、`debugMoneyAmount` は 100 がデフォルト。
-`DuoShopping` 予定からの簡易買い物イベントも実装済み。`DuoShopping` 実行時に `GameManager.duoShoppingTestCost`、デフォルト 100 を所持金から消費し、結果を予定イベント本文に追記する。
-固定テスト商品 `ShoppingTestItem_01` の購入済み保存も実装済み。購入済み ID は `SaveData.purchasedItemIds` に保存し、`StatusDetailPanel` のプレイヤー詳細に表示する。
+`DuoShopping` 予定からの簡易買い物イベントも実装済み。`DuoShopping` 実行時に `GameManager.duoShoppingShopItem` の価格を所持金から消費し、結果を予定イベント本文に追記する。
+テスト商品 `ShoppingTestItem_01` は `Assets/Resources/ShopItems/ShoppingTestItem_01.asset` の `ShopItemData` で定義済み。価格 100、解放衣装 `Spring` / `Summer` / `Autumn` / `Winter` を持つ。
+購入済み ID は `SaveData.purchasedItemIds` に保存し、`StatusDetailPanel` のプレイヤー詳細に表示する。
 `ShoppingTestItem_01` 購入時に `Spring` / `Summer` / `Autumn` / `Winter` 衣装を解放する処理も実装済み。解放済み衣装 ID は `SaveData.unlockedOutfitIds` に保存し、`OutfitManager` の着用可否判定に渡す。
 春夏秋冬の衣装アセットは手作業で `isUnlockedByDefault=false` に変更済み。購入解放された衣装は好感度条件を無視して着用できる。
 未購入の衣装は好感度不足ではなく未所持として扱う。購入前の春夏秋冬など `isUnlockedByDefault=false` かつ `unlockedOutfitIds` に含まれない衣装は、DressUp の衣装ボタンを表示しない方針にする。
