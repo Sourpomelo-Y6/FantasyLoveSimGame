@@ -249,6 +249,7 @@ public class GameManager : MonoBehaviour
     private readonly HashSet<string> purchasedItemIds = new HashSet<string>();
     private readonly HashSet<string> unlockedOutfitIds = new HashSet<string>();
     private readonly Queue<DialogueMessage> queuedDialogueMessages = new Queue<DialogueMessage>();
+    private readonly List<string> pendingScheduledEventFollowUpMessages = new List<string>();
     private readonly List<MessageLogPanel.MessageLogEntry> messageLogEntries =
         new List<MessageLogPanel.MessageLogEntry>();
 
@@ -4235,6 +4236,7 @@ public class GameManager : MonoBehaviour
     {
         scheduleManager.MarkTodayScheduleEventExecuted();
         heroineStatus.AddAffection(scheduledEvent.AffectionChange);
+        pendingScheduledEventFollowUpMessages.Clear();
         string eventMessage = ResolveScheduledEventMessage(scheduledEvent, selectedShopItem);
         pendingScheduledEvent = null;
         startPendingScheduledEventAfterOutfitMessage = false;
@@ -4250,6 +4252,7 @@ public class GameManager : MonoBehaviour
         outfitReactionPanel.SetActive(false);
 
         ShowScheduledEventDialogue(scheduledEvent, eventMessage);
+        EnqueueScheduledEventFollowUpMessages();
 
         flowState = ConversationFlowState.ShowingActionResult;
         nextButton.gameObject.SetActive(true);
@@ -4401,9 +4404,54 @@ public class GameManager : MonoBehaviour
         if (hasBattleResult)
         {
             resultMessage += "\n" + battleResult.Message;
+            AddBattleLogFollowUpMessages(battleResult);
         }
 
         return AppendLine(baseMessage, resultMessage);
+    }
+
+    private void EnqueueScheduledEventFollowUpMessages()
+    {
+        if (pendingScheduledEventFollowUpMessages.Count == 0)
+        {
+            return;
+        }
+
+        foreach (string message in pendingScheduledEventFollowUpMessages)
+        {
+            if (string.IsNullOrEmpty(message))
+            {
+                continue;
+            }
+
+            queuedDialogueMessages.Enqueue(
+                new DialogueMessage(DialogueSpeakerType.Schedule, ScheduleSpeakerName, message));
+        }
+
+        pendingScheduledEventFollowUpMessages.Clear();
+    }
+
+    private void AddBattleLogFollowUpMessages(SimpleBattleResult result)
+    {
+        if (result.LogLines == null || result.LogLines.Count == 0)
+        {
+            return;
+        }
+
+        const int linesPerPage = 3;
+        int pageCount = (result.LogLines.Count + linesPerPage - 1) / linesPerPage;
+        for (int pageIndex = 0; pageIndex < pageCount; pageIndex++)
+        {
+            int start = pageIndex * linesPerPage;
+            int end = Math.Min(start + linesPerPage, result.LogLines.Count);
+            string message = "戦闘ログ " + (pageIndex + 1) + "/" + pageCount;
+            for (int i = start; i < end; i++)
+            {
+                message += "\n" + result.LogLines[i];
+            }
+
+            pendingScheduledEventFollowUpMessages.Add(message);
+        }
     }
 
     private static bool IsDuoExplorationSchedule(ScheduleType scheduleType)
@@ -4603,8 +4651,7 @@ public class GameManager : MonoBehaviour
             BuildPlayerHpMessage() +
             BuildHeroineDamageMessage(result.HeroineDamageTaken) +
             BuildHeroineHpMessage() +
-            BuildBattleRewardMessage(result) +
-            BuildBattleLogMessage(result);
+            BuildBattleRewardMessage(result);
     }
 
     private void ApplySimpleBattleDefeat(EnemyData enemy, ref SimpleBattleResult result)
@@ -4633,8 +4680,7 @@ public class GameManager : MonoBehaviour
             BuildHeroineHpMessage() +
             "\n報酬なし" +
             "\nHP 1 で撤退しました。" +
-            "\n予定は消費済みです。" +
-            BuildBattleLogMessage(result);
+            "\n予定は消費済みです。";
     }
 
     private static int CalculateBattleDamage(BattleStatusData attacker, BattleStatusData defender)
@@ -4723,29 +4769,6 @@ public class GameManager : MonoBehaviour
         }
 
         result.LogLines.Add(line);
-    }
-
-    private static string BuildBattleLogMessage(SimpleBattleResult result)
-    {
-        if (result.LogLines == null || result.LogLines.Count == 0)
-        {
-            return "";
-        }
-
-        const int maxLogLines = 8;
-        string message = "\n戦闘ログ:";
-        int count = Math.Min(maxLogLines, result.LogLines.Count);
-        for (int i = 0; i < count; i++)
-        {
-            message += "\n" + result.LogLines[i];
-        }
-
-        if (result.LogLines.Count > maxLogLines)
-        {
-            message += "\n...";
-        }
-
-        return message;
     }
 
     private int ApplyPlayerHpChange(int value)
