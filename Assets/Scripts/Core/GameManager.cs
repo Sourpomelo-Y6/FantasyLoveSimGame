@@ -4352,10 +4352,16 @@ public class GameManager : MonoBehaviour
 
         int appliedPlayerHpChange = ApplyPlayerHpChange(playerHpChange);
         int appliedHeroineHpChange = ApplyHeroineHpChange(heroineHpChange);
+        EnemyData enemy = ResolveExplorationEnemy(scheduleType);
 
         RefreshStatusDetailPanel();
 
         string resultMessage = locationName + "の探索を終えました。";
+        if (enemy != null)
+        {
+            resultMessage += "\n" + enemy.GetDisplayName() + " に遭遇しました。";
+        }
+
         if (rewardMoney > 0)
         {
             resultMessage += "\n探索報酬として " + rewardMoney + " を入手しました。現在の所持金：" + playerStatus.Money;
@@ -4374,6 +4380,44 @@ public class GameManager : MonoBehaviour
         }
 
         return AppendLine(baseMessage, resultMessage);
+    }
+
+    private EnemyData ResolveExplorationEnemy(ScheduleType scheduleType)
+    {
+        string resourcePath = GetExplorationEnemyResourcePath(scheduleType);
+        if (string.IsNullOrEmpty(resourcePath))
+        {
+            return null;
+        }
+
+        EnemyData enemy = Resources.Load<EnemyData>(resourcePath);
+        if (enemy == null)
+        {
+            Debug.LogWarning("探索敵データが見つかりません: " + resourcePath);
+        }
+
+        return enemy;
+    }
+
+    private static string GetExplorationEnemyResourcePath(ScheduleType scheduleType)
+    {
+        switch (scheduleType)
+        {
+            case ScheduleType.SoloForest:
+            case ScheduleType.DuoForest:
+                return "Enemies/ForestSlime";
+
+            case ScheduleType.SoloCave:
+            case ScheduleType.DuoCave:
+                return "Enemies/CaveBat";
+
+            case ScheduleType.SoloLake:
+            case ScheduleType.DuoLake:
+                return "Enemies/LakeSpirit";
+
+            default:
+                return "";
+        }
     }
 
     private int ApplyPlayerHpChange(int value)

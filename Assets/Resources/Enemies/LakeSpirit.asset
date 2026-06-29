@@ -1,0 +1,26 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f8b2c4d7a91e4d5386c0f1a23b5e9d64, type: 3}
+  m_Name: LakeSpirit
+  m_EditorClassIdentifier: 
+  enemyId: LakeSpirit
+  displayName: "\u6E56\u306E\u7CBE\u970A"
+  battleStatus:
+    currentHp: 35
+    maxHp: 35
+    attack: 5
+    defense: 4
+    speed: 5
+  rewardMoney: 20
+  affectionChangeOnWin: 2
+  victoryMessage: "\u6E56\u306E\u7CBE\u970A\u306B\u8A8D\u3081\u3089\u308C\u307E\u3057\u305F\u3002"
+  defeatMessage: "\u6E56\u306E\u7CBE\u970A\u306E\u8A66\u7DF4\u304B\u3089\u9000\u304D\u307E\u3057\u305F\u3002"
