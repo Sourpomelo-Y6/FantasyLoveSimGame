@@ -141,6 +141,8 @@ public class GameManager : MonoBehaviour
     [SerializeField] private Color scheduleDialogueColor = Color.white;
     [SerializeField] private Color outfitSpeakerColor = new Color32(130, 220, 160, 255);
     [SerializeField] private Color outfitDialogueColor = Color.white;
+    [SerializeField] private Color battleLogSpeakerColor = new Color32(255, 170, 120, 255);
+    [SerializeField] private Color battleLogDialogueColor = new Color32(235, 235, 235, 255);
 
     [Header("Fade")]
     [SerializeField] private Image fadeImage;
@@ -666,7 +668,7 @@ public class GameManager : MonoBehaviour
             case DialogueSpeakerType.Outfit:
                 return outfitSpeakerColor;
             case DialogueSpeakerType.BattleLog:
-                return scheduleSpeakerColor;
+                return battleLogSpeakerColor;
             default:
                 return heroineSpeakerColor;
         }
@@ -685,7 +687,7 @@ public class GameManager : MonoBehaviour
             case DialogueSpeakerType.Outfit:
                 return outfitDialogueColor;
             case DialogueSpeakerType.BattleLog:
-                return scheduleDialogueColor;
+                return battleLogDialogueColor;
             default:
                 return heroineDialogueColor;
         }
