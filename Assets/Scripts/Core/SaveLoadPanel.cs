@@ -84,6 +84,12 @@ public class SaveLoadPanel : MonoBehaviour
 
     public void OpenSave()
     {
+        if (gameManager != null && !gameManager.CanOpenSaveLoadPanel())
+        {
+            Debug.LogWarning("会話やイベントの表示中はセーブ画面を開けません。");
+            return;
+        }
+
         if (gameManager != null)
         {
             gameManager.CaptureSaveThumbnailPreview();
@@ -98,6 +104,12 @@ public class SaveLoadPanel : MonoBehaviour
 
     public void OpenLoad()
     {
+        if (gameManager != null && !gameManager.CanOpenSaveLoadPanel())
+        {
+            Debug.LogWarning("会話やイベントの表示中はロード画面を開けません。");
+            return;
+        }
+
         currentMode = SaveLoadPanelMode.Load;
         ClearPendingAction();
         ApplyModeVisuals();

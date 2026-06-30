@@ -619,6 +619,26 @@ public class GameManager : MonoBehaviour
         }
     }
 
+    public bool CanOpenSaveLoadPanel()
+    {
+        if (isFading)
+        {
+            return false;
+        }
+
+        if (flowState != ConversationFlowState.Idle)
+        {
+            return false;
+        }
+
+        if (dialogueSequenceIsActive || queuedDialogueMessages.Count > 0)
+        {
+            return false;
+        }
+
+        return actionButtonArea == null || actionButtonArea.activeInHierarchy;
+    }
+
     private Image GetDialogueStillImage()
     {
         if (eventStillImage != null)
@@ -1240,7 +1260,7 @@ public class GameManager : MonoBehaviour
         {
             GameStartSettings.ShouldLoadOnStart = false;
             GameStartSettings.ShouldPlayGameStartEvent = false;
-            LoadGame();
+            LoadGameFromSlotInternal(GameStartSettings.SelectedSaveSlotIndex);
             RefreshUI();
             SetSaveLoadButtonsVisible(true);
             EnsureStatusDetailPanel();
@@ -2082,6 +2102,12 @@ public class GameManager : MonoBehaviour
 
     public void SaveGameToSlot(int slotIndex)
     {
+        if (!CanOpenSaveLoadPanel())
+        {
+            Debug.LogWarning("会話やイベントの表示中はセーブできません。");
+            return;
+        }
+
         SelectSaveSlot(slotIndex);
 
         SaveData saveData = new SaveData();
@@ -2184,6 +2210,17 @@ public class GameManager : MonoBehaviour
     }
 
     public void LoadGameFromSlot(int slotIndex)
+    {
+        if (!CanOpenSaveLoadPanel())
+        {
+            Debug.LogWarning("会話やイベントの表示中はロードできません。");
+            return;
+        }
+
+        LoadGameFromSlotInternal(slotIndex);
+    }
+
+    private void LoadGameFromSlotInternal(int slotIndex)
     {
         SelectSaveSlot(slotIndex);
 
