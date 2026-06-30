@@ -9,6 +9,7 @@ using UnityEngine.SceneManagement;
 public class GameManager : MonoBehaviour
 {
     private const string CommonScheduledEventResourcePath = "ScheduledEvents";
+    private const string BattleResultEventResourcePath = "BattleResultEvents";
 
     private enum ConversationFlowState
     {
@@ -4512,7 +4513,12 @@ public class GameManager : MonoBehaviour
 
     private string ResolveBattleResultEventDataMessage(BattleResultEventType eventType, string heroineName)
     {
-        if (battleResultEvents == null)
+        if (battleResultEvents == null || battleResultEvents.Length == 0)
+        {
+            battleResultEvents = Resources.LoadAll<BattleResultEventData>(BattleResultEventResourcePath);
+        }
+
+        if (battleResultEvents == null || battleResultEvents.Length == 0)
         {
             return "";
         }

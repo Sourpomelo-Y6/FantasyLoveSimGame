@@ -1,0 +1,19 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4d2a9870b7a34c9d89f4e8a1c3b6297e, type: 3}
+  m_Name: DuoDefeat
+  m_EditorClassIdentifier:
+  battleResultEventType: 3
+  message: "\u6226\u95D8\u5F8C\u30A4\u30D9\u30F3\u30C8\uFF1A\u6557\u5317\n{heroineName}\u3068\u4F53\u52E2\u3092\u7ACB\u3066\u76F4\u3059\u305F\u3081\u64A4\u9000\u3057\u307E\u3057\u305F\u3002\n\u6557\u5317\u7D50\u679C\u306F\u4ECA\u5F8C\u306E\u5C02\u7528\u30A4\u30D9\u30F3\u30C8\u5206\u5C90\u3078\u63A5\u7D9A\u3067\u304D\u307E\u3059\u3002"
+  stillId:
+  affectionChange: 0
+  unlockedOutfitIds: []
