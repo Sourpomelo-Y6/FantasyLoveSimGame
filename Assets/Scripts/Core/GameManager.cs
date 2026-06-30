@@ -31,6 +31,14 @@ public class GameManager : MonoBehaviour
         BattleLog
     }
 
+    private enum BattleResultEventType
+    {
+        SoloVictory,
+        DuoVictory,
+        SoloDefeat,
+        DuoDefeat
+    }
+
     private struct DialogueMessage
     {
         public readonly DialogueSpeakerType SpeakerType;
@@ -4460,35 +4468,46 @@ public class GameManager : MonoBehaviour
 
     private string BuildBattleResultEventMessage(ScheduleType scheduleType, SimpleBattleResult result)
     {
-        bool isDuoExploration = IsDuoExplorationSchedule(scheduleType);
+        BattleResultEventType eventType = ResolveBattleResultEventType(scheduleType, result);
         string heroineName = heroineStatus != null && !string.IsNullOrEmpty(heroineStatus.HeroineName)
             ? heroineStatus.HeroineName
             : "ヒロイン";
 
-        if (result.PlayerWon)
+        switch (eventType)
         {
-            if (isDuoExploration)
-            {
+            case BattleResultEventType.DuoVictory:
                 return "戦闘後イベント：勝利\n" +
                     heroineName + "と協力して探索を続けられました。\n" +
                     "勝利結果は今後の好感度イベントや探索分岐へ接続できます。";
-            }
 
-            return "戦闘後イベント：勝利\n" +
-                "敵を退け、探索を続けられました。\n" +
-                "勝利結果は今後の探索分岐へ接続できます。";
+            case BattleResultEventType.SoloVictory:
+                return "戦闘後イベント：勝利\n" +
+                    "敵を退け、探索を続けられました。\n" +
+                    "勝利結果は今後の探索分岐へ接続できます。";
+
+            case BattleResultEventType.DuoDefeat:
+                return "戦闘後イベント：敗北\n" +
+                    heroineName + "と体勢を立て直すため撤退しました。\n" +
+                    "敗北結果は今後の専用イベント分岐へ接続できます。";
+
+            default:
+                return "戦闘後イベント：敗北\n" +
+                    "探索を切り上げて撤退しました。\n" +
+                    "敗北結果は今後の専用イベント分岐へ接続できます。";
         }
+    }
 
-        if (isDuoExploration)
+    private static BattleResultEventType ResolveBattleResultEventType(
+        ScheduleType scheduleType,
+        SimpleBattleResult result)
+    {
+        bool isDuoExploration = IsDuoExplorationSchedule(scheduleType);
+        if (result.PlayerWon)
         {
-            return "戦闘後イベント：敗北\n" +
-                heroineName + "と体勢を立て直すため撤退しました。\n" +
-                "敗北結果は今後の専用イベント分岐へ接続できます。";
+            return isDuoExploration ? BattleResultEventType.DuoVictory : BattleResultEventType.SoloVictory;
         }
 
-        return "戦闘後イベント：敗北\n" +
-            "探索を切り上げて撤退しました。\n" +
-            "敗北結果は今後の専用イベント分岐へ接続できます。";
+        return isDuoExploration ? BattleResultEventType.DuoDefeat : BattleResultEventType.SoloDefeat;
     }
 
     private void AddBattleLogFollowUpMessages(SimpleBattleResult result)
