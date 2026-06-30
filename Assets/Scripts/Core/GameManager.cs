@@ -31,14 +31,6 @@ public class GameManager : MonoBehaviour
         BattleLog
     }
 
-    private enum BattleResultEventType
-    {
-        SoloVictory,
-        DuoVictory,
-        SoloDefeat,
-        DuoDefeat
-    }
-
     private struct DialogueMessage
     {
         public readonly DialogueSpeakerType SpeakerType;
@@ -301,6 +293,9 @@ public class GameManager : MonoBehaviour
     [Header("Message Log")]
     [SerializeField] private MessageLogPanel messageLogPanel;
     [SerializeField] private int messageLogLimit = 20;
+
+    [Header("Battle Result Events")]
+    [SerializeField] private BattleResultEventData[] battleResultEvents;
 
     [Header("Game Event Debug")]
     [SerializeField] private string debugManualGameEventId = "";
@@ -4472,6 +4467,11 @@ public class GameManager : MonoBehaviour
         string heroineName = heroineStatus != null && !string.IsNullOrEmpty(heroineStatus.HeroineName)
             ? heroineStatus.HeroineName
             : "ヒロイン";
+        string dataMessage = ResolveBattleResultEventDataMessage(eventType, heroineName);
+        if (!string.IsNullOrEmpty(dataMessage))
+        {
+            return dataMessage;
+        }
 
         switch (eventType)
         {
@@ -4508,6 +4508,39 @@ public class GameManager : MonoBehaviour
         }
 
         return isDuoExploration ? BattleResultEventType.DuoDefeat : BattleResultEventType.SoloDefeat;
+    }
+
+    private string ResolveBattleResultEventDataMessage(BattleResultEventType eventType, string heroineName)
+    {
+        if (battleResultEvents == null)
+        {
+            return "";
+        }
+
+        for (int i = 0; i < battleResultEvents.Length; i++)
+        {
+            BattleResultEventData eventData = battleResultEvents[i];
+            if (eventData == null ||
+                eventData.battleResultEventType != eventType ||
+                string.IsNullOrEmpty(eventData.message))
+            {
+                continue;
+            }
+
+            return FormatBattleResultEventMessage(eventData.message, heroineName);
+        }
+
+        return "";
+    }
+
+    private static string FormatBattleResultEventMessage(string message, string heroineName)
+    {
+        if (string.IsNullOrEmpty(message))
+        {
+            return "";
+        }
+
+        return message.Replace("{heroineName}", heroineName);
     }
 
     private void AddBattleLogFollowUpMessages(SimpleBattleResult result)
