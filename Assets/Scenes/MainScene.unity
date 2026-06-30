@@ -11548,6 +11548,8 @@ MonoBehaviour:
   conversationResourcePath: Heroines/DefaultHeroine/Conversations
   saveButton: {fileID: 1211694032}
   loadButton: {fileID: 554093483}
+  saveLoadDisabledColor: {r: 0.47058824, g: 0.47058824, b: 0.47058824, a: 0.7058824}
+  saveLoadDisabledTextColor: {r: 0.7058824, g: 0.7058824, b: 0.7058824, a: 1}
   backgroundImage: {fileID: 300472610}
   backgroundSpriteData: {fileID: 11400000, guid: 43e933434c079e142be2136f9be9802f, type: 2}
   dayBackgroundSprite: {fileID: 21300000, guid: 37e19fb809d5dcf4187d92d32500d0c7, type: 3}
@@ -11566,6 +11568,7 @@ MonoBehaviour:
   stillGalleryPanel: {fileID: 49214856}
   messageLogPanel: {fileID: 93225994}
   messageLogLimit: 20
+  battleResultEvents: []
   debugManualGameEventId: TestManualEvent
   debugManualGameEventKey: 288
   debugAddMoneyKey: 289
