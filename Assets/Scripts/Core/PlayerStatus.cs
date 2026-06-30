@@ -3,7 +3,14 @@ using UnityEngine;
 public class PlayerStatus : MonoBehaviour
 {
     [Header("Battle")]
-    [SerializeField] private BattleStatusData battleStatus = new BattleStatusData();
+    [SerializeField] private BattleStatusData battleStatus = new BattleStatusData
+    {
+        currentHp = 100,
+        maxHp = 100,
+        attack = 10,
+        defense = 5,
+        speed = 5
+    };
 
     [Header("Money")]
     [SerializeField] private int money = 1000;
