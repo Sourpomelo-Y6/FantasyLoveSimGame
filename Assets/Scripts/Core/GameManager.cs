@@ -4566,10 +4566,11 @@ public class GameManager : MonoBehaviour
     private string BuildBattleResultEventMessage(ScheduleType scheduleType, SimpleBattleResult result)
     {
         BattleResultEventType eventType = ResolveBattleResultEventType(scheduleType, result);
+        string battleContextId = ResolveBattleContextId(scheduleType);
         string heroineName = heroineStatus != null && !string.IsNullOrEmpty(heroineStatus.HeroineName)
             ? heroineStatus.HeroineName
             : "ヒロイン";
-        string dataMessage = ResolveBattleResultEventDataMessage(eventType, heroineName);
+        string dataMessage = ResolveBattleResultEventDataMessage(eventType, battleContextId, heroineName);
         if (!string.IsNullOrEmpty(dataMessage))
         {
             return dataMessage;
@@ -4612,7 +4613,31 @@ public class GameManager : MonoBehaviour
         return isDuoExploration ? BattleResultEventType.DuoDefeat : BattleResultEventType.SoloDefeat;
     }
 
-    private string ResolveBattleResultEventDataMessage(BattleResultEventType eventType, string heroineName)
+    private static string ResolveBattleContextId(ScheduleType scheduleType)
+    {
+        switch (scheduleType)
+        {
+            case ScheduleType.SoloForest:
+            case ScheduleType.DuoForest:
+                return "Forest";
+
+            case ScheduleType.SoloCave:
+            case ScheduleType.DuoCave:
+                return "Cave";
+
+            case ScheduleType.SoloLake:
+            case ScheduleType.DuoLake:
+                return "Lake";
+
+            default:
+                return "";
+        }
+    }
+
+    private string ResolveBattleResultEventDataMessage(
+        BattleResultEventType eventType,
+        string battleContextId,
+        string heroineName)
     {
         if (battleResultEvents == null || battleResultEvents.Length == 0)
         {
@@ -4624,6 +4649,7 @@ public class GameManager : MonoBehaviour
             return "";
         }
 
+        string fallbackMessage = "";
         for (int i = 0; i < battleResultEvents.Length; i++)
         {
             BattleResultEventData eventData = battleResultEvents[i];
@@ -4634,10 +4660,23 @@ public class GameManager : MonoBehaviour
                 continue;
             }
 
-            return FormatBattleResultEventMessage(eventData.message, heroineName);
+            if (!string.IsNullOrEmpty(eventData.battleContextId))
+            {
+                if (string.Equals(eventData.battleContextId, battleContextId, StringComparison.OrdinalIgnoreCase))
+                {
+                    return FormatBattleResultEventMessage(eventData.message, heroineName);
+                }
+
+                continue;
+            }
+
+            if (string.IsNullOrEmpty(fallbackMessage))
+            {
+                fallbackMessage = eventData.message;
+            }
         }
 
-        return "";
+        return FormatBattleResultEventMessage(fallbackMessage, heroineName);
     }
 
     private static string FormatBattleResultEventMessage(string message, string heroineName)
