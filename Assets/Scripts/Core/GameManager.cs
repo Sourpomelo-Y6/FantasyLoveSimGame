@@ -4376,11 +4376,6 @@ public class GameManager : MonoBehaviour
                 break;
         }
 
-        if (rewardMoney > 0)
-        {
-            playerStatus.AddMoney(rewardMoney);
-        }
-
         int appliedPlayerHpChange = ApplyPlayerHpChange(playerHpChange);
         int appliedHeroineHpChange = ApplyHeroineHpChange(heroineHpChange);
         EnemyData enemy = ResolveExplorationEnemy(scheduleType);
@@ -4392,6 +4387,12 @@ public class GameManager : MonoBehaviour
             hasBattleResult = true;
         }
 
+        bool canReceiveExplorationReward = rewardMoney > 0 && (!hasBattleResult || battleResult.PlayerWon);
+        if (canReceiveExplorationReward)
+        {
+            playerStatus.AddMoney(rewardMoney);
+        }
+
         RefreshStatusDetailPanel();
 
         string resultMessage = locationName + "の探索を終えました。";
@@ -4400,9 +4401,13 @@ public class GameManager : MonoBehaviour
             resultMessage += "\n" + enemy.GetDisplayName() + " に遭遇しました。";
         }
 
-        if (rewardMoney > 0)
+        if (canReceiveExplorationReward)
         {
             resultMessage += "\n探索報酬として " + rewardMoney + " を入手しました。現在の所持金：" + playerStatus.Money;
+        }
+        else if (rewardMoney > 0 && hasBattleResult && !battleResult.PlayerWon)
+        {
+            resultMessage += "\n敗北したため探索報酬は入手できませんでした。";
         }
 
         if (appliedPlayerHpChange != 0)
@@ -4689,7 +4694,7 @@ public class GameManager : MonoBehaviour
             BuildPlayerHpMessage() +
             BuildHeroineDamageMessage(result.HeroineDamageTaken) +
             BuildHeroineHpMessage() +
-            "\n報酬なし" +
+            "\n戦闘報酬なし" +
             "\nHP 1 で撤退しました。" +
             "\n予定は消費済みです。";
     }
