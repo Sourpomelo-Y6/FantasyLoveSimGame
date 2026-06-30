@@ -4424,7 +4424,6 @@ public class GameManager : MonoBehaviour
 
         if (hasBattleResult)
         {
-            resultMessage += "\n" + battleResult.Message;
             AddBattleResultEventFollowUpMessage(scheduleType, battleResult);
             AddBattleLogFollowUpMessages(battleResult);
         }
@@ -4494,26 +4493,72 @@ public class GameManager : MonoBehaviour
 
     private void AddBattleLogFollowUpMessages(SimpleBattleResult result)
     {
-        if (result.LogLines == null || result.LogLines.Count == 0)
+        List<string> lines = SplitMessageLines(result.Message);
+        if (result.LogLines != null && result.LogLines.Count > 0)
+        {
+            lines.Add("行動ログ:");
+            lines.AddRange(result.LogLines);
+        }
+
+        if (lines.Count == 0)
         {
             return;
         }
 
-        const int linesPerPage = 3;
-        int pageCount = (result.LogLines.Count + linesPerPage - 1) / linesPerPage;
+        AddPagedFollowUpMessages(
+            DialogueSpeakerType.BattleLog,
+            BattleLogSpeakerName,
+            "戦闘ログ",
+            lines,
+            3);
+    }
+
+    private void AddPagedFollowUpMessages(
+        DialogueSpeakerType speakerType,
+        string speakerName,
+        string title,
+        IList<string> lines,
+        int contentLinesPerPage)
+    {
+        if (lines == null || lines.Count == 0 || contentLinesPerPage <= 0)
+        {
+            return;
+        }
+
+        int pageCount = (lines.Count + contentLinesPerPage - 1) / contentLinesPerPage;
         for (int pageIndex = 0; pageIndex < pageCount; pageIndex++)
         {
-            int start = pageIndex * linesPerPage;
-            int end = Math.Min(start + linesPerPage, result.LogLines.Count);
-            string message = "戦闘ログ " + (pageIndex + 1) + "/" + pageCount;
+            int start = pageIndex * contentLinesPerPage;
+            int end = Math.Min(start + contentLinesPerPage, lines.Count);
+            string message = title + " " + (pageIndex + 1) + "/" + pageCount;
             for (int i = start; i < end; i++)
             {
-                message += "\n" + result.LogLines[i];
+                message += "\n" + lines[i];
             }
 
             pendingScheduledEventFollowUpMessages.Add(
-                new DialogueMessage(DialogueSpeakerType.BattleLog, BattleLogSpeakerName, message));
+                new DialogueMessage(speakerType, speakerName, message));
         }
+    }
+
+    private static List<string> SplitMessageLines(string message)
+    {
+        List<string> lines = new List<string>();
+        if (string.IsNullOrEmpty(message))
+        {
+            return lines;
+        }
+
+        string[] splitLines = message.Split(new[] { '\n' }, StringSplitOptions.None);
+        for (int i = 0; i < splitLines.Length; i++)
+        {
+            if (!string.IsNullOrEmpty(splitLines[i]))
+            {
+                lines.Add(splitLines[i]);
+            }
+        }
+
+        return lines;
     }
 
     private static bool IsDuoExplorationSchedule(ScheduleType scheduleType)
