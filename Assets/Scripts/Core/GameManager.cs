@@ -4425,6 +4425,7 @@ public class GameManager : MonoBehaviour
         if (hasBattleResult)
         {
             resultMessage += "\n" + battleResult.Message;
+            AddBattleResultEventFollowUpMessage(scheduleType, battleResult);
             AddBattleLogFollowUpMessages(battleResult);
         }
 
@@ -4444,6 +4445,51 @@ public class GameManager : MonoBehaviour
         }
 
         pendingScheduledEventFollowUpMessages.Clear();
+    }
+
+    private void AddBattleResultEventFollowUpMessage(ScheduleType scheduleType, SimpleBattleResult result)
+    {
+        string message = BuildBattleResultEventMessage(scheduleType, result);
+        if (string.IsNullOrEmpty(message))
+        {
+            return;
+        }
+
+        pendingScheduledEventFollowUpMessages.Add(
+            new DialogueMessage(DialogueSpeakerType.Schedule, ScheduleSpeakerName, message));
+    }
+
+    private string BuildBattleResultEventMessage(ScheduleType scheduleType, SimpleBattleResult result)
+    {
+        bool isDuoExploration = IsDuoExplorationSchedule(scheduleType);
+        string heroineName = heroineStatus != null && !string.IsNullOrEmpty(heroineStatus.HeroineName)
+            ? heroineStatus.HeroineName
+            : "ヒロイン";
+
+        if (result.PlayerWon)
+        {
+            if (isDuoExploration)
+            {
+                return "戦闘後イベント：勝利\n" +
+                    heroineName + "と協力して探索を続けられました。\n" +
+                    "勝利結果は今後の好感度イベントや探索分岐へ接続できます。";
+            }
+
+            return "戦闘後イベント：勝利\n" +
+                "敵を退け、探索を続けられました。\n" +
+                "勝利結果は今後の探索分岐へ接続できます。";
+        }
+
+        if (isDuoExploration)
+        {
+            return "戦闘後イベント：敗北\n" +
+                heroineName + "と体勢を立て直すため撤退しました。\n" +
+                "敗北結果は今後の専用イベント分岐へ接続できます。";
+        }
+
+        return "戦闘後イベント：敗北\n" +
+            "探索を切り上げて撤退しました。\n" +
+            "敗北結果は今後の専用イベント分岐へ接続できます。";
     }
 
     private void AddBattleLogFollowUpMessages(SimpleBattleResult result)
