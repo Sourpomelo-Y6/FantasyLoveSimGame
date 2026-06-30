@@ -261,6 +261,7 @@ public class GameManager : MonoBehaviour
     [Header("Save / Load Buttons")]
     [SerializeField] private Button saveButton;
     [SerializeField] private Button loadButton;
+    [SerializeField] private Color saveLoadDisabledColor = new Color32(120, 120, 120, 180);
 
 
     [Header("Background")]
@@ -320,6 +321,8 @@ public class GameManager : MonoBehaviour
 
     private void Update()
     {
+        RefreshSaveLoadButtonState();
+
         if (Input.GetKeyDown(debugManualGameEventKey))
         {
             if (TryStartManualGameEvent(debugManualGameEventId))
@@ -617,6 +620,28 @@ public class GameManager : MonoBehaviour
         {
             loadButton.gameObject.SetActive(visible);
         }
+
+        RefreshSaveLoadButtonState();
+    }
+
+    private void RefreshSaveLoadButtonState()
+    {
+        bool canOpen = CanOpenSaveLoadPanel();
+        ApplySaveLoadButtonState(saveButton, canOpen);
+        ApplySaveLoadButtonState(loadButton, canOpen);
+    }
+
+    private void ApplySaveLoadButtonState(Button button, bool canOpen)
+    {
+        if (button == null)
+        {
+            return;
+        }
+
+        ColorBlock colors = button.colors;
+        colors.disabledColor = saveLoadDisabledColor;
+        button.colors = colors;
+        button.interactable = canOpen;
     }
 
     public bool CanOpenSaveLoadPanel()
