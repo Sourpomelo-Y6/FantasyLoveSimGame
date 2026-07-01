@@ -302,7 +302,10 @@ public class GameManager : MonoBehaviour
     [SerializeField] private int messageLogLimit = 20;
 
     [Header("Battle Result Events")]
+    [SerializeField] private string battleResultEventResourcePath = BattleResultEventResourcePath;
     [SerializeField] private BattleResultEventData[] battleResultEvents;
+    private BattleResultEventData[] commonBattleResultEvents;
+    private bool battleResultEventsLoadedFromResources = false;
 
     [Header("Game Event Debug")]
     [SerializeField] private string debugManualGameEventId = "";
@@ -1099,6 +1102,17 @@ public class GameManager : MonoBehaviour
         scheduledEventResourcePath = GetProfileResourcePath(
             profile.scheduledEventResourcePath,
             scheduledEventResourcePath);
+        battleResultEventResourcePath = GetProfileResourcePath(
+            profile.battleResultEventResourcePath,
+            battleResultEventResourcePath);
+
+        if (battleResultEventsLoadedFromResources)
+        {
+            battleResultEvents = null;
+            battleResultEventsLoadedFromResources = false;
+        }
+
+        commonBattleResultEvents = null;
 
         Debug.Log(
             "Applied HeroineProfile resource paths: heroineId=" +
@@ -1110,7 +1124,9 @@ public class GameManager : MonoBehaviour
             " / actions=" +
             actionResourcePath +
             " / scheduledEvents=" +
-            scheduledEventResourcePath);
+            scheduledEventResourcePath +
+            " / battleResultEvents=" +
+            battleResultEventResourcePath);
     }
 
     private HeroineProfileData ResolveHeroineProfile()
@@ -4639,20 +4655,66 @@ public class GameManager : MonoBehaviour
         string battleContextId,
         string heroineName)
     {
-        if (battleResultEvents == null || battleResultEvents.Length == 0)
+        string primaryMessage = ResolveBattleResultEventDataMessageFromSource(
+            GetPrimaryBattleResultEvents(),
+            eventType,
+            battleContextId,
+            heroineName);
+        if (!string.IsNullOrEmpty(primaryMessage))
         {
-            battleResultEvents = Resources.LoadAll<BattleResultEventData>(BattleResultEventResourcePath);
+            return primaryMessage;
         }
 
-        if (battleResultEvents == null || battleResultEvents.Length == 0)
+        if (string.Equals(battleResultEventResourcePath, BattleResultEventResourcePath, StringComparison.Ordinal))
+        {
+            return "";
+        }
+
+        return ResolveBattleResultEventDataMessageFromSource(
+            GetCommonBattleResultEvents(),
+            eventType,
+            battleContextId,
+            heroineName);
+    }
+
+    private BattleResultEventData[] GetPrimaryBattleResultEvents()
+    {
+        if (battleResultEvents != null && battleResultEvents.Length > 0)
+        {
+            return battleResultEvents;
+        }
+
+        battleResultEvents = Resources.LoadAll<BattleResultEventData>(battleResultEventResourcePath);
+        battleResultEventsLoadedFromResources = true;
+        return battleResultEvents;
+    }
+
+    private BattleResultEventData[] GetCommonBattleResultEvents()
+    {
+        if (commonBattleResultEvents == null)
+        {
+            commonBattleResultEvents =
+                Resources.LoadAll<BattleResultEventData>(BattleResultEventResourcePath);
+        }
+
+        return commonBattleResultEvents;
+    }
+
+    private static string ResolveBattleResultEventDataMessageFromSource(
+        BattleResultEventData[] sourceEvents,
+        BattleResultEventType eventType,
+        string battleContextId,
+        string heroineName)
+    {
+        if (sourceEvents == null || sourceEvents.Length == 0)
         {
             return "";
         }
 
         string fallbackMessage = "";
-        for (int i = 0; i < battleResultEvents.Length; i++)
+        for (int i = 0; i < sourceEvents.Length; i++)
         {
-            BattleResultEventData eventData = battleResultEvents[i];
+            BattleResultEventData eventData = sourceEvents[i];
             if (eventData == null ||
                 eventData.battleResultEventType != eventType ||
                 string.IsNullOrEmpty(eventData.message))

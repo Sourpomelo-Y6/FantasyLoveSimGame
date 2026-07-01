@@ -27,4 +27,5 @@ MonoBehaviour:
   gameEventResourcePath: Heroines/DefaultHeroine/GameEvents
   actionResourcePath: Heroines/DefaultHeroine/Actions
   scheduledEventResourcePath: Heroines/DefaultHeroine/ScheduledEvents
+  battleResultEventResourcePath: Heroines/DefaultHeroine/BattleResultEvents
   endingResourcePath: Heroines/DefaultHeroine/Endings
