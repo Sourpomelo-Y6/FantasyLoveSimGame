@@ -1,0 +1,20 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4d2a9870b7a34c9d89f4e8a1c3b6297e, type: 3}
+  m_Name: SoloVictory
+  m_EditorClassIdentifier:
+  battleResultEventType: 0
+  battleContextId: ""
+  message: "\u6226\u95D8\u5F8C\u30A4\u30D9\u30F3\u30C8\uFF1A\u30C6\u30B9\u30C8\u30D2\u30ED\u30A4\u30F3\u5C02\u7528\u30BD\u30ED\u52DD\u5229\n\u4E00\u4EBA\u3067\u52DD\u3066\u305F\u306E\u306D\u3002\u307E\u3042\u3001\u305D\u308C\u304F\u3089\u3044\u3067\u304D\u3066\u3082\u3089\u308F\u306A\u3044\u3068\u56F0\u308B\u3051\u3069\u3002\n\u2026\u7121\u4E8B\u306B\u623B\u3063\u3066\u304D\u305F\u306E\u306F\u3001\u5C11\u3057\u3060\u3051\u8912\u3081\u3066\u3042\u3052\u308B\u3002"
+  stillId:
+  affectionChange: 0
+  unlockedOutfitIds: []
