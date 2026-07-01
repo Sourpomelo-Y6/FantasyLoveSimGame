@@ -827,6 +827,11 @@ public class GameManager : MonoBehaviour
             return false;
         }
 
+        Debug.Log(
+            "[BattleResultEvent] Show queued dialogue. remainingBefore=" +
+            queuedDialogueMessages.Count +
+            ", flowState=" + flowState);
+
         DialogueMessage message = queuedDialogueMessages.Dequeue();
         SetDialogueText(
             message.SpeakerType,
@@ -4529,6 +4534,11 @@ public class GameManager : MonoBehaviour
 
         if (hasBattleResult)
         {
+            Debug.Log(
+                "[BattleResultEvent] Battle result resolved. scheduleType=" +
+                scheduleType +
+                ", playerWon=" + battleResult.PlayerWon +
+                ", logLines=" + (battleResult.LogLines != null ? battleResult.LogLines.Count : 0));
             AddBattleResultEventFollowUpMessage(scheduleType, battleResult);
             AddBattleLogFollowUpMessages(battleResult);
         }
@@ -4540,13 +4550,23 @@ public class GameManager : MonoBehaviour
     {
         if (pendingScheduledEventFollowUpMessages.Count == 0)
         {
+            Debug.Log("[BattleResultEvent] No scheduled event follow-up messages to enqueue.");
             return;
         }
+
+        Debug.Log(
+            "[BattleResultEvent] Enqueue scheduled event follow-up messages. pending=" +
+            pendingScheduledEventFollowUpMessages.Count +
+            ", queuedBefore=" + queuedDialogueMessages.Count);
 
         foreach (DialogueMessage message in pendingScheduledEventFollowUpMessages)
         {
             queuedDialogueMessages.Enqueue(message);
         }
+
+        Debug.Log(
+            "[BattleResultEvent] Scheduled event follow-up messages enqueued. queuedAfter=" +
+            queuedDialogueMessages.Count);
 
         pendingScheduledEventFollowUpMessages.Clear();
     }
@@ -4556,11 +4576,20 @@ public class GameManager : MonoBehaviour
         string message = BuildBattleResultEventMessage(scheduleType, result);
         if (string.IsNullOrEmpty(message))
         {
+            Debug.Log(
+                "[BattleResultEvent] Battle result follow-up message is empty. scheduleType=" +
+                scheduleType +
+                ", playerWon=" + result.PlayerWon);
             return;
         }
 
         pendingScheduledEventFollowUpMessages.Add(
             new DialogueMessage(DialogueSpeakerType.Schedule, ScheduleSpeakerName, message));
+        Debug.Log(
+            "[BattleResultEvent] Battle result follow-up message added. scheduleType=" +
+            scheduleType +
+            ", playerWon=" + result.PlayerWon +
+            ", pending=" + pendingScheduledEventFollowUpMessages.Count);
     }
 
     private string BuildBattleResultEventMessage(ScheduleType scheduleType, SimpleBattleResult result)
@@ -4573,8 +4602,19 @@ public class GameManager : MonoBehaviour
         string dataMessage = ResolveBattleResultEventDataMessage(eventType, battleContextId, heroineName);
         if (!string.IsNullOrEmpty(dataMessage))
         {
+            Debug.Log(
+                "[BattleResultEvent] Use data message. scheduleType=" +
+                scheduleType +
+                ", eventType=" + eventType +
+                ", battleContextId=" + battleContextId);
             return dataMessage;
         }
+
+        Debug.Log(
+            "[BattleResultEvent] Use fixed fallback message. scheduleType=" +
+            scheduleType +
+            ", eventType=" + eventType +
+            ", battleContextId=" + battleContextId);
 
         switch (eventType)
         {
@@ -4642,14 +4682,29 @@ public class GameManager : MonoBehaviour
         if (battleResultEvents == null || battleResultEvents.Length == 0)
         {
             battleResultEvents = Resources.LoadAll<BattleResultEventData>(BattleResultEventResourcePath);
+            Debug.Log(
+                "[BattleResultEvent] Loaded battle result event data from Resources. path=" +
+                BattleResultEventResourcePath +
+                ", count=" + (battleResultEvents != null ? battleResultEvents.Length : 0));
+        }
+        else
+        {
+            Debug.Log(
+                "[BattleResultEvent] Use assigned battle result event data. count=" +
+                battleResultEvents.Length);
         }
 
         if (battleResultEvents == null || battleResultEvents.Length == 0)
         {
+            Debug.Log(
+                "[BattleResultEvent] No battle result event data available. eventType=" +
+                eventType +
+                ", battleContextId=" + battleContextId);
             return "";
         }
 
         string fallbackMessage = "";
+        string fallbackName = "";
         for (int i = 0; i < battleResultEvents.Length; i++)
         {
             BattleResultEventData eventData = battleResultEvents[i];
@@ -4664,6 +4719,11 @@ public class GameManager : MonoBehaviour
             {
                 if (string.Equals(eventData.battleContextId, battleContextId, StringComparison.OrdinalIgnoreCase))
                 {
+                    Debug.Log(
+                        "[BattleResultEvent] Matched context data. asset=" +
+                        eventData.name +
+                        ", eventType=" + eventType +
+                        ", battleContextId=" + eventData.battleContextId);
                     return FormatBattleResultEventMessage(eventData.message, heroineName);
                 }
 
@@ -4673,7 +4733,24 @@ public class GameManager : MonoBehaviour
             if (string.IsNullOrEmpty(fallbackMessage))
             {
                 fallbackMessage = eventData.message;
+                fallbackName = eventData.name;
             }
+        }
+
+        if (!string.IsNullOrEmpty(fallbackMessage))
+        {
+            Debug.Log(
+                "[BattleResultEvent] Matched common fallback data. asset=" +
+                fallbackName +
+                ", eventType=" + eventType +
+                ", requestedBattleContextId=" + battleContextId);
+        }
+        else
+        {
+            Debug.Log(
+                "[BattleResultEvent] No matching battle result event data. eventType=" +
+                eventType +
+                ", battleContextId=" + battleContextId);
         }
 
         return FormatBattleResultEventMessage(fallbackMessage, heroineName);
