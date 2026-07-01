@@ -301,6 +301,9 @@ public class GameManager : MonoBehaviour
     [SerializeField] private MessageLogPanel messageLogPanel;
     [SerializeField] private int messageLogLimit = 20;
 
+    [Header("Battle UI")]
+    [SerializeField] private BattlePanel battlePanel;
+
     [Header("Battle Result Events")]
     [SerializeField] private string battleResultEventResourcePath = BattleResultEventResourcePath;
     [SerializeField] private BattleResultEventData[] battleResultEvents;
@@ -3607,6 +3610,12 @@ public class GameManager : MonoBehaviour
             OpenMessageLogPanel();
             return;
         }
+
+        if (action.executionType == ActionExecutionType.OpenDebugBattlePanel)
+        {
+            OpenDebugBattlePanel();
+            return;
+        }
     }
 
     private void OpenOutfitPanel(ActionData action)
@@ -6095,6 +6104,42 @@ public class GameManager : MonoBehaviour
         messageLogPanel.Open(messageLogEntries);
     }
 
+    public void OpenDebugBattlePanel()
+    {
+        EnsureBattlePanel();
+
+        if (battlePanel == null)
+        {
+            Debug.LogWarning("BattlePanel が設定されていません。Canvas 配下に手動で配置し、GameManager に参照を割り当ててください。");
+            return;
+        }
+
+        actionButtonArea.SetActive(false);
+        genreButtonArea.SetActive(false);
+        choiceButtonArea.SetActive(false);
+        outfitPanel.SetActive(false);
+        outfitReactionPanel.SetActive(false);
+        nextButton.gameObject.SetActive(false);
+
+        battlePanel.OpenDebugBattle();
+    }
+
+    public void OnBattlePanelClosed()
+    {
+        if (flowState != ConversationFlowState.Idle)
+        {
+            return;
+        }
+
+        actionButtonArea.SetActive(true);
+        genreButtonArea.SetActive(false);
+        choiceButtonArea.SetActive(false);
+        outfitPanel.SetActive(false);
+        outfitReactionPanel.SetActive(false);
+        nextButton.gameObject.SetActive(false);
+        RefreshUI();
+    }
+
     private void EnsureStatusDetailPanel()
     {
         if (statusDetailPanel == null)
@@ -6150,6 +6195,23 @@ public class GameManager : MonoBehaviour
         }
 
         messageLogPanel.Initialize(this);
+    }
+
+    private void EnsureBattlePanel()
+    {
+        if (battlePanel == null)
+        {
+            battlePanel = FindObjectOfType<BattlePanel>();
+        }
+
+        if (battlePanel == null)
+        {
+            Debug.LogWarning("BattlePanel がシーンに配置されていません。Canvas 配下に手動で配置してください。");
+            return;
+        }
+
+        EnsureCoreStatusReferences();
+        battlePanel.Initialize(this, playerStatus, heroineStatus);
     }
 
     private void EnsureShopPanel()

@@ -486,6 +486,11 @@ Importer は完了時に copied images、catalog assets、layers、conversations
 この拡張は、戦闘 UI や敵 AI からではなく、共通基盤になるステータス追加から少しずつ進める。
 最初の到達点は、プレイヤーとヒロインの HP、最大 HP、攻撃、防御、素早さ、所持金を `StatusDetailPanel` に表示し、`SaveData` でセーブ/ロード復元できる状態にすること。
 その後、所持金の増減テスト、`DuoShopping` 予定からの簡易買い物、衣装またはアイテム購入、簡易探索、簡易戦闘の順で追加する。
+本格的な戦闘モードは、まず通常メニューの `DebugBattleAction` から `BattlePanel` を開くデバッグ入口として追加する。
+`BattlePanel` は Unity 上で手動配置し、`GameManager.battlePanel` に参照を割り当てる。
+最初のデバッグ戦闘は `ForestSlime` を固定敵として使い、戦闘中の HP はコピーで扱うため、通常プレイ中の実ステータス、報酬、予定消費、戦闘後イベントには反映しない。
+UI の必須参照は `panelRoot`、敵名、敵HP、プレイヤーHP、ヒロインHP、戦闘ログ Text、攻撃ボタン、逃げるボタン、閉じるボタン。
+初期状態では `panelRoot` を非アクティブにしておく。`BattlePanel.Awake()` では初回表示を打ち消さないように panel root を閉じない。
 基礎ステータスは実装済み。共通の `BattleStatusData`、プレイヤー用の `PlayerStatus`、ヒロイン側の `HeroineStatus.BattleStatus` を使う。
 所持金は案Aとして `PlayerStatus` だけが持つ。`SaveData` は `playerBattleStatus`、`playerMoney`、`heroineBattleStatus` を保存し、ロード時に復元する。
 `StatusDetailPanel` はプレイヤー詳細に HP、攻撃、防御、素早さ、所持金を表示し、ヒロイン詳細に HP、攻撃、防御、素早さを表示する。
