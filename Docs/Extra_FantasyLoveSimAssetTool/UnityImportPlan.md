@@ -60,6 +60,7 @@ Export/
       Event/
       Actions/
       Ending/
+      Battle/
     Data/
       heroine_profile_note.md
       heroine_profile_export.json
@@ -87,6 +88,7 @@ Assets/Images/Heroines/<HeroineId>/
   Event/
   Actions/
   Ending/
+  Battle/
 ```
 
 ScriptableObject の保存先は次を基本にする。
@@ -215,6 +217,9 @@ Unity Editor 拡張は `exportImagePath` から画像をコピーし、`unityIma
 | `Data/endings_export.json` | エンディング本文データの生成、更新 |
 | `Prompts/<AssetId>.prompt.json` | 生成条件の確認、再生成用メモ |
 | `Data/*_draft.md` | 会話、イベント、行動反応、エンディングの確認用下書き |
+
+戦闘画面用のキャラクター画像は `Images/Battle/` と `usage = Battle` で扱う。
+詳細は `BattleCharacterImagePlan.md` を参照する。
 
 ## 会話データ
 
