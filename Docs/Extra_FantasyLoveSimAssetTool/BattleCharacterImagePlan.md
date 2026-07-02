@@ -4,12 +4,14 @@
 
 現時点の Unity 側は、通常メニューの `DebugBattleAction` から `BattlePanel` を開くデバッグ入口を想定している。
 今後、戦闘画面にプレイヤー、ヒロイン、敵の画像を表示するため、AssetTool 側でも戦闘用画像の用途、命名、export JSON、Unity 取り込み先を整理しておく。
+ただし、敵キャラクターはヒロインと独立した共通素材として扱うため、`EnemyExportUnityImportSpec.md` の enemy export へ分離する。
 
 ## 目的
 
-- 戦闘 UI で表示する立ち絵、敵画像、ダメージ差分、勝敗差分を Tool 側で管理できるようにする。
+- 戦闘 UI で表示するヒロイン立ち絵、ダメージ差分、勝敗差分を Tool 側で管理できるようにする。
 - 画像生成 prompt、採用状態、Unity 側 assetId、表示用途を `assets_export.json` で渡せるようにする。
 - Unity 側では画像ファイルを `Assets/Images/Heroines/<HeroineId>/Battle/` へ取り込み、必要に応じて `HeroineAssetCatalog` または将来の `BattleCharacterAssetData` から参照できるようにする。
+- 敵画像は `Enemies/<EnemyId>/` 配下と `Assets/Images/Enemies/<EnemyId>/Battle/` へ分ける。
 - 最初は見た目確認用の静止画だけを対象にし、アニメーション、エフェクト、装備差分の自動合成は後回しにする。
 
 ## Export フォルダ構成
@@ -34,8 +36,8 @@ Export/
 ```
 
 `Battle/` には、戦闘中に表示するヒロイン画像を置く。
-敵画像はヒロインに紐づかない共通素材になる可能性が高いため、将来的には共通 export を分けてもよい。
-最初は Tool 側の都合を優先し、ヒロイン export 内に敵画像を含めてもよい。
+敵画像はヒロインに紐づかない共通素材として扱うため、ヒロイン export 内には含めない。
+敵画像の保存、命名、export は `EnemyExportUnityImportSpec.md` を正とする。
 
 ## Unity 側取り込み先
 
@@ -45,10 +47,10 @@ Export/
 Assets/Images/Heroines/<HeroineId>/Battle/
 ```
 
-敵の共通画像を分ける場合:
+敵の共通画像:
 
 ```text
-Assets/Images/Enemies/
+Assets/Images/Enemies/<EnemyId>/Battle/
 ```
 
 ScriptableObject は最初から専用型を増やしすぎない。
@@ -78,9 +80,9 @@ Assets/Resources/Enemies/
 | ヒロイン勝利 | `Battle_Heroine_Victory` | 勝利結果用 |
 | ヒロイン敗北/撤退 | `Battle_Heroine_Defeat` | 敗北結果用 |
 | プレイヤー表示用 | `Battle_Player_Idle` | 主人公を画面に出す場合 |
-| 敵通常 | `Battle_Enemy_<EnemyId>_Idle` | `Battle_Enemy_ForestSlime_Idle` など |
-| 敵攻撃 | `Battle_Enemy_<EnemyId>_Attack` | 必要になってから |
-| 敵被ダメージ | `Battle_Enemy_<EnemyId>_Damage` | 必要になってから |
+| 敵通常 | `Enemy_<EnemyId>_Idle` | enemy export 側で扱う |
+| 敵攻撃 | `Enemy_<EnemyId>_Attack` | enemy export 側で扱う |
+| 敵被ダメージ | `Enemy_<EnemyId>_Damage` | enemy export 側で扱う |
 
 最初の最小セットは次でよい。
 
@@ -88,7 +90,6 @@ Assets/Resources/Enemies/
 Battle_Heroine_Idle
 Battle_Heroine_Attack
 Battle_Heroine_Damage
-Battle_Enemy_ForestSlime_Idle
 ```
 
 ## ファイル命名
@@ -101,7 +102,6 @@ Images/Battle/Battle_Heroine_Attack.png
 Images/Battle/Battle_Heroine_Damage.png
 Images/Battle/Battle_Heroine_Victory.png
 Images/Battle/Battle_Heroine_Defeat.png
-Images/Battle/Battle_Enemy_ForestSlime_Idle.png
 ```
 
 差分が増える場合は、末尾に連番ではなく状態名を付ける。
@@ -233,13 +233,13 @@ Export/<HeroineId>/Images/Battle/*.png
 
 ## 最初に作るべき画像
 
-本格的に増やす前に、デバッグ BattlePanel 表示確認用として次だけ用意する。
+本格的に増やす前に、ヒロイン側のデバッグ BattlePanel 表示確認用として次だけ用意する。
 
 ```text
 Battle_Heroine_Idle.png
-Battle_Enemy_ForestSlime_Idle.png
 ```
 
+敵側 Image の確認には、`EnemyExportUnityImportSpec.md` に従って `Enemy_ForestSlime_Idle.png` を enemy export から用意する。
 これで BattlePanel にヒロイン側 Image と敵側 Image を追加したとき、表示・サイズ・アンカー・左右配置を確認できる。
 攻撃差分やダメージ差分は、BattlePanel の画像表示が安定してから追加する。
 

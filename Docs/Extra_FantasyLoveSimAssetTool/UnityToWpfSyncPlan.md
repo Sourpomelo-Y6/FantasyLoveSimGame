@@ -294,7 +294,7 @@ scheduled_events_from_unity.json
 endings_from_unity.json
 ```
 
-フィールドは `Docs/ConversationDataPlan.md` と `Docs/GameEventDataGuide.md` を基準にする。
+フィールドは `Docs/Extra_FantasyLoveSimAssetTool/ConversationDataPlan.md` と `Docs/GameEventDataGuide.md` を基準にする。
 Unity 側にしかないフィールドは `unity` または `sourceMetadata` のような補助領域に逃がし、WPF の正本フィールドとは混ぜない。
 
 ## Warning

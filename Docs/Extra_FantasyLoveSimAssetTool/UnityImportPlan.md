@@ -5,7 +5,7 @@
 WPF ツールは Unity の ScriptableObject `.asset` を直接生成しない。
 WPF ツールは画像と中間 JSON を出力し、Unity Editor 拡張が Unity Editor 内で JSON を読み込んで `.asset` を生成、更新する。
 
-Unity 側で手修正したデータを WPF Tool 側へ戻す場合は、正方向 Import とは分けて `Docs/UnityToWpfSyncPlan.md` の FromUnity JSON 方針に従う。
+Unity 側で手修正したデータを WPF Tool 側へ戻す場合は、正方向 Import とは分けて `Docs/Extra_FantasyLoveSimAssetTool/UnityToWpfSyncPlan.md` の FromUnity JSON 方針に従う。
 WPF Tool は Unity `.asset` YAML を直接読まない。
 
 ## 基本方針
@@ -43,9 +43,13 @@ WPF ツールは通常の C# アプリとして管理できるため、同じリ
 - `Images/<Usage>/<FileName>`
 - `Prompts/<AssetId>.prompt.json`
 
+敵キャラ素材はヒロイン export とは別契約にする。
+敵は `Export/Enemies/<EnemyId>/` 配下に出力し、Unity 側では `Data/enemy_profile_export.json` と `Data/enemy_assets_export.json` を読む。
+詳細は `EnemyExportUnityImportSpec.md` と `EnemyDataImportPlan.md` を参照する。
+
 Unity 側は上記の契約を読み込む Editor 拡張を持つ。
 WPF 側はこの契約に沿った export を出す。
-どちらかの実装を変更する場合も、まず `Docs/UnityImportPlan.md` の契約を更新し、その後で WPF 側と Unity 側を合わせる。
+どちらかの実装を変更する場合も、まず `Docs/Extra_FantasyLoveSimAssetTool/UnityImportPlan.md` の契約を更新し、その後で WPF 側と Unity 側を合わせる。
 
 必要になった場合は、WPF ツール側に Unity プロジェクトの import 用フォルダへ直接 export する設定を追加する。
 この場合もリポジトリを統合する必要はなく、出力先パスを設定として持つだけでよい。
@@ -219,6 +223,7 @@ Unity Editor 拡張は `exportImagePath` から画像をコピーし、`unityIma
 | `Data/*_draft.md` | 会話、イベント、行動反応、エンディングの確認用下書き |
 
 戦闘画面用のキャラクター画像は `Images/Battle/` と `usage = Battle` で扱う。
+ただし敵キャラ画像はヒロイン export には含めず、`Export/Enemies/<EnemyId>/Images/Battle/` から `Assets/Images/Enemies/<EnemyId>/Battle/` へ取り込む。
 詳細は `BattleCharacterImagePlan.md` を参照する。
 
 ## 会話データ
@@ -236,7 +241,7 @@ Data/
 
 このときも WPF 側から `.asset` を直接生成しない。
 Unity Editor 側で `ConversationData`、`GameEventData`、`ActionReactionData`、`EndingData` の `.asset` を生成、更新する。
-会話データの JSON スキーマと WPF 画面方針は `Docs/ConversationDataPlan.md` にまとめる。
+会話データの JSON スキーマと WPF 画面方針は `Docs/Extra_FantasyLoveSimAssetTool/ConversationDataPlan.md` にまとめる。
 `GameEvents` のカテゴリ、条件、発火判定、イベントスチル参照の運用は `Docs/GameEventDataGuide.md` にまとめる。
 
 会話データの ScriptableObject は、会話 item ごとに個別 `.asset` を作る。
