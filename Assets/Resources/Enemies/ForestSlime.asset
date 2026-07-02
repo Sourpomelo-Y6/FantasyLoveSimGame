@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: ForestSlime
   m_EditorClassIdentifier: 
   enemyId: ForestSlime
-  displayName: "\u68EE\u306E\u30B9\u30E9\u30A4\u30E0"
+  displayName: "\u68EE\u30B9\u30E9\u30A4\u30E0"
   battleStatus:
     currentHp: 24
     maxHp: 24

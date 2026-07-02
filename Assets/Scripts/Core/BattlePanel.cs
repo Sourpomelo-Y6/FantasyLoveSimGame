@@ -14,6 +14,7 @@ public class BattlePanel : MonoBehaviour
     [SerializeField] private TextMeshProUGUI playerHpText;
     [SerializeField] private TextMeshProUGUI heroineHpText;
     [SerializeField] private TextMeshProUGUI battleLogText;
+    [SerializeField] private Image enemyImage;
     [SerializeField] private Button attackButton;
     [SerializeField] private Button escapeButton;
     [SerializeField] private Button closeButton;
@@ -51,6 +52,7 @@ public class BattlePanel : MonoBehaviour
         EnemyData enemy = ResolveDebugEnemy();
         enemyDisplayName = enemy != null ? enemy.GetDisplayName() : "デバッグ敵";
         debugEnemyStatus = enemy != null ? enemy.CreateBattleStatus() : CreateDefaultEnemyStatus();
+        ApplyEnemyImage(enemy);
         debugPlayerStatus = playerStatus != null && playerStatus.BattleStatus != null
             ? playerStatus.BattleStatus.Clone()
             : CreateDefaultPlayerStatus();
@@ -217,6 +219,66 @@ public class BattlePanel : MonoBehaviour
 
         debugEnemy = Resources.Load<EnemyData>(debugEnemyResourcePath);
         return debugEnemy;
+    }
+
+    private void ApplyEnemyImage(EnemyData enemy)
+    {
+        if (enemyImage == null)
+        {
+            return;
+        }
+
+        Sprite enemySprite = ResolveEnemySprite(enemy);
+        enemyImage.sprite = enemySprite;
+        enemyImage.enabled = enemySprite != null;
+        enemyImage.preserveAspect = true;
+    }
+
+    private static Sprite ResolveEnemySprite(EnemyData enemy)
+    {
+        if (enemy == null || string.IsNullOrEmpty(enemy.enemyId))
+        {
+            return null;
+        }
+
+        EnemyAssetCatalog catalog = Resources.Load<EnemyAssetCatalog>(
+            "Enemies/" + enemy.enemyId + "/EnemyAssetCatalog");
+        if (catalog == null || catalog.assets == null || catalog.assets.Count == 0)
+        {
+            return null;
+        }
+
+        string idleAssetId = "Enemy_" + enemy.enemyId + "_Idle";
+        for (int i = 0; i < catalog.assets.Count; i++)
+        {
+            EnemyAssetEntry entry = catalog.assets[i];
+            if (entry != null && entry.sprite != null && entry.assetId == idleAssetId)
+            {
+                return entry.sprite;
+            }
+        }
+
+        for (int i = 0; i < catalog.assets.Count; i++)
+        {
+            EnemyAssetEntry entry = catalog.assets[i];
+            if (entry != null &&
+                entry.sprite != null &&
+                string.Equals(entry.usage, "Battle", System.StringComparison.OrdinalIgnoreCase))
+            {
+                return entry.sprite;
+            }
+        }
+
+        for (int i = 0; i < catalog.assets.Count; i++)
+        {
+            EnemyAssetEntry entry = catalog.assets[i];
+            if (entry != null && entry.sprite != null)
+            {
+                return entry.sprite;
+            }
+        }
+
+        return null;
     }
 
     private void HookButtons()
