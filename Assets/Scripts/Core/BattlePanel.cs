@@ -5,6 +5,12 @@ using UnityEngine.UI;
 
 public class BattlePanel : MonoBehaviour
 {
+    private const string BattleSpriteIdle = "Idle";
+    private const string BattleSpriteAttack = "Attack";
+    private const string BattleSpriteDamage = "Damage";
+    private const string BattleSpriteVictory = "Victory";
+    private const string BattleSpriteDefeat = "Defeat";
+
     [SerializeField] private GameManager gameManager;
     [SerializeField] private PlayerStatus playerStatus;
     [SerializeField] private HeroineStatus heroineStatus;
@@ -56,9 +62,9 @@ public class BattlePanel : MonoBehaviour
         currentDebugEnemy = ResolveDebugEnemy();
         enemyDisplayName = currentDebugEnemy != null ? currentDebugEnemy.GetDisplayName() : "デバッグ敵";
         debugEnemyStatus = currentDebugEnemy != null ? currentDebugEnemy.CreateBattleStatus() : CreateDefaultEnemyStatus();
-        ApplyPlayerImage();
-        ApplyHeroineImage();
-        ApplyEnemyImage(currentDebugEnemy);
+        ApplyPlayerImage(BattleSpriteIdle);
+        ApplyHeroineImage(BattleSpriteIdle);
+        ApplyEnemyImage(currentDebugEnemy, BattleSpriteIdle);
         debugPlayerStatus = playerStatus != null && playerStatus.BattleStatus != null
             ? playerStatus.BattleStatus.Clone()
             : CreateDefaultPlayerStatus();
@@ -103,7 +109,12 @@ public class BattlePanel : MonoBehaviour
 
         turnCount++;
         AddLog("--- " + turnCount + "ターン目 ---");
+        ApplyPlayerImage(BattleSpriteIdle);
+        ApplyHeroineImage(BattleSpriteIdle);
+        ApplyEnemyImage(currentDebugEnemy, BattleSpriteIdle);
 
+        ApplyPlayerImage(BattleSpriteAttack);
+        ApplyEnemyImage(currentDebugEnemy, BattleSpriteDamage);
         int playerDamage = Damage(debugPlayerStatus, debugEnemyStatus);
         AddLog("プレイヤーの攻撃。 " + enemyDisplayName + " に " + playerDamage + " ダメージ。");
 
@@ -115,6 +126,9 @@ public class BattlePanel : MonoBehaviour
 
         if (debugHeroineStatus != null && !IsDefeated(debugHeroineStatus))
         {
+            ApplyPlayerImage(BattleSpriteIdle);
+            ApplyHeroineImage(BattleSpriteAttack);
+            ApplyEnemyImage(currentDebugEnemy, BattleSpriteDamage);
             int heroineDamage = Damage(debugHeroineStatus, debugEnemyStatus);
             string heroineName = heroineStatus != null ? heroineStatus.HeroineName : "ヒロイン";
             AddLog(heroineName + " の攻撃。 " + enemyDisplayName + " に " + heroineDamage + " ダメージ。");
@@ -154,17 +168,22 @@ public class BattlePanel : MonoBehaviour
         bool canAttackHeroine = debugHeroineStatus != null && !IsDefeated(debugHeroineStatus);
         if (canAttackHeroine && Random.Range(0, 2) == 0)
         {
+            ApplyEnemyImage(currentDebugEnemy, BattleSpriteAttack);
+            ApplyHeroineImage(BattleSpriteDamage);
             int heroineDamage = Damage(debugEnemyStatus, debugHeroineStatus);
             string heroineName = heroineStatus != null ? heroineStatus.HeroineName : "ヒロイン";
             AddLog(enemyDisplayName + " の攻撃。 " + heroineName + " は " + heroineDamage + " ダメージ。");
             if (IsDefeated(debugHeroineStatus))
             {
+                ApplyHeroineImage(BattleSpriteDefeat);
                 AddLog(heroineName + " は戦闘不能です。");
             }
 
             return;
         }
 
+        ApplyEnemyImage(currentDebugEnemy, BattleSpriteAttack);
+        ApplyPlayerImage(BattleSpriteDamage);
         int playerDamage = Damage(debugEnemyStatus, debugPlayerStatus);
         AddLog(enemyDisplayName + " の攻撃。 プレイヤーは " + playerDamage + " ダメージ。");
     }
@@ -172,10 +191,34 @@ public class BattlePanel : MonoBehaviour
     private void FinishBattle(string resultLabel, string message)
     {
         battleFinished = true;
+        ApplyBattleResultImages(resultLabel);
         AddLog(message);
         AddLog("戦闘結果：" + resultLabel);
         AddHpSummaryLog();
         Refresh();
+    }
+
+    private void ApplyBattleResultImages(string resultLabel)
+    {
+        if (resultLabel == "勝利")
+        {
+            ApplyPlayerImage(BattleSpriteVictory);
+            ApplyHeroineImage(BattleSpriteVictory);
+            ApplyEnemyImage(currentDebugEnemy, BattleSpriteDefeat);
+            return;
+        }
+
+        if (resultLabel == "敗北")
+        {
+            ApplyPlayerImage(BattleSpriteDefeat);
+            ApplyHeroineImage(BattleSpriteDefeat);
+            ApplyEnemyImage(currentDebugEnemy, BattleSpriteIdle);
+            return;
+        }
+
+        ApplyPlayerImage(BattleSpriteIdle);
+        ApplyHeroineImage(BattleSpriteIdle);
+        ApplyEnemyImage(currentDebugEnemy, BattleSpriteIdle);
     }
 
     private void Refresh()
@@ -279,46 +322,46 @@ public class BattlePanel : MonoBehaviour
         return debugEnemy;
     }
 
-    private void ApplyEnemyImage(EnemyData enemy)
+    private void ApplyEnemyImage(EnemyData enemy, string state)
     {
         if (enemyImage == null)
         {
             return;
         }
 
-        Sprite enemySprite = ResolveEnemySprite(enemy);
+        Sprite enemySprite = ResolveEnemySprite(enemy, state);
         enemyImage.sprite = enemySprite;
         enemyImage.enabled = enemySprite != null;
         enemyImage.preserveAspect = true;
     }
 
-    private void ApplyPlayerImage()
+    private void ApplyPlayerImage(string state)
     {
         if (playerImage == null)
         {
             return;
         }
 
-        Sprite playerSprite = ResolvePlayerSprite();
+        Sprite playerSprite = ResolvePlayerSprite(state);
         playerImage.sprite = playerSprite;
         playerImage.enabled = playerSprite != null;
         playerImage.preserveAspect = true;
     }
 
-    private void ApplyHeroineImage()
+    private void ApplyHeroineImage(string state)
     {
         if (heroineImage == null)
         {
             return;
         }
 
-        Sprite heroineSprite = ResolveHeroineSprite();
+        Sprite heroineSprite = ResolveHeroineSprite(state);
         heroineImage.sprite = heroineSprite;
         heroineImage.enabled = heroineSprite != null;
         heroineImage.preserveAspect = true;
     }
 
-    private static Sprite ResolvePlayerSprite()
+    private static Sprite ResolvePlayerSprite(string state)
     {
         PlayerAssetCatalog catalog = Resources.Load<PlayerAssetCatalog>("Player/PlayerAssetCatalog");
         if (catalog == null || catalog.assets == null || catalog.assets.Count == 0)
@@ -326,10 +369,10 @@ public class BattlePanel : MonoBehaviour
             return null;
         }
 
-        return ResolvePlayerCatalogSprite(catalog, "Battle_Player_Idle");
+        return ResolvePlayerCatalogSprite(catalog, "Battle_Player_" + state, "Battle_Player_Idle");
     }
 
-    private Sprite ResolveHeroineSprite()
+    private Sprite ResolveHeroineSprite(string state)
     {
         HeroineAssetCatalog catalog = gameManager != null ? gameManager.CurrentHeroineAssetCatalog : null;
         if (catalog == null && gameManager != null && !string.IsNullOrEmpty(gameManager.CurrentHeroineId))
@@ -343,10 +386,10 @@ public class BattlePanel : MonoBehaviour
             return null;
         }
 
-        return ResolveHeroineCatalogSprite(catalog, "Battle_Heroine_Idle");
+        return ResolveHeroineCatalogSprite(catalog, "Battle_Heroine_" + state, "Battle_Heroine_Idle");
     }
 
-    private static Sprite ResolveEnemySprite(EnemyData enemy)
+    private static Sprite ResolveEnemySprite(EnemyData enemy, string state)
     {
         if (enemy == null || string.IsNullOrEmpty(enemy.enemyId))
         {
@@ -360,7 +403,17 @@ public class BattlePanel : MonoBehaviour
             return null;
         }
 
-        string idleAssetId = "Enemy_" + enemy.enemyId + "_Idle";
+        string stateAssetId = "Enemy_" + enemy.enemyId + "_" + state;
+        string idleAssetId = "Enemy_" + enemy.enemyId + "_" + BattleSpriteIdle;
+        for (int i = 0; i < catalog.assets.Count; i++)
+        {
+            EnemyAssetEntry entry = catalog.assets[i];
+            if (entry != null && entry.sprite != null && entry.assetId == stateAssetId)
+            {
+                return entry.sprite;
+            }
+        }
+
         for (int i = 0; i < catalog.assets.Count; i++)
         {
             EnemyAssetEntry entry = catalog.assets[i];
@@ -393,12 +446,21 @@ public class BattlePanel : MonoBehaviour
         return null;
     }
 
-    private static Sprite ResolvePlayerCatalogSprite(PlayerAssetCatalog catalog, string preferredAssetId)
+    private static Sprite ResolvePlayerCatalogSprite(PlayerAssetCatalog catalog, string preferredAssetId, string fallbackAssetId)
     {
         for (int i = 0; i < catalog.assets.Count; i++)
         {
             PlayerAssetEntry entry = catalog.assets[i];
             if (entry != null && entry.sprite != null && entry.assetId == preferredAssetId)
+            {
+                return entry.sprite;
+            }
+        }
+
+        for (int i = 0; i < catalog.assets.Count; i++)
+        {
+            PlayerAssetEntry entry = catalog.assets[i];
+            if (entry != null && entry.sprite != null && entry.assetId == fallbackAssetId)
             {
                 return entry.sprite;
             }
@@ -427,12 +489,21 @@ public class BattlePanel : MonoBehaviour
         return null;
     }
 
-    private static Sprite ResolveHeroineCatalogSprite(HeroineAssetCatalog catalog, string preferredAssetId)
+    private static Sprite ResolveHeroineCatalogSprite(HeroineAssetCatalog catalog, string preferredAssetId, string fallbackAssetId)
     {
         for (int i = 0; i < catalog.assets.Count; i++)
         {
             HeroineAssetEntry entry = catalog.assets[i];
             if (entry != null && entry.sprite != null && entry.assetId == preferredAssetId)
+            {
+                return entry.sprite;
+            }
+        }
+
+        for (int i = 0; i < catalog.assets.Count; i++)
+        {
+            HeroineAssetEntry entry = catalog.assets[i];
+            if (entry != null && entry.sprite != null && entry.assetId == fallbackAssetId)
             {
                 return entry.sprite;
             }
