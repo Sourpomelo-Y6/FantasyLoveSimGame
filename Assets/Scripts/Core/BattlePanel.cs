@@ -27,8 +27,10 @@ public class BattlePanel : MonoBehaviour
     private BattleStatusData debugPlayerStatus;
     private BattleStatusData debugHeroineStatus;
     private BattleStatusData debugEnemyStatus;
+    private EnemyData currentDebugEnemy;
     private string enemyDisplayName = "敵";
     private readonly List<string> logLines = new List<string>();
+    private int turnCount;
     private bool battleFinished;
 
     private void Awake()
@@ -51,23 +53,25 @@ public class BattlePanel : MonoBehaviour
         EnsureReferences();
         HookButtons();
 
-        EnemyData enemy = ResolveDebugEnemy();
-        enemyDisplayName = enemy != null ? enemy.GetDisplayName() : "デバッグ敵";
-        debugEnemyStatus = enemy != null ? enemy.CreateBattleStatus() : CreateDefaultEnemyStatus();
+        currentDebugEnemy = ResolveDebugEnemy();
+        enemyDisplayName = currentDebugEnemy != null ? currentDebugEnemy.GetDisplayName() : "デバッグ敵";
+        debugEnemyStatus = currentDebugEnemy != null ? currentDebugEnemy.CreateBattleStatus() : CreateDefaultEnemyStatus();
         ApplyPlayerImage();
         ApplyHeroineImage();
-        ApplyEnemyImage(enemy);
+        ApplyEnemyImage(currentDebugEnemy);
         debugPlayerStatus = playerStatus != null && playerStatus.BattleStatus != null
             ? playerStatus.BattleStatus.Clone()
             : CreateDefaultPlayerStatus();
         debugHeroineStatus = heroineStatus != null && heroineStatus.BattleStatus != null
             ? heroineStatus.BattleStatus.Clone()
             : null;
+        turnCount = 0;
         battleFinished = false;
 
         logLines.Clear();
         AddLog("デバッグ戦闘を開始しました。");
         AddLog(enemyDisplayName + " が現れました。");
+        AddHpSummaryLog();
 
         if (panelRoot != null)
         {
@@ -97,12 +101,15 @@ public class BattlePanel : MonoBehaviour
             return;
         }
 
+        turnCount++;
+        AddLog("--- " + turnCount + "ターン目 ---");
+
         int playerDamage = Damage(debugPlayerStatus, debugEnemyStatus);
         AddLog("プレイヤーの攻撃。 " + enemyDisplayName + " に " + playerDamage + " ダメージ。");
 
         if (IsDefeated(debugEnemyStatus))
         {
-            FinishBattle("勝利しました。");
+            FinishBattle("勝利", ResolveVictoryMessage());
             return;
         }
 
@@ -114,7 +121,7 @@ public class BattlePanel : MonoBehaviour
 
             if (IsDefeated(debugEnemyStatus))
             {
-                FinishBattle("勝利しました。");
+                FinishBattle("勝利", ResolveVictoryMessage());
                 return;
             }
         }
@@ -122,10 +129,11 @@ public class BattlePanel : MonoBehaviour
         ApplyEnemyAttack();
         if (IsDefeated(debugPlayerStatus))
         {
-            FinishBattle("敗北しました。");
+            FinishBattle("敗北", ResolveDefeatMessage());
             return;
         }
 
+        AddHpSummaryLog();
         Refresh();
     }
 
@@ -133,7 +141,7 @@ public class BattlePanel : MonoBehaviour
     {
         if (!battleFinished)
         {
-            FinishBattle("撤退しました。");
+            FinishBattle("撤退", "撤退しました。");
         }
         else
         {
@@ -149,6 +157,11 @@ public class BattlePanel : MonoBehaviour
             int heroineDamage = Damage(debugEnemyStatus, debugHeroineStatus);
             string heroineName = heroineStatus != null ? heroineStatus.HeroineName : "ヒロイン";
             AddLog(enemyDisplayName + " の攻撃。 " + heroineName + " は " + heroineDamage + " ダメージ。");
+            if (IsDefeated(debugHeroineStatus))
+            {
+                AddLog(heroineName + " は戦闘不能です。");
+            }
+
             return;
         }
 
@@ -156,10 +169,12 @@ public class BattlePanel : MonoBehaviour
         AddLog(enemyDisplayName + " の攻撃。 プレイヤーは " + playerDamage + " ダメージ。");
     }
 
-    private void FinishBattle(string message)
+    private void FinishBattle(string resultLabel, string message)
     {
         battleFinished = true;
         AddLog(message);
+        AddLog("戦闘結果：" + resultLabel);
+        AddHpSummaryLog();
         Refresh();
     }
 
@@ -186,12 +201,51 @@ public class BattlePanel : MonoBehaviour
 
         if (escapeButton != null)
         {
+            escapeButton.interactable = true;
             TextMeshProUGUI escapeButtonText = escapeButton.GetComponentInChildren<TextMeshProUGUI>();
             if (escapeButtonText != null)
             {
                 escapeButtonText.text = battleFinished ? "閉じる" : "逃げる";
             }
         }
+    }
+
+    private void AddHpSummaryLog()
+    {
+        AddLog(
+            "HP: プレイヤー " + FormatHp(debugPlayerStatus) +
+            " / ヒロイン " + FormatHp(debugHeroineStatus) +
+            " / " + enemyDisplayName + " " + FormatHp(debugEnemyStatus));
+    }
+
+    private static string FormatHp(BattleStatusData status)
+    {
+        if (status == null)
+        {
+            return "-";
+        }
+
+        return status.currentHp + "/" + status.maxHp;
+    }
+
+    private string ResolveVictoryMessage()
+    {
+        if (currentDebugEnemy != null && !string.IsNullOrEmpty(currentDebugEnemy.victoryMessage))
+        {
+            return currentDebugEnemy.victoryMessage;
+        }
+
+        return "勝利しました。";
+    }
+
+    private string ResolveDefeatMessage()
+    {
+        if (currentDebugEnemy != null && !string.IsNullOrEmpty(currentDebugEnemy.defeatMessage))
+        {
+            return currentDebugEnemy.defeatMessage;
+        }
+
+        return "敗北しました。";
     }
 
     private void AddLog(string message)
