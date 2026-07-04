@@ -22,6 +22,14 @@ MonoBehaviour:
     sprite: {fileID: 21300000, guid: 065bb4d78113ad84891ded95db64a3a9, type: 3}
     unityImagePath: Assets/Images/Player/Battle/Battle_Player_Idle.png
     exportPromptPath: Prompts/Battle_Player_Idle.prompt.json
+  - assetId: Battle_Player_Attack
+    usage: Battle
+    status: Accepted
+    fileName: Battle_Player_Attack.png
+    memo: "\u653B\u6483\u753B\u50CF"
+    sprite: {fileID: 21300000, guid: cbd5649054d88aa4f8c2899d296fc390, type: 3}
+    unityImagePath: Assets/Images/Player/Battle/Battle_Player_Attack.png
+    exportPromptPath: Prompts/Battle_Player_Attack.prompt.json
   - assetId: Battle_Player_Damage
     usage: Battle
     status: Accepted
@@ -30,6 +38,14 @@ MonoBehaviour:
     sprite: {fileID: 21300000, guid: 1653a2a29e159d845a83e1a9f77b0cf0, type: 3}
     unityImagePath: Assets/Images/Player/Battle/Battle_Player_Damage.png
     exportPromptPath: Prompts/Battle_Player_Damage.prompt.json
+  - assetId: Battle_Player_Victory
+    usage: Battle
+    status: Accepted
+    fileName: Battle_Player_Victory.png
+    memo: "\u52DD\u5229\u753B\u50CF"
+    sprite: {fileID: 21300000, guid: 0c4b18629c999544b879744fdf27b493, type: 3}
+    unityImagePath: Assets/Images/Player/Battle/Battle_Player_Victory.png
+    exportPromptPath: Prompts/Battle_Player_Victory.prompt.json
   - assetId: Battle_Player_Defeat
     usage: Battle
     status: Accepted
