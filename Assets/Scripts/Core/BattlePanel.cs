@@ -14,6 +14,8 @@ public class BattlePanel : MonoBehaviour
     [SerializeField] private TextMeshProUGUI playerHpText;
     [SerializeField] private TextMeshProUGUI heroineHpText;
     [SerializeField] private TextMeshProUGUI battleLogText;
+    [SerializeField] private Image playerImage;
+    [SerializeField] private Image heroineImage;
     [SerializeField] private Image enemyImage;
     [SerializeField] private Button attackButton;
     [SerializeField] private Button escapeButton;
@@ -52,6 +54,8 @@ public class BattlePanel : MonoBehaviour
         EnemyData enemy = ResolveDebugEnemy();
         enemyDisplayName = enemy != null ? enemy.GetDisplayName() : "デバッグ敵";
         debugEnemyStatus = enemy != null ? enemy.CreateBattleStatus() : CreateDefaultEnemyStatus();
+        ApplyPlayerImage();
+        ApplyHeroineImage();
         ApplyEnemyImage(enemy);
         debugPlayerStatus = playerStatus != null && playerStatus.BattleStatus != null
             ? playerStatus.BattleStatus.Clone()
@@ -234,6 +238,60 @@ public class BattlePanel : MonoBehaviour
         enemyImage.preserveAspect = true;
     }
 
+    private void ApplyPlayerImage()
+    {
+        if (playerImage == null)
+        {
+            return;
+        }
+
+        Sprite playerSprite = ResolvePlayerSprite();
+        playerImage.sprite = playerSprite;
+        playerImage.enabled = playerSprite != null;
+        playerImage.preserveAspect = true;
+    }
+
+    private void ApplyHeroineImage()
+    {
+        if (heroineImage == null)
+        {
+            return;
+        }
+
+        Sprite heroineSprite = ResolveHeroineSprite();
+        heroineImage.sprite = heroineSprite;
+        heroineImage.enabled = heroineSprite != null;
+        heroineImage.preserveAspect = true;
+    }
+
+    private static Sprite ResolvePlayerSprite()
+    {
+        PlayerAssetCatalog catalog = Resources.Load<PlayerAssetCatalog>("Player/PlayerAssetCatalog");
+        if (catalog == null || catalog.assets == null || catalog.assets.Count == 0)
+        {
+            return null;
+        }
+
+        return ResolvePlayerCatalogSprite(catalog, "Battle_Player_Idle");
+    }
+
+    private Sprite ResolveHeroineSprite()
+    {
+        HeroineAssetCatalog catalog = gameManager != null ? gameManager.CurrentHeroineAssetCatalog : null;
+        if (catalog == null && gameManager != null && !string.IsNullOrEmpty(gameManager.CurrentHeroineId))
+        {
+            catalog = Resources.Load<HeroineAssetCatalog>(
+                "Heroines/" + gameManager.CurrentHeroineId + "/HeroineAssetCatalog");
+        }
+
+        if (catalog == null || catalog.assets == null || catalog.assets.Count == 0)
+        {
+            return null;
+        }
+
+        return ResolveHeroineCatalogSprite(catalog, "Battle_Heroine_Idle");
+    }
+
     private static Sprite ResolveEnemySprite(EnemyData enemy)
     {
         if (enemy == null || string.IsNullOrEmpty(enemy.enemyId))
@@ -272,6 +330,74 @@ public class BattlePanel : MonoBehaviour
         for (int i = 0; i < catalog.assets.Count; i++)
         {
             EnemyAssetEntry entry = catalog.assets[i];
+            if (entry != null && entry.sprite != null)
+            {
+                return entry.sprite;
+            }
+        }
+
+        return null;
+    }
+
+    private static Sprite ResolvePlayerCatalogSprite(PlayerAssetCatalog catalog, string preferredAssetId)
+    {
+        for (int i = 0; i < catalog.assets.Count; i++)
+        {
+            PlayerAssetEntry entry = catalog.assets[i];
+            if (entry != null && entry.sprite != null && entry.assetId == preferredAssetId)
+            {
+                return entry.sprite;
+            }
+        }
+
+        for (int i = 0; i < catalog.assets.Count; i++)
+        {
+            PlayerAssetEntry entry = catalog.assets[i];
+            if (entry != null &&
+                entry.sprite != null &&
+                string.Equals(entry.usage, "Battle", System.StringComparison.OrdinalIgnoreCase))
+            {
+                return entry.sprite;
+            }
+        }
+
+        for (int i = 0; i < catalog.assets.Count; i++)
+        {
+            PlayerAssetEntry entry = catalog.assets[i];
+            if (entry != null && entry.sprite != null)
+            {
+                return entry.sprite;
+            }
+        }
+
+        return null;
+    }
+
+    private static Sprite ResolveHeroineCatalogSprite(HeroineAssetCatalog catalog, string preferredAssetId)
+    {
+        for (int i = 0; i < catalog.assets.Count; i++)
+        {
+            HeroineAssetEntry entry = catalog.assets[i];
+            if (entry != null && entry.sprite != null && entry.assetId == preferredAssetId)
+            {
+                return entry.sprite;
+            }
+        }
+
+        for (int i = 0; i < catalog.assets.Count; i++)
+        {
+            HeroineAssetEntry entry = catalog.assets[i];
+            if (entry != null &&
+                entry.sprite != null &&
+                string.Equals(entry.usage, "Battle", System.StringComparison.OrdinalIgnoreCase))
+            {
+                return entry.sprite;
+            }
+        }
+
+        for (int i = 0; i < catalog.assets.Count; i++)
+        {
+            HeroineAssetEntry entry = catalog.assets[i];
             if (entry != null && entry.sprite != null)
             {
                 return entry.sprite;

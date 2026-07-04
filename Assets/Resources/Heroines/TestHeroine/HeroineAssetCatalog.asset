@@ -266,3 +266,11 @@ MonoBehaviour:
     sprite: {fileID: 21300000, guid: 7f9d482f70babbf458493d4cd04e3fa9, type: 3}
     unityImagePath: Assets/Images/Heroines/TestHeroine/Event/DayStart_Routine_01.png
     exportPromptPath: Prompts/DayStart_Routine_01.prompt.json
+  - assetId: Battle_Heroine_Idle
+    usage: Battle
+    status: Accepted
+    fileName: Battle_Heroine_Idle.png
+    memo: 
+    sprite: {fileID: 21300000, guid: 89a722daa164c9144a7efef3656e0adc, type: 3}
+    unityImagePath: Assets/Images/Heroines/TestHeroine/Battle/Battle_Heroine_Idle.png
+    exportPromptPath: Prompts/Battle_Heroine_Idle.prompt.json

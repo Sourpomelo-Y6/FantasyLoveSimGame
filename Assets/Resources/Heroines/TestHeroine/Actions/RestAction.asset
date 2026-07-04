@@ -18,7 +18,7 @@ MonoBehaviour:
   resultMessage: "\u5C11\u3057\u4F11\u307F\u307E\u3057\u305F\u3002\u4F53\u3068\u5FC3\u304C\u843D\u3061\u7740\u3044\u305F\u6C17\u304C\u3057\u307E\u3059\u3002"
   unavailableMessage: "\u4ECA\u306F\u3053\u306E\u884C\u52D5\u306F\u3067\u304D\u307E\u305B\u3093\u3002"
   useHeroineNameAsSpeaker: 0
-  stillId: ""
+  stillId: 
   stillSprite: {fileID: 0}
   affectionChange: 0
   advanceTime: 1
