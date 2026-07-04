@@ -24,6 +24,7 @@ public class BattlePanel : MonoBehaviour
     [SerializeField] private Image heroineImage;
     [SerializeField] private Image enemyImage;
     [SerializeField] private Button attackButton;
+    [SerializeField] private Button defendButton;
     [SerializeField] private Button escapeButton;
     [SerializeField] private Button closeButton;
     [SerializeField] private EnemyData debugEnemy;
@@ -151,6 +152,47 @@ public class BattlePanel : MonoBehaviour
         Refresh();
     }
 
+    private void OnDefendClicked()
+    {
+        if (battleFinished)
+        {
+            return;
+        }
+
+        turnCount++;
+        AddLog("--- " + turnCount + "ターン目 ---");
+        ApplyPlayerImage(BattleSpriteIdle);
+        ApplyHeroineImage(BattleSpriteIdle);
+        ApplyEnemyImage(currentDebugEnemy, BattleSpriteIdle);
+
+        AddLog("プレイヤーは防御した。");
+
+        if (debugHeroineStatus != null && !IsDefeated(debugHeroineStatus))
+        {
+            ApplyHeroineImage(BattleSpriteAttack);
+            ApplyEnemyImage(currentDebugEnemy, BattleSpriteDamage);
+            int heroineDamage = Damage(debugHeroineStatus, debugEnemyStatus);
+            string heroineName = heroineStatus != null ? heroineStatus.HeroineName : "ヒロイン";
+            AddLog(heroineName + " の攻撃。 " + enemyDisplayName + " に " + heroineDamage + " ダメージ。");
+
+            if (IsDefeated(debugEnemyStatus))
+            {
+                FinishBattle("勝利", ResolveVictoryMessage());
+                return;
+            }
+        }
+
+        ApplyEnemyAttack(true);
+        if (IsDefeated(debugPlayerStatus))
+        {
+            FinishBattle("敗北", ResolveDefeatMessage());
+            return;
+        }
+
+        AddHpSummaryLog();
+        Refresh();
+    }
+
     private void OnEscapeClicked()
     {
         if (!battleFinished)
@@ -163,7 +205,7 @@ public class BattlePanel : MonoBehaviour
         }
     }
 
-    private void ApplyEnemyAttack()
+    private void ApplyEnemyAttack(bool playerDefending = false)
     {
         bool canAttackHeroine = debugHeroineStatus != null && !IsDefeated(debugHeroineStatus);
         if (canAttackHeroine && Random.Range(0, 2) == 0)
@@ -184,8 +226,9 @@ public class BattlePanel : MonoBehaviour
 
         ApplyEnemyImage(currentDebugEnemy, BattleSpriteAttack);
         ApplyPlayerImage(BattleSpriteDamage);
-        int playerDamage = Damage(debugEnemyStatus, debugPlayerStatus);
-        AddLog(enemyDisplayName + " の攻撃。 プレイヤーは " + playerDamage + " ダメージ。");
+        int playerDamage = Damage(debugEnemyStatus, debugPlayerStatus, playerDefending);
+        string defendMessage = playerDefending ? "（防御）" : "";
+        AddLog(enemyDisplayName + " の攻撃。 プレイヤーは " + playerDamage + " ダメージ。" + defendMessage);
     }
 
     private void FinishBattle(string resultLabel, string message)
@@ -240,6 +283,11 @@ public class BattlePanel : MonoBehaviour
         if (attackButton != null)
         {
             attackButton.interactable = !battleFinished;
+        }
+
+        if (defendButton != null)
+        {
+            defendButton.interactable = !battleFinished;
         }
 
         if (escapeButton != null)
@@ -540,6 +588,12 @@ public class BattlePanel : MonoBehaviour
             attackButton.onClick.AddListener(OnAttackClicked);
         }
 
+        if (defendButton != null)
+        {
+            defendButton.onClick.RemoveListener(OnDefendClicked);
+            defendButton.onClick.AddListener(OnDefendClicked);
+        }
+
         if (escapeButton != null)
         {
             escapeButton.onClick.RemoveListener(OnEscapeClicked);
@@ -577,7 +631,7 @@ public class BattlePanel : MonoBehaviour
         text.text = label + ": " + status.currentHp + "/" + status.maxHp;
     }
 
-    private static int Damage(BattleStatusData attacker, BattleStatusData defender)
+    private static int Damage(BattleStatusData attacker, BattleStatusData defender, bool defenderGuarding = false)
     {
         if (attacker == null || defender == null)
         {
@@ -587,6 +641,11 @@ public class BattlePanel : MonoBehaviour
         int baseDamage = Mathf.Max(1, attacker.attack - defender.defense);
         int variance = Random.Range(0, 3);
         int damage = Mathf.Max(1, baseDamage + variance);
+        if (defenderGuarding)
+        {
+            damage = Mathf.Max(1, Mathf.CeilToInt(damage * 0.5f));
+        }
+
         int before = defender.currentHp;
         defender.currentHp -= damage;
         defender.Clamp();
