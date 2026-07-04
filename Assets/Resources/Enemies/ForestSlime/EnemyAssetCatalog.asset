@@ -1,0 +1,48 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 83db05317bea4f8b9d7385a59bb06bc7, type: 3}
+  m_Name: EnemyAssetCatalog
+  m_EditorClassIdentifier: 
+  enemyId: ForestSlime
+  assets:
+  - assetId: Enemy_ForestSlime_Attack
+    usage: Battle
+    status: Accepted
+    fileName: Enemy_ForestSlime_Attack.png
+    memo: "\u653B\u6483\u753B\u50CF"
+    sprite: {fileID: 21300000, guid: 1cfc89df0d6d17440a41432ad60e7435, type: 3}
+    unityImagePath: Assets/Images/Enemies/ForestSlime/Battle/Enemy_ForestSlime_Attack.png
+    exportPromptPath: Prompts/Enemy_ForestSlime_Attack.prompt.json
+  - assetId: Enemy_ForestSlime_Damage
+    usage: Battle
+    status: Accepted
+    fileName: Enemy_ForestSlime_Damage.png
+    memo: "\u88AB\u30C0\u30E1\u30FC\u30B8\u753B\u50CF"
+    sprite: {fileID: 21300000, guid: 8dc0b719e7a481a43bae25b62706ea5c, type: 3}
+    unityImagePath: Assets/Images/Enemies/ForestSlime/Battle/Enemy_ForestSlime_Damage.png
+    exportPromptPath: Prompts/Enemy_ForestSlime_Damage.prompt.json
+  - assetId: Enemy_ForestSlime_Defeat
+    usage: Battle
+    status: Accepted
+    fileName: Enemy_ForestSlime_Defeat.png
+    memo: "\u6483\u7834\u753B\u50CF"
+    sprite: {fileID: 21300000, guid: 3612704e9f599094181d1fbb3ff5457e, type: 3}
+    unityImagePath: Assets/Images/Enemies/ForestSlime/Battle/Enemy_ForestSlime_Defeat.png
+    exportPromptPath: Prompts/Enemy_ForestSlime_Defeat.prompt.json
+  - assetId: Enemy_ForestSlime_Idle
+    usage: Battle
+    status: Accepted
+    fileName: Enemy_ForestSlime_Idle.png
+    memo: 
+    sprite: {fileID: 21300000, guid: 1dae5454c63e7e5408c6b6d6ac8e29b8, type: 3}
+    unityImagePath: Assets/Images/Enemies/ForestSlime/Battle/Enemy_ForestSlime_Idle.png
+    exportPromptPath: Prompts/Enemy_ForestSlime_Idle.prompt.json

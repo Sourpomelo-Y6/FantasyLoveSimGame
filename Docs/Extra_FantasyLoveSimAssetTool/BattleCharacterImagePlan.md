@@ -56,6 +56,8 @@ Assets/Images/Heroines/<HeroineId>/Battle/
 Assets/Images/Player/Battle/
 ```
 
+プレイヤー画像の Unity import 手順は `PlayerAssetImportPlan.md` を正とする。
+
 敵の共通画像:
 
 ```text
@@ -255,6 +257,9 @@ Export/<HeroineId>/Images/Battle/*.png
 3. `battle_images_export.json` があれば読む。
 4. `BattleCharacterAssetData` を作成、更新する。
 5. `battle_images_export.json` 内の `*ImageAssetId` を `HeroineAssetCatalog` の `assetId` から Sprite へ解決する。
+
+プレイヤー画像は `FantasyLoveSim/Import Player Export` で取り込み、`PlayerAssetCatalog` に登録する。
+保存先は `Assets/Resources/Player/PlayerAssetCatalog.asset`、画像コピー先は `Assets/Images/Player/Battle/` とする。
 
 ## 最初に作るべき画像
 

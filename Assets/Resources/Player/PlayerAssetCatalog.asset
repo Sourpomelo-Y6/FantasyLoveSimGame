@@ -1,0 +1,40 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a328c85d1f9e4c4cb7d63a29b1ac07de, type: 3}
+  m_Name: PlayerAssetCatalog
+  m_EditorClassIdentifier: 
+  playerId: Player
+  assets:
+  - assetId: Battle_Player_Idle
+    usage: Battle
+    status: Accepted
+    fileName: Battle_Player_Idle.png
+    memo: "\u901A\u5E38\u753B\u50CF"
+    sprite: {fileID: 21300000, guid: 065bb4d78113ad84891ded95db64a3a9, type: 3}
+    unityImagePath: Assets/Images/Player/Battle/Battle_Player_Idle.png
+    exportPromptPath: Prompts/Battle_Player_Idle.prompt.json
+  - assetId: Battle_Player_Damage
+    usage: Battle
+    status: Accepted
+    fileName: Battle_Player_Damage.png
+    memo: "\u88AB\u30C0\u30E1\u30FC\u30B8\u753B\u50CF"
+    sprite: {fileID: 21300000, guid: 1653a2a29e159d845a83e1a9f77b0cf0, type: 3}
+    unityImagePath: Assets/Images/Player/Battle/Battle_Player_Damage.png
+    exportPromptPath: Prompts/Battle_Player_Damage.prompt.json
+  - assetId: Battle_Player_Defeat
+    usage: Battle
+    status: Accepted
+    fileName: Battle_Player_Defeat.png
+    memo: "\u6557\u5317\u753B\u50CF"
+    sprite: {fileID: 21300000, guid: 83b994f052e659e499bb5e0761b1209a, type: 3}
+    unityImagePath: Assets/Images/Player/Battle/Battle_Player_Defeat.png
+    exportPromptPath: Prompts/Battle_Player_Defeat.prompt.json
