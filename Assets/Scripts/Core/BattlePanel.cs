@@ -10,6 +10,7 @@ public class BattlePanel : MonoBehaviour
     private const string BattleSpriteDamage = "Damage";
     private const string BattleSpriteVictory = "Victory";
     private const string BattleSpriteDefeat = "Defeat";
+    private const int DebugHealAmount = 20;
 
     [SerializeField] private GameManager gameManager;
     [SerializeField] private PlayerStatus playerStatus;
@@ -25,6 +26,7 @@ public class BattlePanel : MonoBehaviour
     [SerializeField] private Image enemyImage;
     [SerializeField] private Button attackButton;
     [SerializeField] private Button defendButton;
+    [SerializeField] private Button healButton;
     [SerializeField] private Button escapeButton;
     [SerializeField] private Button closeButton;
     [SerializeField] private EnemyData debugEnemy;
@@ -193,6 +195,42 @@ public class BattlePanel : MonoBehaviour
         Refresh();
     }
 
+    private void OnHealClicked()
+    {
+        if (battleFinished)
+        {
+            return;
+        }
+
+        turnCount++;
+        AddLog("--- " + turnCount + "ターン目 ---");
+        ApplyPlayerImage(BattleSpriteIdle);
+        ApplyHeroineImage(BattleSpriteIdle);
+        ApplyEnemyImage(currentDebugEnemy, BattleSpriteIdle);
+
+        BattleStatusData target = ResolveHealTarget();
+        string targetName = ResolveHealTargetName(target);
+        int recovered = Recover(target, DebugHealAmount);
+        if (recovered > 0)
+        {
+            AddLog(targetName + " は " + recovered + " 回復した。");
+        }
+        else
+        {
+            AddLog("回復できる対象がいません。");
+        }
+
+        ApplyEnemyAttack();
+        if (IsDefeated(debugPlayerStatus))
+        {
+            FinishBattle("敗北", ResolveDefeatMessage());
+            return;
+        }
+
+        AddHpSummaryLog();
+        Refresh();
+    }
+
     private void OnEscapeClicked()
     {
         if (!battleFinished)
@@ -290,6 +328,11 @@ public class BattlePanel : MonoBehaviour
             defendButton.interactable = !battleFinished;
         }
 
+        if (healButton != null)
+        {
+            healButton.interactable = !battleFinished;
+        }
+
         if (escapeButton != null)
         {
             escapeButton.interactable = true;
@@ -317,6 +360,31 @@ public class BattlePanel : MonoBehaviour
         }
 
         return status.currentHp + "/" + status.maxHp;
+    }
+
+    private BattleStatusData ResolveHealTarget()
+    {
+        if (CanRecover(debugPlayerStatus))
+        {
+            return debugPlayerStatus;
+        }
+
+        if (CanRecover(debugHeroineStatus))
+        {
+            return debugHeroineStatus;
+        }
+
+        return debugPlayerStatus;
+    }
+
+    private string ResolveHealTargetName(BattleStatusData target)
+    {
+        if (target == debugHeroineStatus)
+        {
+            return heroineStatus != null ? heroineStatus.HeroineName : "ヒロイン";
+        }
+
+        return "プレイヤー";
     }
 
     private string ResolveVictoryMessage()
@@ -594,6 +662,12 @@ public class BattlePanel : MonoBehaviour
             defendButton.onClick.AddListener(OnDefendClicked);
         }
 
+        if (healButton != null)
+        {
+            healButton.onClick.RemoveListener(OnHealClicked);
+            healButton.onClick.AddListener(OnHealClicked);
+        }
+
         if (escapeButton != null)
         {
             escapeButton.onClick.RemoveListener(OnEscapeClicked);
@@ -650,6 +724,24 @@ public class BattlePanel : MonoBehaviour
         defender.currentHp -= damage;
         defender.Clamp();
         return before - defender.currentHp;
+    }
+
+    private static int Recover(BattleStatusData target, int amount)
+    {
+        if (target == null || amount <= 0 || target.currentHp <= 0)
+        {
+            return 0;
+        }
+
+        int before = target.currentHp;
+        target.currentHp += amount;
+        target.Clamp();
+        return target.currentHp - before;
+    }
+
+    private static bool CanRecover(BattleStatusData status)
+    {
+        return status != null && status.currentHp > 0 && status.currentHp < status.maxHp;
     }
 
     private static bool IsDefeated(BattleStatusData status)
