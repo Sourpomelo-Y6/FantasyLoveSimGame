@@ -19,6 +19,7 @@ public class GameManager : MonoBehaviour
         ShowingResponse,
         ShowingSimple,
         ShowingActionResult,
+        ShowingBattleIntro,
         ShowingGoodNight
     }
 
@@ -1849,6 +1850,12 @@ public class GameManager : MonoBehaviour
         if (flowState == ConversationFlowState.ShowingActionResult)
         {
             FinishActionResult();
+            return;
+        }
+
+        if (flowState == ConversationFlowState.ShowingBattleIntro)
+        {
+            StartPendingBattlePanelBattle();
             return;
         }
 
@@ -4426,8 +4433,58 @@ public class GameManager : MonoBehaviour
         outfitReactionPanel.SetActive(false);
         nextButton.gameObject.SetActive(false);
 
-        battlePanel.OpenBattle(enemy);
+        ShowBattlePanelIntro(scheduledEvent, enemy);
         return true;
+    }
+
+    private void ShowBattlePanelIntro(ScheduledEventDefinition scheduledEvent, EnemyData enemy)
+    {
+        string stillId;
+        Sprite stillSprite;
+        ResolveScheduledEventStill(scheduledEvent, out stillId, out stillSprite);
+
+        string enemyName = enemy != null ? enemy.GetDisplayName() : "何か";
+        string message =
+            "二人で森を歩いていると、木々の奥から気配が近づいてきます。\n" +
+            enemyName + " が現れそうです。";
+
+        ShowDialogue(DialogueSpeakerType.Schedule, ScheduleSpeakerName, message, stillId, stillSprite);
+
+        flowState = ConversationFlowState.ShowingBattleIntro;
+        nextButton.gameObject.SetActive(true);
+        RefreshUI();
+    }
+
+    private void StartPendingBattlePanelBattle()
+    {
+        if (!waitingForBattlePanelScheduledEvent)
+        {
+            flowState = ConversationFlowState.Idle;
+            nextButton.gameObject.SetActive(false);
+            RefreshUI();
+            return;
+        }
+
+        if (pendingBattlePanelScheduledEvent == null)
+        {
+            waitingForBattlePanelScheduledEvent = false;
+            flowState = ConversationFlowState.Idle;
+            nextButton.gameObject.SetActive(false);
+            RefreshUI();
+            return;
+        }
+
+        EnemyData enemy = ResolveExplorationEnemy(pendingBattlePanelScheduledEvent.ScheduleType);
+        if (enemy == null)
+        {
+            CompletePendingBattlePanelScheduledEvent();
+            return;
+        }
+
+        ResetDialogueSequenceState();
+        flowState = ConversationFlowState.Idle;
+        nextButton.gameObject.SetActive(false);
+        battlePanel.OpenBattle(enemy);
     }
 
     private void CompleteScheduledEvent(
