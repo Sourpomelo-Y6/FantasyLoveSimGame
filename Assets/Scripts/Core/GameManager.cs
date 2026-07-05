@@ -4448,6 +4448,7 @@ public class GameManager : MonoBehaviour
         switch (scheduleType)
         {
             case ScheduleType.SoloForest:
+            case ScheduleType.SoloCave:
             case ScheduleType.DuoForest:
             case ScheduleType.DuoCave:
             case ScheduleType.DuoLake:
