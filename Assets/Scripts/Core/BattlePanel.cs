@@ -85,10 +85,15 @@ public class BattlePanel : MonoBehaviour
         EnsureReferences();
         HookButtons();
 
-        OpenBattle(ResolveDebugEnemy());
+        OpenBattle(ResolveDebugEnemy(), true);
     }
 
     public void OpenBattle(EnemyData enemy)
+    {
+        OpenBattle(enemy, true);
+    }
+
+    public void OpenBattle(EnemyData enemy, bool includeHeroine)
     {
         EnsureReferences();
         HookButtons();
@@ -96,15 +101,15 @@ public class BattlePanel : MonoBehaviour
         currentDebugEnemy = enemy;
         enemyDisplayName = currentDebugEnemy != null ? currentDebugEnemy.GetDisplayName() : "デバッグ敵";
         debugEnemyStatus = currentDebugEnemy != null ? currentDebugEnemy.CreateBattleStatus() : CreateDefaultEnemyStatus();
-        ApplyPlayerImage(BattleSpriteIdle);
-        ApplyHeroineImage(BattleSpriteIdle);
-        ApplyEnemyImage(currentDebugEnemy, BattleSpriteIdle);
         debugPlayerStatus = playerStatus != null && playerStatus.BattleStatus != null
             ? playerStatus.BattleStatus.Clone()
             : CreateDefaultPlayerStatus();
-        debugHeroineStatus = heroineStatus != null && heroineStatus.BattleStatus != null
+        debugHeroineStatus = includeHeroine && heroineStatus != null && heroineStatus.BattleStatus != null
             ? heroineStatus.BattleStatus.Clone()
             : null;
+        ApplyPlayerImage(BattleSpriteIdle);
+        ApplyHeroineImage(BattleSpriteIdle);
+        ApplyEnemyImage(currentDebugEnemy, BattleSpriteIdle);
         turnCount = 0;
         battleFinished = false;
         battleResultNotified = false;
@@ -604,6 +609,13 @@ public class BattlePanel : MonoBehaviour
     {
         if (heroineImage == null)
         {
+            return;
+        }
+
+        if (debugHeroineStatus == null)
+        {
+            heroineImage.sprite = null;
+            heroineImage.enabled = false;
             return;
         }
 

@@ -4447,6 +4447,7 @@ public class GameManager : MonoBehaviour
 
         switch (scheduleType)
         {
+            case ScheduleType.SoloForest:
             case ScheduleType.DuoForest:
             case ScheduleType.DuoCave:
             case ScheduleType.DuoLake:
@@ -4538,7 +4539,7 @@ public class GameManager : MonoBehaviour
         ResetDialogueSequenceState();
         flowState = ConversationFlowState.Idle;
         nextButton.gameObject.SetActive(false);
-        battlePanel.OpenBattle(enemy);
+        battlePanel.OpenBattle(enemy, IsDuoExplorationSchedule(pendingBattlePanelScheduledEvent.ScheduleType));
     }
 
     private void CompleteScheduledEvent(
