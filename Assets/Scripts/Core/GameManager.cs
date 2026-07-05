@@ -5,6 +5,7 @@ using UnityEngine.UI;
 using TMPro;
 using System.Collections;
 using UnityEngine.SceneManagement;
+using UnityEngine.Serialization;
 
 public class GameManager : MonoBehaviour
 {
@@ -306,7 +307,8 @@ public class GameManager : MonoBehaviour
 
     [Header("Battle UI")]
     [SerializeField] private BattlePanel battlePanel;
-    [SerializeField] private bool useBattlePanelForDuoForestExploration = true;
+    [FormerlySerializedAs("useBattlePanelForDuoForestExploration")]
+    [SerializeField] private bool useBattlePanelForExploration = true;
     private BattlePanel.BattleResult lastBattlePanelResult;
     private SimpleBattleResult lastBattlePanelSimpleResult;
     private bool hasLastBattlePanelSimpleResult;
@@ -4402,8 +4404,7 @@ public class GameManager : MonoBehaviour
     private bool TryOpenBattlePanelForScheduledExploration(ScheduledEventDefinition scheduledEvent)
     {
         if (scheduledEvent == null ||
-            !useBattlePanelForDuoForestExploration ||
-            scheduledEvent.ScheduleType != ScheduleType.DuoForest)
+            !ShouldUseBattlePanelForExploration(scheduledEvent.ScheduleType))
         {
             return false;
         }
@@ -4417,7 +4418,7 @@ public class GameManager : MonoBehaviour
         EnsureBattlePanel();
         if (battlePanel == null)
         {
-            Debug.LogWarning("BattlePanel が設定されていないため、DuoForest は既存の自動戦闘で処理します。");
+            Debug.LogWarning("BattlePanel が設定されていないため、探索予定は既存の自動戦闘で処理します。");
             return false;
         }
 
@@ -4437,22 +4438,73 @@ public class GameManager : MonoBehaviour
         return true;
     }
 
+    private bool ShouldUseBattlePanelForExploration(ScheduleType scheduleType)
+    {
+        if (!useBattlePanelForExploration)
+        {
+            return false;
+        }
+
+        switch (scheduleType)
+        {
+            case ScheduleType.DuoForest:
+                return true;
+
+            default:
+                return false;
+        }
+    }
+
     private void ShowBattlePanelIntro(ScheduledEventDefinition scheduledEvent, EnemyData enemy)
     {
         string stillId;
         Sprite stillSprite;
         ResolveScheduledEventStill(scheduledEvent, out stillId, out stillSprite);
 
-        string enemyName = enemy != null ? enemy.GetDisplayName() : "何か";
-        string message =
-            "二人で森を歩いていると、木々の奥から気配が近づいてきます。\n" +
-            enemyName + " が現れそうです。";
+        string message = BuildBattlePanelIntroMessage(
+            scheduledEvent != null ? scheduledEvent.ScheduleType : ScheduleType.None,
+            enemy);
 
         ShowDialogue(DialogueSpeakerType.Schedule, ScheduleSpeakerName, message, stillId, stillSprite);
 
         flowState = ConversationFlowState.ShowingBattleIntro;
         nextButton.gameObject.SetActive(true);
         RefreshUI();
+    }
+
+    private static string BuildBattlePanelIntroMessage(ScheduleType scheduleType, EnemyData enemy)
+    {
+        string enemyName = enemy != null ? enemy.GetDisplayName() : "何か";
+        switch (scheduleType)
+        {
+            case ScheduleType.DuoForest:
+                return "二人で森を歩いていると、木々の奥から気配が近づいてきます。\n" +
+                    enemyName + " が現れそうです。";
+
+            case ScheduleType.SoloForest:
+                return "森を歩いていると、木々の奥から気配が近づいてきます。\n" +
+                    enemyName + " が現れそうです。";
+
+            case ScheduleType.DuoCave:
+                return "二人で洞窟を進んでいると、暗がりの奥で何かが動きました。\n" +
+                    enemyName + " が現れそうです。";
+
+            case ScheduleType.SoloCave:
+                return "洞窟を進んでいると、暗がりの奥で何かが動きました。\n" +
+                    enemyName + " が現れそうです。";
+
+            case ScheduleType.DuoLake:
+                return "二人で湖のほとりを歩いていると、水面の向こうに気配を感じます。\n" +
+                    enemyName + " が現れそうです。";
+
+            case ScheduleType.SoloLake:
+                return "湖のほとりを歩いていると、水面の向こうに気配を感じます。\n" +
+                    enemyName + " が現れそうです。";
+
+            default:
+                return "探索中に気配を感じました。\n" +
+                    enemyName + " が現れそうです。";
+        }
     }
 
     private void StartPendingBattlePanelBattle()
