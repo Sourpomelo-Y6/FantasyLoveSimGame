@@ -6381,7 +6381,10 @@ public class GameManager : MonoBehaviour
         }
 
         ApplyBattlePanelResultStatus(result);
-        lastBattlePanelSimpleResult = ConvertBattlePanelResultToSimpleBattleResult(result);
+        lastBattlePanelSimpleResult = ConvertBattlePanelResultToSimpleBattleResult(
+            result,
+            playerStatus != null ? playerStatus.BattleStatus : null,
+            result.heroineStatus != null && heroineStatus != null ? heroineStatus.BattleStatus : null);
         hasLastBattlePanelSimpleResult = true;
 
         Debug.Log(
@@ -6453,14 +6456,17 @@ public class GameManager : MonoBehaviour
         return enemyName + "との" + resultMessage + "ターン数: " + result.turnCount;
     }
 
-    private static SimpleBattleResult ConvertBattlePanelResultToSimpleBattleResult(BattlePanel.BattleResult result)
+    private SimpleBattleResult ConvertBattlePanelResultToSimpleBattleResult(
+        BattlePanel.BattleResult result,
+        BattleStatusData playerBattleStatus,
+        BattleStatusData heroineBattleStatus)
     {
         SimpleBattleResult simpleResult = new SimpleBattleResult
         {
             PlayerWon = result != null && result.resultType == BattlePanel.BattleResultType.Victory,
             Turns = result != null ? result.turnCount : 0,
-            PlayerDamageTaken = EstimateDamageTaken(result != null ? result.playerStatus : null),
-            HeroineDamageTaken = EstimateDamageTaken(result != null ? result.heroineStatus : null),
+            PlayerDamageTaken = EstimateDamageTaken(playerBattleStatus),
+            HeroineDamageTaken = EstimateDamageTaken(heroineBattleStatus),
             RewardMoney = 0,
             AffectionChange = 0,
             Message = BuildSimpleBattleResultMessage(result),
@@ -6470,8 +6476,8 @@ public class GameManager : MonoBehaviour
         AddBattleLogLine(ref simpleResult, "結果: " + ResolveBattlePanelResultLabel(result));
         AddBattleLogLine(ref simpleResult, "敵: " + ResolveBattlePanelEnemyName(result));
         AddBattleLogLine(ref simpleResult, "ターン数: " + simpleResult.Turns);
-        AddBattleLogLine(ref simpleResult, "プレイヤーHP: " + FormatBattlePanelHp(result != null ? result.playerStatus : null));
-        AddBattleLogLine(ref simpleResult, "ヒロインHP: " + FormatBattlePanelHp(result != null ? result.heroineStatus : null));
+        AddBattleLogLine(ref simpleResult, "プレイヤーHP: " + FormatBattlePanelHp(playerBattleStatus));
+        AddBattleLogLine(ref simpleResult, "ヒロインHP: " + FormatBattlePanelHp(heroineBattleStatus));
         AddBattleLogLine(ref simpleResult, "敵HP: " + FormatBattlePanelHp(result != null ? result.enemyStatus : null));
 
         return simpleResult;
