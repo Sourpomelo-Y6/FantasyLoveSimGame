@@ -4448,6 +4448,7 @@ public class GameManager : MonoBehaviour
         switch (scheduleType)
         {
             case ScheduleType.DuoForest:
+            case ScheduleType.DuoCave:
                 return true;
 
             default:
