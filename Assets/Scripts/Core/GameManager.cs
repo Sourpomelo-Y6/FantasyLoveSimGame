@@ -4692,6 +4692,12 @@ public class GameManager : MonoBehaviour
                 break;
         }
 
+        if (hasExternalBattleResult)
+        {
+            playerHpChange = 0;
+            heroineHpChange = 0;
+        }
+
         int appliedPlayerHpChange = ApplyPlayerHpChange(playerHpChange);
         int appliedHeroineHpChange = ApplyHeroineHpChange(heroineHpChange);
         EnemyData enemy = ResolveExplorationEnemy(scheduleType);
@@ -6374,6 +6380,7 @@ public class GameManager : MonoBehaviour
             return;
         }
 
+        ApplyBattlePanelResultStatus(result);
         lastBattlePanelSimpleResult = ConvertBattlePanelResultToSimpleBattleResult(result);
         hasLastBattlePanelSimpleResult = true;
 
@@ -6388,6 +6395,34 @@ public class GameManager : MonoBehaviour
             DialogueSpeakerType.BattleLog,
             BattleLogSpeakerName,
             BuildBattlePanelResultLogMessage(result));
+    }
+
+    private void ApplyBattlePanelResultStatus(BattlePanel.BattleResult result)
+    {
+        if (result == null)
+        {
+            return;
+        }
+
+        if (playerStatus != null && result.playerStatus != null)
+        {
+            playerStatus.SetBattleStatus(result.playerStatus);
+            if (playerStatus.CurrentHp <= 0)
+            {
+                playerStatus.SetCurrentHp(1);
+            }
+        }
+
+        if (heroineStatus != null && result.heroineStatus != null)
+        {
+            heroineStatus.SetBattleStatus(result.heroineStatus);
+            if (heroineStatus.CurrentHp <= 0)
+            {
+                heroineStatus.SetCurrentHp(1);
+            }
+        }
+
+        RefreshStatusDetailPanel();
     }
 
     private static string BuildBattlePanelResultLogMessage(BattlePanel.BattleResult result)
