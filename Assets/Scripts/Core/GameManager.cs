@@ -305,6 +305,8 @@ public class GameManager : MonoBehaviour
 
     [Header("Battle UI")]
     [SerializeField] private BattlePanel battlePanel;
+    private BattlePanel.BattleResult lastBattlePanelResult;
+    public BattlePanel.BattleResult LastBattlePanelResult => lastBattlePanelResult;
 
     [Header("Battle Result Events")]
     [SerializeField] private string battleResultEventResourcePath = BattleResultEventResourcePath;
@@ -6140,6 +6142,22 @@ public class GameManager : MonoBehaviour
         outfitReactionPanel.SetActive(false);
         nextButton.gameObject.SetActive(false);
         RefreshUI();
+    }
+
+    public void OnBattlePanelResult(BattlePanel.BattleResult result)
+    {
+        lastBattlePanelResult = result;
+        if (result == null)
+        {
+            return;
+        }
+
+        Debug.Log(
+            "[BattlePanel] Result received. resultType=" + result.resultType +
+            ", resultLabel=" + result.resultLabel +
+            ", enemyId=" + result.enemyId +
+            ", enemyName=" + result.enemyName +
+            ", turnCount=" + result.turnCount);
     }
 
     private void EnsureStatusDetailPanel()

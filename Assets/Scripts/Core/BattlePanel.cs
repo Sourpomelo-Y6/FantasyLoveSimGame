@@ -5,6 +5,26 @@ using UnityEngine.UI;
 
 public class BattlePanel : MonoBehaviour
 {
+    public enum BattleResultType
+    {
+        None,
+        Victory,
+        Defeat,
+        Escape
+    }
+
+    public class BattleResult
+    {
+        public BattleResultType resultType;
+        public string resultLabel;
+        public string enemyId;
+        public string enemyName;
+        public int turnCount;
+        public BattleStatusData playerStatus;
+        public BattleStatusData heroineStatus;
+        public BattleStatusData enemyStatus;
+    }
+
     private const string BattleSpriteIdle = "Idle";
     private const string BattleSpriteAttack = "Attack";
     private const string BattleSpriteDamage = "Damage";
@@ -43,6 +63,7 @@ public class BattlePanel : MonoBehaviour
     private readonly List<string> logLines = new List<string>();
     private int turnCount;
     private bool battleFinished;
+    private bool battleResultNotified;
 
     private void Awake()
     {
@@ -78,6 +99,7 @@ public class BattlePanel : MonoBehaviour
             : null;
         turnCount = 0;
         battleFinished = false;
+        battleResultNotified = false;
 
         logLines.Clear();
         AddLog("デバッグ戦闘を開始しました。");
@@ -330,7 +352,54 @@ public class BattlePanel : MonoBehaviour
         AddLog(message);
         AddLog("戦闘結果：" + resultLabel);
         AddHpSummaryLog();
+        NotifyBattleResult(resultLabel);
         Refresh();
+    }
+
+    private void NotifyBattleResult(string resultLabel)
+    {
+        if (battleResultNotified || gameManager == null)
+        {
+            return;
+        }
+
+        battleResultNotified = true;
+        gameManager.OnBattlePanelResult(CreateBattleResult(resultLabel));
+    }
+
+    private BattleResult CreateBattleResult(string resultLabel)
+    {
+        return new BattleResult
+        {
+            resultType = ResolveBattleResultType(resultLabel),
+            resultLabel = resultLabel,
+            enemyId = currentDebugEnemy != null ? currentDebugEnemy.enemyId : "",
+            enemyName = enemyDisplayName,
+            turnCount = turnCount,
+            playerStatus = debugPlayerStatus != null ? debugPlayerStatus.Clone() : null,
+            heroineStatus = debugHeroineStatus != null ? debugHeroineStatus.Clone() : null,
+            enemyStatus = debugEnemyStatus != null ? debugEnemyStatus.Clone() : null
+        };
+    }
+
+    private static BattleResultType ResolveBattleResultType(string resultLabel)
+    {
+        if (resultLabel == "勝利")
+        {
+            return BattleResultType.Victory;
+        }
+
+        if (resultLabel == "敗北")
+        {
+            return BattleResultType.Defeat;
+        }
+
+        if (resultLabel == "撤退")
+        {
+            return BattleResultType.Escape;
+        }
+
+        return BattleResultType.None;
     }
 
     private void ApplyBattleResultImages(string resultLabel)
