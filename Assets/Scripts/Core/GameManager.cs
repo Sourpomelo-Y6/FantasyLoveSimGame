@@ -6397,7 +6397,10 @@ public class GameManager : MonoBehaviour
         AddMessageLogEntry(
             DialogueSpeakerType.BattleLog,
             BattleLogSpeakerName,
-            BuildBattlePanelResultLogMessage(result));
+            BuildBattlePanelResultLogMessage(
+                result,
+                playerStatus != null ? playerStatus.BattleStatus : null,
+                result.heroineStatus != null && heroineStatus != null ? heroineStatus.BattleStatus : null));
     }
 
     private void ApplyBattlePanelResultStatus(BattlePanel.BattleResult result)
@@ -6428,7 +6431,10 @@ public class GameManager : MonoBehaviour
         RefreshStatusDetailPanel();
     }
 
-    private static string BuildBattlePanelResultLogMessage(BattlePanel.BattleResult result)
+    private static string BuildBattlePanelResultLogMessage(
+        BattlePanel.BattleResult result,
+        BattleStatusData playerBattleStatus,
+        BattleStatusData heroineBattleStatus)
     {
         if (result == null)
         {
@@ -6453,7 +6459,9 @@ public class GameManager : MonoBehaviour
                 break;
         }
 
-        return enemyName + "との" + resultMessage + "ターン数: " + result.turnCount;
+        return enemyName + "との" + resultMessage + "ターン数: " + result.turnCount +
+            "\nプレイヤーHP: " + FormatBattlePanelHp(playerBattleStatus) +
+            "\nヒロインHP: " + FormatBattlePanelHp(heroineBattleStatus);
     }
 
     private SimpleBattleResult ConvertBattlePanelResultToSimpleBattleResult(
@@ -6469,7 +6477,7 @@ public class GameManager : MonoBehaviour
             HeroineDamageTaken = EstimateDamageTaken(heroineBattleStatus),
             RewardMoney = 0,
             AffectionChange = 0,
-            Message = BuildSimpleBattleResultMessage(result),
+            Message = BuildSimpleBattleResultMessage(result, playerBattleStatus, heroineBattleStatus),
             LogLines = new List<string>()
         };
 
@@ -6483,14 +6491,17 @@ public class GameManager : MonoBehaviour
         return simpleResult;
     }
 
-    private static string BuildSimpleBattleResultMessage(BattlePanel.BattleResult result)
+    private static string BuildSimpleBattleResultMessage(
+        BattlePanel.BattleResult result,
+        BattleStatusData playerBattleStatus,
+        BattleStatusData heroineBattleStatus)
     {
         if (result == null)
         {
             return "戦闘結果を取得できませんでした。";
         }
 
-        return BuildBattlePanelResultLogMessage(result);
+        return BuildBattlePanelResultLogMessage(result, playerBattleStatus, heroineBattleStatus);
     }
 
     private static string ResolveBattlePanelResultLabel(BattlePanel.BattleResult result)
