@@ -6158,6 +6158,39 @@ public class GameManager : MonoBehaviour
             ", enemyId=" + result.enemyId +
             ", enemyName=" + result.enemyName +
             ", turnCount=" + result.turnCount);
+
+        AddMessageLogEntry(
+            DialogueSpeakerType.BattleLog,
+            BattleLogSpeakerName,
+            BuildBattlePanelResultLogMessage(result));
+    }
+
+    private static string BuildBattlePanelResultLogMessage(BattlePanel.BattleResult result)
+    {
+        if (result == null)
+        {
+            return "";
+        }
+
+        string enemyName = string.IsNullOrEmpty(result.enemyName) ? "敵" : result.enemyName;
+        string resultMessage;
+        switch (result.resultType)
+        {
+            case BattlePanel.BattleResultType.Victory:
+                resultMessage = "戦闘に勝利しました。";
+                break;
+            case BattlePanel.BattleResultType.Defeat:
+                resultMessage = "戦闘に敗北しました。";
+                break;
+            case BattlePanel.BattleResultType.Escape:
+                resultMessage = "戦闘から撤退しました。";
+                break;
+            default:
+                resultMessage = "戦闘が終了しました。";
+                break;
+        }
+
+        return enemyName + "との" + resultMessage + "ターン数: " + result.turnCount;
     }
 
     private void EnsureStatusDetailPanel()
