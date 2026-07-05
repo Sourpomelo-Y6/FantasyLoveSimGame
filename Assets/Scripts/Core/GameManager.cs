@@ -306,6 +306,8 @@ public class GameManager : MonoBehaviour
     [Header("Battle UI")]
     [SerializeField] private BattlePanel battlePanel;
     private BattlePanel.BattleResult lastBattlePanelResult;
+    private SimpleBattleResult lastBattlePanelSimpleResult;
+    private bool hasLastBattlePanelSimpleResult;
     public BattlePanel.BattleResult LastBattlePanelResult => lastBattlePanelResult;
 
     [Header("Battle Result Events")]
@@ -6147,10 +6149,14 @@ public class GameManager : MonoBehaviour
     public void OnBattlePanelResult(BattlePanel.BattleResult result)
     {
         lastBattlePanelResult = result;
+        hasLastBattlePanelSimpleResult = false;
         if (result == null)
         {
             return;
         }
+
+        lastBattlePanelSimpleResult = ConvertBattlePanelResultToSimpleBattleResult(result);
+        hasLastBattlePanelSimpleResult = true;
 
         Debug.Log(
             "[BattlePanel] Result received. resultType=" + result.resultType +
@@ -6191,6 +6197,80 @@ public class GameManager : MonoBehaviour
         }
 
         return enemyName + "との" + resultMessage + "ターン数: " + result.turnCount;
+    }
+
+    private static SimpleBattleResult ConvertBattlePanelResultToSimpleBattleResult(BattlePanel.BattleResult result)
+    {
+        SimpleBattleResult simpleResult = new SimpleBattleResult
+        {
+            PlayerWon = result != null && result.resultType == BattlePanel.BattleResultType.Victory,
+            Turns = result != null ? result.turnCount : 0,
+            PlayerDamageTaken = EstimateDamageTaken(result != null ? result.playerStatus : null),
+            HeroineDamageTaken = EstimateDamageTaken(result != null ? result.heroineStatus : null),
+            RewardMoney = 0,
+            AffectionChange = 0,
+            Message = BuildSimpleBattleResultMessage(result),
+            LogLines = new List<string>()
+        };
+
+        AddBattleLogLine(ref simpleResult, "結果: " + ResolveBattlePanelResultLabel(result));
+        AddBattleLogLine(ref simpleResult, "敵: " + ResolveBattlePanelEnemyName(result));
+        AddBattleLogLine(ref simpleResult, "ターン数: " + simpleResult.Turns);
+        AddBattleLogLine(ref simpleResult, "プレイヤーHP: " + FormatBattlePanelHp(result != null ? result.playerStatus : null));
+        AddBattleLogLine(ref simpleResult, "ヒロインHP: " + FormatBattlePanelHp(result != null ? result.heroineStatus : null));
+        AddBattleLogLine(ref simpleResult, "敵HP: " + FormatBattlePanelHp(result != null ? result.enemyStatus : null));
+
+        return simpleResult;
+    }
+
+    private static string BuildSimpleBattleResultMessage(BattlePanel.BattleResult result)
+    {
+        if (result == null)
+        {
+            return "戦闘結果を取得できませんでした。";
+        }
+
+        return BuildBattlePanelResultLogMessage(result);
+    }
+
+    private static string ResolveBattlePanelResultLabel(BattlePanel.BattleResult result)
+    {
+        if (result == null || string.IsNullOrEmpty(result.resultLabel))
+        {
+            return "不明";
+        }
+
+        return result.resultLabel;
+    }
+
+    private static string ResolveBattlePanelEnemyName(BattlePanel.BattleResult result)
+    {
+        if (result == null || string.IsNullOrEmpty(result.enemyName))
+        {
+            return "敵";
+        }
+
+        return result.enemyName;
+    }
+
+    private static string FormatBattlePanelHp(BattleStatusData status)
+    {
+        if (status == null)
+        {
+            return "-";
+        }
+
+        return status.currentHp + "/" + status.maxHp;
+    }
+
+    private static int EstimateDamageTaken(BattleStatusData status)
+    {
+        if (status == null)
+        {
+            return 0;
+        }
+
+        return Mathf.Max(0, status.maxHp - status.currentHp);
     }
 
     private void EnsureStatusDetailPanel()
