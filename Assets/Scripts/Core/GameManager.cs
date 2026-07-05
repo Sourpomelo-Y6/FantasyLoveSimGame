@@ -305,9 +305,12 @@ public class GameManager : MonoBehaviour
 
     [Header("Battle UI")]
     [SerializeField] private BattlePanel battlePanel;
+    [SerializeField] private bool useBattlePanelForDuoForestExploration = true;
     private BattlePanel.BattleResult lastBattlePanelResult;
     private SimpleBattleResult lastBattlePanelSimpleResult;
     private bool hasLastBattlePanelSimpleResult;
+    private ScheduledEventDefinition pendingBattlePanelScheduledEvent;
+    private bool waitingForBattlePanelScheduledEvent;
     public BattlePanel.BattleResult LastBattlePanelResult => lastBattlePanelResult;
 
     [Header("Battle Result Events")]
@@ -4381,15 +4384,66 @@ public class GameManager : MonoBehaviour
             return;
         }
 
+        if (TryOpenBattlePanelForScheduledExploration(scheduledEvent))
+        {
+            return;
+        }
+
         CompleteScheduledEvent(scheduledEvent, null);
     }
 
-    private void CompleteScheduledEvent(ScheduledEventDefinition scheduledEvent, ShopItemData selectedShopItem)
+    private bool TryOpenBattlePanelForScheduledExploration(ScheduledEventDefinition scheduledEvent)
+    {
+        if (scheduledEvent == null ||
+            !useBattlePanelForDuoForestExploration ||
+            scheduledEvent.ScheduleType != ScheduleType.DuoForest)
+        {
+            return false;
+        }
+
+        EnemyData enemy = ResolveExplorationEnemy(scheduledEvent.ScheduleType);
+        if (enemy == null)
+        {
+            return false;
+        }
+
+        EnsureBattlePanel();
+        if (battlePanel == null)
+        {
+            Debug.LogWarning("BattlePanel が設定されていないため、DuoForest は既存の自動戦闘で処理します。");
+            return false;
+        }
+
+        pendingBattlePanelScheduledEvent = scheduledEvent;
+        waitingForBattlePanelScheduledEvent = true;
+        hasLastBattlePanelSimpleResult = false;
+        lastBattlePanelResult = null;
+
+        actionButtonArea.SetActive(false);
+        genreButtonArea.SetActive(false);
+        choiceButtonArea.SetActive(false);
+        outfitPanel.SetActive(false);
+        outfitReactionPanel.SetActive(false);
+        nextButton.gameObject.SetActive(false);
+
+        battlePanel.OpenBattle(enemy);
+        return true;
+    }
+
+    private void CompleteScheduledEvent(
+        ScheduledEventDefinition scheduledEvent,
+        ShopItemData selectedShopItem,
+        bool hasExternalBattleResult = false,
+        SimpleBattleResult externalBattleResult = default(SimpleBattleResult))
     {
         scheduleManager.MarkTodayScheduleEventExecuted();
         heroineStatus.AddAffection(scheduledEvent.AffectionChange);
         pendingScheduledEventFollowUpMessages.Clear();
-        string eventMessage = ResolveScheduledEventMessage(scheduledEvent, selectedShopItem);
+        string eventMessage = ResolveScheduledEventMessage(
+            scheduledEvent,
+            selectedShopItem,
+            hasExternalBattleResult,
+            externalBattleResult);
         pendingScheduledEvent = null;
         startPendingScheduledEventAfterOutfitMessage = false;
         returnToScheduledEventPromptAfterOutfitMessage = false;
@@ -4412,7 +4466,11 @@ public class GameManager : MonoBehaviour
         RefreshUI();
     }
 
-    private string ResolveScheduledEventMessage(ScheduledEventDefinition scheduledEvent, ShopItemData selectedShopItem)
+    private string ResolveScheduledEventMessage(
+        ScheduledEventDefinition scheduledEvent,
+        ShopItemData selectedShopItem,
+        bool hasExternalBattleResult = false,
+        SimpleBattleResult externalBattleResult = default(SimpleBattleResult))
     {
         if (scheduledEvent == null)
         {
@@ -4426,7 +4484,11 @@ public class GameManager : MonoBehaviour
 
         if (IsExplorationSchedule(scheduledEvent.ScheduleType))
         {
-            return ApplySimpleExplorationResult(scheduledEvent.EventMessage, scheduledEvent.ScheduleType);
+            return ApplySimpleExplorationResult(
+                scheduledEvent.EventMessage,
+                scheduledEvent.ScheduleType,
+                hasExternalBattleResult,
+                externalBattleResult);
         }
 
         return scheduledEvent.EventMessage;
@@ -4447,7 +4509,11 @@ public class GameManager : MonoBehaviour
             scheduleType == ScheduleType.DuoLake;
     }
 
-    private string ApplySimpleExplorationResult(string baseMessage, ScheduleType scheduleType)
+    private string ApplySimpleExplorationResult(
+        string baseMessage,
+        ScheduleType scheduleType,
+        bool hasExternalBattleResult = false,
+        SimpleBattleResult externalBattleResult = default(SimpleBattleResult))
     {
         EnsureCoreStatusReferences();
 
@@ -4517,7 +4583,12 @@ public class GameManager : MonoBehaviour
         EnemyData enemy = ResolveExplorationEnemy(scheduleType);
         SimpleBattleResult battleResult = new SimpleBattleResult();
         bool hasBattleResult = false;
-        if (enemy != null)
+        if (hasExternalBattleResult)
+        {
+            battleResult = externalBattleResult;
+            hasBattleResult = true;
+        }
+        else if (enemy != null)
         {
             battleResult = ResolveSimpleBattle(enemy, IsDuoExplorationSchedule(scheduleType));
             hasBattleResult = true;
@@ -6132,6 +6203,12 @@ public class GameManager : MonoBehaviour
 
     public void OnBattlePanelClosed()
     {
+        if (waitingForBattlePanelScheduledEvent)
+        {
+            CompletePendingBattlePanelScheduledEvent();
+            return;
+        }
+
         if (flowState != ConversationFlowState.Idle)
         {
             return;
@@ -6144,6 +6221,34 @@ public class GameManager : MonoBehaviour
         outfitReactionPanel.SetActive(false);
         nextButton.gameObject.SetActive(false);
         RefreshUI();
+    }
+
+    private void CompletePendingBattlePanelScheduledEvent()
+    {
+        ScheduledEventDefinition scheduledEvent = pendingBattlePanelScheduledEvent;
+        pendingBattlePanelScheduledEvent = null;
+        waitingForBattlePanelScheduledEvent = false;
+
+        if (scheduledEvent == null)
+        {
+            RefreshUI();
+            return;
+        }
+
+        if (!hasLastBattlePanelSimpleResult)
+        {
+            Debug.LogWarning("BattlePanel の予定戦闘結果がないため、予定処理を完了できませんでした。");
+            actionButtonArea.SetActive(true);
+            genreButtonArea.SetActive(false);
+            choiceButtonArea.SetActive(false);
+            outfitPanel.SetActive(false);
+            outfitReactionPanel.SetActive(false);
+            nextButton.gameObject.SetActive(false);
+            RefreshUI();
+            return;
+        }
+
+        CompleteScheduledEvent(scheduledEvent, null, true, lastBattlePanelSimpleResult);
     }
 
     public void OnBattlePanelResult(BattlePanel.BattleResult result)

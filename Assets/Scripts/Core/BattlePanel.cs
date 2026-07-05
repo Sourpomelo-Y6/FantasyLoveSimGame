@@ -85,7 +85,15 @@ public class BattlePanel : MonoBehaviour
         EnsureReferences();
         HookButtons();
 
-        currentDebugEnemy = ResolveDebugEnemy();
+        OpenBattle(ResolveDebugEnemy());
+    }
+
+    public void OpenBattle(EnemyData enemy)
+    {
+        EnsureReferences();
+        HookButtons();
+
+        currentDebugEnemy = enemy;
         enemyDisplayName = currentDebugEnemy != null ? currentDebugEnemy.GetDisplayName() : "デバッグ敵";
         debugEnemyStatus = currentDebugEnemy != null ? currentDebugEnemy.CreateBattleStatus() : CreateDefaultEnemyStatus();
         ApplyPlayerImage(BattleSpriteIdle);
