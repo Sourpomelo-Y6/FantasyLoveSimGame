@@ -61,5 +61,6 @@ public class HeroineProfileData : ScriptableObject
     public string actionResourcePath = "Actions";
     public string scheduledEventResourcePath = "ScheduledEvents";
     public string battleResultEventResourcePath = "BattleResultEvents";
+    public string battlePanelResultMessageResourcePath = "BattlePanelResultMessages";
     public string endingResourcePath = "Endings";
 }

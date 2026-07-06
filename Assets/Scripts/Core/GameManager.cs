@@ -323,10 +323,12 @@ public class GameManager : MonoBehaviour
 
     [Header("Battle Result Events")]
     [SerializeField] private string battleResultEventResourcePath = BattleResultEventResourcePath;
+    [SerializeField] private string battlePanelResultMessageResourcePath = BattlePanelResultMessageResourcePath;
     [SerializeField] private BattleResultEventData[] battleResultEvents;
     private BattleResultEventData[] commonBattleResultEvents;
     private bool battleResultEventsLoadedFromResources = false;
     private BattlePanelResultMessageData[] battlePanelResultMessages;
+    private BattlePanelResultMessageData[] commonBattlePanelResultMessages;
 
     [Header("Game Event Debug")]
     [SerializeField] private string debugManualGameEventId = "";
@@ -1126,6 +1128,9 @@ public class GameManager : MonoBehaviour
         battleResultEventResourcePath = GetProfileResourcePath(
             profile.battleResultEventResourcePath,
             battleResultEventResourcePath);
+        battlePanelResultMessageResourcePath = GetProfileResourcePath(
+            profile.battlePanelResultMessageResourcePath,
+            battlePanelResultMessageResourcePath);
 
         if (battleResultEventsLoadedFromResources)
         {
@@ -1134,6 +1139,8 @@ public class GameManager : MonoBehaviour
         }
 
         commonBattleResultEvents = null;
+        battlePanelResultMessages = null;
+        commonBattlePanelResultMessages = null;
 
         Debug.Log(
             "Applied HeroineProfile resource paths: heroineId=" +
@@ -1147,7 +1154,9 @@ public class GameManager : MonoBehaviour
             " / scheduledEvents=" +
             scheduledEventResourcePath +
             " / battleResultEvents=" +
-            battleResultEventResourcePath);
+            battleResultEventResourcePath +
+            " / battlePanelResultMessages=" +
+            battlePanelResultMessageResourcePath);
     }
 
     private HeroineProfileData ResolveHeroineProfile()
@@ -6665,22 +6674,52 @@ public class GameManager : MonoBehaviour
             ? result.resultType
             : BattlePanel.BattleResultType.None;
         BattlePanelResultMessageType messageType = ConvertBattlePanelResultMessageType(resultType);
-        BattlePanelResultMessageData[] messages = GetBattlePanelResultMessages();
-        if (messages != null)
+        string message = ResolveBattlePanelResultMessageFromSource(
+            GetBattlePanelResultMessages(),
+            messageType);
+        if (!string.IsNullOrEmpty(message))
         {
-            for (int i = 0; i < messages.Length; i++)
+            return message;
+        }
+
+        if (!string.Equals(
+            battlePanelResultMessageResourcePath,
+            BattlePanelResultMessageResourcePath,
+            StringComparison.Ordinal))
+        {
+            message = ResolveBattlePanelResultMessageFromSource(
+                GetCommonBattlePanelResultMessages(),
+                messageType);
+            if (!string.IsNullOrEmpty(message))
             {
-                BattlePanelResultMessageData messageData = messages[i];
-                if (messageData != null &&
-                    messageData.resultType == messageType &&
-                    !string.IsNullOrEmpty(messageData.message))
-                {
-                    return messageData.message;
-                }
+                return message;
             }
         }
 
         return GetDefaultBattlePanelResultMessage(resultType);
+    }
+
+    private static string ResolveBattlePanelResultMessageFromSource(
+        BattlePanelResultMessageData[] messages,
+        BattlePanelResultMessageType messageType)
+    {
+        if (messages == null)
+        {
+            return "";
+        }
+
+        for (int i = 0; i < messages.Length; i++)
+        {
+            BattlePanelResultMessageData messageData = messages[i];
+            if (messageData != null &&
+                messageData.resultType == messageType &&
+                !string.IsNullOrEmpty(messageData.message))
+            {
+                return messageData.message;
+            }
+        }
+
+        return "";
     }
 
     private BattlePanelResultMessageData[] GetBattlePanelResultMessages()
@@ -6688,10 +6727,21 @@ public class GameManager : MonoBehaviour
         if (battlePanelResultMessages == null)
         {
             battlePanelResultMessages =
-                Resources.LoadAll<BattlePanelResultMessageData>(BattlePanelResultMessageResourcePath);
+                Resources.LoadAll<BattlePanelResultMessageData>(battlePanelResultMessageResourcePath);
         }
 
         return battlePanelResultMessages;
+    }
+
+    private BattlePanelResultMessageData[] GetCommonBattlePanelResultMessages()
+    {
+        if (commonBattlePanelResultMessages == null)
+        {
+            commonBattlePanelResultMessages =
+                Resources.LoadAll<BattlePanelResultMessageData>(BattlePanelResultMessageResourcePath);
+        }
+
+        return commonBattlePanelResultMessages;
     }
 
     private static BattlePanelResultMessageType ConvertBattlePanelResultMessageType(

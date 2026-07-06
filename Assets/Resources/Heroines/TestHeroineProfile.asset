@@ -66,4 +66,5 @@ MonoBehaviour:
   actionResourcePath: Heroines/TestHeroine/Actions
   scheduledEventResourcePath: Heroines/TestHeroine/ScheduledEvents
   battleResultEventResourcePath: Heroines/TestHeroine/BattleResultEvents
+  battlePanelResultMessageResourcePath: Heroines/TestHeroine/BattlePanelResultMessages
   endingResourcePath: Heroines/TestHeroine/Endings
