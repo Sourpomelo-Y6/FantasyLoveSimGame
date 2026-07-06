@@ -128,6 +128,8 @@ public class GameManager : MonoBehaviour
     [SerializeField] private TMP_Text weatherText;
     [SerializeField] private TMP_Text affectionText;
     [SerializeField] private TMP_Text affectionRankText;
+    [SerializeField] private TMP_Text mainPlayerHpText;
+    [SerializeField] private TMP_Text mainHeroineHpText;
 
     [Header("Schedule UI")]
     [SerializeField] private TextMeshProUGUI todayScheduleText;
@@ -2169,6 +2171,7 @@ public class GameManager : MonoBehaviour
 
         affectionText.text = "好感度：" + heroineStatus.Affection;
         affectionRankText.text = heroineStatus.GetAffectionRankName();
+        UpdateMainHpStatusUI();
 
         endingButton.gameObject.SetActive(heroineStatus.CanEnding());
 
@@ -6289,12 +6292,35 @@ public class GameManager : MonoBehaviour
 
     private void RefreshStatusDetailPanel()
     {
+        UpdateMainHpStatusUI();
         EnsureStatusDetailPanel();
 
         if (statusDetailPanel != null)
         {
             statusDetailPanel.RefreshStatusDisplay();
         }
+    }
+
+    private void UpdateMainHpStatusUI()
+    {
+        if (mainPlayerHpText != null)
+        {
+            mainPlayerHpText.text = "HP: " + FormatStatusHp(
+                playerStatus != null ? playerStatus.CurrentHp : 0,
+                playerStatus != null ? playerStatus.MaxHp : 0);
+        }
+
+        if (mainHeroineHpText != null)
+        {
+            mainHeroineHpText.text = "HP: " + FormatStatusHp(
+                heroineStatus != null ? heroineStatus.CurrentHp : 0,
+                heroineStatus != null ? heroineStatus.MaxHp : 0);
+        }
+    }
+
+    private static string FormatStatusHp(int currentHp, int maxHp)
+    {
+        return currentHp + " / " + maxHp;
     }
 
     public void OpenStillGalleryPanel()
