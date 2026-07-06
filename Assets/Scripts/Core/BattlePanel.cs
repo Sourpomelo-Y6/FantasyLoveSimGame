@@ -487,6 +487,12 @@ public class BattlePanel : MonoBehaviour
                 escapeButtonText.text = battleFinished ? "閉じる" : "逃げる";
             }
         }
+
+        if (closeButton != null)
+        {
+            closeButton.gameObject.SetActive(battleFinished);
+            closeButton.interactable = battleFinished;
+        }
     }
 
     private void AddHpSummaryLog()
