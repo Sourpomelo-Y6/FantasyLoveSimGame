@@ -3,5 +3,7 @@ public enum BattleResultEventType
     SoloVictory,
     DuoVictory,
     SoloDefeat,
-    DuoDefeat
+    DuoDefeat,
+    SoloEscape,
+    DuoEscape
 }

@@ -11,6 +11,8 @@ public class GameManager : MonoBehaviour
 {
     private const string CommonScheduledEventResourcePath = "ScheduledEvents";
     private const string BattleResultEventResourcePath = "BattleResultEvents";
+    private const int BattlePanelVictoryRewardMoney = 100;
+    private const int BattlePanelDuoVictoryAffectionChange = 1;
 
     private enum ConversationFlowState
     {
@@ -87,6 +89,7 @@ public class GameManager : MonoBehaviour
     private struct SimpleBattleResult
     {
         public bool PlayerWon;
+        public bool PlayerEscaped;
         public int Turns;
         public int PlayerDamageTaken;
         public int HeroineDamageTaken;
@@ -4732,6 +4735,10 @@ public class GameManager : MonoBehaviour
         {
             resultMessage += "\n探索報酬として " + rewardMoney + " を入手しました。現在の所持金：" + playerStatus.Money;
         }
+        else if (rewardMoney > 0 && hasBattleResult && battleResult.PlayerEscaped)
+        {
+            resultMessage += "\n撤退したため探索報酬は入手できませんでした。";
+        }
         else if (rewardMoney > 0 && hasBattleResult && !battleResult.PlayerWon)
         {
             resultMessage += "\n敗北したため探索報酬は入手できませんでした。";
@@ -4815,6 +4822,16 @@ public class GameManager : MonoBehaviour
                     heroineName + "と体勢を立て直すため撤退しました。\n" +
                     "敗北結果は今後の専用イベント分岐へ接続できます。";
 
+            case BattleResultEventType.DuoEscape:
+                return "戦闘後イベント：撤退\n" +
+                    heroineName + "と相談し、無理をせず探索を切り上げました。\n" +
+                    "撤退結果は今後の専用イベント分岐へ接続できます。";
+
+            case BattleResultEventType.SoloEscape:
+                return "戦闘後イベント：撤退\n" +
+                    "無理をせず探索を切り上げました。\n" +
+                    "撤退結果は今後の専用イベント分岐へ接続できます。";
+
             default:
                 return "戦闘後イベント：敗北\n" +
                     "探索を切り上げて撤退しました。\n" +
@@ -4830,6 +4847,11 @@ public class GameManager : MonoBehaviour
         if (result.PlayerWon)
         {
             return isDuoExploration ? BattleResultEventType.DuoVictory : BattleResultEventType.SoloVictory;
+        }
+
+        if (result.PlayerEscaped)
+        {
+            return isDuoExploration ? BattleResultEventType.DuoEscape : BattleResultEventType.SoloEscape;
         }
 
         return isDuoExploration ? BattleResultEventType.DuoDefeat : BattleResultEventType.SoloDefeat;
@@ -6380,12 +6402,17 @@ public class GameManager : MonoBehaviour
             return;
         }
 
+        bool isScheduledBattleResult = waitingForBattlePanelScheduledEvent && pendingBattlePanelScheduledEvent != null;
+        bool isDuoExploration = isScheduledBattleResult &&
+            IsDuoExplorationSchedule(pendingBattlePanelScheduledEvent.ScheduleType);
         List<string> recoveryMessages = ApplyBattlePanelResultStatus(result);
         lastBattlePanelSimpleResult = ConvertBattlePanelResultToSimpleBattleResult(
             result,
             playerStatus != null ? playerStatus.BattleStatus : null,
             result.heroineStatus != null && heroineStatus != null ? heroineStatus.BattleStatus : null,
-            recoveryMessages);
+            recoveryMessages,
+            isDuoExploration,
+            isScheduledBattleResult);
         hasLastBattlePanelSimpleResult = true;
 
         Debug.Log(
@@ -6402,7 +6429,10 @@ public class GameManager : MonoBehaviour
                 result,
                 playerStatus != null ? playerStatus.BattleStatus : null,
                 result.heroineStatus != null && heroineStatus != null ? heroineStatus.BattleStatus : null,
-                recoveryMessages));
+                recoveryMessages,
+                lastBattlePanelSimpleResult.RewardMoney,
+                lastBattlePanelSimpleResult.AffectionChange,
+                isScheduledBattleResult));
     }
 
     private List<string> ApplyBattlePanelResultStatus(BattlePanel.BattleResult result)
@@ -6442,7 +6472,10 @@ public class GameManager : MonoBehaviour
         BattlePanel.BattleResult result,
         BattleStatusData playerBattleStatus,
         BattleStatusData heroineBattleStatus,
-        List<string> recoveryMessages)
+        List<string> recoveryMessages,
+        int rewardMoney,
+        int affectionChange,
+        bool includeOutcomeRewardLines)
     {
         if (result == null)
         {
@@ -6481,6 +6514,11 @@ public class GameManager : MonoBehaviour
             }
         }
 
+        if (includeOutcomeRewardLines)
+        {
+            message += BuildBattlePanelOutcomeRewardMessage(result, rewardMoney, affectionChange);
+        }
+
         return message;
     }
 
@@ -6488,19 +6526,30 @@ public class GameManager : MonoBehaviour
         BattlePanel.BattleResult result,
         BattleStatusData playerBattleStatus,
         BattleStatusData heroineBattleStatus,
-        List<string> recoveryMessages)
+        List<string> recoveryMessages,
+        bool isDuoExploration,
+        bool applyOutcomeRewards)
     {
         SimpleBattleResult simpleResult = new SimpleBattleResult
         {
             PlayerWon = result != null && result.resultType == BattlePanel.BattleResultType.Victory,
+            PlayerEscaped = result != null && result.resultType == BattlePanel.BattleResultType.Escape,
             Turns = result != null ? result.turnCount : 0,
             PlayerDamageTaken = EstimateDamageTaken(playerBattleStatus),
             HeroineDamageTaken = EstimateDamageTaken(heroineBattleStatus),
             RewardMoney = 0,
             AffectionChange = 0,
-            Message = BuildSimpleBattleResultMessage(result, playerBattleStatus, heroineBattleStatus, recoveryMessages),
             LogLines = new List<string>()
         };
+        ApplyBattlePanelOutcomeRewards(ref simpleResult, applyOutcomeRewards, isDuoExploration);
+        simpleResult.Message = BuildSimpleBattleResultMessage(
+            result,
+            playerBattleStatus,
+            heroineBattleStatus,
+            recoveryMessages,
+            simpleResult.RewardMoney,
+            simpleResult.AffectionChange,
+            applyOutcomeRewards);
 
         AddBattleLogLine(ref simpleResult, "結果: " + ResolveBattlePanelResultLabel(result));
         AddBattleLogLine(ref simpleResult, "敵: " + ResolveBattlePanelEnemyName(result));
@@ -6515,22 +6564,111 @@ public class GameManager : MonoBehaviour
                 AddBattleLogLine(ref simpleResult, recoveryMessages[i]);
             }
         }
+        if (applyOutcomeRewards)
+        {
+            AddBattleLogLine(ref simpleResult, BuildBattlePanelOutcomeRewardLogLine(result, simpleResult));
+        }
 
         return simpleResult;
+    }
+
+    private void ApplyBattlePanelOutcomeRewards(
+        ref SimpleBattleResult result,
+        bool applyOutcomeRewards,
+        bool isDuoExploration)
+    {
+        if (!applyOutcomeRewards || !result.PlayerWon)
+        {
+            return;
+        }
+
+        result.RewardMoney = BattlePanelVictoryRewardMoney;
+        result.AffectionChange = isDuoExploration ? BattlePanelDuoVictoryAffectionChange : 0;
+
+        if (result.RewardMoney > 0 && playerStatus != null)
+        {
+            playerStatus.AddMoney(result.RewardMoney);
+        }
+
+        if (result.AffectionChange != 0 && heroineStatus != null)
+        {
+            heroineStatus.AddAffection(result.AffectionChange);
+        }
+
+        RefreshStatusDetailPanel();
     }
 
     private static string BuildSimpleBattleResultMessage(
         BattlePanel.BattleResult result,
         BattleStatusData playerBattleStatus,
         BattleStatusData heroineBattleStatus,
-        List<string> recoveryMessages)
+        List<string> recoveryMessages,
+        int rewardMoney,
+        int affectionChange,
+        bool includeOutcomeRewardLines)
     {
         if (result == null)
         {
             return "戦闘結果を取得できませんでした。";
         }
 
-        return BuildBattlePanelResultLogMessage(result, playerBattleStatus, heroineBattleStatus, recoveryMessages);
+        return BuildBattlePanelResultLogMessage(
+            result,
+            playerBattleStatus,
+            heroineBattleStatus,
+            recoveryMessages,
+            rewardMoney,
+            affectionChange,
+            includeOutcomeRewardLines);
+    }
+
+    private static string BuildBattlePanelOutcomeRewardMessage(
+        BattlePanel.BattleResult result,
+        int rewardMoney,
+        int affectionChange)
+    {
+        if (result == null)
+        {
+            return "";
+        }
+
+        if (result.resultType != BattlePanel.BattleResultType.Victory)
+        {
+            return "\n戦闘報酬なし";
+        }
+
+        string message = "";
+        if (rewardMoney > 0)
+        {
+            message += "\n戦闘報酬：" + rewardMoney;
+        }
+
+        if (affectionChange != 0)
+        {
+            message += "\n勝利時好感度：" + FormatSignedValue(affectionChange);
+        }
+
+        return message;
+    }
+
+    private static string BuildBattlePanelOutcomeRewardLogLine(
+        BattlePanel.BattleResult result,
+        SimpleBattleResult simpleResult)
+    {
+        if (result == null || result.resultType != BattlePanel.BattleResultType.Victory)
+        {
+            return "戦闘報酬なし";
+        }
+
+        string line = simpleResult.RewardMoney > 0
+            ? "戦闘報酬: " + simpleResult.RewardMoney
+            : "戦闘報酬なし";
+        if (simpleResult.AffectionChange != 0)
+        {
+            line += " / 勝利時好感度: " + FormatSignedValue(simpleResult.AffectionChange);
+        }
+
+        return line;
     }
 
     private static string ResolveBattlePanelResultLabel(BattlePanel.BattleResult result)
