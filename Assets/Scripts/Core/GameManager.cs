@@ -4737,9 +4737,10 @@ public class GameManager : MonoBehaviour
         {
             resultMessage += "\n探索報酬として " + rewardMoney + " を入手しました。現在の所持金：" + playerStatus.Money;
         }
-        else if (rewardMoney > 0 && hasBattleResult && battleResult.PlayerEscaped)
+        else if (hasBattleResult && battleResult.PlayerEscaped)
         {
-            resultMessage += "\n撤退したため探索報酬は入手できませんでした。";
+            resultMessage += "\n戦闘から撤退しました。探索報酬はありません。";
+            resultMessage += "\n予定は消費されました。";
         }
         else if (rewardMoney > 0 && hasBattleResult && !battleResult.PlayerWon)
         {
@@ -4826,13 +4827,13 @@ public class GameManager : MonoBehaviour
 
             case BattleResultEventType.DuoEscape:
                 return "戦闘後イベント：撤退\n" +
-                    heroineName + "と相談し、無理をせず探索を切り上げました。\n" +
-                    "撤退結果は今後の専用イベント分岐へ接続できます。";
+                    heroineName + "と体勢を立て直して帰還しました。\n" +
+                    "予定は消費されました。";
 
             case BattleResultEventType.SoloEscape:
                 return "戦闘後イベント：撤退\n" +
-                    "無理をせず探索を切り上げました。\n" +
-                    "撤退結果は今後の専用イベント分岐へ接続できます。";
+                    "体勢を立て直すため帰還しました。\n" +
+                    "予定は消費されました。";
 
             default:
                 return "戦闘後イベント：敗北\n" +
@@ -6673,7 +6674,9 @@ public class GameManager : MonoBehaviour
 
         if (result.resultType != BattlePanel.BattleResultType.Victory)
         {
-            return "\n戦闘報酬なし";
+            return result.resultType == BattlePanel.BattleResultType.Escape
+                ? "\n撤退したため戦闘報酬なし"
+                : "\n戦闘報酬なし";
         }
 
         string message = "";
@@ -6696,7 +6699,9 @@ public class GameManager : MonoBehaviour
     {
         if (result == null || result.resultType != BattlePanel.BattleResultType.Victory)
         {
-            return "戦闘報酬なし";
+            return result != null && result.resultType == BattlePanel.BattleResultType.Escape
+                ? "撤退したため戦闘報酬なし"
+                : "戦闘報酬なし";
         }
 
         string line = simpleResult.RewardMoney > 0
