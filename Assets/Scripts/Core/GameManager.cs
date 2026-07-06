@@ -128,6 +128,7 @@ public class GameManager : MonoBehaviour
     [SerializeField] private TMP_Text affectionRankText;
     [SerializeField] private TMP_Text mainPlayerHpText;
     [SerializeField] private TMP_Text mainHeroineHpText;
+    [SerializeField] private TMP_Text mainPlayerMoneyText;
 
     [Header("Schedule UI")]
     [SerializeField] private TextMeshProUGUI todayScheduleText;
@@ -2169,7 +2170,7 @@ public class GameManager : MonoBehaviour
 
         affectionText.text = "好感度：" + heroineStatus.Affection;
         affectionRankText.text = heroineStatus.GetAffectionRankName();
-        UpdateMainHpStatusUI();
+        UpdateMainStatusUI();
 
         endingButton.gameObject.SetActive(heroineStatus.CanEnding());
 
@@ -6290,7 +6291,7 @@ public class GameManager : MonoBehaviour
 
     private void RefreshStatusDetailPanel()
     {
-        UpdateMainHpStatusUI();
+        UpdateMainStatusUI();
         EnsureStatusDetailPanel();
 
         if (statusDetailPanel != null)
@@ -6299,7 +6300,7 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    private void UpdateMainHpStatusUI()
+    private void UpdateMainStatusUI()
     {
         if (mainPlayerHpText != null)
         {
@@ -6314,11 +6315,22 @@ public class GameManager : MonoBehaviour
                 heroineStatus != null ? heroineStatus.CurrentHp : 0,
                 heroineStatus != null ? heroineStatus.MaxHp : 0);
         }
+
+        if (mainPlayerMoneyText != null)
+        {
+            mainPlayerMoneyText.text = "所持金: " + FormatMoney(
+                playerStatus != null ? playerStatus.Money : 0);
+        }
     }
 
     private static string FormatStatusHp(int currentHp, int maxHp)
     {
         return currentHp + " / " + maxHp;
+    }
+
+    private static string FormatMoney(int money)
+    {
+        return money + " G";
     }
 
     public void OpenStillGalleryPanel()
