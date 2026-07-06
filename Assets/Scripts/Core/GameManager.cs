@@ -11,6 +11,7 @@ public class GameManager : MonoBehaviour
 {
     private const string CommonScheduledEventResourcePath = "ScheduledEvents";
     private const string BattleResultEventResourcePath = "BattleResultEvents";
+    private const string BattlePanelResultMessageResourcePath = "BattlePanelResultMessages";
 
     private enum ConversationFlowState
     {
@@ -325,6 +326,7 @@ public class GameManager : MonoBehaviour
     [SerializeField] private BattleResultEventData[] battleResultEvents;
     private BattleResultEventData[] commonBattleResultEvents;
     private bool battleResultEventsLoadedFromResources = false;
+    private BattlePanelResultMessageData[] battlePanelResultMessages;
 
     [Header("Game Event Debug")]
     [SerializeField] private string debugManualGameEventId = "";
@@ -6443,11 +6445,13 @@ public class GameManager : MonoBehaviour
         bool isDuoExploration = isScheduledBattleResult &&
             IsDuoExplorationSchedule(pendingBattlePanelScheduledEvent.ScheduleType);
         List<string> recoveryMessages = ApplyBattlePanelResultStatus(result);
+        string resultMessage = ResolveBattlePanelResultMessage(result);
         lastBattlePanelSimpleResult = ConvertBattlePanelResultToSimpleBattleResult(
             result,
             playerStatus != null ? playerStatus.BattleStatus : null,
             result.heroineStatus != null && heroineStatus != null ? heroineStatus.BattleStatus : null,
             recoveryMessages,
+            resultMessage,
             isDuoExploration,
             isScheduledBattleResult);
         hasLastBattlePanelSimpleResult = true;
@@ -6467,6 +6471,7 @@ public class GameManager : MonoBehaviour
                 playerStatus != null ? playerStatus.BattleStatus : null,
                 result.heroineStatus != null && heroineStatus != null ? heroineStatus.BattleStatus : null,
                 recoveryMessages,
+                resultMessage,
                 lastBattlePanelSimpleResult.RewardMoney,
                 lastBattlePanelSimpleResult.AffectionChange,
                 isScheduledBattleResult));
@@ -6510,6 +6515,7 @@ public class GameManager : MonoBehaviour
         BattleStatusData playerBattleStatus,
         BattleStatusData heroineBattleStatus,
         List<string> recoveryMessages,
+        string resultMessage,
         int rewardMoney,
         int affectionChange,
         bool includeOutcomeRewardLines)
@@ -6520,22 +6526,9 @@ public class GameManager : MonoBehaviour
         }
 
         string enemyName = string.IsNullOrEmpty(result.enemyName) ? "敵" : result.enemyName;
-        string resultMessage;
-        switch (result.resultType)
-        {
-            case BattlePanel.BattleResultType.Victory:
-                resultMessage = "戦闘に勝利しました。";
-                break;
-            case BattlePanel.BattleResultType.Defeat:
-                resultMessage = "戦闘に敗北しました。";
-                break;
-            case BattlePanel.BattleResultType.Escape:
-                resultMessage = "戦闘から撤退しました。";
-                break;
-            default:
-                resultMessage = "戦闘が終了しました。";
-                break;
-        }
+        resultMessage = string.IsNullOrEmpty(resultMessage)
+            ? GetDefaultBattlePanelResultMessage(result.resultType)
+            : resultMessage;
 
         string message = enemyName + "との" + resultMessage + "ターン数: " + result.turnCount +
             "\nプレイヤーHP: " + FormatBattlePanelHp(playerBattleStatus) +
@@ -6564,6 +6557,7 @@ public class GameManager : MonoBehaviour
         BattleStatusData playerBattleStatus,
         BattleStatusData heroineBattleStatus,
         List<string> recoveryMessages,
+        string resultMessage,
         bool isDuoExploration,
         bool applyOutcomeRewards)
     {
@@ -6584,6 +6578,7 @@ public class GameManager : MonoBehaviour
             playerBattleStatus,
             heroineBattleStatus,
             recoveryMessages,
+            resultMessage,
             simpleResult.RewardMoney,
             simpleResult.AffectionChange,
             applyOutcomeRewards);
@@ -6643,6 +6638,7 @@ public class GameManager : MonoBehaviour
         BattleStatusData playerBattleStatus,
         BattleStatusData heroineBattleStatus,
         List<string> recoveryMessages,
+        string resultMessage,
         int rewardMoney,
         int affectionChange,
         bool includeOutcomeRewardLines)
@@ -6657,9 +6653,76 @@ public class GameManager : MonoBehaviour
             playerBattleStatus,
             heroineBattleStatus,
             recoveryMessages,
+            resultMessage,
             rewardMoney,
             affectionChange,
             includeOutcomeRewardLines);
+    }
+
+    private string ResolveBattlePanelResultMessage(BattlePanel.BattleResult result)
+    {
+        BattlePanel.BattleResultType resultType = result != null
+            ? result.resultType
+            : BattlePanel.BattleResultType.None;
+        BattlePanelResultMessageType messageType = ConvertBattlePanelResultMessageType(resultType);
+        BattlePanelResultMessageData[] messages = GetBattlePanelResultMessages();
+        if (messages != null)
+        {
+            for (int i = 0; i < messages.Length; i++)
+            {
+                BattlePanelResultMessageData messageData = messages[i];
+                if (messageData != null &&
+                    messageData.resultType == messageType &&
+                    !string.IsNullOrEmpty(messageData.message))
+                {
+                    return messageData.message;
+                }
+            }
+        }
+
+        return GetDefaultBattlePanelResultMessage(resultType);
+    }
+
+    private BattlePanelResultMessageData[] GetBattlePanelResultMessages()
+    {
+        if (battlePanelResultMessages == null)
+        {
+            battlePanelResultMessages =
+                Resources.LoadAll<BattlePanelResultMessageData>(BattlePanelResultMessageResourcePath);
+        }
+
+        return battlePanelResultMessages;
+    }
+
+    private static BattlePanelResultMessageType ConvertBattlePanelResultMessageType(
+        BattlePanel.BattleResultType resultType)
+    {
+        switch (resultType)
+        {
+            case BattlePanel.BattleResultType.Victory:
+                return BattlePanelResultMessageType.Victory;
+            case BattlePanel.BattleResultType.Defeat:
+                return BattlePanelResultMessageType.Defeat;
+            case BattlePanel.BattleResultType.Escape:
+                return BattlePanelResultMessageType.Escape;
+            default:
+                return BattlePanelResultMessageType.Default;
+        }
+    }
+
+    private static string GetDefaultBattlePanelResultMessage(BattlePanel.BattleResultType resultType)
+    {
+        switch (resultType)
+        {
+            case BattlePanel.BattleResultType.Victory:
+                return "戦闘に勝利しました。";
+            case BattlePanel.BattleResultType.Defeat:
+                return "戦闘に敗北しました。";
+            case BattlePanel.BattleResultType.Escape:
+                return "戦闘から撤退しました。";
+            default:
+                return "戦闘が終了しました。";
+        }
     }
 
     private static string BuildBattlePanelOutcomeRewardMessage(
