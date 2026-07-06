@@ -6380,11 +6380,12 @@ public class GameManager : MonoBehaviour
             return;
         }
 
-        ApplyBattlePanelResultStatus(result);
+        List<string> recoveryMessages = ApplyBattlePanelResultStatus(result);
         lastBattlePanelSimpleResult = ConvertBattlePanelResultToSimpleBattleResult(
             result,
             playerStatus != null ? playerStatus.BattleStatus : null,
-            result.heroineStatus != null && heroineStatus != null ? heroineStatus.BattleStatus : null);
+            result.heroineStatus != null && heroineStatus != null ? heroineStatus.BattleStatus : null,
+            recoveryMessages);
         hasLastBattlePanelSimpleResult = true;
 
         Debug.Log(
@@ -6400,14 +6401,16 @@ public class GameManager : MonoBehaviour
             BuildBattlePanelResultLogMessage(
                 result,
                 playerStatus != null ? playerStatus.BattleStatus : null,
-                result.heroineStatus != null && heroineStatus != null ? heroineStatus.BattleStatus : null));
+                result.heroineStatus != null && heroineStatus != null ? heroineStatus.BattleStatus : null,
+                recoveryMessages));
     }
 
-    private void ApplyBattlePanelResultStatus(BattlePanel.BattleResult result)
+    private List<string> ApplyBattlePanelResultStatus(BattlePanel.BattleResult result)
     {
+        List<string> recoveryMessages = new List<string>();
         if (result == null)
         {
-            return;
+            return recoveryMessages;
         }
 
         if (playerStatus != null && result.playerStatus != null)
@@ -6416,6 +6419,7 @@ public class GameManager : MonoBehaviour
             if (playerStatus.CurrentHp <= 0)
             {
                 playerStatus.SetCurrentHp(1);
+                recoveryMessages.Add("プレイヤーは倒れたが、なんとか帰還した。HP 1 で復帰。");
             }
         }
 
@@ -6425,16 +6429,20 @@ public class GameManager : MonoBehaviour
             if (heroineStatus.CurrentHp <= 0)
             {
                 heroineStatus.SetCurrentHp(1);
+                string heroineName = string.IsNullOrEmpty(heroineStatus.HeroineName) ? "ヒロイン" : heroineStatus.HeroineName;
+                recoveryMessages.Add(heroineName + "は倒れたが、なんとか帰還した。HP 1 で復帰。");
             }
         }
 
         RefreshStatusDetailPanel();
+        return recoveryMessages;
     }
 
     private static string BuildBattlePanelResultLogMessage(
         BattlePanel.BattleResult result,
         BattleStatusData playerBattleStatus,
-        BattleStatusData heroineBattleStatus)
+        BattleStatusData heroineBattleStatus,
+        List<string> recoveryMessages)
     {
         if (result == null)
         {
@@ -6459,15 +6467,28 @@ public class GameManager : MonoBehaviour
                 break;
         }
 
-        return enemyName + "との" + resultMessage + "ターン数: " + result.turnCount +
+        string message = enemyName + "との" + resultMessage + "ターン数: " + result.turnCount +
             "\nプレイヤーHP: " + FormatBattlePanelHp(playerBattleStatus) +
             "\nヒロインHP: " + FormatBattlePanelHp(heroineBattleStatus);
+        if (recoveryMessages != null)
+        {
+            for (int i = 0; i < recoveryMessages.Count; i++)
+            {
+                if (!string.IsNullOrEmpty(recoveryMessages[i]))
+                {
+                    message += "\n" + recoveryMessages[i];
+                }
+            }
+        }
+
+        return message;
     }
 
     private SimpleBattleResult ConvertBattlePanelResultToSimpleBattleResult(
         BattlePanel.BattleResult result,
         BattleStatusData playerBattleStatus,
-        BattleStatusData heroineBattleStatus)
+        BattleStatusData heroineBattleStatus,
+        List<string> recoveryMessages)
     {
         SimpleBattleResult simpleResult = new SimpleBattleResult
         {
@@ -6477,7 +6498,7 @@ public class GameManager : MonoBehaviour
             HeroineDamageTaken = EstimateDamageTaken(heroineBattleStatus),
             RewardMoney = 0,
             AffectionChange = 0,
-            Message = BuildSimpleBattleResultMessage(result, playerBattleStatus, heroineBattleStatus),
+            Message = BuildSimpleBattleResultMessage(result, playerBattleStatus, heroineBattleStatus, recoveryMessages),
             LogLines = new List<string>()
         };
 
@@ -6487,6 +6508,13 @@ public class GameManager : MonoBehaviour
         AddBattleLogLine(ref simpleResult, "プレイヤーHP: " + FormatBattlePanelHp(playerBattleStatus));
         AddBattleLogLine(ref simpleResult, "ヒロインHP: " + FormatBattlePanelHp(heroineBattleStatus));
         AddBattleLogLine(ref simpleResult, "敵HP: " + FormatBattlePanelHp(result != null ? result.enemyStatus : null));
+        if (recoveryMessages != null)
+        {
+            for (int i = 0; i < recoveryMessages.Count; i++)
+            {
+                AddBattleLogLine(ref simpleResult, recoveryMessages[i]);
+            }
+        }
 
         return simpleResult;
     }
@@ -6494,14 +6522,15 @@ public class GameManager : MonoBehaviour
     private static string BuildSimpleBattleResultMessage(
         BattlePanel.BattleResult result,
         BattleStatusData playerBattleStatus,
-        BattleStatusData heroineBattleStatus)
+        BattleStatusData heroineBattleStatus,
+        List<string> recoveryMessages)
     {
         if (result == null)
         {
             return "戦闘結果を取得できませんでした。";
         }
 
-        return BuildBattlePanelResultLogMessage(result, playerBattleStatus, heroineBattleStatus);
+        return BuildBattlePanelResultLogMessage(result, playerBattleStatus, heroineBattleStatus, recoveryMessages);
     }
 
     private static string ResolveBattlePanelResultLabel(BattlePanel.BattleResult result)
