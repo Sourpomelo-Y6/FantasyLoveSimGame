@@ -73,6 +73,7 @@
 - `StatusDetailPanel` の画面部品は Unity 上で手作業配置し、Inspector で参照を割り当てる
 - 必須参照は `panelRoot`、各 `TextMeshProUGUI`、各 `Button`、`abilityListParent`、`abilityButtonPrefab`、`abilityAcquirePanel` 周辺
 - `GameManager.EnsureStatusDetailPanel()` は配置済みの `StatusDetailPanel` を探して初期化するだけで、UI の自動生成は行わない
+- メイン画面の主人公・ヒロイン HP はテキスト表示を優先する。HP バー化や残量に応じた色変更は後回し
 - 会話や行動のたびに時間が進み、一定数で日付が進む
 - 好感度が `100` に達すると `Ending` ボタンが表示される
 - 翌朝開始時など複数メッセージが連続発生する場合は、話者付きメッセージキューに積み、`Next` で 1 件ずつ表示する
