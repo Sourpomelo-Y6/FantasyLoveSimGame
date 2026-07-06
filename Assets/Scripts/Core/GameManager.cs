@@ -6475,15 +6475,7 @@ public class GameManager : MonoBehaviour
         AddMessageLogEntry(
             DialogueSpeakerType.BattleLog,
             BattleLogSpeakerName,
-            BuildBattlePanelResultLogMessage(
-                result,
-                playerStatus != null ? playerStatus.BattleStatus : null,
-                result.heroineStatus != null && heroineStatus != null ? heroineStatus.BattleStatus : null,
-                recoveryMessages,
-                resultMessage,
-                lastBattlePanelSimpleResult.RewardMoney,
-                lastBattlePanelSimpleResult.AffectionChange,
-                isScheduledBattleResult));
+            BuildBattlePanelResultSummaryLogMessage(result));
     }
 
     private List<string> ApplyBattlePanelResultStatus(BattlePanel.BattleResult result)
@@ -6846,6 +6838,13 @@ public class GameManager : MonoBehaviour
         }
 
         return result.enemyName;
+    }
+
+    private static string BuildBattlePanelResultSummaryLogMessage(BattlePanel.BattleResult result)
+    {
+        return "戦闘結果: " + ResolveBattlePanelResultLabel(result) +
+            " / 敵: " + ResolveBattlePanelEnemyName(result) +
+            " / " + (result != null ? result.turnCount : 0) + "ターン";
     }
 
     private static string FormatBattlePanelHp(BattleStatusData status)
