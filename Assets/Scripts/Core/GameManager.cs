@@ -11,8 +11,6 @@ public class GameManager : MonoBehaviour
 {
     private const string CommonScheduledEventResourcePath = "ScheduledEvents";
     private const string BattleResultEventResourcePath = "BattleResultEvents";
-    private const int BattlePanelVictoryRewardMoney = 100;
-    private const int BattlePanelDuoVictoryAffectionChange = 1;
 
     private enum ConversationFlowState
     {
@@ -6567,7 +6565,7 @@ public class GameManager : MonoBehaviour
             AffectionChange = 0,
             LogLines = new List<string>()
         };
-        ApplyBattlePanelOutcomeRewards(ref simpleResult, applyOutcomeRewards, isDuoExploration);
+        ApplyBattlePanelOutcomeRewards(ref simpleResult, result, applyOutcomeRewards, isDuoExploration);
         simpleResult.Message = BuildSimpleBattleResultMessage(
             result,
             playerBattleStatus,
@@ -6600,16 +6598,19 @@ public class GameManager : MonoBehaviour
 
     private void ApplyBattlePanelOutcomeRewards(
         ref SimpleBattleResult result,
+        BattlePanel.BattleResult battleResult,
         bool applyOutcomeRewards,
         bool isDuoExploration)
     {
-        if (!applyOutcomeRewards || !result.PlayerWon)
+        if (!applyOutcomeRewards || !result.PlayerWon || battleResult == null)
         {
+            result.RewardMoney = 0;
+            result.AffectionChange = 0;
             return;
         }
 
-        result.RewardMoney = BattlePanelVictoryRewardMoney;
-        result.AffectionChange = isDuoExploration ? BattlePanelDuoVictoryAffectionChange : 0;
+        result.RewardMoney = Math.Max(0, battleResult.rewardMoney);
+        result.AffectionChange = isDuoExploration ? battleResult.affectionChangeOnWin : 0;
 
         if (result.RewardMoney > 0 && playerStatus != null)
         {

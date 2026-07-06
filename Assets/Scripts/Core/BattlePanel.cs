@@ -19,6 +19,8 @@ public class BattlePanel : MonoBehaviour
         public string resultLabel;
         public string enemyId;
         public string enemyName;
+        public int rewardMoney;
+        public int affectionChangeOnWin;
         public int turnCount;
         public BattleStatusData playerStatus;
         public BattleStatusData heroineStatus;
@@ -388,6 +390,8 @@ public class BattlePanel : MonoBehaviour
             resultLabel = resultLabel,
             enemyId = currentDebugEnemy != null ? currentDebugEnemy.enemyId : "",
             enemyName = enemyDisplayName,
+            rewardMoney = currentDebugEnemy != null ? currentDebugEnemy.rewardMoney : 0,
+            affectionChangeOnWin = currentDebugEnemy != null ? currentDebugEnemy.affectionChangeOnWin : 0,
             turnCount = turnCount,
             playerStatus = debugPlayerStatus != null ? debugPlayerStatus.Clone() : null,
             heroineStatus = debugHeroineStatus != null ? debugHeroineStatus.Clone() : null,
