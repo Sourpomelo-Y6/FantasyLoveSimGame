@@ -121,9 +121,18 @@ public class TrainingPanel : MonoBehaviour
         }
 
         currentTraining = training;
-        currentState = TrainingSessionState.Create(training, playerBattleStatus, heroineBattleStatus);
-        logLines.Clear();
-        AddLog(training.GetDisplayName() + "を開始しました。");
+        if (currentState == null)
+        {
+            currentState = TrainingSessionState.Create(training, playerBattleStatus, heroineBattleStatus);
+            logLines.Clear();
+            AddLog(training.GetDisplayName() + "を開始しました。");
+        }
+        else
+        {
+            currentState.trainingId = training.trainingId;
+            AddLog(training.GetDisplayName() + "に切り替えました。");
+        }
+
         RefreshStatus();
     }
 
