@@ -22,6 +22,8 @@ MonoBehaviour:
   stillId: Action_Rest_01
   stillSprite: {fileID: 21300000, guid: c7801c23e5c1aa94cba0881ddc81be25, type: 3}
   affectionChange: 0
+  playerHpChange: 20
+  heroineHpChange: 20
   advanceTime: 1
   reactions:
   - reactionId: Rest_Night
@@ -30,6 +32,8 @@ MonoBehaviour:
     stillId:
     stillSprite: {fileID: 0}
     affectionChange: 0
+    playerHpChange: 20
+    heroineHpChange: 20
     advanceTime: 1
     priority: 20
     minAffection: 0

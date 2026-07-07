@@ -19,6 +19,8 @@ public class ActionReactionData
 
     [Header("Effect")]
     public int affectionChange = 0;
+    public int playerHpChange = 0;
+    public int heroineHpChange = 0;
     public bool advanceTime = true;
 
     [Header("Display Rule")]

@@ -2727,6 +2727,8 @@ public class GameManager : MonoBehaviour
         string speakerName,
         string message,
         int affectionChange,
+        int playerHpChange,
+        int heroineHpChange,
         bool advanceTime,
         string actionId,
         string stillId = "",
@@ -2738,7 +2740,11 @@ public class GameManager : MonoBehaviour
         outfitPanel.SetActive(false);
         outfitReactionPanel.SetActive(false);
 
-        ShowDialogue(GetSpeakerTypeForName(speakerName), speakerName, message, stillId, stillSprite);
+        int appliedPlayerHpChange = ApplyPlayerHpChange(playerHpChange);
+        int appliedHeroineHpChange = ApplyHeroineHpChange(heroineHpChange);
+        string resultMessage = AppendActionHpChangeMessage(message, appliedPlayerHpChange, appliedHeroineHpChange);
+
+        ShowDialogue(GetSpeakerTypeForName(speakerName), speakerName, resultMessage, stillId, stillSprite);
 
         heroineStatus.AddAffection(affectionChange);
 
@@ -3782,6 +3788,8 @@ public class GameManager : MonoBehaviour
                 reactionSpeakerName,
                 reactionMessage,
                 reaction.affectionChange,
+                reaction.playerHpChange,
+                reaction.heroineHpChange,
                 reaction.advanceTime,
                 action.actionId,
                 string.IsNullOrEmpty(reaction.stillId) ? action.stillId : reaction.stillId,
@@ -3799,6 +3807,8 @@ public class GameManager : MonoBehaviour
             defaultSpeakerName,
             action.resultMessage,
             action.affectionChange,
+            action.playerHpChange,
+            action.heroineHpChange,
             action.advanceTime,
             action.actionId,
             action.stillId,
@@ -5435,6 +5445,26 @@ public class GameManager : MonoBehaviour
         }
 
         return heroineStatus.RecoverHp(value);
+    }
+
+    private static string AppendActionHpChangeMessage(
+        string baseMessage,
+        int appliedPlayerHpChange,
+        int appliedHeroineHpChange)
+    {
+        string message = baseMessage;
+
+        if (appliedPlayerHpChange != 0)
+        {
+            message = AppendLine(message, "プレイヤーHP " + FormatSignedValue(appliedPlayerHpChange));
+        }
+
+        if (appliedHeroineHpChange != 0)
+        {
+            message = AppendLine(message, "ヒロインHP " + FormatSignedValue(appliedHeroineHpChange));
+        }
+
+        return message;
     }
 
     private static string FormatSignedValue(int value)

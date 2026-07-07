@@ -34,6 +34,7 @@
 | 衣装システム | 着用中の衣装に対する反応と評価を保存 |
 | 時間経過 | 朝→昼→夜→翌日 |
 | 好感度 | 0〜100 |
+| 行動HP効果 | `ActionData` / `ActionReactionData` の `playerHpChange` と `heroineHpChange` で HP を増減できる。`休む` はプレイヤーとヒロインの HP を 20 回復する |
 | 背景切り替え | 時間帯・天候に応じて背景 Sprite を切り替え |
 | ゲームイベント | `GameStart` / `DayStart` / `Manual` の汎用イベント |
 | スチル回想 | 解放済み・未解放スチルを一覧表示 |
