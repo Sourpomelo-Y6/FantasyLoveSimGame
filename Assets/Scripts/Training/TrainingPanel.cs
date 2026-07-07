@@ -40,6 +40,7 @@ public class TrainingPanel : MonoBehaviour
     private TrainingData currentTraining;
     private TrainingSessionState currentState;
     private GameManager gameManager;
+    private bool hasReportedResult;
 
     private GameObject PanelRoot
     {
@@ -85,6 +86,7 @@ public class TrainingPanel : MonoBehaviour
         heroineBattleStatus = heroineStatus != null ? heroineStatus.Clone() : new BattleStatusData();
         currentTraining = null;
         currentState = null;
+        hasReportedResult = false;
         logLines.Clear();
 
         PanelRoot.SetActive(true);
@@ -94,6 +96,12 @@ public class TrainingPanel : MonoBehaviour
 
     public void Close()
     {
+        if (currentState != null && !currentState.isFinished)
+        {
+            currentState.Interrupt();
+        }
+
+        NotifyTrainingResult();
         PanelRoot.SetActive(false);
         if (gameManager != null)
         {
@@ -124,6 +132,7 @@ public class TrainingPanel : MonoBehaviour
         if (currentState == null)
         {
             currentState = TrainingSessionState.Create(training, playerBattleStatus, heroineBattleStatus);
+            hasReportedResult = false;
             logLines.Clear();
             AddLog(training.GetDisplayName() + "を開始しました。");
         }
@@ -158,6 +167,7 @@ public class TrainingPanel : MonoBehaviour
         if (currentState.isFinished)
         {
             AddLog("訓練を終了しました。");
+            NotifyTrainingResult();
         }
 
         RefreshStatus();
@@ -172,7 +182,19 @@ public class TrainingPanel : MonoBehaviour
 
         currentState.Interrupt();
         AddLog("訓練を途中でやめました。");
+        NotifyTrainingResult();
         RefreshStatus();
+    }
+
+    private void NotifyTrainingResult()
+    {
+        if (hasReportedResult || gameManager == null || currentState == null)
+        {
+            return;
+        }
+
+        hasReportedResult = true;
+        gameManager.OnTrainingPanelResult(TrainingResult.Create(currentTraining, currentState));
     }
 
     private void RefreshTrainingList()

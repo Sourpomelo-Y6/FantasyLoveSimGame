@@ -6556,6 +6556,28 @@ public class GameManager : MonoBehaviour
         RefreshUI();
     }
 
+    public void OnTrainingPanelResult(TrainingResult result)
+    {
+        if (result == null)
+        {
+            return;
+        }
+
+        Debug.Log(
+            "Training Result: " +
+            result.trainingName +
+            " / Id: " +
+            result.trainingId +
+            " / Steps: " +
+            result.elapsedSteps +
+            " / SimultaneousDown: " +
+            result.simultaneousKnockoutCount +
+            " / Interrupted: " +
+            result.wasInterrupted +
+            " / Finished: " +
+            result.isFinished);
+    }
+
     public void OnBattlePanelClosed()
     {
         if (waitingForBattlePanelScheduledEvent)
