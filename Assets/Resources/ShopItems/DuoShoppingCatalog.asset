@@ -13,4 +13,7 @@ MonoBehaviour:
   m_Name: DuoShoppingCatalog
   m_EditorClassIdentifier:
   items:
-  - {fileID: 11400000, guid: da7cd39b898a49be8c6a7d0f030937b4, type: 2}
+  - {fileID: 11400000, guid: 68165a6d188e4e649d0d999b5e460dbb, type: 2}
+  - {fileID: 11400000, guid: 00483ad09f294ad58a81d69aae8c381b, type: 2}
+  - {fileID: 11400000, guid: 458c8ac47e534abcadfe3cd77b7c2fc3, type: 2}
+  - {fileID: 11400000, guid: 06d133f8b8694d0a8d4501cecb6b856d, type: 2}
