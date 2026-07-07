@@ -6592,12 +6592,36 @@ public class GameManager : MonoBehaviour
         }
 
         string resultMessage = BuildTrainingResultMessage(result);
-        AddMessageLogEntry(DialogueSpeakerType.BattleLog, BattleLogSpeakerName, resultMessage);
 
         if (result.totalAffectionReward != 0 && heroineStatus != null)
         {
             heroineStatus.AddAffection(result.totalAffectionReward);
             RefreshStatusDetailPanel();
+        }
+
+        if (ShouldAdvanceTimeAfterTraining(result))
+        {
+            AdvanceTimeAfterTrainingResult();
+        }
+
+        RefreshUI();
+        ShowSystemMessage(resultMessage);
+    }
+
+    private bool ShouldAdvanceTimeAfterTraining(TrainingResult result)
+    {
+        return result != null && result.elapsedSteps > 0;
+    }
+
+    private void AdvanceTimeAfterTrainingResult()
+    {
+        pendingAdvanceTime = true;
+        pendingGoodNight = ShouldShowGoodNightBeforeAdvance("Training");
+
+        if (!pendingGoodNight)
+        {
+            timeManager.AdvanceTime();
+            pendingAdvanceTime = false;
             RefreshUI();
         }
     }

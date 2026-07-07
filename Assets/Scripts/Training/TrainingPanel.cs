@@ -194,6 +194,7 @@ public class TrainingPanel : MonoBehaviour
         }
 
         hasReportedResult = true;
+        PanelRoot.SetActive(false);
         gameManager.OnTrainingPanelResult(TrainingResult.Create(currentTraining, currentState));
     }
 
