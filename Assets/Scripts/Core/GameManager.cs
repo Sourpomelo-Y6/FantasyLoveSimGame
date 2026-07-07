@@ -5479,7 +5479,12 @@ public class GameManager : MonoBehaviour
         nextButton.gameObject.SetActive(false);
 
         ShowScheduleDialogue("購入する商品を選んでください。");
-        shopPanel.Open(shopItems, IsShopItemPurchased, OnSelectDuoShoppingShopItem, OnCloseDuoShoppingShopPanel);
+        shopPanel.Open(
+            shopItems,
+            IsShopItemPurchased,
+            CanAffordShopItem,
+            OnSelectDuoShoppingShopItem,
+            OnCloseDuoShoppingShopPanel);
 
         flowState = ConversationFlowState.Idle;
         RefreshUI();
@@ -5511,6 +5516,12 @@ public class GameManager : MonoBehaviour
     private bool IsShopItemPurchased(ShopItemData item)
     {
         return item != null && IsPurchasedItem(item.itemId);
+    }
+
+    private bool CanAffordShopItem(ShopItemData item)
+    {
+        EnsureCoreStatusReferences();
+        return playerStatus != null && item != null && playerStatus.Money >= item.price;
     }
 
     private string ApplyDuoShoppingTestPurchase(string baseMessage, ShopItemData selectedShopItem)

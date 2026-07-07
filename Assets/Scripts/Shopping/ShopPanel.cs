@@ -18,6 +18,7 @@ public class ShopPanel : MonoBehaviour
 
     private readonly List<GameObject> itemButtons = new List<GameObject>();
     private Func<ShopItemData, bool> isPurchasedResolver;
+    private Func<ShopItemData, bool> canAffordResolver;
     private Action<ShopItemData> itemSelected;
     private Action closed;
 
@@ -35,12 +36,14 @@ public class ShopPanel : MonoBehaviour
     public void Open(
         IReadOnlyList<ShopItemData> items,
         Func<ShopItemData, bool> isPurchased,
+        Func<ShopItemData, bool> canAfford,
         Action<ShopItemData> onItemSelected,
         Action onClosed)
     {
         EnsureReferences();
 
         isPurchasedResolver = isPurchased;
+        canAffordResolver = canAfford;
         itemSelected = onItemSelected;
         closed = onClosed;
 
@@ -133,21 +136,48 @@ public class ShopPanel : MonoBehaviour
             buttonText.text = BuildItemLabel(item);
         }
 
+        bool isPurchased = IsPurchased(item);
+        bool canAfford = CanAfford(item);
+        button.interactable = !isPurchased && canAfford;
+
         button.onClick.RemoveAllListeners();
-        button.onClick.AddListener(() => SelectItem(item));
+        if (button.interactable)
+        {
+            button.onClick.AddListener(() => SelectItem(item));
+        }
     }
 
     private string BuildItemLabel(ShopItemData item)
     {
         string itemName = !string.IsNullOrEmpty(item.displayName) ? item.displayName : item.itemId;
-        string label = itemName + " / " + item.price;
+        string label = itemName + " / " + item.price + "G";
 
-        if (isPurchasedResolver != null && isPurchasedResolver(item))
+        if (IsPurchased(item))
         {
             label += " / 購入済み";
         }
+        else if (!CanAfford(item))
+        {
+            label += " / 所持金不足";
+        }
+
+        List<string> outfitIds = item != null ? item.GetUnlockedOutfitIds() : new List<string>();
+        if (outfitIds.Count > 0)
+        {
+            label += " / 解放: " + string.Join(", ", outfitIds.ToArray());
+        }
 
         return label;
+    }
+
+    private bool IsPurchased(ShopItemData item)
+    {
+        return isPurchasedResolver != null && isPurchasedResolver(item);
+    }
+
+    private bool CanAfford(ShopItemData item)
+    {
+        return canAffordResolver == null || canAffordResolver(item);
     }
 
     private void SelectItem(ShopItemData item)
