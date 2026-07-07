@@ -6563,6 +6563,8 @@ public class GameManager : MonoBehaviour
             return;
         }
 
+        ApplyTrainingResultRewards(result);
+
         Debug.Log(
             "Training Result: " +
             result.trainingName +
@@ -6575,7 +6577,60 @@ public class GameManager : MonoBehaviour
             " / Interrupted: " +
             result.wasInterrupted +
             " / Finished: " +
-            result.isFinished);
+            result.isFinished +
+            " / AffectionReward: " +
+            result.totalAffectionReward +
+            " / TrainingProficiencyReward: " +
+            result.trainingProficiencyReward);
+    }
+
+    private void ApplyTrainingResultRewards(TrainingResult result)
+    {
+        if (result == null)
+        {
+            return;
+        }
+
+        string resultMessage = BuildTrainingResultMessage(result);
+        AddMessageLogEntry(DialogueSpeakerType.BattleLog, BattleLogSpeakerName, resultMessage);
+
+        if (result.totalAffectionReward != 0 && heroineStatus != null)
+        {
+            heroineStatus.AddAffection(result.totalAffectionReward);
+            RefreshStatusDetailPanel();
+            RefreshUI();
+        }
+    }
+
+    private static string BuildTrainingResultMessage(TrainingResult result)
+    {
+        if (result == null)
+        {
+            return "";
+        }
+
+        string trainingName = string.IsNullOrEmpty(result.trainingName) ? "訓練" : result.trainingName;
+        string message = "訓練結果: " + trainingName +
+            "\nステップ数: " + result.elapsedSteps +
+            "\n同時限界: " + result.simultaneousKnockoutCount + "回";
+
+        if (result.wasInterrupted)
+        {
+            return message + "\n途中終了のため報酬なし";
+        }
+
+        if (!result.isFinished)
+        {
+            return message + "\n未完了のため報酬なし";
+        }
+
+        message += "\n好感度 " + FormatSignedValue(result.totalAffectionReward);
+        if (result.trainingProficiencyReward != 0)
+        {
+            message += "\n訓練熟練度予定 " + FormatSignedValue(result.trainingProficiencyReward);
+        }
+
+        return message;
     }
 
     public void OnBattlePanelClosed()

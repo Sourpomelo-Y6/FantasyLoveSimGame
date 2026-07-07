@@ -587,7 +587,9 @@ LP と訓練用 HP は訓練画面内の一時値から始める。
 行動ボタン用に `ActionExecutionType.OpenTrainingPanel` と `TrainingAction` を用意する。
 訓練終了結果は `TrainingResult` で扱い、`trainingId`、訓練名、経過ステップ数、同時 0 回数、中断フラグ、終了フラグを持たせる。
 `TrainingPanel` は HP/LP 終了時、途中終了時、進行中に閉じた時に一度だけ `GameManager.OnTrainingPanelResult(...)` へ結果を通知する。
-まだ報酬反映、スキル熟練度保存、シーン配置の細かい見た目調整は次段階で扱う。
+`GameManager.OnTrainingPanelResult(...)` は完了時のみ `TrainingData.affectionReward` と同時 0 ボーナスを好感度へ反映し、途中終了時は報酬なしにする。
+`trainingProficiencyReward` は `TrainingResult` とログには残すが、熟練度保存領域が未実装のためまだ実反映しない。
+まだスキル熟練度保存、シーン配置の細かい見た目調整は次段階で扱う。
 
 スキルシステムは、現在の `StatusAbilityData` とは別の `SkillData` 系 ScriptableObject として拡張することを検討する。
 `StatusAbilityData` は画面機能や衣装確認モードなどの能力解放に使い、戦闘・訓練で選択する技や効果はスキルとして分ける。
