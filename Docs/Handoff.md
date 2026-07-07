@@ -495,6 +495,7 @@ Importer は完了時に copied images、catalog assets、layers、conversations
 UI の必須参照は `panelRoot`、敵名、敵HP、プレイヤーHP、ヒロインHP、戦闘ログ Text、攻撃ボタン、逃げるボタン、閉じるボタン。
 初期状態では `panelRoot` を非アクティブにしておく。`BattlePanel.Awake()` では初回表示を打ち消さないように panel root を閉じない。
 将来的に、主人公とヒロインが互いに戦う模擬戦闘を追加する。模擬戦闘は探索戦闘とは別枠にし、訓練、関係性イベント、スキル習得、戦闘バランス確認に使う。`BattlePanel` の流用ではなく訓練専用画面として作り、ヒロインと一対一で訓練メニューをこなす構成にする。表示されるビジュアルはヒロインの一枚絵を基本とし、訓練メニュー、結果ログ、必要なら主人公側の簡易ステータスを併置する。内部計算は戦闘ステータスのコピーを使い、終了後に本来の HP を直接減らさない方針にする。訓練開始時は複数の訓練メニューから選択し、進行ごとに主人公とヒロインの訓練用 HP が減る。途中でやめることもできる。HP が 0 になった対象に LP が残っていれば LP を 1 消費して HP 全回復で続行し、どちらかの HP と LP が両方 0 になったら終了する。同時に両者の HP が 0 になった場合はボーナスを付ける。LP は本戦闘では使わない訓練専用リソースとして扱う。
+訓練メニュー定義は `TrainingData` ScriptableObject、訓練中の一時状態は `TrainingSessionState` で扱う。`TrainingData` は `trainingId`、表示名、説明、ステップごとの HP 減少、初期 LP、報酬、同時 0 ボーナスを持つ。`TrainingSessionState` は訓練用 HP、LP、経過ステップ数、同時 0 回数、中断フラグ、終了フラグを持ち、`AdvanceStep()` で HP 減少、LP 消費、同時 0 カウント、終了判定を行う。
 スキルシステムは `StatusAbilityData` とは分け、`SkillData` 系 ScriptableObject として拡張する案にする。スキルは汎用スキル、戦闘用スキル、訓練用スキルに分類する。汎用スキルは探索、会話、買い物、イベント条件、ステータス補正などに使い、戦闘用スキルは攻撃、防御、回復、バフ、デバフなど `BattlePanel` のコマンドに使う。訓練用スキルは模擬戦闘や稽古、熟練度上げに使う。
 スキルデータには `skillId`、表示名、カテゴリ、説明、消費コスト、対象、効果種別、威力または回復量、解放条件、使用可能な戦闘種別を持たせる。保存が必要になったら `SaveData` に `unlockedSkillIds`、`skillProficiencies`、`equippedSkillIds` のような領域を追加する。実装順は、スキルデータ定義と表示、戦闘用スキルの `BattlePanel` 接続、訓練専用画面、模擬戦闘、訓練用スキル、汎用スキルのイベント/ステータス接続の順を基本にする。
 基礎ステータスは実装済み。共通の `BattleStatusData`、プレイヤー用の `PlayerStatus`、ヒロイン側の `HeroineStatus.BattleStatus` を使う。
