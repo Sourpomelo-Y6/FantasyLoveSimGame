@@ -579,7 +579,10 @@ LP と訓練用 HP は訓練画面内の一時値から始める。
 `TrainingData` には `trainingId`、表示名、説明、1 ステップごとの主人公 HP 減少、1 ステップごとのヒロイン HP 減少、初期主人公 LP、初期ヒロイン LP、好感度報酬、訓練熟練度報酬、同時 0 ボーナスを持たせる。
 訓練中の一時状態は `TrainingSessionState` で扱い、主人公 HP、ヒロイン HP、主人公 LP、ヒロイン LP、経過ステップ数、同時 0 回数、中断フラグ、終了フラグを持つ。
 `TrainingSessionState.AdvanceStep()` は 1 ステップ分の HP 減少、HP 0 時の LP 消費、同時 0 カウント、終了判定をまとめて処理する。
-この段階では UI には接続せず、次に `TrainingPanel` から訓練データ一覧を表示して進行できるようにする。
+`TrainingPanel` は UI 配置前の接続用スクリプトとして用意する。
+`TrainingPanel.Open(IReadOnlyList<TrainingData>, BattleStatusData, BattleStatusData)` で訓練データ一覧と主人公/ヒロインの戦闘ステータスを渡し、訓練ボタン生成、訓練選択、1 ステップ進行、中断、閉じる、HP/LP/結果ログ更新を担当する。
+必要な UI 参照は `panelRoot`、`heroineImage`、`trainingListParent`、`trainingButtonPrefab`、`trainingNameText`、`playerHpText`、`heroineHpText`、`playerLpText`、`heroineLpText`、`resultLogText`、`advanceButton`、`quitButton`、`closeButton`、`emptyText`。
+まだ `GameManager` には接続せず、報酬反映、スキル熟練度保存、シーン配置、ヒロイン画像の実データ割り当ては次段階で扱う。
 
 スキルシステムは、現在の `StatusAbilityData` とは別の `SkillData` 系 ScriptableObject として拡張することを検討する。
 `StatusAbilityData` は画面機能や衣装確認モードなどの能力解放に使い、戦闘・訓練で選択する技や効果はスキルとして分ける。
