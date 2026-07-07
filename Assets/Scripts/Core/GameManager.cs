@@ -262,6 +262,7 @@ public class GameManager : MonoBehaviour
     private readonly HashSet<string> unlockedStillIds = new HashSet<string>();
     private readonly HashSet<string> purchasedItemIds = new HashSet<string>();
     private readonly HashSet<string> unlockedOutfitIds = new HashSet<string>();
+    private readonly Dictionary<string, int> trainingProficiencies = new Dictionary<string, int>();
     private readonly Queue<DialogueMessage> queuedDialogueMessages = new Queue<DialogueMessage>();
     private readonly List<DialogueMessage> pendingScheduledEventFollowUpMessages = new List<DialogueMessage>();
     private readonly List<MessageLogPanel.MessageLogEntry> messageLogEntries =
@@ -2277,6 +2278,7 @@ public class GameManager : MonoBehaviour
         saveData.unlockedStillIds = new List<string>(unlockedStillIds);
         saveData.purchasedItemIds = new List<string>(purchasedItemIds);
         saveData.unlockedOutfitIds = new List<string>(unlockedOutfitIds);
+        saveData.trainingProficiencies = CreateTrainingProficiencySaveData();
 
         saveData.shownConversationIds = new List<string>(shownConversationIds);
         saveData.shownGameEventIds = new List<string>(shownGameEventIds);
@@ -2427,6 +2429,7 @@ public class GameManager : MonoBehaviour
         }
         ApplyPurchasedItemOutfitUnlocks();
         ApplyUnlockedOutfitsToManager();
+        LoadTrainingProficiencies(saveData.trainingProficiencies);
 
         outfitPreferenceManager.SetPreferences(saveData.outfitPreferences);
 
@@ -2528,6 +2531,71 @@ public class GameManager : MonoBehaviour
     public List<string> GetUnlockedOutfitIds()
     {
         return new List<string>(unlockedOutfitIds);
+    }
+
+    public int GetTrainingProficiency(string trainingId)
+    {
+        if (string.IsNullOrEmpty(trainingId))
+        {
+            return 0;
+        }
+
+        return trainingProficiencies.TryGetValue(trainingId, out int value)
+            ? value
+            : 0;
+    }
+
+    private int AddTrainingProficiency(string trainingId, int value)
+    {
+        if (string.IsNullOrEmpty(trainingId) || value == 0)
+        {
+            return GetTrainingProficiency(trainingId);
+        }
+
+        int currentValue = GetTrainingProficiency(trainingId);
+        int nextValue = Mathf.Max(0, currentValue + value);
+        trainingProficiencies[trainingId] = nextValue;
+        return nextValue;
+    }
+
+    private List<TrainingProficiencyEntry> CreateTrainingProficiencySaveData()
+    {
+        List<TrainingProficiencyEntry> entries = new List<TrainingProficiencyEntry>();
+        foreach (KeyValuePair<string, int> pair in trainingProficiencies)
+        {
+            if (string.IsNullOrEmpty(pair.Key))
+            {
+                continue;
+            }
+
+            entries.Add(new TrainingProficiencyEntry
+            {
+                trainingId = pair.Key,
+                proficiency = Mathf.Max(0, pair.Value)
+            });
+        }
+
+        entries.Sort((a, b) => string.Compare(a.trainingId, b.trainingId, StringComparison.Ordinal));
+        return entries;
+    }
+
+    private void LoadTrainingProficiencies(List<TrainingProficiencyEntry> entries)
+    {
+        trainingProficiencies.Clear();
+        if (entries == null)
+        {
+            return;
+        }
+
+        foreach (TrainingProficiencyEntry entry in entries)
+        {
+            if (entry == null || string.IsNullOrEmpty(entry.trainingId))
+            {
+                continue;
+            }
+
+            trainingProficiencies[entry.trainingId] = Mathf.Max(0, entry.proficiency);
+        }
     }
 
     private void RegisterPurchasedItem(string itemId)
@@ -6599,6 +6667,12 @@ public class GameManager : MonoBehaviour
             RefreshStatusDetailPanel();
         }
 
+        if (ShouldApplyTrainingRewards(result) && result.trainingProficiencyReward != 0)
+        {
+            result.totalTrainingProficiency =
+                AddTrainingProficiency(result.trainingId, result.trainingProficiencyReward);
+        }
+
         if (ShouldAdvanceTimeAfterTraining(result))
         {
             AdvanceTimeAfterTrainingResult();
@@ -6651,10 +6725,19 @@ public class GameManager : MonoBehaviour
         message += "\n好感度 " + FormatSignedValue(result.totalAffectionReward);
         if (result.trainingProficiencyReward != 0)
         {
-            message += "\n訓練熟練度予定 " + FormatSignedValue(result.trainingProficiencyReward);
+            message += "\n訓練熟練度 " +
+                FormatSignedValue(result.trainingProficiencyReward) +
+                "（現在 " +
+                result.totalTrainingProficiency +
+                "）";
         }
 
         return message;
+    }
+
+    private static bool ShouldApplyTrainingRewards(TrainingResult result)
+    {
+        return result != null && result.isFinished && !result.wasInterrupted;
     }
 
     public void OnBattlePanelClosed()

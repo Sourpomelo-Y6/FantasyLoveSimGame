@@ -9,6 +9,7 @@ public class TrainingResult
     public int simultaneousKnockoutCount;
     public int affectionReward;
     public int trainingProficiencyReward;
+    public int totalTrainingProficiency;
     public int simultaneousKnockoutBonus;
     public int totalAffectionReward;
     public bool wasInterrupted;
