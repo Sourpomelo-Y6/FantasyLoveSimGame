@@ -1716,8 +1716,8 @@ MonoBehaviour:
       m_Calls: []
   m_text: New Text
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
-  m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
+  m_fontAsset: {fileID: 11400000, guid: de9f20a90f1fdf24a89d9000a7ddf0e0, type: 2}
+  m_sharedMaterial: {fileID: 101836597338727658, guid: de9f20a90f1fdf24a89d9000a7ddf0e0, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
@@ -11781,7 +11781,7 @@ MonoBehaviour:
   quitButton: {fileID: 1778443200}
   emptyMessage: "\u9078\u629E\u3067\u304D\u308B\u8A13\u7DF4\u304C\u3042\u308A\u307E\u305B\u3093\u3002"
   noTrainingLabel: "\u8A13\u7DF4\u672A\u9078\u629E"
-  maxLogLines: 6
+  maxLogLines: 4
 --- !u!1 &1166239177
 GameObject:
   m_ObjectHideFlags: 0
@@ -16186,6 +16186,8 @@ MonoBehaviour:
   messageLogLimit: 20
   battlePanel: {fileID: 1844639382}
   useBattlePanelForExploration: 1
+  trainingPanel: {fileID: 0}
+  trainingResourcePath: Training
   battleResultEventResourcePath: BattleResultEvents
   battlePanelResultMessageResourcePath: BattlePanelResultMessages
   battleResultEvents: []

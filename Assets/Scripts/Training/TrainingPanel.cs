@@ -39,6 +39,7 @@ public class TrainingPanel : MonoBehaviour
     private BattleStatusData heroineBattleStatus;
     private TrainingData currentTraining;
     private TrainingSessionState currentState;
+    private GameManager gameManager;
 
     private GameObject PanelRoot
     {
@@ -47,6 +48,14 @@ public class TrainingPanel : MonoBehaviour
 
     private void Awake()
     {
+        EnsureReferences();
+        HookButtons();
+        HideTemplateButton();
+    }
+
+    public void Initialize(GameManager manager)
+    {
+        gameManager = manager;
         EnsureReferences();
         HookButtons();
         HideTemplateButton();
@@ -86,6 +95,10 @@ public class TrainingPanel : MonoBehaviour
     public void Close()
     {
         PanelRoot.SetActive(false);
+        if (gameManager != null)
+        {
+            gameManager.OnTrainingPanelClosed();
+        }
     }
 
     public void SetHeroineSprite(Sprite sprite)

@@ -321,6 +321,11 @@ public class GameManager : MonoBehaviour
     private bool waitingForBattlePanelScheduledEvent;
     public BattlePanel.BattleResult LastBattlePanelResult => lastBattlePanelResult;
 
+    [Header("Training UI")]
+    [SerializeField] private TrainingPanel trainingPanel;
+    [SerializeField] private string trainingResourcePath = "Training";
+    private TrainingData[] trainingDataList;
+
     [Header("Battle Result Events")]
     [SerializeField] private string battleResultEventResourcePath = BattleResultEventResourcePath;
     [SerializeField] private string battlePanelResultMessageResourcePath = BattlePanelResultMessageResourcePath;
@@ -3656,6 +3661,12 @@ public class GameManager : MonoBehaviour
             OpenDebugBattlePanel();
             return;
         }
+
+        if (action.executionType == ActionExecutionType.OpenTrainingPanel)
+        {
+            OpenTrainingPanel();
+            return;
+        }
     }
 
     private void OpenOutfitPanel(ActionData action)
@@ -6497,6 +6508,54 @@ public class GameManager : MonoBehaviour
         battlePanel.OpenDebugBattle();
     }
 
+    public void OpenTrainingPanel()
+    {
+        EnsureTrainingPanel();
+
+        if (trainingPanel == null)
+        {
+            ShowSystemMessage("TrainingPanel が設定されていないため、訓練を開始できません。");
+            return;
+        }
+
+        EnsureCoreStatusReferences();
+        TrainingData[] trainings = GetTrainingDataList();
+        if (trainings == null || trainings.Length == 0)
+        {
+            ShowSystemMessage("選択できる訓練がありません。");
+            return;
+        }
+
+        actionButtonArea.SetActive(false);
+        genreButtonArea.SetActive(false);
+        choiceButtonArea.SetActive(false);
+        outfitPanel.SetActive(false);
+        outfitReactionPanel.SetActive(false);
+        nextButton.gameObject.SetActive(false);
+
+        trainingPanel.SetHeroineSprite(heroineProfile != null ? heroineProfile.defaultHeroineSprite : null);
+        trainingPanel.Open(
+            trainings,
+            playerStatus != null ? playerStatus.BattleStatus : null,
+            heroineStatus != null ? heroineStatus.BattleStatus : null);
+    }
+
+    public void OnTrainingPanelClosed()
+    {
+        if (flowState != ConversationFlowState.Idle)
+        {
+            return;
+        }
+
+        actionButtonArea.SetActive(true);
+        genreButtonArea.SetActive(false);
+        choiceButtonArea.SetActive(false);
+        outfitPanel.SetActive(false);
+        outfitReactionPanel.SetActive(false);
+        nextButton.gameObject.SetActive(false);
+        RefreshUI();
+    }
+
     public void OnBattlePanelClosed()
     {
         if (waitingForBattlePanelScheduledEvent)
@@ -7047,6 +7106,42 @@ public class GameManager : MonoBehaviour
 
         EnsureCoreStatusReferences();
         battlePanel.Initialize(this, playerStatus, heroineStatus);
+    }
+
+    private void EnsureTrainingPanel()
+    {
+        if (trainingPanel == null)
+        {
+            trainingPanel = FindObjectOfType<TrainingPanel>(true);
+        }
+
+        if (trainingPanel == null)
+        {
+            Debug.LogWarning("TrainingPanel がシーンに配置されていません。Canvas 配下に手動で配置してください。");
+            return;
+        }
+
+        trainingPanel.Initialize(this);
+    }
+
+    private TrainingData[] GetTrainingDataList()
+    {
+        if (trainingDataList == null)
+        {
+            trainingDataList = Resources.LoadAll<TrainingData>(trainingResourcePath);
+            Array.Sort(trainingDataList, (a, b) => string.Compare(
+                a != null ? a.trainingId : "",
+                b != null ? b.trainingId : "",
+                StringComparison.Ordinal));
+
+            Debug.Log(
+                "Loaded TrainingData: " +
+                trainingDataList.Length +
+                " / ResourcePath: " +
+                trainingResourcePath);
+        }
+
+        return trainingDataList;
     }
 
     private void EnsureShopPanel()
