@@ -15,5 +15,8 @@ MonoBehaviour:
   itemId: SpringOutfitItem
   displayName: "\u6625\u306E\u670D"
   price: 100
+  requiredAffection: 0
+  requiredDay: 0
+  requiredPurchasedItemIds: []
   unlockedOutfitIds:
   - Spring

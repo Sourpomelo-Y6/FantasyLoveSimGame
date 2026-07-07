@@ -15,6 +15,9 @@ MonoBehaviour:
   itemId: ShoppingTestItem_01
   displayName: "\u8CB7\u3044\u7269\u30C6\u30B9\u30C8\u5546\u54C1"
   price: 100
+  requiredAffection: 0
+  requiredDay: 0
+  requiredPurchasedItemIds: []
   unlockedOutfitIds:
   - Spring
   - Summer

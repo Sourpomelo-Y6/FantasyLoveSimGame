@@ -18,6 +18,7 @@ public class ShopPanel : MonoBehaviour
 
     private readonly List<GameObject> itemButtons = new List<GameObject>();
     private Func<ShopItemData, bool> isPurchasedResolver;
+    private Func<ShopItemData, bool> meetsConditionResolver;
     private Func<ShopItemData, bool> canAffordResolver;
     private Action<ShopItemData> itemSelected;
     private Action closed;
@@ -36,6 +37,7 @@ public class ShopPanel : MonoBehaviour
     public void Open(
         IReadOnlyList<ShopItemData> items,
         Func<ShopItemData, bool> isPurchased,
+        Func<ShopItemData, bool> meetsCondition,
         Func<ShopItemData, bool> canAfford,
         Action<ShopItemData> onItemSelected,
         Action onClosed)
@@ -43,6 +45,7 @@ public class ShopPanel : MonoBehaviour
         EnsureReferences();
 
         isPurchasedResolver = isPurchased;
+        meetsConditionResolver = meetsCondition;
         canAffordResolver = canAfford;
         itemSelected = onItemSelected;
         closed = onClosed;
@@ -163,8 +166,9 @@ public class ShopPanel : MonoBehaviour
         }
 
         bool isPurchased = IsPurchased(item);
+        bool meetsCondition = MeetsCondition(item);
         bool canAfford = CanAfford(item);
-        button.interactable = !isPurchased && canAfford;
+        button.interactable = !isPurchased && meetsCondition && canAfford;
 
         button.onClick.RemoveAllListeners();
         if (button.interactable)
@@ -181,6 +185,10 @@ public class ShopPanel : MonoBehaviour
         if (IsPurchased(item))
         {
             label += " / 購入済み";
+        }
+        else if (!MeetsCondition(item))
+        {
+            label += " / 条件未達";
         }
         else if (!CanAfford(item))
         {
@@ -199,6 +207,11 @@ public class ShopPanel : MonoBehaviour
     private bool IsPurchased(ShopItemData item)
     {
         return isPurchasedResolver != null && isPurchasedResolver(item);
+    }
+
+    private bool MeetsCondition(ShopItemData item)
+    {
+        return meetsConditionResolver == null || meetsConditionResolver(item);
     }
 
     private bool CanAfford(ShopItemData item)

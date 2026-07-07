@@ -5482,6 +5482,7 @@ public class GameManager : MonoBehaviour
         shopPanel.Open(
             shopItems,
             IsShopItemPurchased,
+            MeetsShopItemPurchaseConditions,
             CanAffordShopItem,
             OnSelectDuoShoppingShopItem,
             OnCloseDuoShoppingShopPanel);
@@ -5524,6 +5525,38 @@ public class GameManager : MonoBehaviour
         return playerStatus != null && item != null && playerStatus.Money >= item.price;
     }
 
+    private bool MeetsShopItemPurchaseConditions(ShopItemData item)
+    {
+        if (item == null)
+        {
+            return false;
+        }
+
+        EnsureCoreStatusReferences();
+
+        if (item.requiredAffection > 0 && (heroineStatus == null || heroineStatus.Affection < item.requiredAffection))
+        {
+            return false;
+        }
+
+        if (item.requiredDay > 0 && (timeManager == null || timeManager.Day < item.requiredDay))
+        {
+            return false;
+        }
+
+        List<string> requiredItemIds = item.GetRequiredPurchasedItemIds();
+        for (int i = 0; i < requiredItemIds.Count; i++)
+        {
+            string requiredItemId = requiredItemIds[i];
+            if (!string.IsNullOrEmpty(requiredItemId) && !IsPurchasedItem(requiredItemId))
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
     private string ApplyDuoShoppingTestPurchase(string baseMessage, ShopItemData selectedShopItem)
     {
         EnsureCoreStatusReferences();
@@ -5540,6 +5573,11 @@ public class GameManager : MonoBehaviour
         if (string.IsNullOrEmpty(itemId))
         {
             return AppendLine(baseMessage, "買い物テスト商品 ID が設定されていません。");
+        }
+
+        if (selectedShopItem != null && !MeetsShopItemPurchaseConditions(selectedShopItem))
+        {
+            return AppendLine(baseMessage, itemName + " はまだ購入条件を満たしていません。");
         }
 
         if (IsPurchasedItem(itemId))

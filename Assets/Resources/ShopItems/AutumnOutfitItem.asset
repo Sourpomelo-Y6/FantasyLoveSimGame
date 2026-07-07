@@ -15,5 +15,8 @@ MonoBehaviour:
   itemId: AutumnOutfitItem
   displayName: "\u79CB\u306E\u670D"
   price: 100
+  requiredAffection: 0
+  requiredDay: 0
+  requiredPurchasedItemIds: []
   unlockedOutfitIds:
   - Autumn

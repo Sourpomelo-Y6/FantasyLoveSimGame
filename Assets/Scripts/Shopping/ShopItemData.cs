@@ -9,6 +9,11 @@ public class ShopItemData : ScriptableObject
     public string displayName;
     public int price = 100;
 
+    [Header("Purchase Conditions")]
+    public int requiredAffection;
+    public int requiredDay;
+    public List<string> requiredPurchasedItemIds = new List<string>();
+
     [Header("Unlocks")]
     public List<string> unlockedOutfitIds = new List<string>();
 
@@ -20,5 +25,15 @@ public class ShopItemData : ScriptableObject
         }
 
         return new List<string>(unlockedOutfitIds);
+    }
+
+    public List<string> GetRequiredPurchasedItemIds()
+    {
+        if (requiredPurchasedItemIds == null)
+        {
+            return new List<string>();
+        }
+
+        return new List<string>(requiredPurchasedItemIds);
     }
 }
