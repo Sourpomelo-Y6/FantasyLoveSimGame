@@ -1,0 +1,24 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 52205cafcff744758cf5fcfe24ba5b92, type: 3}
+  m_Name: EnduranceTraining
+  m_EditorClassIdentifier:
+  trainingId: EnduranceTraining
+  displayName: "\u6301\u4E45\u8A13\u7DF4"
+  description: "\u9577\u304F\u7D9A\u3051\u308B\u3053\u3068\u3092\u76EE\u6307\u3059\u8A13\u7DF4\u3002LP\u304C\u591A\u304F\u3001\u7D99\u7D9A\u6642\u306EHP\u30FBLP\u63A8\u79FB\u3092\u898B\u3084\u3059\u3044\u3002"
+  playerHpCostPerStep: 10
+  heroineHpCostPerStep: 14
+  initialPlayerLp: 2
+  initialHeroineLp: 2
+  affectionReward: 1
+  trainingProficiencyReward: 3
+  simultaneousKnockoutBonus: 2
