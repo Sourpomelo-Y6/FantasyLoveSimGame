@@ -113,6 +113,22 @@ public class ShopPanel : MonoBehaviour
             return;
         }
 
+        foreach (ShopItemData item in GetDisplayItems(items))
+        {
+            CreateItemButton(item);
+        }
+    }
+
+    private List<ShopItemData> GetDisplayItems(IReadOnlyList<ShopItemData> items)
+    {
+        List<ShopItemData> displayItems = new List<ShopItemData>();
+        List<ShopItemData> purchasedItems = new List<ShopItemData>();
+
+        if (items == null)
+        {
+            return displayItems;
+        }
+
         foreach (ShopItemData item in items)
         {
             if (item == null)
@@ -120,8 +136,18 @@ public class ShopPanel : MonoBehaviour
                 continue;
             }
 
-            CreateItemButton(item);
+            if (IsPurchased(item))
+            {
+                purchasedItems.Add(item);
+            }
+            else
+            {
+                displayItems.Add(item);
+            }
         }
+
+        displayItems.AddRange(purchasedItems);
+        return displayItems;
     }
 
     private void CreateItemButton(ShopItemData item)
