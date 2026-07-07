@@ -494,6 +494,9 @@ Importer は完了時に copied images、catalog assets、layers、conversations
 最初のデバッグ戦闘は `ForestSlime` を固定敵として使い、戦闘中の HP はコピーで扱うため、通常プレイ中の実ステータス、報酬、予定消費、戦闘後イベントには反映しない。
 UI の必須参照は `panelRoot`、敵名、敵HP、プレイヤーHP、ヒロインHP、戦闘ログ Text、攻撃ボタン、逃げるボタン、閉じるボタン。
 初期状態では `panelRoot` を非アクティブにしておく。`BattlePanel.Awake()` では初回表示を打ち消さないように panel root を閉じない。
+将来的に、主人公とヒロインが互いに戦う模擬戦闘を追加する。模擬戦闘は探索戦闘とは別枠にし、訓練、関係性イベント、スキル習得、戦闘バランス確認に使う。最初は `BattlePanel` を流用し、戦闘中 HP はコピーで扱い、終了後に本来の HP を直接減らさない方針にする。
+スキルシステムは `StatusAbilityData` とは分け、`SkillData` 系 ScriptableObject として拡張する案にする。スキルは汎用スキル、戦闘用スキル、訓練用スキルに分類する。汎用スキルは探索、会話、買い物、イベント条件、ステータス補正などに使い、戦闘用スキルは攻撃、防御、回復、バフ、デバフなど `BattlePanel` のコマンドに使う。訓練用スキルは模擬戦闘や稽古、熟練度上げに使う。
+スキルデータには `skillId`、表示名、カテゴリ、説明、消費コスト、対象、効果種別、威力または回復量、解放条件、使用可能な戦闘種別を持たせる。保存が必要になったら `SaveData` に `unlockedSkillIds`、`skillProficiencies`、`equippedSkillIds` のような領域を追加する。実装順は、スキルデータ定義と表示、戦闘用スキルの `BattlePanel` 接続、模擬戦闘、訓練用スキル、汎用スキルのイベント/ステータス接続の順を基本にする。
 基礎ステータスは実装済み。共通の `BattleStatusData`、プレイヤー用の `PlayerStatus`、ヒロイン側の `HeroineStatus.BattleStatus` を使う。
 所持金は案Aとして `PlayerStatus` だけが持つ。`SaveData` は `playerBattleStatus`、`playerMoney`、`heroineBattleStatus` を保存し、ロード時に復元する。
 `StatusDetailPanel` はプレイヤー詳細に HP、攻撃、防御、素早さ、所持金を表示し、ヒロイン詳細に HP、攻撃、防御、素早さを表示する。
