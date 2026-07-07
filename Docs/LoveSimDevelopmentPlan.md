@@ -590,6 +590,7 @@ LP と訓練用 HP は訓練画面内の一時値から始める。
 `GameManager.OnTrainingPanelResult(...)` は完了時のみ `TrainingData.affectionReward` と同時 0 ボーナスを好感度へ反映し、途中終了時は報酬なしにする。
 訓練結果は `ShowSystemMessage(...)` で画面に表示し、メッセージログにも残す。1 ステップ以上進めた訓練は、完了/中断に関わらず時間を 1 段階進める。
 訓練熟練度は `SaveData.trainingProficiencies` に `trainingId` ごとの値として保存し、完了時のみ `trainingProficiencyReward` を加算する。
+`TrainingPanel` は訓練ボタンと選択中タイトルに現在の熟練度を表示する。
 まだ熟練度によるスキル解放、訓練メニューの段階変化、シーン配置の細かい見た目調整は次段階で扱う。
 
 スキルシステムは、現在の `StatusAbilityData` とは別の `SkillData` 系 ScriptableObject として拡張することを検討する。

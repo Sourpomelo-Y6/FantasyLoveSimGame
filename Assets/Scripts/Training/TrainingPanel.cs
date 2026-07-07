@@ -235,7 +235,7 @@ public class TrainingPanel : MonoBehaviour
         TMP_Text buttonText = button.GetComponentInChildren<TMP_Text>();
         if (buttonText != null)
         {
-            buttonText.text = training.GetDisplayName();
+            buttonText.text = FormatTrainingNameWithProficiency(training);
         }
 
         button.onClick.RemoveAllListeners();
@@ -246,7 +246,9 @@ public class TrainingPanel : MonoBehaviour
     {
         if (trainingNameText != null)
         {
-            trainingNameText.text = currentTraining != null ? currentTraining.GetDisplayName() : noTrainingLabel;
+            trainingNameText.text = currentTraining != null
+                ? FormatTrainingNameWithProficiency(currentTraining)
+                : noTrainingLabel;
         }
 
         if (playerHpText != null)
@@ -303,6 +305,26 @@ public class TrainingPanel : MonoBehaviour
     private static string FormatHp(int currentHp, int maxHp)
     {
         return currentHp + " / " + maxHp;
+    }
+
+    private string FormatTrainingNameWithProficiency(TrainingData training)
+    {
+        if (training == null)
+        {
+            return noTrainingLabel;
+        }
+
+        return training.GetDisplayName() + " 熟練度 " + GetTrainingProficiency(training);
+    }
+
+    private int GetTrainingProficiency(TrainingData training)
+    {
+        if (training == null || gameManager == null)
+        {
+            return 0;
+        }
+
+        return gameManager.GetTrainingProficiency(training.trainingId);
     }
 
     private void ClearTrainingButtons()
