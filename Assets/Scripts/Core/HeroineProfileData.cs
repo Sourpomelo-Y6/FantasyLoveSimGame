@@ -31,6 +31,10 @@ public class HeroineProfileData : ScriptableObject
     public string displayName = "ヒロイン";
     public Sprite defaultHeroineSprite;
 
+    [Header("Pronouns")]
+    public string heroineFirstPerson = "私";
+    public string playerSecondPerson = "あなた";
+
     [Header("Common Dialogue")]
     [TextArea(2, 4)]
     public string initialDialogueMessage = "今日は何を話しましょうか？";

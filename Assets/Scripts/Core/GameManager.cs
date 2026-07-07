@@ -4772,8 +4772,8 @@ public class GameManager : MonoBehaviour
 
         if (hasBattleResult)
         {
-            AddBattleResultEventFollowUpMessage(scheduleType, battleResult);
             AddBattleLogFollowUpMessages(battleResult);
+            AddBattleResultEventFollowUpMessage(scheduleType, battleResult);
         }
 
         return AppendLine(baseMessage, resultMessage);
@@ -4810,15 +4810,13 @@ public class GameManager : MonoBehaviour
     {
         BattleResultEventType eventType = ResolveBattleResultEventType(scheduleType, result);
         string battleContextId = ResolveBattleContextId(scheduleType);
-        string heroineName = heroineStatus != null && !string.IsNullOrEmpty(heroineStatus.HeroineName)
-            ? heroineStatus.HeroineName
-            : "ヒロイン";
-        string dataMessage = ResolveBattleResultEventDataMessage(eventType, battleContextId, heroineName);
+        string dataMessage = ResolveBattleResultEventDataMessage(eventType, battleContextId);
         if (!string.IsNullOrEmpty(dataMessage))
         {
             return dataMessage;
         }
 
+        string heroineName = ResolveHeroineDisplayName();
         switch (eventType)
         {
             case BattleResultEventType.DuoVictory:
@@ -4894,14 +4892,12 @@ public class GameManager : MonoBehaviour
 
     private string ResolveBattleResultEventDataMessage(
         BattleResultEventType eventType,
-        string battleContextId,
-        string heroineName)
+        string battleContextId)
     {
         string primaryMessage = ResolveBattleResultEventDataMessageFromSource(
             GetPrimaryBattleResultEvents(),
             eventType,
-            battleContextId,
-            heroineName);
+            battleContextId);
         if (!string.IsNullOrEmpty(primaryMessage))
         {
             return primaryMessage;
@@ -4915,8 +4911,7 @@ public class GameManager : MonoBehaviour
         return ResolveBattleResultEventDataMessageFromSource(
             GetCommonBattleResultEvents(),
             eventType,
-            battleContextId,
-            heroineName);
+            battleContextId);
     }
 
     private BattleResultEventData[] GetPrimaryBattleResultEvents()
@@ -4942,11 +4937,10 @@ public class GameManager : MonoBehaviour
         return commonBattleResultEvents;
     }
 
-    private static string ResolveBattleResultEventDataMessageFromSource(
+    private string ResolveBattleResultEventDataMessageFromSource(
         BattleResultEventData[] sourceEvents,
         BattleResultEventType eventType,
-        string battleContextId,
-        string heroineName)
+        string battleContextId)
     {
         if (sourceEvents == null || sourceEvents.Length == 0)
         {
@@ -4968,7 +4962,7 @@ public class GameManager : MonoBehaviour
             {
                 if (string.Equals(eventData.battleContextId, battleContextId, StringComparison.OrdinalIgnoreCase))
                 {
-                    return FormatBattleResultEventMessage(eventData.message, heroineName);
+                    return FormatMessageVariables(eventData.message);
                 }
 
                 continue;
@@ -4980,17 +4974,50 @@ public class GameManager : MonoBehaviour
             }
         }
 
-        return FormatBattleResultEventMessage(fallbackMessage, heroineName);
+        return FormatMessageVariables(fallbackMessage);
     }
 
-    private static string FormatBattleResultEventMessage(string message, string heroineName)
+    private string FormatMessageVariables(string message)
     {
         if (string.IsNullOrEmpty(message))
         {
             return "";
         }
 
-        return message.Replace("{heroineName}", heroineName);
+        return message
+            .Replace("{heroineName}", ResolveHeroineDisplayName())
+            .Replace("{heroineFirstPerson}", ResolveHeroineFirstPerson())
+            .Replace("{playerSecondPerson}", ResolvePlayerSecondPerson())
+            .Replace("{playerName}", PlayerSpeakerName);
+    }
+
+    private string ResolveHeroineDisplayName()
+    {
+        if (heroineStatus != null && !string.IsNullOrEmpty(heroineStatus.HeroineName))
+        {
+            return heroineStatus.HeroineName;
+        }
+
+        if (heroineProfile != null && !string.IsNullOrEmpty(heroineProfile.displayName))
+        {
+            return heroineProfile.displayName;
+        }
+
+        return "ヒロイン";
+    }
+
+    private string ResolveHeroineFirstPerson()
+    {
+        return heroineProfile != null && !string.IsNullOrEmpty(heroineProfile.heroineFirstPerson)
+            ? heroineProfile.heroineFirstPerson
+            : "私";
+    }
+
+    private string ResolvePlayerSecondPerson()
+    {
+        return heroineProfile != null && !string.IsNullOrEmpty(heroineProfile.playerSecondPerson)
+            ? heroineProfile.playerSecondPerson
+            : "あなた";
     }
 
     private void AddBattleLogFollowUpMessages(SimpleBattleResult result)
@@ -6531,7 +6558,9 @@ public class GameManager : MonoBehaviour
             ? GetDefaultBattlePanelResultMessage(result.resultType)
             : resultMessage;
 
-        string message = enemyName + "との" + resultMessage + "ターン数: " + result.turnCount +
+        string message = resultMessage +
+            "\n敵: " + enemyName +
+            "\nターン数: " + result.turnCount +
             "\nプレイヤーHP: " + FormatBattlePanelHp(playerBattleStatus) +
             "\nヒロインHP: " + FormatBattlePanelHp(heroineBattleStatus);
         if (recoveryMessages != null)
@@ -6691,7 +6720,7 @@ public class GameManager : MonoBehaviour
         return GetDefaultBattlePanelResultMessage(resultType);
     }
 
-    private static string ResolveBattlePanelResultMessageFromSource(
+    private string ResolveBattlePanelResultMessageFromSource(
         BattlePanelResultMessageData[] messages,
         BattlePanelResultMessageType messageType)
     {
@@ -6707,7 +6736,7 @@ public class GameManager : MonoBehaviour
                 messageData.resultType == messageType &&
                 !string.IsNullOrEmpty(messageData.message))
             {
-                return messageData.message;
+                return FormatMessageVariables(messageData.message);
             }
         }
 
