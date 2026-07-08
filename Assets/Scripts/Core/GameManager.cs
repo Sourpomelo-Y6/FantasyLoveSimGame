@@ -354,6 +354,7 @@ public class GameManager : MonoBehaviour
     [SerializeField] private string duoShoppingTestItemName = "買い物テスト商品";
     [SerializeField] private List<string> duoShoppingUnlockedOutfitIds =
         new List<string> { "Spring", "Summer", "Autumn", "Winter" };
+    private readonly List<string> pendingDuoShoppingResultMessages = new List<string>();
 
 
     private void Update()
@@ -4321,6 +4322,7 @@ public class GameManager : MonoBehaviour
         currentConversation = null;
         pendingAdvanceTime = false;
         pendingGoodNight = false;
+        pendingDuoShoppingResultMessages.Clear();
 
         actionButtonArea.SetActive(false);
         genreButtonArea.SetActive(false);
@@ -4655,34 +4657,13 @@ public class GameManager : MonoBehaviour
         bool hasExternalBattleResult = false,
         SimpleBattleResult externalBattleResult = default(SimpleBattleResult))
     {
-        scheduleManager.MarkTodayScheduleEventExecuted();
-        heroineStatus.AddAffection(scheduledEvent.AffectionChange);
         pendingScheduledEventFollowUpMessages.Clear();
         string eventMessage = ResolveScheduledEventMessage(
             scheduledEvent,
             selectedShopItem,
             hasExternalBattleResult,
             externalBattleResult);
-        pendingScheduledEvent = null;
-        startPendingScheduledEventAfterOutfitMessage = false;
-        returnToScheduledEventPromptAfterOutfitMessage = false;
-        currentConversation = null;
-        pendingAdvanceTime = false;
-        pendingGoodNight = false;
-
-        actionButtonArea.SetActive(false);
-        genreButtonArea.SetActive(false);
-        choiceButtonArea.SetActive(false);
-        outfitPanel.SetActive(false);
-        outfitReactionPanel.SetActive(false);
-
-        ShowScheduledEventDialogue(scheduledEvent, eventMessage);
-        EnqueueScheduledEventFollowUpMessages();
-
-        flowState = ConversationFlowState.ShowingActionResult;
-        nextButton.gameObject.SetActive(true);
-
-        RefreshUI();
+        CompleteScheduledEventWithResolvedMessage(scheduledEvent, eventMessage);
     }
 
     private string ResolveScheduledEventMessage(
@@ -5609,17 +5590,68 @@ public class GameManager : MonoBehaviour
             return;
         }
 
-        CompleteScheduledEvent(scheduledEvent, item);
+        string purchaseMessage = ApplyDuoShoppingTestPurchase("", item);
+        if (!string.IsNullOrWhiteSpace(purchaseMessage))
+        {
+            pendingDuoShoppingResultMessages.Add(purchaseMessage);
+            ShowScheduleDialogue(purchaseMessage + "\nほかの商品を選ぶか、閉じるボタンで買い物を終えてください。");
+        }
+
+        RefreshUI();
     }
 
     private void OnCloseDuoShoppingShopPanel()
     {
+        ScheduledEventDefinition scheduledEvent = pendingScheduledEvent;
+        if (scheduledEvent != null && pendingDuoShoppingResultMessages.Count > 0)
+        {
+            string resultMessage = scheduledEvent.EventMessage;
+            foreach (string message in pendingDuoShoppingResultMessages)
+            {
+                resultMessage = AppendLine(resultMessage, message);
+            }
+
+            pendingDuoShoppingResultMessages.Clear();
+            pendingScheduledEventFollowUpMessages.Clear();
+            CompleteScheduledEventWithResolvedMessage(scheduledEvent, resultMessage);
+            return;
+        }
+
+        pendingDuoShoppingResultMessages.Clear();
         pendingScheduledEvent = null;
         actionButtonArea.SetActive(true);
         genreButtonArea.SetActive(false);
         choiceButtonArea.SetActive(false);
         nextButton.gameObject.SetActive(false);
         ShowScheduleDialogue("買い物をやめました。");
+        RefreshUI();
+    }
+
+    private void CompleteScheduledEventWithResolvedMessage(
+        ScheduledEventDefinition scheduledEvent,
+        string eventMessage)
+    {
+        scheduleManager.MarkTodayScheduleEventExecuted();
+        heroineStatus.AddAffection(scheduledEvent.AffectionChange);
+        pendingScheduledEvent = null;
+        startPendingScheduledEventAfterOutfitMessage = false;
+        returnToScheduledEventPromptAfterOutfitMessage = false;
+        currentConversation = null;
+        pendingAdvanceTime = false;
+        pendingGoodNight = false;
+
+        actionButtonArea.SetActive(false);
+        genreButtonArea.SetActive(false);
+        choiceButtonArea.SetActive(false);
+        outfitPanel.SetActive(false);
+        outfitReactionPanel.SetActive(false);
+
+        ShowScheduledEventDialogue(scheduledEvent, eventMessage);
+        EnqueueScheduledEventFollowUpMessages();
+
+        flowState = ConversationFlowState.ShowingActionResult;
+        nextButton.gameObject.SetActive(true);
+
         RefreshUI();
     }
 

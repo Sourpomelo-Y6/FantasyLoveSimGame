@@ -22,6 +22,7 @@ public class ShopPanel : MonoBehaviour
     private Func<ShopItemData, bool> canAffordResolver;
     private Action<ShopItemData> itemSelected;
     private Action closed;
+    private IReadOnlyList<ShopItemData> currentItems;
 
     private void Awake()
     {
@@ -49,6 +50,7 @@ public class ShopPanel : MonoBehaviour
         canAffordResolver = canAfford;
         itemSelected = onItemSelected;
         closed = onClosed;
+        currentItems = items;
 
         if (titleText != null)
         {
@@ -221,8 +223,8 @@ public class ShopPanel : MonoBehaviour
 
     private void SelectItem(ShopItemData item)
     {
-        CloseWithoutNotify();
         itemSelected?.Invoke(item);
+        RefreshItems(currentItems);
     }
 
     private void ClearItems()
