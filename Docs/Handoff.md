@@ -263,7 +263,9 @@
 `EndingManager` は `HeroineProfileData.endingResourcePath` のパスから `EndingData` を読み込み、選択された `endingId` の `message` と `stillSprite` を表示します。
 初期データとして `GoodEnding.asset` を用意しています。スチル画像ができたら `GoodEnding.asset.stillSprite` に割り当てます。
 `TitleButton` で `TitleScene` に戻します。
-初期実装は単一エンディングです。分岐が必要になった段階でエンディング条件や表示内容を `EndingData` のような ScriptableObject に切り出します。
+`GameManager` は `HeroineProfileData.endingResourcePath` から `EndingData` を読み込み、現在の好感度、衣装条件、表示済みイベント条件に合うものを選びます。
+複数の `EndingData` が条件に一致する場合は、`requiredAffection` が高いものを優先します。
+条件に一致する `EndingData` がない場合は、`defaultEndingId` を使います。
 
 ### 10. 衣装評価
 
@@ -406,8 +408,8 @@
 ## 既知の実装制約
 
 - 会話データと行動データは ScriptableObject 化されているが、一覧の登録は Inspector 依存
-- エンディング表示は `EndingData` 化済みだが、現在の選択処理は `GameManager.defaultEndingId` の固定選択
-- エンディング分岐条件の自動選択は未実装。必要になったら `HeroineProfileData.endingResourcePath` から条件一致する `EndingData` を選ぶ
+- エンディング表示は `EndingData` 化済みで、`GameManager` が `HeroineProfileData.endingResourcePath` から条件一致する `EndingData` を選ぶ
+- エンディング分岐条件は `requiredAffection`、`costumeId`、`requiredShownEventIds` を使う。複数一致時は `requiredAffection` が高いものを優先する
 - エンディング到達済みの永続フラグや回想はまだない
 - セーブスロット UI は prefab 化済みで、`TitleScene` と `MainScene` に配置済み
 - 話者ラベルは `SYSTEM` / `予定` / `衣装` / ヒロイン名に分けている
