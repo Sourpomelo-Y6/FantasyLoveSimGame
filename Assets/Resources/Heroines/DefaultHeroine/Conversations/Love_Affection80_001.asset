@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cb5097099197776438840c7469e425ca, type: 3}
   m_Name: Love_Affection80_001
   m_EditorClassIdentifier: 
-  conversationId: ' Love_Affection80_001'
+  conversationId: Love_Affection80_001
   genre: 3
   type: 0
   heroineLine: "\u597D\u304D\u306A\u3093\u3067\u3059\u3002\u3042\u306A\u305F\u306E\u3053\u3068\u304C"
