@@ -223,6 +223,8 @@ public static class HeroineDataValidator
         report.scheduledEventCount = scheduledEvents.Length;
 
         HashSet<string> ids = new HashSet<string>(StringComparer.Ordinal);
+        Dictionary<ScheduleType, ScheduledEventData> scheduledEventsByType =
+            new Dictionary<ScheduleType, ScheduledEventData>();
         foreach (ScheduledEventData scheduledEvent in scheduledEvents)
         {
             if (scheduledEvent == null)
@@ -232,11 +234,92 @@ public static class HeroineDataValidator
 
             ValidateResourceAssetOwner(scheduledEvent, report);
             ValidateDuplicateId(ids, scheduledEvent.name, "ScheduledEventData asset name", scheduledEvent, report);
+            ValidateScheduledEventType(scheduledEventsByType, scheduledEvent, report);
+            ValidateRequiredId(scheduledEvent.actionId, "ScheduledEventData.actionId", scheduledEvent, report);
+            ValidateScheduledEventActionId(scheduledEvent, report);
             ValidateSpriteOwner(
                 scheduledEvent.stillSprite,
                 report.HeroineId,
                 "ScheduledEventData.stillSprite: " + scheduledEvent.name,
                 report);
+        }
+    }
+
+    private static void ValidateScheduledEventType(
+        Dictionary<ScheduleType, ScheduledEventData> scheduledEventsByType,
+        ScheduledEventData scheduledEvent,
+        ValidationReport report)
+    {
+        if (scheduledEvent.scheduleType == ScheduleType.None)
+        {
+            report.Warn("ScheduledEventData.scheduleType が None です: " + AssetDatabase.GetAssetPath(scheduledEvent));
+            return;
+        }
+
+        ScheduledEventData existing;
+        if (!scheduledEventsByType.TryGetValue(scheduledEvent.scheduleType, out existing))
+        {
+            scheduledEventsByType.Add(scheduledEvent.scheduleType, scheduledEvent);
+            return;
+        }
+
+        report.Warn(
+            "ScheduledEventData.scheduleType が重複しています: " +
+            scheduledEvent.scheduleType +
+            " / " +
+            AssetDatabase.GetAssetPath(existing) +
+            " / " +
+            AssetDatabase.GetAssetPath(scheduledEvent));
+    }
+
+    private static void ValidateScheduledEventActionId(ScheduledEventData scheduledEvent, ValidationReport report)
+    {
+        string expectedActionId = GetDefaultScheduledEventActionId(scheduledEvent.scheduleType);
+        if (string.IsNullOrWhiteSpace(expectedActionId) || string.IsNullOrWhiteSpace(scheduledEvent.actionId))
+        {
+            return;
+        }
+
+        if (string.Equals(scheduledEvent.actionId, expectedActionId, StringComparison.Ordinal))
+        {
+            return;
+        }
+
+        report.Warn(
+            "ScheduledEventData.actionId が scheduleType の既定値と一致しません: " +
+            scheduledEvent.scheduleType +
+            " / expected=" +
+            expectedActionId +
+            " / actual=" +
+            scheduledEvent.actionId +
+            " / " +
+            AssetDatabase.GetAssetPath(scheduledEvent));
+    }
+
+    private static string GetDefaultScheduledEventActionId(ScheduleType scheduleType)
+    {
+        switch (scheduleType)
+        {
+            case ScheduleType.SoloForest:
+                return "AutoWalkForest";
+            case ScheduleType.SoloCave:
+                return "AutoWalkCave";
+            case ScheduleType.SoloLake:
+                return "AutoWalkLake";
+            case ScheduleType.SoloShopping:
+                return "AutoWalkShopping";
+            case ScheduleType.DuoForest:
+                return "AutoDuoForest";
+            case ScheduleType.DuoCave:
+                return "AutoDuoCave";
+            case ScheduleType.DuoLake:
+                return "AutoDuoLake";
+            case ScheduleType.DuoShopping:
+                return "AutoDuoShopping";
+            case ScheduleType.StayHome:
+                return "AutoStayHome";
+            default:
+                return string.Empty;
         }
     }
 
