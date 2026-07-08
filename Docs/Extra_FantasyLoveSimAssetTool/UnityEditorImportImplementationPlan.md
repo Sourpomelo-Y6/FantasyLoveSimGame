@@ -44,7 +44,7 @@ ScriptableObject 型と実行時に参照する表示コンポーネントは `R
 最初は次のメニューだけでよい。
 
 ```text
-Tools/FantasyLoveSim/Import Heroine Export...
+FantasyLoveSim/Import Heroine Export
 ```
 
 処理:

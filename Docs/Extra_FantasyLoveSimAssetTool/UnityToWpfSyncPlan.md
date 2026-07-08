@@ -179,7 +179,7 @@ scheduled_events_from_unity.json
 メニュー:
 
 ```text
-Tools/FantasyLoveSim/Export Heroine Unity Data...
+FantasyLoveSim/Export Heroine Unity Data
 ```
 
 処理:
@@ -330,7 +330,7 @@ WPF Tool 側の import preview で出す warning:
 ## 実装順
 
 1. この方針を Unity 側にも共有する。
-2. Unity Editor 拡張に `Export Heroine Unity Data...` の空メニューを追加する。
+2. Unity Editor 拡張に `FantasyLoveSim/Export Heroine Unity Data` の空メニューを追加する。
 3. `ActionData` だけを `actions_from_unity.json` として出力する。
 4. WPF Tool 側に `actions_from_unity.json` の読み込み preview を追加する。
 5. 新規 action のみ追加できるようにする。
