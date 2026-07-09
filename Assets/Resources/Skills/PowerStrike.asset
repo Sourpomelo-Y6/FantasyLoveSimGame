@@ -1,0 +1,32 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c8d5a5be1d394c0d94d9bb0e0a81a0a6, type: 3}
+  m_Name: PowerStrike
+  m_EditorClassIdentifier:
+  skillId: PowerStrike
+  displayName: "\u5F37\u6253"
+  category: 1
+  effectType: 1
+  targetType: 2
+  sortOrder: 10
+  isEnabled: 1
+  description: "\u529B\u3092\u8FBC\u3081\u3066\u653B\u6483\u3059\u308B\u6226\u95D8\u7528\u30B9\u30AD\u30EB\u3002\u57FA\u672C\u7A3D\u53E4\u3067\u653B\u6483\u306E\u30B3\u30C4\u3092\u8EAB\u306B\u3064\u3051\u308B\u3068\u89E3\u653E\u3055\u308C\u308B\u3002"
+  cost: 0
+  power: 18
+  requiredAffection: 0
+  requiredDay: 1
+  requiredTrainingId: LightPractice
+  requiredTrainingProficiency: 3
+  requiredSkillIds: []
+  canUseInBattle: 1
+  canUseInTraining: 0
+  canUseInExploration: 0

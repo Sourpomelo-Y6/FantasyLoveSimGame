@@ -609,6 +609,8 @@ LP と訓練用 HP は訓練画面内の一時値から始める。
 
 `SkillData`、`SkillCategory`、`SkillEffectType`、`SkillTargetType` は追加済み。
 スキルデータには、`skillId`、表示名、カテゴリ、説明、消費コスト、対象、効果種別、威力または回復量、解放条件、使用可能な戦闘種別を持たせる。
+初期確認用のスキルデータは `Assets/Resources/Skills` に `PowerStrike`、`GuardStance`、`FirstAid` を用意する。
+それぞれ `LightPractice` 熟練度 3、`EnduranceTraining` 熟練度 3、`SparringPractice` 熟練度 5 を解放条件にする。
 戦闘用スキルは `BattlePanel` のコマンドとして表示し、汎用スキルはステータスやイベント条件で参照できるようにする。
 訓練用スキルは模擬戦闘で優先的に使い、勝敗だけでなく「うまく防げた」「連携できた」などの訓練結果に接続する。
 スキルの取得状態、熟練度、装備中スキルを保存する場合は、`SaveData` に `unlockedSkillIds`、`skillProficiencies`、`equippedSkillIds` のような保存領域を追加する。
