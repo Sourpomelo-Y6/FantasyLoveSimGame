@@ -613,7 +613,8 @@ LP と訓練用 HP は訓練画面内の一時値から始める。
 それぞれ `LightPractice` 熟練度 3、`EnduranceTraining` 熟練度 3、`SparringPractice` 熟練度 5 を解放条件にする。
 戦闘用スキルは `BattlePanel` のコマンドとして表示し、汎用スキルはステータスやイベント条件で参照できるようにする。
 訓練用スキルは模擬戦闘で優先的に使い、勝敗だけでなく「うまく防げた」「連携できた」などの訓練結果に接続する。
-スキルの取得状態、熟練度、装備中スキルを保存する場合は、`SaveData` に `unlockedSkillIds`、`skillProficiencies`、`equippedSkillIds` のような保存領域を追加する。
+取得済みスキル ID は `SaveData.unlockedSkillIds` に保存し、`GameManager.IsSkillUnlocked(...)` / `UnlockSkill(...)` / `GetUnlockedSkillIds()` で扱う。
+スキル熟練度や装備中スキルを保存する場合は、将来 `skillProficiencies`、`equippedSkillIds` のような保存領域を追加する。
 
 スキル取得と装備は、`StatusDetailPanel` に直接詰め込まず、別の `SkillPanel` として実装する方針にする。
 `StatusDetailPanel` は主人公/ヒロインの基本ステータス、衣装確認モードなどの能力状態、`SkillPanel` を開く入口に留める。
@@ -644,7 +645,7 @@ LP と訓練用 HP は訓練画面内の一時値から始める。
 - `MessageLogPanel` / `StillGalleryPanel` / `ShopPanel` / `SaveLoadPanel` は、非アクティブ状態から初回表示したときに `Awake()` が `Open()` を打ち消さないよう、`Awake()` 内で panel root を閉じない方針に統一済み
 - 保存済みスロットは `Day` と `Affection` をラベルに表示する
 - `MainScene` でロードした後は `SaveLoadPanel` を閉じる
-- セーブ/ロード回帰確認では、好感度、日付、時間帯、曜日、季節、天気、現在衣装、衣装評価、今日/明日の予定、当日予定イベントの発動済み状態、能力取得状態、衣装確認モードの解放状態と現在の使用モードを確認する
+- セーブ/ロード回帰確認では、好感度、日付、時間帯、曜日、季節、天気、現在衣装、衣装評価、今日/明日の予定、当日予定イベントの発動済み状態、能力取得状態、スキル取得状態、衣装確認モードの解放状態と現在の使用モードを確認する
 - 翌朝メッセージキューと将来の汎用ログはセーブ対象外の方針なので、ロード後に復元されなくてよい
 
 ### 案2: `ScheduleType -> ScheduledEventData` 変換表

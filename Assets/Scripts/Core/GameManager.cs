@@ -259,6 +259,7 @@ public class GameManager : MonoBehaviour
     private readonly HashSet<string> shownConversationIds = new HashSet<string>();
     private readonly HashSet<string> shownGameEventIds = new HashSet<string>();
     private readonly HashSet<string> unlockedStatusAbilityIds = new HashSet<string>();
+    private readonly HashSet<string> unlockedSkillIds = new HashSet<string>();
     private readonly HashSet<string> unlockedStillIds = new HashSet<string>();
     private readonly HashSet<string> purchasedItemIds = new HashSet<string>();
     private readonly HashSet<string> unlockedOutfitIds = new HashSet<string>();
@@ -2276,6 +2277,7 @@ public class GameManager : MonoBehaviour
                 ? heroineStatus.OutfitPromptAbilities.Clone()
                 : new OutfitPromptAbilitySet();
         saveData.unlockedStatusAbilityIds = new List<string>(unlockedStatusAbilityIds);
+        saveData.unlockedSkillIds = new List<string>(unlockedSkillIds);
         saveData.unlockedStillIds = new List<string>(unlockedStillIds);
         saveData.purchasedItemIds = new List<string>(purchasedItemIds);
         saveData.unlockedOutfitIds = new List<string>(unlockedOutfitIds);
@@ -2392,6 +2394,17 @@ public class GameManager : MonoBehaviour
                 if (!string.IsNullOrEmpty(abilityId))
                 {
                     unlockedStatusAbilityIds.Add(abilityId);
+                }
+            }
+        }
+        unlockedSkillIds.Clear();
+        if (saveData.unlockedSkillIds != null)
+        {
+            foreach (string skillId in saveData.unlockedSkillIds)
+            {
+                if (!string.IsNullOrEmpty(skillId))
+                {
+                    unlockedSkillIds.Add(skillId);
                 }
             }
         }
@@ -2517,6 +2530,26 @@ public class GameManager : MonoBehaviour
         }
 
         unlockedStatusAbilityIds.Add(abilityId);
+    }
+
+    public bool IsSkillUnlocked(string skillId)
+    {
+        return !string.IsNullOrEmpty(skillId) && unlockedSkillIds.Contains(skillId);
+    }
+
+    public void UnlockSkill(string skillId)
+    {
+        if (string.IsNullOrEmpty(skillId))
+        {
+            return;
+        }
+
+        unlockedSkillIds.Add(skillId);
+    }
+
+    public List<string> GetUnlockedSkillIds()
+    {
+        return new List<string>(unlockedSkillIds);
     }
 
     public bool IsPurchasedItem(string itemId)
