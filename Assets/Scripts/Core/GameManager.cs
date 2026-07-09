@@ -4384,9 +4384,12 @@ public class GameManager : MonoBehaviour
     private ScheduledEventOutfitPromptMode GetEffectiveScheduledEventOutfitPromptMode(
         ScheduledEventOutfitPromptMode outfitPromptMode)
     {
-        if (CanUseScheduledEventOutfitPromptMode(outfitPromptMode))
+        ScheduledEventOutfitPromptMode selectedMode = playerOutfitPromptAbilities != null
+            ? playerOutfitPromptAbilities.selectedMode
+            : ScheduledEventOutfitPromptMode.Always;
+        if (CanUseScheduledEventOutfitPromptMode(selectedMode))
         {
-            return outfitPromptMode;
+            return selectedMode;
         }
 
         return ScheduledEventOutfitPromptMode.Always;
@@ -4401,18 +4404,14 @@ public class GameManager : MonoBehaviour
 
         if (outfitPromptMode == ScheduledEventOutfitPromptMode.Conditional)
         {
-            return playerOutfitPromptAbilities.canUseConditionalMode &&
-                   heroineStatus != null &&
-                   heroineStatus.OutfitPromptAbilities != null &&
-                   heroineStatus.OutfitPromptAbilities.canUseConditionalMode;
+            return playerOutfitPromptAbilities != null &&
+                   playerOutfitPromptAbilities.canUseConditionalMode;
         }
 
         if (outfitPromptMode == ScheduledEventOutfitPromptMode.Hidden)
         {
-            return playerOutfitPromptAbilities.canUseHiddenMode &&
-                   heroineStatus != null &&
-                   heroineStatus.OutfitPromptAbilities != null &&
-                   heroineStatus.OutfitPromptAbilities.canUseHiddenMode;
+            return playerOutfitPromptAbilities != null &&
+                   playerOutfitPromptAbilities.canUseHiddenMode;
         }
 
         return false;

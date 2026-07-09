@@ -45,6 +45,9 @@ public class StatusDetailPanel : MonoBehaviour
     [SerializeField] private string unlockedLabel = "解放済み";
     [SerializeField] private string lockedLabel = "未解放";
     [SerializeField] private string acquireButtonLabel = "解放する";
+    [SerializeField] private string useButtonLabel = "使用する";
+    [SerializeField] private string disableButtonLabel = "解除する";
+    [SerializeField] private string activeLabel = "使用中";
     [SerializeField] private string acquiredMessage = "解放しました。";
 
     private StatusDetailRole currentRole = StatusDetailRole.Player;
@@ -177,12 +180,25 @@ public class StatusDetailPanel : MonoBehaviour
         if (abilityAcquireButton != null)
         {
             bool canUnlock = CanUnlockAbility(abilityKind, ability);
-            abilityAcquireButton.interactable = !IsAbilityUnlocked(abilityKind, ability) && canUnlock;
+            bool isUnlocked = IsAbilityUnlocked(abilityKind, ability);
+            bool canSelectMode = currentRole == StatusDetailRole.Player &&
+                IsOutfitPromptAbility(abilityKind, ability) &&
+                isUnlocked;
+            abilityAcquireButton.interactable = canSelectMode || (!isUnlocked && canUnlock);
 
             TextMeshProUGUI buttonLabel = abilityAcquireButton.GetComponentInChildren<TextMeshProUGUI>();
             if (buttonLabel != null)
             {
-                buttonLabel.text = IsAbilityUnlocked(abilityKind, ability) ? unlockedLabel : acquireButtonLabel;
+                if (canSelectMode)
+                {
+                    buttonLabel.text = IsSelectedOutfitPromptMode(abilityKind, ability)
+                        ? disableButtonLabel
+                        : useButtonLabel;
+                }
+                else
+                {
+                    buttonLabel.text = isUnlocked ? unlockedLabel : acquireButtonLabel;
+                }
             }
         }
     }
@@ -227,6 +243,11 @@ public class StatusDetailPanel : MonoBehaviour
         foreach (StatusAbilityData ability in abilities)
         {
             if (ability == null || !ability.isEnabled || ability.targetRole != currentRole)
+            {
+                continue;
+            }
+
+            if (currentRole != StatusDetailRole.Player && IsOutfitPromptAbility(ability.abilityKind, ability))
             {
                 continue;
             }
@@ -308,17 +329,18 @@ public class StatusDetailPanel : MonoBehaviour
         if (currentRole == StatusDetailRole.Player)
         {
             BattleStatusData playerBattleStatus = playerStatus != null ? playerStatus.BattleStatus : null;
-            return BuildPlayerStatusSummary(playerBattleStatus, conditionalLabel, hiddenLabel);
+            return BuildPlayerStatusSummary(playerBattleStatus, conditionalLabel, hiddenLabel, abilities.selectedMode);
         }
 
         BattleStatusData heroineBattleStatus = heroineStatus != null ? heroineStatus.BattleStatus : null;
-        return BuildHeroineStatusSummary(heroineBattleStatus, conditionalLabel, hiddenLabel);
+        return BuildHeroineStatusSummary(heroineBattleStatus);
     }
 
     private string BuildPlayerStatusSummary(
         BattleStatusData status,
         string conditionalLabel,
-        string hiddenLabel)
+        string hiddenLabel,
+        ScheduledEventOutfitPromptMode selectedMode)
     {
         return playerSummaryTitle +
             "\nHP：" + GetCurrentHp(status) + "/" + GetMaxHp(status) +
@@ -329,21 +351,17 @@ public class StatusDetailPanel : MonoBehaviour
             "\n購入済み：" + BuildPurchasedItemSummary() +
             "\n解放衣装：" + BuildUnlockedOutfitSummary() +
             "\n衣装確認モード：" + conditionalLabel +
-            "\nHidden解放：" + hiddenLabel;
+            "\nHidden解放：" + hiddenLabel +
+            "\n現在の衣装確認設定：" + GetOutfitPromptModeLabel(selectedMode);
     }
 
-    private string BuildHeroineStatusSummary(
-        BattleStatusData status,
-        string conditionalLabel,
-        string hiddenLabel)
+    private string BuildHeroineStatusSummary(BattleStatusData status)
     {
         return heroineSummaryTitle +
             "\nHP：" + GetCurrentHp(status) + "/" + GetMaxHp(status) +
             "\n攻撃：" + GetAttack(status) +
             "\n防御：" + GetDefense(status) +
-            "\n素早さ：" + GetSpeed(status) +
-            "\n衣装確認モード：" + conditionalLabel +
-            "\nHidden解放：" + hiddenLabel;
+            "\n素早さ：" + GetSpeed(status);
     }
 
     private static int GetCurrentHp(BattleStatusData status)
@@ -412,7 +430,17 @@ public class StatusDetailPanel : MonoBehaviour
 
     private string GetAbilityStateText(StatusAbilityData ability)
     {
-        return IsAbilityUnlocked(ability.abilityKind, ability) ? unlockedLabel : lockedLabel;
+        if (!IsAbilityUnlocked(ability.abilityKind, ability))
+        {
+            return lockedLabel;
+        }
+
+        if (currentRole == StatusDetailRole.Player && IsSelectedOutfitPromptMode(ability.abilityKind, ability))
+        {
+            return activeLabel;
+        }
+
+        return unlockedLabel;
     }
 
     private string GetAbilityName(StatusAbilityKind abilityKind, StatusAbilityData ability)
@@ -488,6 +516,15 @@ public class StatusDetailPanel : MonoBehaviour
             return;
         }
 
+        if (currentRole == StatusDetailRole.Player &&
+            IsOutfitPromptAbility(selectedAbilityKind, selectedAbility) &&
+            IsAbilityUnlocked(selectedAbilityKind, selectedAbility))
+        {
+            ToggleSelectedOutfitPromptMode(selectedAbilityKind, selectedAbility);
+            RefreshAbilityAcquireView();
+            return;
+        }
+
         if (!CanUnlockAbility(selectedAbilityKind, selectedAbility))
         {
             if (abilityAcquireDescriptionText != null)
@@ -502,9 +539,11 @@ public class StatusDetailPanel : MonoBehaviour
         {
             case StatusAbilityEffectType.OutfitPromptConditional:
                 abilities.canUseConditionalMode = true;
+                abilities.selectedMode = ScheduledEventOutfitPromptMode.Conditional;
                 break;
             case StatusAbilityEffectType.OutfitPromptHidden:
                 abilities.canUseHiddenMode = true;
+                abilities.selectedMode = ScheduledEventOutfitPromptMode.Hidden;
                 break;
             case StatusAbilityEffectType.None:
             default:
@@ -524,13 +563,52 @@ public class StatusDetailPanel : MonoBehaviour
 
         if (abilityAcquireButton != null)
         {
-            abilityAcquireButton.interactable = false;
-            TextMeshProUGUI buttonLabel = abilityAcquireButton.GetComponentInChildren<TextMeshProUGUI>();
-            if (buttonLabel != null)
-            {
-                buttonLabel.text = unlockedLabel;
-            }
+            RefreshAbilityAcquireButton();
         }
+    }
+
+    private void RefreshAbilityAcquireView()
+    {
+        Refresh();
+
+        if (abilityAcquireDescriptionText != null)
+        {
+            abilityAcquireDescriptionText.text = BuildAbilityAcquireDescription(selectedAbilityKind, selectedAbility);
+        }
+
+        RefreshAbilityAcquireButton();
+    }
+
+    private void RefreshAbilityAcquireButton()
+    {
+        if (abilityAcquireButton == null)
+        {
+            return;
+        }
+
+        bool canUnlock = CanUnlockAbility(selectedAbilityKind, selectedAbility);
+        bool isUnlocked = IsAbilityUnlocked(selectedAbilityKind, selectedAbility);
+        bool canSelectMode = currentRole == StatusDetailRole.Player &&
+            IsOutfitPromptAbility(selectedAbilityKind, selectedAbility) &&
+            isUnlocked;
+
+        abilityAcquireButton.interactable = canSelectMode || (!isUnlocked && canUnlock);
+
+        TextMeshProUGUI buttonLabel = abilityAcquireButton.GetComponentInChildren<TextMeshProUGUI>();
+        if (buttonLabel == null)
+        {
+            return;
+        }
+
+        if (canSelectMode)
+        {
+            buttonLabel.text = IsSelectedOutfitPromptMode(selectedAbilityKind, selectedAbility)
+                ? disableButtonLabel
+                : useButtonLabel;
+            return;
+        }
+
+        buttonLabel.text = isUnlocked ? unlockedLabel : acquireButtonLabel;
     }
 
     private OutfitPromptAbilitySet GetCurrentAbilities()
@@ -558,6 +636,70 @@ public class StatusDetailPanel : MonoBehaviour
                 return StatusAbilityEffectType.OutfitPromptHidden;
             default:
                 return StatusAbilityEffectType.None;
+        }
+    }
+
+    private bool IsOutfitPromptAbility(StatusAbilityKind abilityKind, StatusAbilityData ability)
+    {
+        StatusAbilityEffectType effectType = GetAbilityEffectType(abilityKind, ability);
+        return effectType == StatusAbilityEffectType.OutfitPromptConditional ||
+               effectType == StatusAbilityEffectType.OutfitPromptHidden;
+    }
+
+    private bool IsSelectedOutfitPromptMode(StatusAbilityKind abilityKind, StatusAbilityData ability)
+    {
+        OutfitPromptAbilitySet abilities = GetCurrentAbilities();
+        if (abilities == null)
+        {
+            return false;
+        }
+
+        switch (GetAbilityEffectType(abilityKind, ability))
+        {
+            case StatusAbilityEffectType.OutfitPromptConditional:
+                return abilities.selectedMode == ScheduledEventOutfitPromptMode.Conditional;
+            case StatusAbilityEffectType.OutfitPromptHidden:
+                return abilities.selectedMode == ScheduledEventOutfitPromptMode.Hidden;
+            default:
+                return false;
+        }
+    }
+
+    private void ToggleSelectedOutfitPromptMode(StatusAbilityKind abilityKind, StatusAbilityData ability)
+    {
+        OutfitPromptAbilitySet abilities = GetCurrentAbilities();
+        if (abilities == null)
+        {
+            return;
+        }
+
+        if (IsSelectedOutfitPromptMode(abilityKind, ability))
+        {
+            abilities.selectedMode = ScheduledEventOutfitPromptMode.Always;
+            return;
+        }
+
+        switch (GetAbilityEffectType(abilityKind, ability))
+        {
+            case StatusAbilityEffectType.OutfitPromptConditional:
+                abilities.selectedMode = ScheduledEventOutfitPromptMode.Conditional;
+                break;
+            case StatusAbilityEffectType.OutfitPromptHidden:
+                abilities.selectedMode = ScheduledEventOutfitPromptMode.Hidden;
+                break;
+        }
+    }
+
+    private string GetOutfitPromptModeLabel(ScheduledEventOutfitPromptMode mode)
+    {
+        switch (mode)
+        {
+            case ScheduledEventOutfitPromptMode.Conditional:
+                return "条件表示";
+            case ScheduledEventOutfitPromptMode.Hidden:
+                return "非表示";
+            default:
+                return "常に確認";
         }
     }
 

@@ -30,11 +30,11 @@
 - 翌朝は今日の予定と着替え可能な準備メッセージを表示し、予定イベント本体は指定された時間帯に発動する
 - 予定イベント本体の直前は、衣装確認モードに応じて `このまま出発` / `着替える` を出し分ける
 - 衣装確認モードは `Always` / `Conditional` / `Hidden` を想定しており、`Conditional` のときは今の衣装が予定に対して問題ない場合に確認を省略する
-- 衣装確認モードの可否は `GameManager.playerOutfitPromptAbilities` と `HeroineStatus.OutfitPromptAbilities` で制御する
+- 衣装確認モードはプレイヤー側の便利機能として扱い、可否と現在の使用モードは `GameManager.playerOutfitPromptAbilities` で制御する
 - プレイヤーとヒロインそれぞれに詳細ステータス画面を用意し、その中に能力項目と能力獲得画面への導線を置く方針
 - 能力はステータス画面から確認し、必要に応じて獲得画面へ移動して解放する
-- 現状の能力は `取得` = `解放` として扱い、取得後の `有効` / `無効` 切り替えはまだ持たせない
-- 将来、任意でオンオフできる能力が必要になった場合は `Locked` / `Unlocked` / `Active` のような状態分離を検討する
+- 現状の能力は基本的に `取得` = `解放` として扱う。ただし衣装確認モードは、解放済みの `Conditional` / `Hidden` を「使用する」ことで現在モードに設定し、選択中のモードを「解除する」と `Always` に戻せる
+- 将来、任意でオンオフできる能力がさらに必要になった場合は `Locked` / `Unlocked` / `Active` のような状態分離を検討する
 - 現在の能力項目は衣装確認モード向けが中心
 - 能力表示は `StatusAbilityData` の ScriptableObject で管理する
 - `Assets/Resources/StatusAbilities/` に能力アセットを置くと、`StatusDetailPanel` が読み込んで `targetRole` ごとに表示する
@@ -420,7 +420,7 @@
 - ログ画面は `MessageLogAction` から開く。UI は手作業配置した `MessageLogPanel` / `MessageLogList` / `MessageLogRowPrefab` を使う
 - ログ画面をスクロール表示にする場合、Unity 上の階層は `MessageLogPanel > Scroll View > Viewport > MessageLogList` を基本にし、`ScrollRect.content` に `MessageLogList` の RectTransform を割り当てる。`MessageLogList` の中身は実行時に `MessageLogRowPrefab` から生成するため、編集時は空でよい
 - Unity Editor で UI を手作業変更した後は、Codex にシーン編集を依頼する前に必ず `Ctrl+S` で `MainScene.unity` を保存する。未保存の `Scroll View` / `Viewport` などはディスク上の `MainScene.unity` に存在しないため、Codex 側の scene patch と食い違って消えたように見えることがある
-- 衣装確認モードの解放条件は、`GameManager.playerOutfitPromptAbilities` と `HeroineStatus.OutfitPromptAbilities` の組み合わせで管理する
+- 衣装確認モードの解放条件と現在の使用モードは、プレイヤー側の便利機能として `GameManager.playerOutfitPromptAbilities` で管理する
 
 ## 変更しやすいポイント
 
