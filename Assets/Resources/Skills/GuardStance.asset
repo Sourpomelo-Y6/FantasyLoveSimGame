@@ -20,8 +20,9 @@ MonoBehaviour:
   sortOrder: 20
   isEnabled: 1
   description: "\u88AB\u30C0\u30E1\u30FC\u30B8\u3092\u6291\u3048\u308B\u305F\u3081\u306E\u6226\u95D8\u7528\u30B9\u30AD\u30EB\u3002\u6301\u4E45\u8A13\u7DF4\u3067\u7C98\u308A\u5F37\u3055\u3092\u8EAB\u306B\u3064\u3051\u308B\u3068\u89E3\u653E\u3055\u308C\u308B\u3002"
-  cost: 0
+  cost: 3
   power: 50
+  affectedStat: 1
   requiredAffection: 0
   requiredDay: 1
   requiredTrainingId: EnduranceTraining

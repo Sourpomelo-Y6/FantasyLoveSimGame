@@ -20,6 +20,7 @@ public class SkillData : ScriptableObject
     [Header("Cost and Effect")]
     public int cost = 0;
     public int power = 0;
+    public SkillBattleStat affectedStat = SkillBattleStat.Attack;
 
     [Header("Unlock Condition")]
     public int requiredAffection = 0;

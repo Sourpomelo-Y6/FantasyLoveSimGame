@@ -108,6 +108,11 @@ public class BattlePanel : MonoBehaviour
         debugHeroineStatus = includeHeroine && heroineStatus != null && heroineStatus.BattleStatus != null
             ? heroineStatus.BattleStatus.Clone()
             : null;
+        debugPlayerStatus.RestoreMp();
+        if (debugHeroineStatus != null)
+        {
+            debugHeroineStatus.RestoreMp();
+        }
         ApplyPlayerImage(BattleSpriteIdle);
         ApplyHeroineImage(BattleSpriteIdle);
         ApplyEnemyImage(currentDebugEnemy, BattleSpriteIdle);
@@ -290,13 +295,30 @@ public class BattlePanel : MonoBehaviour
             return;
         }
 
+        int skillCost = Mathf.Max(0, skill.cost);
+        if (debugPlayerStatus == null || !debugPlayerStatus.TrySpendMp(skillCost))
+        {
+            AddLog(
+                "MP が足りないため " +
+                skill.GetDisplayName() +
+                " を使えない。必要 MP: " +
+                skillCost);
+            Refresh();
+            return;
+        }
+
         turnCount++;
         AddLog("--- " + turnCount + "ターン目 ---");
         ApplyPlayerImage(BattleSpriteIdle);
         ApplyHeroineImage(BattleSpriteIdle);
         ApplyEnemyImage(currentDebugEnemy, BattleSpriteIdle);
 
-        AddLog("プレイヤーは " + skill.GetDisplayName() + " を使った。");
+        AddLog(
+            "プレイヤーは " +
+            skill.GetDisplayName() +
+            " を使った。MP " +
+            skillCost +
+            " 消費。");
 
         bool playerDefending = false;
         bool heroineAttacks = true;
@@ -322,6 +344,34 @@ public class BattlePanel : MonoBehaviour
             {
                 playerDefending = true;
                 AddLog("次の敵の攻撃を防御する。");
+                heroineAttacks = false;
+                break;
+            }
+            case SkillEffectType.Buff:
+            {
+                BattleStatusData buffTarget = ResolveSkillStatTarget(skill.targetType, true);
+                int appliedValue = ApplyBattleStatModifier(buffTarget, skill.affectedStat, Mathf.Max(1, skill.power));
+                AddLog(
+                    ResolveSkillStatTargetName(buffTarget) +
+                    " の " +
+                    GetBattleStatDisplayName(skill.affectedStat) +
+                    " が " +
+                    appliedValue +
+                    " 上がった。");
+                heroineAttacks = false;
+                break;
+            }
+            case SkillEffectType.Debuff:
+            {
+                BattleStatusData debuffTarget = ResolveSkillStatTarget(skill.targetType, false);
+                int appliedValue = ApplyBattleStatModifier(debuffTarget, skill.affectedStat, -Mathf.Max(1, skill.power));
+                AddLog(
+                    ResolveSkillStatTargetName(debuffTarget) +
+                    " の " +
+                    GetBattleStatDisplayName(skill.affectedStat) +
+                    " が " +
+                    Mathf.Abs(appliedValue) +
+                    " 下がった。");
                 heroineAttacks = false;
                 break;
             }
@@ -541,6 +591,7 @@ public class BattlePanel : MonoBehaviour
     {
         AddLog(
             "HP: プレイヤー " + FormatHp(debugPlayerStatus) +
+            " MP " + FormatMp(debugPlayerStatus) +
             " / ヒロイン " + FormatHp(debugHeroineStatus) +
             " / " + enemyDisplayName + " " + FormatHp(debugEnemyStatus));
     }
@@ -553,6 +604,16 @@ public class BattlePanel : MonoBehaviour
         }
 
         return status.currentHp + "/" + status.maxHp;
+    }
+
+    private static string FormatMp(BattleStatusData status)
+    {
+        if (status == null)
+        {
+            return "-";
+        }
+
+        return status.currentMp + "/" + status.maxMp;
     }
 
     private BattleStatusData ResolveHealTarget()
@@ -586,6 +647,39 @@ public class BattlePanel : MonoBehaviour
         }
 
         return ResolveHealTarget();
+    }
+
+    private BattleStatusData ResolveSkillStatTarget(SkillTargetType targetType, bool isBuff)
+    {
+        if (!isBuff && (targetType == SkillTargetType.Enemy || targetType == SkillTargetType.AllEnemies))
+        {
+            return debugEnemyStatus;
+        }
+
+        if (isBuff &&
+            (targetType == SkillTargetType.Ally || targetType == SkillTargetType.AllAllies) &&
+            debugHeroineStatus != null &&
+            !IsDefeated(debugHeroineStatus))
+        {
+            return debugHeroineStatus;
+        }
+
+        return debugPlayerStatus;
+    }
+
+    private string ResolveSkillStatTargetName(BattleStatusData target)
+    {
+        if (target == debugEnemyStatus)
+        {
+            return enemyDisplayName;
+        }
+
+        if (target == debugHeroineStatus)
+        {
+            return heroineStatus != null ? heroineStatus.HeroineName : "ヒロイン";
+        }
+
+        return "プレイヤー";
     }
 
     private string ResolveHealTargetName(BattleStatusData target)
@@ -983,6 +1077,46 @@ public class BattlePanel : MonoBehaviour
         defender.currentHp -= damage;
         defender.Clamp();
         return before - defender.currentHp;
+    }
+
+    private static int ApplyBattleStatModifier(BattleStatusData target, SkillBattleStat stat, int value)
+    {
+        if (target == null || value == 0)
+        {
+            return 0;
+        }
+
+        int before;
+        switch (stat)
+        {
+            case SkillBattleStat.Defense:
+                before = target.defense;
+                target.defense = Mathf.Max(0, target.defense + value);
+                return target.defense - before;
+            case SkillBattleStat.Speed:
+                before = target.speed;
+                target.speed = Mathf.Max(0, target.speed + value);
+                return target.speed - before;
+            case SkillBattleStat.Attack:
+            default:
+                before = target.attack;
+                target.attack = Mathf.Max(0, target.attack + value);
+                return target.attack - before;
+        }
+    }
+
+    private static string GetBattleStatDisplayName(SkillBattleStat stat)
+    {
+        switch (stat)
+        {
+            case SkillBattleStat.Defense:
+                return "防御";
+            case SkillBattleStat.Speed:
+                return "素早さ";
+            case SkillBattleStat.Attack:
+            default:
+                return "攻撃";
+        }
     }
 
     private static int GetMissingHp(BattleStatusData status)

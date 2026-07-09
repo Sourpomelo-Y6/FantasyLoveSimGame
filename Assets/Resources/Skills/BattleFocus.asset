@@ -10,24 +10,25 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: c8d5a5be1d394c0d94d9bb0e0a81a0a6, type: 3}
-  m_Name: FirstAid
+  m_Name: BattleFocus
   m_EditorClassIdentifier:
-  skillId: FirstAid
-  displayName: "\u5FDC\u6025\u624B\u5F53"
+  skillId: BattleFocus
+  displayName: "\u96C6\u4E2D"
   category: 1
-  effectType: 2
-  targetType: 1
-  sortOrder: 30
+  effectType: 4
+  targetType: 0
+  sortOrder: 40
   isEnabled: 1
-  description: "\u5473\u65B9\u306EHP\u3092\u5C11\u3057\u56DE\u5FA9\u3059\u308B\u6226\u95D8\u7528\u30B9\u30AD\u30EB\u3002\u5B9F\u6226\u5F62\u5F0F\u306E\u8A13\u7DF4\u3067\u72B6\u6CC1\u5224\u65AD\u3092\u5B66\u3076\u3068\u89E3\u653E\u3055\u308C\u308B\u3002"
-  cost: 5
-  power: 15
+  description: "\u6226\u95D8\u4E2D\u3001\u30D7\u30EC\u30A4\u30E4\u30FC\u306E\u653B\u6483\u3092\u4E0A\u3052\u308B\u3002\u52B9\u679C\u306F\u6226\u95D8\u7D42\u4E86\u307E\u3067\u7D9A\u304F\u3002"
+  cost: 4
+  power: 4
   affectedStat: 0
   requiredAffection: 0
   requiredDay: 1
-  requiredTrainingId: SparringPractice
+  requiredTrainingId: LightPractice
   requiredTrainingProficiency: 5
-  requiredSkillIds: []
+  requiredSkillIds:
+  - PowerStrike
   canUseInBattle: 1
   canUseInTraining: 0
   canUseInExploration: 0

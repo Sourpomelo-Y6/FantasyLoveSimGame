@@ -145,7 +145,11 @@ public class SkillPanel : MonoBehaviour
 
     private string BuildSkillButtonLabel(SkillData skill, bool unlocked)
     {
-        return skill.GetDisplayName() + " / " + (unlocked ? unlockedLabel : lockedLabel);
+        return skill.GetDisplayName() +
+            " / MP " +
+            Mathf.Max(0, skill.cost) +
+            " / " +
+            (unlocked ? unlockedLabel : lockedLabel);
     }
 
     private void ShowSkillDescription(SkillData skill)
@@ -160,6 +164,7 @@ public class SkillPanel : MonoBehaviour
         descriptionText.text =
             skill.GetDisplayName() + " / " + state + "\n" +
             skill.description + "\n\n" +
+            "消費 MP: " + Mathf.Max(0, skill.cost) + "\n" +
             gameManager.GetSkillUnlockConditionText(skill);
     }
 
