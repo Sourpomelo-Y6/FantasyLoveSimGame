@@ -42,7 +42,7 @@
 | タイトルキャラクター選択 | `Resources.LoadAll<HeroineProfileData>("Heroines")` で候補を列挙し、新規ゲーム開始時のヒロインを選べる |
 | 買い物 | `DuoShopping` 予定から `ShopPanel` を開き、所持金消費、購入済み保存、衣装解放を行う |
 | 探索・戦闘 | 森、洞窟、湖の探索で敵候補を解決し、簡易戦闘または `BattlePanel` に接続できる |
-| 訓練 | `TrainingPanel` で訓練を進め、好感度報酬と訓練熟練度を保存する |
+| 訓練・スキル | `TrainingPanel` で訓練を進め、好感度報酬と訓練熟練度を保存する。条件達成スキルを自動解放し、`SkillPanel` と `BattlePanel` で使える |
 | エンディング | 好感度100で `EndingScene` に遷移し、条件一致する `EndingData` を表示 |
 
 通常の起点は `TitleScene` で、そこから `MainScene` に進む構成を想定しています。
@@ -593,7 +593,7 @@ LP と訓練用 HP は訓練画面内の一時値から始める。
 `TrainingPanel` は HP/LP 終了時、途中終了時、進行中に閉じた時に一度だけ `GameManager.OnTrainingPanelResult(...)` へ結果を通知する。
 `GameManager.OnTrainingPanelResult(...)` は完了時のみ `TrainingData.affectionReward` と同時 0 ボーナスを好感度へ反映し、途中終了時は報酬なしにする。
 訓練結果は `ShowSystemMessage(...)` で画面に表示し、メッセージログにも残す。1 ステップ以上進めた訓練は、完了/中断に関わらず時間を 1 段階進める。
-訓練熟練度は `SaveData.trainingProficiencies` に `trainingId` ごとの値として保存し、完了時のみ `trainingProficiencyReward` を加算する。
+訓練熟練度は `SaveData.trainingProficiencies` に `trainingId` ごとの値として保存し、完了時のみ `trainingProficiencyReward` を加算する。訓練完了後は `GameManager` が `SkillData` の好感度、日数、訓練熟練度、前提スキル条件を確認し、条件を満たしたスキルを `SaveData.unlockedSkillIds` へ自動解放する。
 `TrainingPanel` は訓練ボタンと選択中タイトルに現在の熟練度を表示する。
 まだ熟練度によるスキル解放、訓練メニューの段階変化、シーン配置の細かい見た目調整は次段階で扱う。
 
@@ -616,10 +616,10 @@ LP と訓練用 HP は訓練画面内の一時値から始める。
 取得済みスキル ID は `SaveData.unlockedSkillIds` に保存し、`GameManager.IsSkillUnlocked(...)` / `UnlockSkill(...)` / `GetUnlockedSkillIds()` で扱う。
 スキル熟練度や装備中スキルを保存する場合は、将来 `skillProficiencies`、`equippedSkillIds` のような保存領域を追加する。
 
-スキル取得と装備は、`StatusDetailPanel` に直接詰め込まず、別の `SkillPanel` として実装する方針にする。
-`StatusDetailPanel` は主人公/ヒロインの基本ステータス、衣装確認モードなどの能力状態、`SkillPanel` を開く入口に留める。
-`SkillPanel` はスキル取得・取得条件・熟練度・装備状態を扱う本体として、主人公/ヒロイン切り替えと、戦闘・訓練・汎用などのカテゴリ切り替えを持てる構成にする。
-最初の実装ではタブを増やしすぎず、主人公スキルの一覧、未取得/取得済み表示、訓練熟練度による取得可否表示までを優先し、ヒロインタブ、カテゴリタブ、装備枠は段階的に追加する。
+スキル取得と装備は、`StatusDetailPanel` に直接詰め込まず、別の `SkillPanel` として扱う。
+`SkillPanel` は実装済みで、全スキルの未取得/取得済み状態、説明、解放条件を表示し、戦闘中は解放済みの戦闘用スキルを選択できる。`PowerStrike`（Damage）、`GuardStance`（Guard）、`FirstAid`（Heal）は `BattlePanel` で実行できる。
+UI は Canvas 配下へ手動配置し、`panelRoot`、一覧親、ボタン Prefab、必要に応じてタイトル・説明・閉じるボタンを Inspector で割り当てる。通常一覧はヒロイン別 `Actions/SkillAction.asset` の `ActionExecutionType.OpenSkillPanel` から開き、`BattlePanel` の Skill ボタンは戦闘用選択を開く。`GameManager.skillPanel` は未割り当てでもシーン内から自動検索する。
+ヒロイン用スキル、カテゴリタブ、装備枠、Buff/Debuff の戦闘効果は次段階で追加する。
 
 実装順は、まずスキルデータ定義と表示だけを作り、次に戦闘用スキルを `BattlePanel` へ接続し、その後に訓練専用画面、模擬戦闘、訓練用スキルを扱う。
 汎用スキルはイベント条件やステータス補正への影響範囲が広いため、戦闘用スキルの動作が固まってから段階的に接続する。

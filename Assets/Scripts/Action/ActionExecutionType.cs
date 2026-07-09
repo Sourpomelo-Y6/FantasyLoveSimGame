@@ -9,5 +9,6 @@ public enum ActionExecutionType
     OpenStillGalleryPanel,
     OpenMessageLogPanel,
     OpenDebugBattlePanel,
-    OpenTrainingPanel
+    OpenTrainingPanel,
+    OpenSkillPanel
 }

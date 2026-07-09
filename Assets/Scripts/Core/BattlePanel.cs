@@ -33,7 +33,6 @@ public class BattlePanel : MonoBehaviour
     private const string BattleSpriteVictory = "Victory";
     private const string BattleSpriteDefeat = "Defeat";
     private const int DebugHealAmount = 20;
-    private const float DebugSkillDamageMultiplier = 1.8f;
 
     [SerializeField] private GameManager gameManager;
     [SerializeField] private PlayerStatus playerStatus;
@@ -277,17 +276,60 @@ public class BattlePanel : MonoBehaviour
             return;
         }
 
+        if (gameManager == null || !gameManager.TryOpenBattleSkillSelection(UseSelectedSkill))
+        {
+            AddLog("使用できる戦闘スキルがありません。訓練でスキルを解放してください。");
+            Refresh();
+        }
+    }
+
+    private void UseSelectedSkill(SkillData skill)
+    {
+        if (battleFinished || skill == null)
+        {
+            return;
+        }
+
         turnCount++;
         AddLog("--- " + turnCount + "ターン目 ---");
         ApplyPlayerImage(BattleSpriteIdle);
         ApplyHeroineImage(BattleSpriteIdle);
         ApplyEnemyImage(currentDebugEnemy, BattleSpriteIdle);
 
-        ApplyPlayerImage(BattleSpriteAttack);
-        ApplyEnemyImage(currentDebugEnemy, BattleSpriteDamage);
-        AddLog("プレイヤーは強攻撃を使った。");
-        int playerDamage = Damage(debugPlayerStatus, debugEnemyStatus, false, DebugSkillDamageMultiplier);
-        AddLog(enemyDisplayName + " に " + playerDamage + " ダメージ。");
+        AddLog("プレイヤーは " + skill.GetDisplayName() + " を使った。");
+
+        bool playerDefending = false;
+        bool heroineAttacks = true;
+        switch (skill.effectType)
+        {
+            case SkillEffectType.Damage:
+            {
+                ApplyPlayerImage(BattleSpriteAttack);
+                ApplyEnemyImage(currentDebugEnemy, BattleSpriteDamage);
+                int playerDamage = DamageWithSkill(debugPlayerStatus, debugEnemyStatus, skill.power);
+                AddLog(enemyDisplayName + " に " + playerDamage + " ダメージ。");
+                break;
+            }
+            case SkillEffectType.Heal:
+            {
+                BattleStatusData healTarget = ResolveSkillHealTarget(skill.targetType);
+                int recovered = Recover(healTarget, Mathf.Max(1, skill.power));
+                AddLog(ResolveHealTargetName(healTarget) + " は " + recovered + " 回復した。");
+                heroineAttacks = false;
+                break;
+            }
+            case SkillEffectType.Guard:
+            {
+                playerDefending = true;
+                AddLog("次の敵の攻撃を防御する。");
+                heroineAttacks = false;
+                break;
+            }
+            default:
+                AddLog("このスキル効果はまだ戦闘で使えません。");
+                Refresh();
+                return;
+        }
 
         if (IsDefeated(debugEnemyStatus))
         {
@@ -295,7 +337,7 @@ public class BattlePanel : MonoBehaviour
             return;
         }
 
-        if (debugHeroineStatus != null && !IsDefeated(debugHeroineStatus))
+        if (heroineAttacks && debugHeroineStatus != null && !IsDefeated(debugHeroineStatus))
         {
             ApplyPlayerImage(BattleSpriteIdle);
             ApplyHeroineImage(BattleSpriteAttack);
@@ -311,7 +353,7 @@ public class BattlePanel : MonoBehaviour
             }
         }
 
-        ApplyEnemyAttack();
+        ApplyEnemyAttack(playerDefending);
         if (IsDefeated(debugPlayerStatus))
         {
             FinishBattle("敗北", ResolveDefeatMessage());
@@ -526,6 +568,24 @@ public class BattlePanel : MonoBehaviour
         }
 
         return debugPlayerStatus;
+    }
+
+    private BattleStatusData ResolveSkillHealTarget(SkillTargetType targetType)
+    {
+        if (targetType == SkillTargetType.Self)
+        {
+            return debugPlayerStatus;
+        }
+
+        if (targetType == SkillTargetType.Ally || targetType == SkillTargetType.AllAllies)
+        {
+            if (GetMissingHp(debugHeroineStatus) > GetMissingHp(debugPlayerStatus))
+            {
+                return debugHeroineStatus;
+            }
+        }
+
+        return ResolveHealTarget();
     }
 
     private string ResolveHealTargetName(BattleStatusData target)
@@ -906,6 +966,33 @@ public class BattlePanel : MonoBehaviour
         target.currentHp += amount;
         target.Clamp();
         return target.currentHp - before;
+    }
+
+    private static int DamageWithSkill(BattleStatusData attacker, BattleStatusData defender, int power)
+    {
+        if (attacker == null || defender == null)
+        {
+            return 0;
+        }
+
+        int attack = Mathf.Max(1, attacker.attack + Mathf.Max(0, power));
+        int baseDamage = Mathf.Max(1, attack - defender.defense);
+        int variance = Random.Range(0, 3);
+        int damage = Mathf.Max(1, baseDamage + variance);
+        int before = defender.currentHp;
+        defender.currentHp -= damage;
+        defender.Clamp();
+        return before - defender.currentHp;
+    }
+
+    private static int GetMissingHp(BattleStatusData status)
+    {
+        if (status == null)
+        {
+            return -1;
+        }
+
+        return Mathf.Max(0, status.maxHp - status.currentHp);
     }
 
     private static bool CanRecover(BattleStatusData status)

@@ -328,6 +328,11 @@ public class GameManager : MonoBehaviour
     [SerializeField] private string trainingResourcePath = "Training";
     private TrainingData[] trainingDataList;
 
+    [Header("Skill UI")]
+    [SerializeField] private SkillPanel skillPanel;
+    [SerializeField] private string skillResourcePath = "Skills";
+    private SkillData[] skillDataList;
+
     [Header("Battle Result Events")]
     [SerializeField] private string battleResultEventResourcePath = BattleResultEventResourcePath;
     [SerializeField] private string battlePanelResultMessageResourcePath = BattlePanelResultMessageResourcePath;
@@ -1328,6 +1333,7 @@ public class GameManager : MonoBehaviour
         LoadActionsFromResources();
         LoadGameEventsFromResources();
         LoadScheduledEventsFromResources();
+        UnlockAvailableSkills();
 
         CreateGenreButtons();
         CreateActionButtons();
@@ -2444,6 +2450,7 @@ public class GameManager : MonoBehaviour
         ApplyPurchasedItemOutfitUnlocks();
         ApplyUnlockedOutfitsToManager();
         LoadTrainingProficiencies(saveData.trainingProficiencies);
+        UnlockAvailableSkills();
 
         outfitPreferenceManager.SetPreferences(saveData.outfitPreferences);
 
@@ -2550,6 +2557,128 @@ public class GameManager : MonoBehaviour
     public List<string> GetUnlockedSkillIds()
     {
         return new List<string>(unlockedSkillIds);
+    }
+
+    public List<SkillData> GetSkills()
+    {
+        return new List<SkillData>(GetSkillDataList());
+    }
+
+    public List<SkillData> GetUnlockedBattleSkills()
+    {
+        List<SkillData> skills = new List<SkillData>();
+        foreach (SkillData skill in GetSkillDataList())
+        {
+            if (skill != null &&
+                skill.isEnabled &&
+                skill.category == SkillCategory.Battle &&
+                skill.canUseInBattle &&
+                IsSkillUnlocked(skill.skillId))
+            {
+                skills.Add(skill);
+            }
+        }
+
+        return skills;
+    }
+
+    public bool MeetsSkillUnlockConditions(SkillData skill)
+    {
+        if (skill == null || !skill.isEnabled)
+        {
+            return false;
+        }
+
+        if (heroineStatus != null && heroineStatus.Affection < skill.requiredAffection)
+        {
+            return false;
+        }
+
+        if (timeManager != null && timeManager.Day < skill.requiredDay)
+        {
+            return false;
+        }
+
+        if (!string.IsNullOrEmpty(skill.requiredTrainingId) &&
+            GetTrainingProficiency(skill.requiredTrainingId) < skill.requiredTrainingProficiency)
+        {
+            return false;
+        }
+
+        foreach (string requiredSkillId in skill.GetRequiredSkillIds())
+        {
+            if (!string.IsNullOrEmpty(requiredSkillId) && !IsSkillUnlocked(requiredSkillId))
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    public string GetSkillUnlockConditionText(SkillData skill)
+    {
+        if (skill == null)
+        {
+            return "スキルデータがありません。";
+        }
+
+        List<string> conditions = new List<string>();
+        if (skill.requiredAffection > 0)
+        {
+            conditions.Add("必要好感度: " + skill.requiredAffection);
+        }
+
+        if (skill.requiredDay > 1)
+        {
+            conditions.Add("必要日数: Day " + skill.requiredDay);
+        }
+
+        if (!string.IsNullOrEmpty(skill.requiredTrainingId))
+        {
+            conditions.Add(
+                "必要訓練熟練度: " +
+                skill.requiredTrainingId +
+                " " +
+                skill.requiredTrainingProficiency);
+        }
+
+        List<string> requiredSkillIds = skill.GetRequiredSkillIds();
+        if (requiredSkillIds.Count > 0)
+        {
+            conditions.Add("必要スキル: " + string.Join(", ", requiredSkillIds.ToArray()));
+        }
+
+        return conditions.Count > 0 ? string.Join("\n", conditions.ToArray()) : "解放条件なし";
+    }
+
+    public void OpenSkillPanel()
+    {
+        EnsureSkillPanel();
+        if (skillPanel == null)
+        {
+            ShowSystemMessage("SkillPanel が設定されていないため、スキル一覧を開けません。");
+            return;
+        }
+
+        skillPanel.OpenSkillList(this);
+    }
+
+    public bool TryOpenBattleSkillSelection(Action<SkillData> onSelected)
+    {
+        if (GetUnlockedBattleSkills().Count == 0)
+        {
+            return false;
+        }
+
+        EnsureSkillPanel();
+        if (skillPanel == null)
+        {
+            return false;
+        }
+
+        skillPanel.OpenBattleSkillSelection(this, onSelected);
+        return true;
     }
 
     public bool IsPurchasedItem(string itemId)
@@ -3767,6 +3896,12 @@ public class GameManager : MonoBehaviour
         if (action.executionType == ActionExecutionType.OpenTrainingPanel)
         {
             OpenTrainingPanel();
+            return;
+        }
+
+        if (action.executionType == ActionExecutionType.OpenSkillPanel)
+        {
+            OpenSkillPanel();
             return;
         }
     }
@@ -6723,8 +6858,6 @@ public class GameManager : MonoBehaviour
             return;
         }
 
-        string resultMessage = BuildTrainingResultMessage(result);
-
         if (result.totalAffectionReward != 0 && heroineStatus != null)
         {
             heroineStatus.AddAffection(result.totalAffectionReward);
@@ -6735,6 +6868,19 @@ public class GameManager : MonoBehaviour
         {
             result.totalTrainingProficiency =
                 AddTrainingProficiency(result.trainingId, result.trainingProficiencyReward);
+        }
+
+        List<SkillData> newlyUnlockedSkills = UnlockAvailableSkills();
+        string resultMessage = BuildTrainingResultMessage(result);
+        if (newlyUnlockedSkills.Count > 0)
+        {
+            List<string> names = new List<string>();
+            foreach (SkillData skill in newlyUnlockedSkills)
+            {
+                names.Add(skill.GetDisplayName());
+            }
+
+            resultMessage += "\nスキル解放: " + string.Join(", ", names.ToArray());
         }
 
         if (ShouldAdvanceTimeAfterTraining(result))
@@ -7390,6 +7536,70 @@ public class GameManager : MonoBehaviour
         }
 
         return trainingDataList;
+    }
+
+    private SkillData[] GetSkillDataList()
+    {
+        if (skillDataList == null)
+        {
+            skillDataList = Resources.LoadAll<SkillData>(skillResourcePath);
+            Array.Sort(skillDataList, (a, b) =>
+            {
+                int sortOrderCompare = (a != null ? a.sortOrder : 0).CompareTo(b != null ? b.sortOrder : 0);
+                if (sortOrderCompare != 0)
+                {
+                    return sortOrderCompare;
+                }
+
+                return string.Compare(
+                    a != null ? a.skillId : "",
+                    b != null ? b.skillId : "",
+                    StringComparison.Ordinal);
+            });
+        }
+
+        return skillDataList;
+    }
+
+    private List<SkillData> UnlockAvailableSkills()
+    {
+        List<SkillData> newlyUnlockedSkills = new List<SkillData>();
+        bool unlockedInPass;
+        do
+        {
+            unlockedInPass = false;
+            foreach (SkillData skill in GetSkillDataList())
+            {
+                if (skill == null || string.IsNullOrEmpty(skill.skillId) ||
+                    IsSkillUnlocked(skill.skillId) || !MeetsSkillUnlockConditions(skill))
+                {
+                    continue;
+                }
+
+                UnlockSkill(skill.skillId);
+                newlyUnlockedSkills.Add(skill);
+                unlockedInPass = true;
+            }
+        }
+        while (unlockedInPass);
+
+        return newlyUnlockedSkills;
+    }
+
+    private void EnsureSkillPanel()
+    {
+        if (skillPanel == null)
+        {
+            skillPanel = FindObjectOfType<SkillPanel>(true);
+        }
+
+        if (skillPanel == null)
+        {
+            Debug.LogWarning("SkillPanel がシーンに配置されていません。Canvas 配下に手動で配置してください。");
+            return;
+        }
+
+        skillPanel.Initialize(this);
     }
 
     private void EnsureShopPanel()

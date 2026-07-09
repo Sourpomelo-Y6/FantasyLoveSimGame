@@ -1,0 +1,38 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1f41d3cf9d66ee149ad7663c5cd19c24, type: 3}
+  m_Name: SkillAction
+  m_EditorClassIdentifier:
+  actionId: Skill
+  displayName: "\u30B9\u30AD\u30EB"
+  executionType: 10
+  resultMessage:
+  unavailableMessage: "\u4ECA\u306F\u30B9\u30AD\u30EB\u4E00\u89A7\u3092\u958B\u3051\u307E\u305B\u3093\u3002"
+  useHeroineNameAsSpeaker: 0
+  stillId:
+  stillSprite: {fileID: 0}
+  affectionChange: 0
+  playerHpChange: 0
+  heroineHpChange: 0
+  advanceTime: 0
+  reactions: []
+  displayColumn: 2
+  sortOrder: 18
+  isEnabled: 1
+  anyTimeSlot: 1
+  allowedTimeSlots: []
+  anyWeather: 1
+  allowedWeathers: []
+  anySeason: 1
+  allowedSeasons: []
+  minAffection: 0
+  maxAffection: 100
