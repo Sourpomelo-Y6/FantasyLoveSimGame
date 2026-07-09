@@ -618,7 +618,7 @@ LP と訓練用 HP は訓練画面内の一時値から始める。
 
 スキル取得と装備は、`StatusDetailPanel` に直接詰め込まず、別の `SkillPanel` として扱う。
 `SkillPanel` は実装済みで、全スキルの未取得/取得済み状態、説明、解放条件を表示し、戦闘中は解放済みの戦闘用スキルを選択できる。`PowerStrike`（Damage）、`GuardStance`（Guard）、`FirstAid`（Heal）は `BattlePanel` で実行できる。
-UI は Canvas 配下へ手動配置し、`panelRoot`、一覧親、ボタン Prefab、必要に応じてタイトル・説明・閉じるボタンを Inspector で割り当てる。通常一覧はヒロイン別 `Actions/SkillAction.asset` の `ActionExecutionType.OpenSkillPanel` から開き、`BattlePanel` の Skill ボタンは戦闘用選択を開く。`GameManager.skillPanel` は未割り当てでもシーン内から自動検索する。
+UI は Canvas 配下へ手動配置し、`panelRoot`、一覧親、ボタン Prefab、必要に応じてタイトル・説明・閉じるボタンを Inspector で割り当てる。通常一覧はヒロイン別 `Actions/SkillAction.asset` の `ActionExecutionType.OpenSkillPanel` から開く。戦闘中は `BattleSkillPanel` を開き、現在 MP、スキル一覧、選択中説明、使用/戻るを表示する。`BattleSkillPanel` が未配置の場合だけ従来の `SkillPanel` を戦闘選択にフォールバックする。
 `BattleStatusData` は HP に加えて MP を持つ。MP は戦闘開始時に最大値まで回復する戦闘内リソースで、`SkillData.cost` を使うと減少する。`SkillEffectType.Buff` / `Debuff` は `SkillData.affectedStat`（Attack / Defense / Speed）を戦闘終了まで増減する。初期データとして `BattleFocus`（攻撃 Buff）と `ArmorBreak`（敵防御 Debuff）を追加済み。
 ヒロイン用スキル、カテゴリタブ、装備枠、複数ターンで切れる Buff/Debuff、MP 回復アイテムは次段階で追加する。
 

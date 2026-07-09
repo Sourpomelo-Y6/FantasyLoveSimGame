@@ -50,6 +50,7 @@ public class BattlePanel : MonoBehaviour
     [SerializeField] private Button defendButton;
     [SerializeField] private Button healButton;
     [SerializeField] private Button skillButton;
+    [SerializeField] private BattleSkillPanel battleSkillPanel;
     [SerializeField] private Button escapeButton;
     [SerializeField] private Button closeButton;
     [SerializeField] private EnemyData debugEnemy;
@@ -69,6 +70,7 @@ public class BattlePanel : MonoBehaviour
     private void Awake()
     {
         EnsureReferences();
+        EnsureBattleSkillPanel();
         HookButtons();
     }
 
@@ -78,6 +80,7 @@ public class BattlePanel : MonoBehaviour
         playerStatus = player;
         heroineStatus = heroine;
         EnsureReferences();
+        EnsureBattleSkillPanel();
         HookButtons();
     }
 
@@ -135,6 +138,11 @@ public class BattlePanel : MonoBehaviour
 
     public void Close()
     {
+        if (battleSkillPanel != null)
+        {
+            battleSkillPanel.Close();
+        }
+
         if (panelRoot != null)
         {
             panelRoot.SetActive(false);
@@ -281,9 +289,36 @@ public class BattlePanel : MonoBehaviour
             return;
         }
 
-        if (gameManager == null || !gameManager.TryOpenBattleSkillSelection(UseSelectedSkill))
+        if (gameManager == null)
         {
             AddLog("使用できる戦闘スキルがありません。訓練でスキルを解放してください。");
+            Refresh();
+            return;
+        }
+
+        List<SkillData> skills = gameManager.GetUnlockedBattleSkills();
+        if (skills.Count == 0)
+        {
+            AddLog("使用できる戦闘スキルがありません。訓練でスキルを解放してください。");
+            Refresh();
+            return;
+        }
+
+        EnsureBattleSkillPanel();
+        if (battleSkillPanel != null)
+        {
+            battleSkillPanel.Open(
+                skills,
+                debugPlayerStatus != null ? debugPlayerStatus.currentMp : 0,
+                debugPlayerStatus != null ? debugPlayerStatus.maxMp : 0,
+                UseSelectedSkill);
+            return;
+        }
+
+        // Keeps the existing generic selector usable until the dedicated panel is placed in the scene.
+        if (!gameManager.TryOpenBattleSkillSelection(UseSelectedSkill))
+        {
+            AddLog("戦闘スキル選択 UI が設定されていません。");
             Refresh();
         }
     }
@@ -1004,6 +1039,19 @@ public class BattlePanel : MonoBehaviour
         if (panelRoot == null)
         {
             panelRoot = gameObject;
+        }
+    }
+
+    private void EnsureBattleSkillPanel()
+    {
+        if (battleSkillPanel == null)
+        {
+            battleSkillPanel = FindObjectOfType<BattleSkillPanel>(true);
+        }
+
+        if (battleSkillPanel != null)
+        {
+            battleSkillPanel.Initialize();
         }
     }
 
