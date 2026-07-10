@@ -23,6 +23,7 @@ MonoBehaviour:
   cost: 4
   power: 4
   affectedStat: 0
+  statusDurationTurns: 2
   requiredAffection: 0
   requiredDay: 1
   requiredTrainingId: LightPractice

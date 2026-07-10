@@ -30,6 +30,7 @@ MonoBehaviour:
     cost: 4
     power: 5
     affectedStat: 0
+    statusDurationTurns: 1
     useChancePercent: 50
     priority: 10
     maxUsesPerBattle: 0
@@ -40,6 +41,7 @@ MonoBehaviour:
     cost: 3
     power: 2
     affectedStat: 1
+    statusDurationTurns: 2
     useChancePercent: 30
     priority: 20
     maxUsesPerBattle: 1

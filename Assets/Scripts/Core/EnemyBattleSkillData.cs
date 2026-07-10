@@ -11,6 +11,7 @@ public class EnemyBattleSkillData
     public int cost = 0;
     public int power = 0;
     public SkillBattleStat affectedStat = SkillBattleStat.Attack;
+    [Min(1)] public int statusDurationTurns = 2;
     [Range(0, 100)] public int useChancePercent = 35;
     public int priority = 0;
     [Tooltip("0 以下なら使用回数に制限なし")]

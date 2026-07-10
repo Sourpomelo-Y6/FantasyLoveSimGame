@@ -23,6 +23,7 @@ MonoBehaviour:
   cost: 5
   power: 3
   affectedStat: 1
+  statusDurationTurns: 2
   requiredAffection: 0
   requiredDay: 1
   requiredTrainingId: EnduranceTraining

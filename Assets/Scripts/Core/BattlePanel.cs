@@ -64,6 +64,9 @@ public class BattlePanel : MonoBehaviour
     private string enemyDisplayName = "敵";
     private readonly List<string> logLines = new List<string>();
     private readonly Dictionary<string, int> enemySkillUseCounts = new Dictionary<string, int>();
+    private readonly List<BattleStatusEffect> playerStatusEffects = new List<BattleStatusEffect>();
+    private readonly List<BattleStatusEffect> heroineStatusEffects = new List<BattleStatusEffect>();
+    private readonly List<BattleStatusEffect> enemyStatusEffects = new List<BattleStatusEffect>();
     private int turnCount;
     private bool battleFinished;
     private bool battleResultNotified;
@@ -125,6 +128,9 @@ public class BattlePanel : MonoBehaviour
         battleFinished = false;
         battleResultNotified = false;
         enemySkillUseCounts.Clear();
+        playerStatusEffects.Clear();
+        heroineStatusEffects.Clear();
+        enemyStatusEffects.Clear();
 
         logLines.Clear();
         AddLog("デバッグ戦闘を開始しました。");
@@ -197,7 +203,8 @@ public class BattlePanel : MonoBehaviour
             }
         }
 
-        ApplyEnemyAttack();
+        TickStatusEffects(debugPlayerStatus);
+        ApplyEnemyTurn();
         if (IsDefeated(debugPlayerStatus))
         {
             FinishBattle("敗北", ResolveDefeatMessage());
@@ -238,7 +245,8 @@ public class BattlePanel : MonoBehaviour
             }
         }
 
-        ApplyEnemyAttack(true);
+        TickStatusEffects(debugPlayerStatus);
+        ApplyEnemyTurn(true);
         if (IsDefeated(debugPlayerStatus))
         {
             FinishBattle("敗北", ResolveDefeatMessage());
@@ -274,7 +282,8 @@ public class BattlePanel : MonoBehaviour
             AddLog("回復できる対象がいません。");
         }
 
-        ApplyEnemyAttack();
+        TickStatusEffects(debugPlayerStatus);
+        ApplyEnemyTurn();
         if (IsDefeated(debugPlayerStatus))
         {
             FinishBattle("敗北", ResolveDefeatMessage());
@@ -388,28 +397,28 @@ public class BattlePanel : MonoBehaviour
             case SkillEffectType.Buff:
             {
                 BattleStatusData buffTarget = ResolveSkillStatTarget(skill.targetType, true);
-                int appliedValue = ApplyBattleStatModifier(buffTarget, skill.affectedStat, Mathf.Max(1, skill.power));
-                AddLog(
-                    ResolveSkillStatTargetName(buffTarget) +
-                    " の " +
-                    GetBattleStatDisplayName(skill.affectedStat) +
-                    " が " +
-                    appliedValue +
-                    " 上がった。");
+                ApplyStatusEffect(
+                    buffTarget,
+                    skill.skillId,
+                    skill.GetDisplayName(),
+                    skill.affectedStat,
+                    Mathf.Max(1, skill.power),
+                    skill.statusDurationTurns,
+                    true);
                 heroineAttacks = false;
                 break;
             }
             case SkillEffectType.Debuff:
             {
                 BattleStatusData debuffTarget = ResolveSkillStatTarget(skill.targetType, false);
-                int appliedValue = ApplyBattleStatModifier(debuffTarget, skill.affectedStat, -Mathf.Max(1, skill.power));
-                AddLog(
-                    ResolveSkillStatTargetName(debuffTarget) +
-                    " の " +
-                    GetBattleStatDisplayName(skill.affectedStat) +
-                    " が " +
-                    Mathf.Abs(appliedValue) +
-                    " 下がった。");
+                ApplyStatusEffect(
+                    debuffTarget,
+                    skill.skillId,
+                    skill.GetDisplayName(),
+                    skill.affectedStat,
+                    -Mathf.Max(1, skill.power),
+                    skill.statusDurationTurns,
+                    false);
                 heroineAttacks = false;
                 break;
             }
@@ -441,7 +450,8 @@ public class BattlePanel : MonoBehaviour
             }
         }
 
-        ApplyEnemyAttack(playerDefending);
+        TickStatusEffects(debugPlayerStatus);
+        ApplyEnemyTurn(playerDefending);
         if (IsDefeated(debugPlayerStatus))
         {
             FinishBattle("敗北", ResolveDefeatMessage());
@@ -495,6 +505,30 @@ public class BattlePanel : MonoBehaviour
         int playerDamage = Damage(debugEnemyStatus, debugPlayerStatus, playerDefending);
         string defendMessage = playerDefending ? "（防御）" : "";
         AddLog(enemyDisplayName + " の攻撃。 プレイヤーは " + playerDamage + " ダメージ。" + defendMessage);
+    }
+
+    private void ApplyEnemyTurn(bool playerDefending = false)
+    {
+        ApplyEnemyAttack(playerDefending);
+        TickStatusEffects(debugEnemyStatus);
+
+        if (!IsDefeated(debugPlayerStatus) && ShouldEnemyGainExtraAction())
+        {
+            AddLog(enemyDisplayName + " は素早さの差で追加行動した。");
+            ApplyEnemyAttack(false);
+            TickStatusEffects(debugEnemyStatus);
+        }
+    }
+
+    private bool ShouldEnemyGainExtraAction()
+    {
+        if (debugEnemyStatus == null || debugPlayerStatus == null || IsDefeated(debugEnemyStatus))
+        {
+            return false;
+        }
+
+        int speedDifference = debugEnemyStatus.speed - debugPlayerStatus.speed;
+        return speedDifference >= 4 && Random.Range(0, 100) < 30;
     }
 
     private EnemyBattleSkillData SelectEnemySkill()
@@ -585,27 +619,27 @@ public class BattlePanel : MonoBehaviour
             case SkillEffectType.Buff:
             {
                 BattleStatusData target = ResolveEnemySkillTarget(skill.target);
-                int appliedValue = ApplyBattleStatModifier(target, skill.affectedStat, Mathf.Max(1, skill.power));
-                AddLog(
-                    ResolveEnemySkillTargetName(target) +
-                    " の " +
-                    GetBattleStatDisplayName(skill.affectedStat) +
-                    " が " +
-                    appliedValue +
-                    " 上がった。");
+                ApplyStatusEffect(
+                    target,
+                    skill.skillId,
+                    skill.GetDisplayName(),
+                    skill.affectedStat,
+                    Mathf.Max(1, skill.power),
+                    skill.statusDurationTurns,
+                    target == debugEnemyStatus);
                 break;
             }
             case SkillEffectType.Debuff:
             {
                 BattleStatusData target = ResolveEnemySkillTarget(skill.target);
-                int appliedValue = ApplyBattleStatModifier(target, skill.affectedStat, -Mathf.Max(1, skill.power));
-                AddLog(
-                    ResolveEnemySkillTargetName(target) +
-                    " の " +
-                    GetBattleStatDisplayName(skill.affectedStat) +
-                    " が " +
-                    Mathf.Abs(appliedValue) +
-                    " 下がった。");
+                ApplyStatusEffect(
+                    target,
+                    skill.skillId,
+                    skill.GetDisplayName(),
+                    skill.affectedStat,
+                    -Mathf.Max(1, skill.power),
+                    skill.statusDurationTurns,
+                    target == debugEnemyStatus);
                 break;
             }
             default:
@@ -1359,6 +1393,108 @@ public class BattlePanel : MonoBehaviour
                 target.attack = Mathf.Max(0, target.attack + value);
                 return target.attack - before;
         }
+    }
+
+    private void ApplyStatusEffect(
+        BattleStatusData target,
+        string effectId,
+        string displayName,
+        SkillBattleStat stat,
+        int value,
+        int durationTurns,
+        bool skipNextTargetTick)
+    {
+        if (target == null || value == 0)
+        {
+            return;
+        }
+
+        int appliedValue = ApplyBattleStatModifier(target, stat, value);
+        if (appliedValue == 0)
+        {
+            AddLog(ResolveBattleStatusTargetName(target) + " の " + GetBattleStatDisplayName(stat) + " は変化しなかった。");
+            return;
+        }
+
+        List<BattleStatusEffect> effects = GetStatusEffects(target);
+        effects.Add(new BattleStatusEffect
+        {
+            effectId = effectId,
+            displayName = displayName,
+            affectedStat = stat,
+            appliedValue = appliedValue,
+            remainingTargetTurns = Mathf.Max(1, durationTurns),
+            skipNextTargetTick = skipNextTargetTick
+        });
+
+        AddLog(
+            ResolveBattleStatusTargetName(target) +
+            " の " +
+            GetBattleStatDisplayName(stat) +
+            " が " +
+            Mathf.Abs(appliedValue) +
+            (appliedValue > 0 ? " 上がった。" : " 下がった。") +
+            "（" +
+            Mathf.Max(1, durationTurns) +
+            "ターン）");
+    }
+
+    private void TickStatusEffects(BattleStatusData target)
+    {
+        List<BattleStatusEffect> effects = GetStatusEffects(target);
+        for (int i = effects.Count - 1; i >= 0; i--)
+        {
+            BattleStatusEffect effect = effects[i];
+            if (effect.skipNextTargetTick)
+            {
+                effect.skipNextTargetTick = false;
+                continue;
+            }
+
+            effect.remainingTargetTurns--;
+            if (effect.remainingTargetTurns > 0)
+            {
+                continue;
+            }
+
+            ApplyBattleStatModifier(target, effect.affectedStat, -effect.appliedValue);
+            AddLog(
+                ResolveBattleStatusTargetName(target) +
+                " の " +
+                GetBattleStatDisplayName(effect.affectedStat) +
+                " は元に戻った。");
+            effects.RemoveAt(i);
+        }
+    }
+
+    private List<BattleStatusEffect> GetStatusEffects(BattleStatusData target)
+    {
+        if (target == debugEnemyStatus)
+        {
+            return enemyStatusEffects;
+        }
+
+        if (target == debugHeroineStatus)
+        {
+            return heroineStatusEffects;
+        }
+
+        return playerStatusEffects;
+    }
+
+    private string ResolveBattleStatusTargetName(BattleStatusData target)
+    {
+        if (target == debugEnemyStatus)
+        {
+            return enemyDisplayName;
+        }
+
+        if (target == debugHeroineStatus)
+        {
+            return heroineStatus != null ? heroineStatus.HeroineName : "ヒロイン";
+        }
+
+        return "プレイヤー";
     }
 
     private static string GetBattleStatDisplayName(SkillBattleStat stat)

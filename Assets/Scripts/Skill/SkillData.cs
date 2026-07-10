@@ -21,6 +21,7 @@ public class SkillData : ScriptableObject
     public int cost = 0;
     public int power = 0;
     public SkillBattleStat affectedStat = SkillBattleStat.Attack;
+    [Min(1)] public int statusDurationTurns = 2;
 
     [Header("Unlock Condition")]
     public int requiredAffection = 0;

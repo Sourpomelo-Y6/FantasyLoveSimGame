@@ -619,8 +619,8 @@ LP と訓練用 HP は訓練画面内の一時値から始める。
 スキル取得と装備は、`StatusDetailPanel` に直接詰め込まず、別の `SkillPanel` として扱う。
 `SkillPanel` は実装済みで、全スキルの未取得/取得済み状態、説明、解放条件を表示し、戦闘中は解放済みの戦闘用スキルを選択できる。`PowerStrike`（Damage）、`GuardStance`（Guard）、`FirstAid`（Heal）は `BattlePanel` で実行できる。
 UI は Canvas 配下へ手動配置し、`panelRoot`、一覧親、ボタン Prefab、必要に応じてタイトル・説明・閉じるボタンを Inspector で割り当てる。通常一覧はヒロイン別 `Actions/SkillAction.asset` の `ActionExecutionType.OpenSkillPanel` から開く。戦闘中は `BattleSkillPanel` を開き、現在 MP、スキル一覧、選択中説明、使用/戻るを表示する。`BattleSkillPanel` が未配置の場合だけ従来の `SkillPanel` を戦闘選択にフォールバックする。
-`BattleStatusData` は HP に加えて MP を持つ。MP は戦闘開始時に最大値まで回復する戦闘内リソースで、`SkillData.cost` を使うと減少する。`SkillEffectType.Buff` / `Debuff` は `SkillData.affectedStat`（Attack / Defense / Speed）を戦闘終了まで増減する。初期データとして `BattleFocus`（攻撃 Buff）と `ArmorBreak`（敵防御 Debuff）を追加済み。
-敵側も同じ `BattleStatusData` の MP を使う。敵スキルは `EnemyData.battleSkills` の `EnemyBattleSkillData` で定義し、MP が足りる候補から `useChancePercent` と `priority` により選ばれる。`maxUsesPerBattle` で同じ補助スキルの連続使用を防げる。初期敵では ForestSlime が酸液吹きと硬質化、CaveBat が急降下攻撃と翼の加護、LakeSpirit が水弾と冷気の霧を使う。
+`BattleStatusData` は HP に加えて MP を持つ。MP は戦闘開始時に最大値まで回復する戦闘内リソースで、`SkillData.cost` を使うと減少する。`SkillEffectType.Buff` / `Debuff` は `SkillData.affectedStat`（Attack / Defense / Speed）を `statusDurationTurns` の対象ターン数だけ増減する。効果の付与、残りターン、解除は戦闘ログに表示する。初期データとして `BattleFocus`（攻撃 Buff）と `ArmorBreak`（敵防御 Debuff）を追加済み。
+敵側も同じ `BattleStatusData` の MP を使う。敵スキルは `EnemyData.battleSkills` の `EnemyBattleSkillData` で定義し、MP が足りる候補から `useChancePercent` と `priority` により選ばれる。`maxUsesPerBattle` で同じ補助スキルの連続使用を防げる。敵 Speed がプレイヤー Speed より 4 以上高い場合は、30% の確率で敵が追加行動する。初期敵では ForestSlime が酸液吹きと硬質化、CaveBat が急降下攻撃と翼の加護、LakeSpirit が水弾と冷気の霧を使う。
 ヒロイン用スキル、カテゴリタブ、装備枠、複数ターンで切れる Buff/Debuff、MP 回復アイテムは次段階で追加する。
 
 実装順は、まずスキルデータ定義と表示だけを作り、次に戦闘用スキルを `BattlePanel` へ接続し、その後に訓練専用画面、模擬戦闘、訓練用スキルを扱う。
