@@ -5,6 +5,7 @@ using UnityEngine.UI;
 
 public class BattlePanel : MonoBehaviour
 {
+    private const int CombatantNameDisplayMaxLength = 8;
     public enum BattleResultType
     {
         None,
@@ -39,9 +40,14 @@ public class BattlePanel : MonoBehaviour
     [SerializeField] private HeroineStatus heroineStatus;
     [SerializeField] private GameObject panelRoot;
     [SerializeField] private TextMeshProUGUI enemyNameText;
+    [SerializeField] private TextMeshProUGUI playerNameText;
+    [SerializeField] private TextMeshProUGUI heroineNameText;
     [SerializeField] private TextMeshProUGUI enemyHpText;
     [SerializeField] private TextMeshProUGUI playerHpText;
     [SerializeField] private TextMeshProUGUI heroineHpText;
+    [SerializeField] private TextMeshProUGUI enemyMpText;
+    [SerializeField] private TextMeshProUGUI playerMpText;
+    [SerializeField] private TextMeshProUGUI heroineMpText;
     [SerializeField] private TextMeshProUGUI battleLogText;
     [SerializeField] private Image playerImage;
     [SerializeField] private Image heroineImage;
@@ -51,8 +57,22 @@ public class BattlePanel : MonoBehaviour
     [SerializeField] private Button healButton;
     [SerializeField] private Button skillButton;
     [SerializeField] private BattleSkillPanel battleSkillPanel;
+    [SerializeField] private Button statusButton;
     [SerializeField] private Button escapeButton;
     [SerializeField] private Button closeButton;
+    [Header("Status Effect UI")]
+    [SerializeField] private GameObject statusEffectPanel;
+    [SerializeField] private Button closeStatusEffectButton;
+    [SerializeField] private Transform playerStatusEffectList;
+    [SerializeField] private Transform heroineStatusEffectList;
+    [SerializeField] private Transform enemyStatusEffectList;
+    [SerializeField] private GameObject heroineEffectSection;
+    [SerializeField] private TextMeshProUGUI heroineEffectSectionNameText;
+    [SerializeField] private TextMeshProUGUI enemyEffectSectionNameText;
+    [SerializeField] private GameObject statusEffectRowPrefab;
+    [SerializeField] private Color buffEffectColor = new Color(0.25f, 0.55f, 0.9f, 0.85f);
+    [SerializeField] private Color debuffEffectColor = new Color(0.8f, 0.3f, 0.45f, 0.85f);
+    [SerializeField] private Color noEffectColor = new Color(0.35f, 0.35f, 0.35f, 0.7f);
     [SerializeField] private EnemyData debugEnemy;
     [SerializeField] private string debugEnemyResourcePath = "Enemies/ForestSlime";
     [SerializeField] private int maxLogLines = 6;
@@ -67,6 +87,7 @@ public class BattlePanel : MonoBehaviour
     private readonly List<BattleStatusEffect> playerStatusEffects = new List<BattleStatusEffect>();
     private readonly List<BattleStatusEffect> heroineStatusEffects = new List<BattleStatusEffect>();
     private readonly List<BattleStatusEffect> enemyStatusEffects = new List<BattleStatusEffect>();
+    private readonly List<GameObject> spawnedStatusEffectRows = new List<GameObject>();
     private int turnCount;
     private bool battleFinished;
     private bool battleResultNotified;
@@ -75,6 +96,7 @@ public class BattlePanel : MonoBehaviour
     {
         EnsureReferences();
         EnsureBattleSkillPanel();
+        EnsureStatusEffectUi();
         HookButtons();
     }
 
@@ -85,12 +107,14 @@ public class BattlePanel : MonoBehaviour
         heroineStatus = heroine;
         EnsureReferences();
         EnsureBattleSkillPanel();
+        EnsureStatusEffectUi();
         HookButtons();
     }
 
     public void OpenDebugBattle()
     {
         EnsureReferences();
+        EnsureStatusEffectUi();
         HookButtons();
 
         OpenBattle(ResolveDebugEnemy(), true);
@@ -131,6 +155,7 @@ public class BattlePanel : MonoBehaviour
         playerStatusEffects.Clear();
         heroineStatusEffects.Clear();
         enemyStatusEffects.Clear();
+        CloseStatusEffectPanel();
 
         logLines.Clear();
         AddLog("デバッグ戦闘を開始しました。");
@@ -151,6 +176,8 @@ public class BattlePanel : MonoBehaviour
         {
             battleSkillPanel.Close();
         }
+
+        CloseStatusEffectPanel();
 
         if (panelRoot != null)
         {
@@ -809,9 +836,18 @@ public class BattlePanel : MonoBehaviour
             enemyNameText.text = enemyDisplayName;
         }
 
-        SetHpText(enemyHpText, "敵HP", debugEnemyStatus);
-        SetHpText(playerHpText, "プレイヤーHP", debugPlayerStatus);
-        SetHpText(heroineHpText, "ヒロインHP", debugHeroineStatus);
+        RefreshCombatantNames();
+        SetHpText(enemyHpText, "HP", debugEnemyStatus);
+        SetHpText(playerHpText, "HP", debugPlayerStatus);
+        SetHpText(heroineHpText, "HP", debugHeroineStatus);
+        SetMpText(enemyMpText, debugEnemyStatus);
+        SetMpText(playerMpText, debugPlayerStatus);
+        SetMpText(heroineMpText, debugHeroineStatus);
+
+        if (statusEffectPanel != null && statusEffectPanel.activeSelf)
+        {
+            RefreshStatusEffectPanel();
+        }
 
         if (battleLogText != null)
         {
@@ -836,6 +872,11 @@ public class BattlePanel : MonoBehaviour
         if (skillButton != null)
         {
             skillButton.interactable = !battleFinished;
+        }
+
+        if (statusButton != null)
+        {
+            statusButton.interactable = true;
         }
 
         if (escapeButton != null)
@@ -1255,6 +1296,12 @@ public class BattlePanel : MonoBehaviour
             skillButton.onClick.AddListener(OnSkillClicked);
         }
 
+        if (statusButton != null)
+        {
+            statusButton.onClick.RemoveListener(OpenStatusEffectPanel);
+            statusButton.onClick.AddListener(OpenStatusEffectPanel);
+        }
+
         if (escapeButton != null)
         {
             escapeButton.onClick.RemoveListener(OnEscapeClicked);
@@ -1266,6 +1313,12 @@ public class BattlePanel : MonoBehaviour
             closeButton.onClick.RemoveListener(Close);
             closeButton.onClick.AddListener(Close);
         }
+
+        if (closeStatusEffectButton != null)
+        {
+            closeStatusEffectButton.onClick.RemoveListener(CloseStatusEffectPanel);
+            closeStatusEffectButton.onClick.AddListener(CloseStatusEffectPanel);
+        }
     }
 
     private void EnsureReferences()
@@ -1274,6 +1327,119 @@ public class BattlePanel : MonoBehaviour
         {
             panelRoot = gameObject;
         }
+    }
+
+    private void EnsureStatusEffectUi()
+    {
+        if (playerNameText == null)
+        {
+            playerNameText = FindComponentInChildrenByName<TextMeshProUGUI>(transform, "PlayerNameText");
+        }
+
+        if (heroineNameText == null)
+        {
+            heroineNameText = FindComponentInChildrenByName<TextMeshProUGUI>(transform, "HeroineNameText");
+        }
+
+        if (playerMpText == null)
+        {
+            playerMpText = FindSceneComponentByName<TextMeshProUGUI>("PlayerMpText");
+        }
+
+        if (heroineMpText == null)
+        {
+            heroineMpText = FindSceneComponentByName<TextMeshProUGUI>("HeroineMpText");
+        }
+
+        if (enemyMpText == null)
+        {
+            enemyMpText = FindSceneComponentByName<TextMeshProUGUI>("EnemyMpText");
+        }
+
+        if (statusButton == null)
+        {
+            statusButton = FindComponentInChildrenByName<Button>(transform, "StatusButton");
+        }
+
+        if (statusEffectPanel == null)
+        {
+            statusEffectPanel = FindSceneComponentByName<Transform>("BattleStatusEffectPanel")?.gameObject;
+        }
+
+        if (statusEffectPanel == null)
+        {
+            return;
+        }
+
+        Transform panelTransform = statusEffectPanel.transform;
+        if (closeStatusEffectButton == null)
+        {
+            closeStatusEffectButton = FindComponentInChildrenByName<Button>(panelTransform, "CloseButton");
+        }
+
+        if (playerStatusEffectList == null)
+        {
+            playerStatusEffectList = FindComponentInChildrenByName<Transform>(panelTransform, "PlayerStatusEffectList");
+        }
+
+        if (heroineStatusEffectList == null)
+        {
+            heroineStatusEffectList = FindComponentInChildrenByName<Transform>(panelTransform, "HeroineStatusEffectList");
+        }
+
+        if (enemyStatusEffectList == null)
+        {
+            enemyStatusEffectList = FindComponentInChildrenByName<Transform>(panelTransform, "EnemyStatusEffectList");
+        }
+
+        if (heroineEffectSection == null)
+        {
+            Transform section = FindComponentInChildrenByName<Transform>(panelTransform, "HeroineEffectSection");
+            heroineEffectSection = section != null ? section.gameObject : null;
+        }
+
+        if (heroineEffectSectionNameText == null && heroineEffectSection != null)
+        {
+            heroineEffectSectionNameText = heroineEffectSection.GetComponentInChildren<TextMeshProUGUI>(true);
+        }
+
+        if (enemyEffectSectionNameText == null && enemyStatusEffectList != null && enemyStatusEffectList.parent != null)
+        {
+            enemyEffectSectionNameText = enemyStatusEffectList.parent.GetComponentInChildren<TextMeshProUGUI>(true);
+        }
+    }
+
+    private static T FindSceneComponentByName<T>(string objectName) where T : Component
+    {
+        T[] components = FindObjectsOfType<T>(true);
+        for (int i = 0; i < components.Length; i++)
+        {
+            if (components[i].gameObject.name == objectName)
+            {
+                return components[i];
+            }
+        }
+
+        return null;
+    }
+
+    private static T FindComponentInChildrenByName<T>(Transform parent, string objectName) where T : Component
+    {
+        if (parent == null)
+        {
+            return null;
+        }
+
+        T[] components = parent.GetComponentsInChildren<T>(true);
+        for (int i = 0; i < components.Length; i++)
+        {
+            if (components[i].gameObject.name == objectName)
+            {
+                return components[i];
+            }
+        }
+
+        return null;
     }
 
     private void EnsureBattleSkillPanel()
@@ -1303,6 +1469,159 @@ public class BattlePanel : MonoBehaviour
         }
 
         text.text = label + ": " + status.currentHp + "/" + status.maxHp;
+    }
+
+    private static void SetMpText(TextMeshProUGUI text, BattleStatusData status)
+    {
+        if (text == null)
+        {
+            return;
+        }
+
+        text.text = status == null
+            ? "MP -"
+            : "MP " + status.currentMp + "/" + status.maxMp;
+    }
+
+    private void RefreshCombatantNames()
+    {
+        if (playerNameText != null)
+        {
+            playerNameText.text = TruncateCombatantName("主人公");
+        }
+
+        if (heroineNameText != null)
+        {
+            string heroineName = heroineStatus != null && !string.IsNullOrEmpty(heroineStatus.HeroineName)
+                ? heroineStatus.HeroineName
+                : "ヒロイン";
+            heroineNameText.text = TruncateCombatantName(heroineName);
+        }
+    }
+
+    private static string TruncateCombatantName(string name)
+    {
+        if (string.IsNullOrEmpty(name) || name.Length <= CombatantNameDisplayMaxLength)
+        {
+            return name;
+        }
+
+        return name.Substring(0, CombatantNameDisplayMaxLength - 1) + "…";
+    }
+
+    private void OpenStatusEffectPanel()
+    {
+        EnsureStatusEffectUi();
+        if (statusEffectPanel == null)
+        {
+            AddLog("状態表示 UI が設定されていません。");
+            Refresh();
+            return;
+        }
+
+        statusEffectPanel.SetActive(true);
+        RefreshStatusEffectPanel();
+    }
+
+    private void CloseStatusEffectPanel()
+    {
+        if (statusEffectPanel != null)
+        {
+            statusEffectPanel.SetActive(false);
+        }
+    }
+
+    private void RefreshStatusEffectPanel()
+    {
+        EnsureStatusEffectUi();
+        ClearStatusEffectRows();
+        RefreshStatusEffectList(playerStatusEffectList, playerStatusEffects);
+        RefreshStatusEffectList(heroineStatusEffectList, heroineStatusEffects);
+        RefreshStatusEffectList(enemyStatusEffectList, enemyStatusEffects);
+
+        if (heroineEffectSection != null)
+        {
+            heroineEffectSection.SetActive(debugHeroineStatus != null);
+        }
+
+        if (heroineEffectSectionNameText != null)
+        {
+            heroineEffectSectionNameText.text = heroineStatus != null && !string.IsNullOrEmpty(heroineStatus.HeroineName)
+                ? heroineStatus.HeroineName
+                : "ヒロイン";
+        }
+
+        if (enemyEffectSectionNameText != null)
+        {
+            enemyEffectSectionNameText.text = enemyDisplayName;
+        }
+    }
+
+    private void RefreshStatusEffectList(Transform parent, List<BattleStatusEffect> effects)
+    {
+        if (parent == null)
+        {
+            return;
+        }
+
+        if (effects == null || effects.Count == 0)
+        {
+            CreateStatusEffectRow(parent, "状態変化なし", noEffectColor);
+            return;
+        }
+
+        for (int i = 0; i < effects.Count; i++)
+        {
+            BattleStatusEffect effect = effects[i];
+            if (effect == null)
+            {
+                continue;
+            }
+
+            bool isBuff = effect.appliedValue > 0;
+            string label = GetBattleStatDisplayName(effect.affectedStat) +
+                (isBuff ? " ↑" : " ↓") +
+                Mathf.Abs(effect.appliedValue) +
+                "　残り " + Mathf.Max(0, effect.remainingTargetTurns) + " ターン";
+            CreateStatusEffectRow(parent, label, isBuff ? buffEffectColor : debuffEffectColor);
+        }
+    }
+
+    private void CreateStatusEffectRow(Transform parent, string label, Color backgroundColor)
+    {
+        if (statusEffectRowPrefab == null || parent == null)
+        {
+            return;
+        }
+
+        GameObject row = Instantiate(statusEffectRowPrefab, parent);
+        row.SetActive(true);
+        spawnedStatusEffectRows.Add(row);
+
+        Image background = row.GetComponent<Image>();
+        if (background != null)
+        {
+            background.color = backgroundColor;
+        }
+
+        TextMeshProUGUI text = row.GetComponentInChildren<TextMeshProUGUI>(true);
+        if (text != null)
+        {
+            text.text = label;
+        }
+    }
+
+    private void ClearStatusEffectRows()
+    {
+        for (int i = 0; i < spawnedStatusEffectRows.Count; i++)
+        {
+            if (spawnedStatusEffectRows[i] != null)
+            {
+                Destroy(spawnedStatusEffectRows[i]);
+            }
+        }
+
+        spawnedStatusEffectRows.Clear();
     }
 
     private static int Damage(
