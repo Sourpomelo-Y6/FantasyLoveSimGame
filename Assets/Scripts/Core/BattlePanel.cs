@@ -84,6 +84,7 @@ public class BattlePanel : MonoBehaviour
     private string enemyDisplayName = "敵";
     private readonly List<string> logLines = new List<string>();
     private readonly Dictionary<string, int> enemySkillUseCounts = new Dictionary<string, int>();
+    private readonly Dictionary<string, int> heroineSkillUseCounts = new Dictionary<string, int>();
     private readonly List<BattleStatusEffect> playerStatusEffects = new List<BattleStatusEffect>();
     private readonly List<BattleStatusEffect> heroineStatusEffects = new List<BattleStatusEffect>();
     private readonly List<BattleStatusEffect> enemyStatusEffects = new List<BattleStatusEffect>();
@@ -152,6 +153,7 @@ public class BattlePanel : MonoBehaviour
         battleFinished = false;
         battleResultNotified = false;
         enemySkillUseCounts.Clear();
+        heroineSkillUseCounts.Clear();
         playerStatusEffects.Clear();
         heroineStatusEffects.Clear();
         enemyStatusEffects.Clear();
@@ -214,20 +216,10 @@ public class BattlePanel : MonoBehaviour
             return;
         }
 
-        if (debugHeroineStatus != null && !IsDefeated(debugHeroineStatus))
+        if (ApplyHeroineTurn())
         {
-            ApplyPlayerImage(BattleSpriteIdle);
-            ApplyHeroineImage(BattleSpriteAttack);
-            ApplyEnemyImage(currentDebugEnemy, BattleSpriteDamage);
-            int heroineDamage = Damage(debugHeroineStatus, debugEnemyStatus);
-            string heroineName = heroineStatus != null ? heroineStatus.HeroineName : "ヒロイン";
-            AddLog(heroineName + " の攻撃。 " + enemyDisplayName + " に " + heroineDamage + " ダメージ。");
-
-            if (IsDefeated(debugEnemyStatus))
-            {
-                FinishBattle("勝利", ResolveVictoryMessage());
-                return;
-            }
+            FinishBattle("勝利", ResolveVictoryMessage());
+            return;
         }
 
         TickStatusEffects(debugPlayerStatus);
@@ -257,19 +249,10 @@ public class BattlePanel : MonoBehaviour
 
         AddLog("プレイヤーは防御した。");
 
-        if (debugHeroineStatus != null && !IsDefeated(debugHeroineStatus))
+        if (ApplyHeroineTurn())
         {
-            ApplyHeroineImage(BattleSpriteAttack);
-            ApplyEnemyImage(currentDebugEnemy, BattleSpriteDamage);
-            int heroineDamage = Damage(debugHeroineStatus, debugEnemyStatus);
-            string heroineName = heroineStatus != null ? heroineStatus.HeroineName : "ヒロイン";
-            AddLog(heroineName + " の攻撃。 " + enemyDisplayName + " に " + heroineDamage + " ダメージ。");
-
-            if (IsDefeated(debugEnemyStatus))
-            {
-                FinishBattle("勝利", ResolveVictoryMessage());
-                return;
-            }
+            FinishBattle("勝利", ResolveVictoryMessage());
+            return;
         }
 
         TickStatusEffects(debugPlayerStatus);
@@ -461,20 +444,10 @@ public class BattlePanel : MonoBehaviour
             return;
         }
 
-        if (heroineAttacks && debugHeroineStatus != null && !IsDefeated(debugHeroineStatus))
+        if (heroineAttacks && ApplyHeroineTurn())
         {
-            ApplyPlayerImage(BattleSpriteIdle);
-            ApplyHeroineImage(BattleSpriteAttack);
-            ApplyEnemyImage(currentDebugEnemy, BattleSpriteDamage);
-            int heroineDamage = Damage(debugHeroineStatus, debugEnemyStatus);
-            string heroineName = heroineStatus != null ? heroineStatus.HeroineName : "ヒロイン";
-            AddLog(heroineName + " の攻撃。 " + enemyDisplayName + " に " + heroineDamage + " ダメージ。");
-
-            if (IsDefeated(debugEnemyStatus))
-            {
-                FinishBattle("勝利", ResolveVictoryMessage());
-                return;
-            }
+            FinishBattle("勝利", ResolveVictoryMessage());
+            return;
         }
 
         TickStatusEffects(debugPlayerStatus);
@@ -499,6 +472,205 @@ public class BattlePanel : MonoBehaviour
         {
             Close();
         }
+    }
+
+    private bool ApplyHeroineTurn()
+    {
+        if (debugHeroineStatus == null || IsDefeated(debugHeroineStatus))
+        {
+            return false;
+        }
+
+        HeroineBattleSkillData skill = SelectHeroineSkill();
+        if (skill != null)
+        {
+            ExecuteHeroineSkill(skill);
+        }
+        else
+        {
+            ApplyHeroineBasicAttack();
+        }
+
+        TickStatusEffects(debugHeroineStatus);
+        return IsDefeated(debugEnemyStatus);
+    }
+
+    private HeroineBattleSkillData SelectHeroineSkill()
+    {
+        HeroineProfileData profile = gameManager != null ? gameManager.CurrentHeroineProfile : null;
+        if (profile == null || debugHeroineStatus == null)
+        {
+            return null;
+        }
+
+        List<HeroineBattleSkillData> candidates = new List<HeroineBattleSkillData>();
+        int highestPriority = int.MinValue;
+        foreach (HeroineBattleSkillData skill in profile.GetBattleSkills())
+        {
+            if (!CanHeroineUseSkill(skill) || Random.Range(0, 100) >= Mathf.Clamp(skill.useChancePercent, 0, 100))
+            {
+                continue;
+            }
+
+            if (skill.priority > highestPriority)
+            {
+                candidates.Clear();
+                highestPriority = skill.priority;
+            }
+
+            if (skill.priority == highestPriority)
+            {
+                candidates.Add(skill);
+            }
+        }
+
+        return candidates.Count > 0 ? candidates[Random.Range(0, candidates.Count)] : null;
+    }
+
+    private bool CanHeroineUseSkill(HeroineBattleSkillData skill)
+    {
+        if (skill == null || debugHeroineStatus == null || debugHeroineStatus.currentMp < Mathf.Max(0, skill.cost))
+        {
+            return false;
+        }
+
+        BattleStatusData target = ResolveHeroineSkillTarget(skill.target);
+        if (target == null || IsDefeated(target))
+        {
+            return false;
+        }
+
+        if (skill.effectType == SkillEffectType.Heal && GetMissingHp(target) <= 0)
+        {
+            return false;
+        }
+
+        string skillKey = GetHeroineSkillKey(skill);
+        return skill.maxUsesPerBattle <= 0 ||
+            !heroineSkillUseCounts.TryGetValue(skillKey, out int usedCount) ||
+            usedCount < skill.maxUsesPerBattle;
+    }
+
+    private void ExecuteHeroineSkill(HeroineBattleSkillData skill)
+    {
+        if (skill == null || debugHeroineStatus == null || !debugHeroineStatus.TrySpendMp(Mathf.Max(0, skill.cost)))
+        {
+            return;
+        }
+
+        string skillKey = GetHeroineSkillKey(skill);
+        heroineSkillUseCounts.TryGetValue(skillKey, out int usedCount);
+        heroineSkillUseCounts[skillKey] = usedCount + 1;
+
+        string heroineName = heroineStatus != null && !string.IsNullOrEmpty(heroineStatus.HeroineName)
+            ? heroineStatus.HeroineName
+            : "ヒロイン";
+        ApplyHeroineImage(BattleSpriteAttack);
+        AddLog(
+            heroineName +
+            " は " +
+            skill.GetDisplayName() +
+            " を使った。MP " +
+            Mathf.Max(0, skill.cost) +
+            " 消費。");
+
+        BattleStatusData target = ResolveHeroineSkillTarget(skill.target);
+        switch (skill.effectType)
+        {
+            case SkillEffectType.Damage:
+            {
+                ApplyHeroineSkillTargetDamageImage(target);
+                int damage = DamageWithSkill(debugHeroineStatus, target, skill.power);
+                AddLog(ResolveBattleStatusTargetName(target) + " に " + damage + " ダメージ。");
+                break;
+            }
+            case SkillEffectType.Heal:
+            {
+                int recovered = Recover(target, Mathf.Max(1, skill.power));
+                AddLog(ResolveBattleStatusTargetName(target) + " は " + recovered + " 回復した。");
+                break;
+            }
+            case SkillEffectType.Buff:
+            {
+                ApplyStatusEffect(
+                    target,
+                    skill.skillId,
+                    skill.GetDisplayName(),
+                    skill.affectedStat,
+                    Mathf.Max(1, skill.power),
+                    skill.statusDurationTurns,
+                    target == debugHeroineStatus);
+                break;
+            }
+            case SkillEffectType.Debuff:
+            {
+                ApplyStatusEffect(
+                    target,
+                    skill.skillId,
+                    skill.GetDisplayName(),
+                    skill.affectedStat,
+                    -Mathf.Max(1, skill.power),
+                    skill.statusDurationTurns,
+                    target == debugHeroineStatus);
+                break;
+            }
+            default:
+                AddLog(heroineName + " のスキルは通常攻撃として処理された。");
+                ApplyHeroineBasicAttack();
+                break;
+        }
+    }
+
+    private BattleStatusData ResolveHeroineSkillTarget(HeroineSkillTarget target)
+    {
+        switch (target)
+        {
+            case HeroineSkillTarget.Self:
+                return debugHeroineStatus;
+            case HeroineSkillTarget.Player:
+                return debugPlayerStatus;
+            case HeroineSkillTarget.LowestHpAlly:
+                return GetMissingHp(debugPlayerStatus) > GetMissingHp(debugHeroineStatus)
+                    ? debugPlayerStatus
+                    : debugHeroineStatus;
+            case HeroineSkillTarget.Enemy:
+            default:
+                return debugEnemyStatus;
+        }
+    }
+
+    private void ApplyHeroineSkillTargetDamageImage(BattleStatusData target)
+    {
+        if (target == debugEnemyStatus)
+        {
+            ApplyEnemyImage(currentDebugEnemy, BattleSpriteDamage);
+            return;
+        }
+
+        if (target == debugPlayerStatus)
+        {
+            ApplyPlayerImage(BattleSpriteDamage);
+        }
+    }
+
+    private void ApplyHeroineBasicAttack()
+    {
+        ApplyPlayerImage(BattleSpriteIdle);
+        ApplyHeroineImage(BattleSpriteAttack);
+        ApplyEnemyImage(currentDebugEnemy, BattleSpriteDamage);
+        int heroineDamage = Damage(debugHeroineStatus, debugEnemyStatus);
+        string heroineName = heroineStatus != null ? heroineStatus.HeroineName : "ヒロイン";
+        AddLog(heroineName + " の攻撃。 " + enemyDisplayName + " に " + heroineDamage + " ダメージ。");
+    }
+
+    private static string GetHeroineSkillKey(HeroineBattleSkillData skill)
+    {
+        if (skill == null)
+        {
+            return string.Empty;
+        }
+
+        return !string.IsNullOrEmpty(skill.skillId) ? skill.skillId : skill.GetDisplayName();
     }
 
     private void ApplyEnemyAttack(bool playerDefending = false)

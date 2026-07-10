@@ -59,6 +59,16 @@ public class HeroineProfileData : ScriptableObject
     public List<OutfitReactionMessageOverride> outfitReactionMessageOverrides =
         new List<OutfitReactionMessageOverride>();
 
+    [Header("Battle Skills")]
+    public List<HeroineBattleSkillData> battleSkills = new List<HeroineBattleSkillData>();
+
+    public List<HeroineBattleSkillData> GetBattleSkills()
+    {
+        return battleSkills != null
+            ? new List<HeroineBattleSkillData>(battleSkills)
+            : new List<HeroineBattleSkillData>();
+    }
+
     [Header("Resource Paths")]
     public string conversationResourcePath = "Conversations";
     public string gameEventResourcePath = "GameEvents";

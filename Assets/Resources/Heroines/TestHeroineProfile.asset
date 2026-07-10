@@ -63,6 +63,40 @@ MonoBehaviour:
     message: "\u78BA\u304B\u306B\u6700\u8FD1\u3053\u308C\u3070\u304B\u308A\u3060\u3063\u305F\u304B\u3082\u306D\u3002\u3079\u3064\u306B\u3001\u3042\u3093\u305F\u306B\u98FD\u304D\u3089\u308C\u305F\u304F\u306A\u3044\u3068\u304B\u3058\u3083\u306A\u3044\u3051\u3069\u3002"
   - reactionType: 3
     message: "\u5225\u306E\u670D\u306B\u3059\u308B\u306E\uFF1F \u4ED5\u65B9\u306A\u3044\u308F\u306D\u3002\u5C11\u3057\u304F\u3089\u3044\u306A\u3089\u4ED8\u304D\u5408\u3063\u3066\u3042\u3052\u308B\u3002"
+  battleSkills:
+  - skillId: SharpThrust
+    displayName: 鋭い一撃
+    effectType: 1
+    target: 0
+    cost: 4
+    power: 5
+    affectedStat: 0
+    statusDurationTurns: 2
+    useChancePercent: 45
+    priority: 0
+    maxUsesPerBattle: 0
+  - skillId: ReluctantAid
+    displayName: 仕方ない手当て
+    effectType: 2
+    target: 3
+    cost: 5
+    power: 15
+    affectedStat: 0
+    statusDurationTurns: 2
+    useChancePercent: 80
+    priority: 3
+    maxUsesPerBattle: 2
+  - skillId: GuardedStance
+    displayName: 隙をなくす構え
+    effectType: 4
+    target: 2
+    cost: 3
+    power: 2
+    affectedStat: 1
+    statusDurationTurns: 2
+    useChancePercent: 35
+    priority: 1
+    maxUsesPerBattle: 1
   conversationResourcePath: Heroines/TestHeroine/Conversations
   gameEventResourcePath: Heroines/TestHeroine/GameEvents
   actionResourcePath: Heroines/TestHeroine/Actions

@@ -254,6 +254,7 @@ public class GameManager : MonoBehaviour
     public OutfitPromptAbilitySet PlayerOutfitPromptAbilities => playerOutfitPromptAbilities;
     public PlayerStatus PlayerStatus => playerStatus;
     public string CurrentHeroineId => currentHeroineId;
+    public HeroineProfileData CurrentHeroineProfile => heroineProfile;
     public HeroineAssetCatalog CurrentHeroineAssetCatalog => heroineAssetCatalog;
 
     private readonly HashSet<string> shownConversationIds = new HashSet<string>();
