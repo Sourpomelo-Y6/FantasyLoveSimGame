@@ -63,6 +63,7 @@ public class BattlePanel : MonoBehaviour
     private EnemyData currentDebugEnemy;
     private string enemyDisplayName = "敵";
     private readonly List<string> logLines = new List<string>();
+    private readonly Dictionary<string, int> enemySkillUseCounts = new Dictionary<string, int>();
     private int turnCount;
     private bool battleFinished;
     private bool battleResultNotified;
@@ -116,12 +117,14 @@ public class BattlePanel : MonoBehaviour
         {
             debugHeroineStatus.RestoreMp();
         }
+        debugEnemyStatus.RestoreMp();
         ApplyPlayerImage(BattleSpriteIdle);
         ApplyHeroineImage(BattleSpriteIdle);
         ApplyEnemyImage(currentDebugEnemy, BattleSpriteIdle);
         turnCount = 0;
         battleFinished = false;
         battleResultNotified = false;
+        enemySkillUseCounts.Clear();
 
         logLines.Clear();
         AddLog("デバッグ戦闘を開始しました。");
@@ -463,6 +466,13 @@ public class BattlePanel : MonoBehaviour
 
     private void ApplyEnemyAttack(bool playerDefending = false)
     {
+        EnemyBattleSkillData skill = SelectEnemySkill();
+        if (skill != null)
+        {
+            ExecuteEnemySkill(skill, playerDefending);
+            return;
+        }
+
         bool canAttackHeroine = debugHeroineStatus != null && !IsDefeated(debugHeroineStatus);
         if (canAttackHeroine && Random.Range(0, 2) == 0)
         {
@@ -485,6 +495,195 @@ public class BattlePanel : MonoBehaviour
         int playerDamage = Damage(debugEnemyStatus, debugPlayerStatus, playerDefending);
         string defendMessage = playerDefending ? "（防御）" : "";
         AddLog(enemyDisplayName + " の攻撃。 プレイヤーは " + playerDamage + " ダメージ。" + defendMessage);
+    }
+
+    private EnemyBattleSkillData SelectEnemySkill()
+    {
+        if (currentDebugEnemy == null || debugEnemyStatus == null)
+        {
+            return null;
+        }
+
+        List<EnemyBattleSkillData> candidates = new List<EnemyBattleSkillData>();
+        int highestPriority = int.MinValue;
+        foreach (EnemyBattleSkillData skill in currentDebugEnemy.GetBattleSkills())
+        {
+            if (!CanEnemyUseSkill(skill) || Random.Range(0, 100) >= Mathf.Clamp(skill.useChancePercent, 0, 100))
+            {
+                continue;
+            }
+
+            if (skill.priority > highestPriority)
+            {
+                candidates.Clear();
+                highestPriority = skill.priority;
+            }
+
+            if (skill.priority == highestPriority)
+            {
+                candidates.Add(skill);
+            }
+        }
+
+        return candidates.Count > 0 ? candidates[Random.Range(0, candidates.Count)] : null;
+    }
+
+    private bool CanEnemyUseSkill(EnemyBattleSkillData skill)
+    {
+        if (skill == null || debugEnemyStatus == null || debugEnemyStatus.currentMp < Mathf.Max(0, skill.cost))
+        {
+            return false;
+        }
+
+        string skillKey = GetEnemySkillKey(skill);
+        return skill.maxUsesPerBattle <= 0 ||
+            !enemySkillUseCounts.TryGetValue(skillKey, out int usedCount) ||
+            usedCount < skill.maxUsesPerBattle;
+    }
+
+    private void ExecuteEnemySkill(EnemyBattleSkillData skill, bool playerDefending)
+    {
+        if (skill == null || debugEnemyStatus == null || !debugEnemyStatus.TrySpendMp(Mathf.Max(0, skill.cost)))
+        {
+            return;
+        }
+
+        string skillKey = GetEnemySkillKey(skill);
+        enemySkillUseCounts.TryGetValue(skillKey, out int usedCount);
+        enemySkillUseCounts[skillKey] = usedCount + 1;
+
+        ApplyEnemyImage(currentDebugEnemy, BattleSpriteAttack);
+        AddLog(
+            enemyDisplayName +
+            " は " +
+            skill.GetDisplayName() +
+            " を使った。MP " +
+            Mathf.Max(0, skill.cost) +
+            " 消費。");
+
+        switch (skill.effectType)
+        {
+            case SkillEffectType.Damage:
+            {
+                BattleStatusData target = ResolveEnemySkillTarget(skill.target);
+                ApplyEnemySkillTargetDamageImage(target);
+                int damage = DamageWithSkill(
+                    debugEnemyStatus,
+                    target,
+                    skill.power,
+                    target == debugPlayerStatus && playerDefending);
+                AddLog(ResolveEnemySkillTargetName(target) + " に " + damage + " ダメージ。");
+                break;
+            }
+            case SkillEffectType.Heal:
+            {
+                BattleStatusData target = ResolveEnemySkillTarget(skill.target);
+                int recovered = Recover(target, Mathf.Max(1, skill.power));
+                AddLog(ResolveEnemySkillTargetName(target) + " は " + recovered + " 回復した。");
+                break;
+            }
+            case SkillEffectType.Buff:
+            {
+                BattleStatusData target = ResolveEnemySkillTarget(skill.target);
+                int appliedValue = ApplyBattleStatModifier(target, skill.affectedStat, Mathf.Max(1, skill.power));
+                AddLog(
+                    ResolveEnemySkillTargetName(target) +
+                    " の " +
+                    GetBattleStatDisplayName(skill.affectedStat) +
+                    " が " +
+                    appliedValue +
+                    " 上がった。");
+                break;
+            }
+            case SkillEffectType.Debuff:
+            {
+                BattleStatusData target = ResolveEnemySkillTarget(skill.target);
+                int appliedValue = ApplyBattleStatModifier(target, skill.affectedStat, -Mathf.Max(1, skill.power));
+                AddLog(
+                    ResolveEnemySkillTargetName(target) +
+                    " の " +
+                    GetBattleStatDisplayName(skill.affectedStat) +
+                    " が " +
+                    Mathf.Abs(appliedValue) +
+                    " 下がった。");
+                break;
+            }
+            default:
+                AddLog(enemyDisplayName + " のスキルは通常攻撃として処理された。");
+                ApplyEnemyBasicAttack(playerDefending);
+                break;
+        }
+    }
+
+    private BattleStatusData ResolveEnemySkillTarget(EnemySkillTarget target)
+    {
+        switch (target)
+        {
+            case EnemySkillTarget.Self:
+                return debugEnemyStatus;
+            case EnemySkillTarget.Heroine:
+                return debugHeroineStatus != null && !IsDefeated(debugHeroineStatus)
+                    ? debugHeroineStatus
+                    : debugPlayerStatus;
+            case EnemySkillTarget.RandomOpponent:
+                if (debugHeroineStatus != null && !IsDefeated(debugHeroineStatus) && Random.Range(0, 2) == 0)
+                {
+                    return debugHeroineStatus;
+                }
+
+                return debugPlayerStatus;
+            case EnemySkillTarget.Player:
+            default:
+                return debugPlayerStatus;
+        }
+    }
+
+    private string ResolveEnemySkillTargetName(BattleStatusData target)
+    {
+        if (target == debugEnemyStatus)
+        {
+            return enemyDisplayName;
+        }
+
+        if (target == debugHeroineStatus)
+        {
+            return heroineStatus != null ? heroineStatus.HeroineName : "ヒロイン";
+        }
+
+        return "プレイヤー";
+    }
+
+    private void ApplyEnemySkillTargetDamageImage(BattleStatusData target)
+    {
+        if (target == debugHeroineStatus)
+        {
+            ApplyHeroineImage(BattleSpriteDamage);
+            return;
+        }
+
+        if (target == debugPlayerStatus)
+        {
+            ApplyPlayerImage(BattleSpriteDamage);
+        }
+    }
+
+    private void ApplyEnemyBasicAttack(bool playerDefending)
+    {
+        ApplyEnemyImage(currentDebugEnemy, BattleSpriteAttack);
+        ApplyPlayerImage(BattleSpriteDamage);
+        int playerDamage = Damage(debugEnemyStatus, debugPlayerStatus, playerDefending);
+        string defendMessage = playerDefending ? "（防御）" : "";
+        AddLog(enemyDisplayName + " の攻撃。 プレイヤーは " + playerDamage + " ダメージ。" + defendMessage);
+    }
+
+    private static string GetEnemySkillKey(EnemyBattleSkillData skill)
+    {
+        if (skill == null)
+        {
+            return string.Empty;
+        }
+
+        return !string.IsNullOrEmpty(skill.skillId) ? skill.skillId : skill.GetDisplayName();
     }
 
     private void FinishBattle(string resultLabel, string message)
@@ -628,7 +827,8 @@ public class BattlePanel : MonoBehaviour
             "HP: プレイヤー " + FormatHp(debugPlayerStatus) +
             " MP " + FormatMp(debugPlayerStatus) +
             " / ヒロイン " + FormatHp(debugHeroineStatus) +
-            " / " + enemyDisplayName + " " + FormatHp(debugEnemyStatus));
+            " / " + enemyDisplayName + " " + FormatHp(debugEnemyStatus) +
+            " MP " + FormatMp(debugEnemyStatus));
     }
 
     private static string FormatHp(BattleStatusData status)
@@ -1110,7 +1310,11 @@ public class BattlePanel : MonoBehaviour
         return target.currentHp - before;
     }
 
-    private static int DamageWithSkill(BattleStatusData attacker, BattleStatusData defender, int power)
+    private static int DamageWithSkill(
+        BattleStatusData attacker,
+        BattleStatusData defender,
+        int power,
+        bool defenderGuarding = false)
     {
         if (attacker == null || defender == null)
         {
@@ -1121,6 +1325,10 @@ public class BattlePanel : MonoBehaviour
         int baseDamage = Mathf.Max(1, attack - defender.defense);
         int variance = Random.Range(0, 3);
         int damage = Mathf.Max(1, baseDamage + variance);
+        if (defenderGuarding)
+        {
+            damage = Mathf.Max(1, Mathf.CeilToInt(damage * 0.5f));
+        }
         int before = defender.currentHp;
         defender.currentHp -= damage;
         defender.Clamp();

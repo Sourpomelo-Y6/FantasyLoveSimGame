@@ -17,9 +17,32 @@ MonoBehaviour:
   battleStatus:
     currentHp: 55
     maxHp: 55
+    currentMp: 12
+    maxMp: 12
     attack: 11
     defense: 3
     speed: 8
+  battleSkills:
+  - skillId: DiveAttack
+    displayName: "\u6025\u964D\u4E0B\u653B\u6483"
+    effectType: 1
+    target: 3
+    cost: 4
+    power: 5
+    affectedStat: 0
+    useChancePercent: 50
+    priority: 10
+    maxUsesPerBattle: 0
+  - skillId: WingGuard
+    displayName: "\u7FFC\u306E\u52A0\u8B77"
+    effectType: 4
+    target: 0
+    cost: 3
+    power: 2
+    affectedStat: 1
+    useChancePercent: 30
+    priority: 20
+    maxUsesPerBattle: 1
   rewardMoney: 45
   affectionChangeOnWin: 1
   victoryMessage: "\u6D1E\u7A9F\u30B3\u30A6\u30E2\u30EA\u3092\u8FFD\u3044\u6255\u3044\u307E\u3057\u305F\u3002"

@@ -17,9 +17,32 @@ MonoBehaviour:
   battleStatus:
     currentHp: 28
     maxHp: 28
+    currentMp: 14
+    maxMp: 14
     attack: 4
     defense: 4
     speed: 5
+  battleSkills:
+  - skillId: WaterShot
+    displayName: "\u6C34\u5F3E"
+    effectType: 1
+    target: 3
+    cost: 4
+    power: 3
+    affectedStat: 0
+    useChancePercent: 50
+    priority: 10
+    maxUsesPerBattle: 0
+  - skillId: ChillingMist
+    displayName: "\u51B7\u6C17\u306E\u9727"
+    effectType: 5
+    target: 3
+    cost: 4
+    power: 2
+    affectedStat: 2
+    useChancePercent: 35
+    priority: 20
+    maxUsesPerBattle: 1
   rewardMoney: 10
   affectionChangeOnWin: 2
   victoryMessage: "\u6E56\u306E\u7CBE\u970A\u306B\u8A8D\u3081\u3089\u308C\u307E\u3057\u305F\u3002"

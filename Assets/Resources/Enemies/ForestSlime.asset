@@ -17,9 +17,32 @@ MonoBehaviour:
   battleStatus:
     currentHp: 24
     maxHp: 24
+    currentMp: 10
+    maxMp: 10
     attack: 5
     defense: 2
     speed: 3
+  battleSkills:
+  - skillId: AcidSpit
+    displayName: "\u9178\u6DB2\u5439\u304D"
+    effectType: 1
+    target: 3
+    cost: 3
+    power: 4
+    affectedStat: 0
+    useChancePercent: 60
+    priority: 10
+    maxUsesPerBattle: 0
+  - skillId: Harden
+    displayName: "\u786C\u8CEA\u5316"
+    effectType: 4
+    target: 0
+    cost: 3
+    power: 2
+    affectedStat: 1
+    useChancePercent: 35
+    priority: 20
+    maxUsesPerBattle: 1
   rewardMoney: 12
   affectionChangeOnWin: 1
   victoryMessage: "\u68EE\u306E\u30B9\u30E9\u30A4\u30E0\u3092\u8FFD\u3044\u6255\u3044\u307E\u3057\u305F\u3002"
