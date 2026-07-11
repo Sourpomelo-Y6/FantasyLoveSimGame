@@ -38,6 +38,7 @@ public class SaveData
     public List<string> unlockedSkillIds = new List<string>();
     public List<string> unlockedStillIds = new List<string>();
     public List<string> purchasedItemIds = new List<string>();
+    public List<ItemQuantityEntry> itemQuantities = new List<ItemQuantityEntry>();
     public List<string> unlockedOutfitIds = new List<string>();
     public List<TrainingProficiencyEntry> trainingProficiencies = new List<TrainingProficiencyEntry>();
 
@@ -47,6 +48,13 @@ public class SaveData
     public ScheduleType todaySchedule;
     public ScheduleType tomorrowSchedule;
     public bool todayScheduleEventExecuted;
+}
+
+[Serializable]
+public class ItemQuantityEntry
+{
+    public string itemId;
+    public int quantity;
 }
 
 [Serializable]

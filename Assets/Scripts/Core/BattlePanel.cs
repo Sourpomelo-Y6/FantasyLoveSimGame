@@ -34,6 +34,7 @@ public class BattlePanel : MonoBehaviour
     private const string BattleSpriteVictory = "Victory";
     private const string BattleSpriteDefeat = "Defeat";
     private const int DebugHealAmount = 20;
+    private const string ManaPotionItemId = "ManaPotion";
 
     [SerializeField] private GameManager gameManager;
     [SerializeField] private PlayerStatus playerStatus;
@@ -56,6 +57,7 @@ public class BattlePanel : MonoBehaviour
     [SerializeField] private Button defendButton;
     [SerializeField] private Button healButton;
     [SerializeField] private Button skillButton;
+    [SerializeField] private Button itemButton;
     [SerializeField] private BattleSkillPanel battleSkillPanel;
     [SerializeField] private Button statusButton;
     [SerializeField] private Button escapeButton;
@@ -343,6 +345,40 @@ public class BattlePanel : MonoBehaviour
             AddLog("戦闘スキル選択 UI が設定されていません。");
             Refresh();
         }
+    }
+
+    private void OnItemClicked()
+    {
+        if (battleFinished || gameManager == null)
+        {
+            return;
+        }
+
+        BattleStatusData target = GetMissingMp(debugHeroineStatus) > GetMissingMp(debugPlayerStatus)
+            ? debugHeroineStatus
+            : debugPlayerStatus;
+        if (target == null || GetMissingMp(target) <= 0)
+        {
+            AddLog("MP を回復する必要がありません。");
+            Refresh();
+            return;
+        }
+
+        if (!gameManager.TryConsumeBattleItem(ManaPotionItemId, out ShopItemData item))
+        {
+            AddLog("マナポーションを所持していません。");
+            Refresh();
+            return;
+        }
+
+        int before = target.currentMp;
+        target.currentMp += Mathf.Max(1, item.mpRecoveryAmount);
+        target.Clamp();
+        string itemName = !string.IsNullOrEmpty(item.displayName) ? item.displayName : item.itemId;
+        AddLog(ResolveBattleStatusTargetName(target) + " は " + itemName + " を使い、MP を " + (target.currentMp - before) + " 回復した。");
+        ApplyEnemyTurn();
+        AddHpSummaryLog();
+        Refresh();
     }
 
     private void UseSelectedSkill(SkillData skill)
@@ -1044,6 +1080,12 @@ public class BattlePanel : MonoBehaviour
         if (skillButton != null)
         {
             skillButton.interactable = !battleFinished;
+        }
+
+        if (itemButton != null)
+        {
+            itemButton.onClick.RemoveListener(OnItemClicked);
+            itemButton.onClick.AddListener(OnItemClicked);
         }
 
         if (statusButton != null)
@@ -2010,6 +2052,11 @@ public class BattlePanel : MonoBehaviour
         }
 
         return Mathf.Max(0, status.maxHp - status.currentHp);
+    }
+
+    private static int GetMissingMp(BattleStatusData status)
+    {
+        return status == null ? 0 : Mathf.Max(0, status.maxMp - status.currentMp);
     }
 
     private static bool CanRecover(BattleStatusData status)

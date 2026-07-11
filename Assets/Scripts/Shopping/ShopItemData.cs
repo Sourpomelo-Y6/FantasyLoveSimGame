@@ -9,6 +9,10 @@ public class ShopItemData : ScriptableObject
     public string displayName;
     public int price = 100;
 
+    [Header("Battle Consumable")]
+    public bool isBattleConsumable;
+    [Min(0)] public int mpRecoveryAmount;
+
     [Header("Purchase Conditions")]
     public int requiredAffection;
     public int requiredDay;

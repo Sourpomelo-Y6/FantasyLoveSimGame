@@ -263,6 +263,7 @@ public class GameManager : MonoBehaviour
     private readonly HashSet<string> unlockedSkillIds = new HashSet<string>();
     private readonly HashSet<string> unlockedStillIds = new HashSet<string>();
     private readonly HashSet<string> purchasedItemIds = new HashSet<string>();
+    private readonly Dictionary<string, int> itemQuantities = new Dictionary<string, int>();
     private readonly HashSet<string> unlockedOutfitIds = new HashSet<string>();
     private readonly Dictionary<string, int> trainingProficiencies = new Dictionary<string, int>();
     private readonly Queue<DialogueMessage> queuedDialogueMessages = new Queue<DialogueMessage>();
@@ -2287,6 +2288,7 @@ public class GameManager : MonoBehaviour
         saveData.unlockedSkillIds = new List<string>(unlockedSkillIds);
         saveData.unlockedStillIds = new List<string>(unlockedStillIds);
         saveData.purchasedItemIds = new List<string>(purchasedItemIds);
+        saveData.itemQuantities = CreateItemQuantitySaveData();
         saveData.unlockedOutfitIds = new List<string>(unlockedOutfitIds);
         saveData.trainingProficiencies = CreateTrainingProficiencySaveData();
 
@@ -2437,6 +2439,7 @@ public class GameManager : MonoBehaviour
                 }
             }
         }
+        LoadItemQuantities(saveData.itemQuantities);
         unlockedOutfitIds.Clear();
         if (saveData.unlockedOutfitIds != null)
         {
@@ -2692,6 +2695,23 @@ public class GameManager : MonoBehaviour
         return new List<string>(purchasedItemIds);
     }
 
+    public int GetItemQuantity(string itemId)
+    {
+        return !string.IsNullOrEmpty(itemId) && itemQuantities.TryGetValue(itemId, out int quantity) ? quantity : 0;
+    }
+
+    public bool TryConsumeBattleItem(string itemId, out ShopItemData item)
+    {
+        item = Resources.Load<ShopItemData>("ShopItems/" + itemId);
+        if (item == null || !item.isBattleConsumable || GetItemQuantity(itemId) <= 0)
+        {
+            return false;
+        }
+
+        itemQuantities[itemId]--;
+        return true;
+    }
+
     public List<string> GetUnlockedOutfitIds()
     {
         return new List<string>(unlockedOutfitIds);
@@ -2767,6 +2787,38 @@ public class GameManager : MonoBehaviour
         if (!string.IsNullOrEmpty(itemId))
         {
             purchasedItemIds.Add(itemId);
+        }
+    }
+
+    private List<ItemQuantityEntry> CreateItemQuantitySaveData()
+    {
+        List<ItemQuantityEntry> entries = new List<ItemQuantityEntry>();
+        foreach (KeyValuePair<string, int> pair in itemQuantities)
+        {
+            if (!string.IsNullOrEmpty(pair.Key) && pair.Value > 0)
+            {
+                entries.Add(new ItemQuantityEntry { itemId = pair.Key, quantity = pair.Value });
+            }
+        }
+
+        entries.Sort((a, b) => string.Compare(a.itemId, b.itemId, StringComparison.Ordinal));
+        return entries;
+    }
+
+    private void LoadItemQuantities(List<ItemQuantityEntry> entries)
+    {
+        itemQuantities.Clear();
+        if (entries == null)
+        {
+            return;
+        }
+
+        foreach (ItemQuantityEntry entry in entries)
+        {
+            if (entry != null && !string.IsNullOrEmpty(entry.itemId) && entry.quantity > 0)
+            {
+                itemQuantities[entry.itemId] = entry.quantity;
+            }
         }
     }
 
@@ -5825,6 +5877,11 @@ public class GameManager : MonoBehaviour
 
     private bool IsShopItemPurchased(ShopItemData item)
     {
+        if (item != null && item.isBattleConsumable)
+        {
+            return false;
+        }
+
         return item != null && IsPurchasedItem(item.itemId);
     }
 
@@ -5887,6 +5944,18 @@ public class GameManager : MonoBehaviour
         if (selectedShopItem != null && !MeetsShopItemPurchaseConditions(selectedShopItem))
         {
             return AppendLine(baseMessage, itemName + " はまだ購入条件を満たしていません。");
+        }
+
+        if (selectedShopItem != null && selectedShopItem.isBattleConsumable)
+        {
+            if (!playerStatus.TrySpendMoney(itemPrice))
+            {
+                return AppendLine(baseMessage, "所持金が足りません。現在の所持金：" + playerStatus.Money);
+            }
+
+            itemQuantities.TryGetValue(itemId, out int quantity);
+            itemQuantities[itemId] = quantity + 1;
+            return AppendLine(baseMessage, itemName + " を購入しました。所持数：" + itemQuantities[itemId] + " / 所持金：" + playerStatus.Money);
         }
 
         if (IsPurchasedItem(itemId))
