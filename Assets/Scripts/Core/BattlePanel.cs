@@ -387,7 +387,7 @@ public class BattlePanel : MonoBehaviour
 
         if (battleItemPanel != null)
         {
-            battleItemPanel.Open(items, debugPlayerStatus, debugHeroineStatus, item => gameManager.GetItemQuantity(item.itemId), UseSelectedBattleItem);
+            battleItemPanel.Open(items, debugPlayerStatus, debugHeroineStatus, item => gameManager.GetItemQuantity(item.itemId), (System.Func<ShopItemData, bool, bool>)UseSelectedBattleItem);
             battleItemPanel.SetStatusEffects(playerStatusEffects, heroineStatusEffects);
             battleItemPanel.SetCharacterImages(playerImage != null ? playerImage.sprite : null, heroineImage != null ? heroineImage.sprite : null);
             return;
@@ -396,15 +396,15 @@ public class BattlePanel : MonoBehaviour
         UseSelectedBattleItem(items[0], GetMissingMp(debugHeroineStatus) > GetMissingMp(debugPlayerStatus));
     }
 
-    private void UseSelectedBattleItem(ShopItemData item, bool targetHeroine)
+    private bool UseSelectedBattleItem(ShopItemData item, bool targetHeroine)
     {
         BattleStatusData target = targetHeroine ? debugHeroineStatus : debugPlayerStatus;
-        if (target == null || (GetMissingMp(target) <= 0 && GetMissingHp(target) <= 0) || item == null ||
+        if (battleFinished || target == null || item == null || !CanUseBattleItemOnTarget(item, target) ||
             !gameManager.TryConsumeBattleItem(item.itemId, out item))
         {
             AddLog("アイテムを使用できません。");
             Refresh();
-            return;
+            return false;
         }
 
         int before = target.currentMp;
@@ -417,6 +417,7 @@ public class BattlePanel : MonoBehaviour
         ApplyEnemyTurn();
         AddHpSummaryLog();
         Refresh();
+        return true;
     }
 
     private void UseSelectedSkill(SkillData skill)
@@ -2095,6 +2096,18 @@ public class BattlePanel : MonoBehaviour
     private static int GetMissingMp(BattleStatusData status)
     {
         return status == null ? 0 : Mathf.Max(0, status.maxMp - status.currentMp);
+    }
+
+    private static bool CanUseBattleItemOnTarget(ShopItemData item, BattleStatusData status)
+    {
+        if (item == null || status == null)
+        {
+            return false;
+        }
+
+        bool canRecoverHp = item.hpRecoveryAmount > 0 && GetMissingHp(status) > 0;
+        bool canRecoverMp = item.mpRecoveryAmount > 0 && GetMissingMp(status) > 0;
+        return canRecoverHp || canRecoverMp;
     }
 
     private static bool CanRecover(BattleStatusData status)

@@ -36,10 +36,11 @@ public class BattleItemPanel : MonoBehaviour
     private BattleStatusData heroine;
     private bool targetHeroine;
     private Action<ShopItemData, bool> confirmed;
+    private Func<ShopItemData, bool, bool> confirmedWithResult;
     private Func<ShopItemData, int> quantityResolver;
     public void Open(ShopItemData value, BattleStatusData playerStatus, BattleStatusData heroineStatus, Action<ShopItemData, bool> onConfirmed)
     {
-        item = value; player = playerStatus; heroine = heroineStatus; confirmed = onConfirmed; targetHeroine = heroine != null;
+        item = value; player = playerStatus; heroine = heroineStatus; confirmed = onConfirmed; confirmedWithResult = null; targetHeroine = heroine != null;
         if (panelRoot == null) panelRoot = gameObject;
         playerTargetButton = playerTargetButton ?? Find("PlayerTargetButton"); heroineTargetButton = heroineTargetButton ?? Find("HeroineTargetButton");
         useButton = useButton ?? Find("UseButton"); closeButton = closeButton ?? Find("CloseButton");
@@ -53,7 +54,7 @@ public class BattleItemPanel : MonoBehaviour
         heroineSelectedFrame = heroineSelectedFrame ?? FindObject("HeroineSelectedFrame");
         playerTargetButton.onClick.RemoveAllListeners(); playerTargetButton.onClick.AddListener(() => { targetHeroine = false; Refresh(); });
         heroineTargetButton.onClick.RemoveAllListeners(); heroineTargetButton.onClick.AddListener(() => { targetHeroine = true; Refresh(); });
-        useButton.onClick.RemoveAllListeners(); useButton.onClick.AddListener(() => { confirmed?.Invoke(item, targetHeroine); Close(); });
+        useButton.onClick.RemoveAllListeners(); useButton.onClick.AddListener(ConfirmUse);
         closeButton.onClick.RemoveAllListeners(); closeButton.onClick.AddListener(Close);
         panelRoot.SetActive(true); Refresh();
     }
@@ -63,7 +64,17 @@ public class BattleItemPanel : MonoBehaviour
     }
     public void Open(IReadOnlyList<ShopItemData> items, BattleStatusData playerStatus, BattleStatusData heroineStatus, Func<ShopItemData, int> getQuantity, Action<ShopItemData, bool> onConfirmed)
     {
-        Open(items != null && items.Count > 0 ? items[0] : null, playerStatus, heroineStatus, onConfirmed);
+        Open(items, playerStatus, heroineStatus, getQuantity, (selectedItem, selectedHeroine) =>
+        {
+            onConfirmed?.Invoke(selectedItem, selectedHeroine);
+            return true;
+        });
+    }
+    public void Open(IReadOnlyList<ShopItemData> items, BattleStatusData playerStatus, BattleStatusData heroineStatus, Func<ShopItemData, int> getQuantity, Func<ShopItemData, bool, bool> onConfirmed)
+    {
+        Open(items != null && items.Count > 0 ? items[0] : null, playerStatus, heroineStatus, (Action<ShopItemData, bool>)null);
+        confirmed = null;
+        confirmedWithResult = onConfirmed;
         quantityResolver = getQuantity;
         itemList = itemList ?? FindTransform("ItemList"); itemButtonPrefab = itemButtonPrefab ?? Find("BattleItemButtonPrefab");
         foreach (GameObject row in rows) Destroy(row); rows.Clear(); itemButtons.Clear(); displayedItems.Clear(); itemNormalColors.Clear();
@@ -86,13 +97,63 @@ public class BattleItemPanel : MonoBehaviour
         SetCard(playerTargetNameText, playerTargetHpText, playerTargetMpText, player, "主人公");
         SetCard(heroineTargetNameText, heroineTargetHpText, heroineTargetMpText, heroine, "ヒロイン");
         if (descriptionText != null) descriptionText.text = BuildDescription();
+        if (useButton != null) useButton.interactable = CanUseSelectedItem();
         for (int i = 0; i < itemButtons.Count; i++)
         {
             Image background = itemButtons[i] != null ? itemButtons[i].GetComponent<Image>() : null;
+            if (itemButtons[i] != null) itemButtons[i].interactable = GetQuantity(displayedItems[i]) > 0;
             if (background != null) background.color = displayedItems[i] == item ? selectedItemColor : itemNormalColors[i];
+            TMP_Text label = itemButtons[i] != null ? itemButtons[i].GetComponentInChildren<TMP_Text>() : null;
+            if (label != null) label.text = GetDisplayName(displayedItems[i]) + " 所持: " + GetQuantity(displayedItems[i]);
         }
     }
-    private void Close() { if (panelRoot != null) panelRoot.SetActive(false); confirmed = null; }
+    private void ConfirmUse()
+    {
+        if (!CanUseSelectedItem())
+        {
+            Refresh();
+            return;
+        }
+
+        bool succeeded = confirmedWithResult != null
+            ? confirmedWithResult.Invoke(item, targetHeroine)
+            : ConfirmWithAction();
+
+        if (!succeeded)
+        {
+            Refresh();
+            return;
+        }
+
+        SelectAvailableItemIfNeeded();
+        Refresh();
+    }
+
+    private bool ConfirmWithAction()
+    {
+        confirmed?.Invoke(item, targetHeroine);
+        return true;
+    }
+
+    private void SelectAvailableItemIfNeeded()
+    {
+        if (item != null && GetQuantity(item) > 0)
+        {
+            return;
+        }
+
+        item = null;
+        foreach (ShopItemData displayedItem in displayedItems)
+        {
+            if (GetQuantity(displayedItem) > 0)
+            {
+                item = displayedItem;
+                return;
+            }
+        }
+    }
+
+    private void Close() { if (panelRoot != null) panelRoot.SetActive(false); confirmed = null; confirmedWithResult = null; }
     private Button Find(string n) { foreach (Button b in GetComponentsInChildren<Button>(true)) if (b.name == n) return b; return null; }
     private TextMeshProUGUI FindText(string n) { foreach (TextMeshProUGUI t in GetComponentsInChildren<TextMeshProUGUI>(true)) if (t.name == n) return t; return null; }
     private Image FindImage(string n) { foreach (Image i in GetComponentsInChildren<Image>(true)) if (i.name == n) return i; return null; }
@@ -101,13 +162,32 @@ public class BattleItemPanel : MonoBehaviour
     private string BuildDescription()
     {
         if (item == null) return "使用するアイテムを選択してください。";
+        BattleStatusData target = GetSelectedTarget();
         string text = GetDisplayName(item) + "\n";
         if (item.hpRecoveryAmount > 0) text += "HP " + item.hpRecoveryAmount + " 回復";
         if (item.mpRecoveryAmount > 0) text += (item.hpRecoveryAmount > 0 ? " / " : "") + "MP " + item.mpRecoveryAmount + " 回復";
         if (item.hpRecoveryAmount <= 0 && item.mpRecoveryAmount <= 0) text += "戦闘中に使用できます。";
+        text += "\n対象: " + (targetHeroine ? "ヒロイン" : "主人公");
+        if (target == null) return text + "\n対象がいません。";
+        if (item.hpRecoveryAmount > 0) text += "\nHP " + target.currentHp + " / " + target.maxHp + " → " + Mathf.Min(target.maxHp, target.currentHp + item.hpRecoveryAmount) + " / " + target.maxHp;
+        if (item.mpRecoveryAmount > 0) text += "\nMP " + target.currentMp + " / " + target.maxMp + " → " + Mathf.Min(target.maxMp, target.currentMp + item.mpRecoveryAmount) + " / " + target.maxMp;
+        if (!CanUseSelectedItem()) text += "\n現在は使用できません。";
         return text;
     }
-    private int GetQuantity(ShopItemData value) { return quantityResolver != null ? quantityResolver(value) : 0; }
+    private BattleStatusData GetSelectedTarget() { return targetHeroine ? heroine : player; }
+    private bool CanUseSelectedItem()
+    {
+        BattleStatusData target = GetSelectedTarget();
+        if (item == null || target == null || GetQuantity(item) <= 0)
+        {
+            return false;
+        }
+
+        bool canRecoverHp = item.hpRecoveryAmount > 0 && target.currentHp < target.maxHp;
+        bool canRecoverMp = item.mpRecoveryAmount > 0 && target.currentMp < target.maxMp;
+        return canRecoverHp || canRecoverMp;
+    }
+    private int GetQuantity(ShopItemData value) { return quantityResolver != null ? quantityResolver(value) : value != null ? 1 : 0; }
     private static string GetDisplayName(ShopItemData value) { if (value == null) return ""; return !string.IsNullOrEmpty(value.displayName) ? value.displayName : value.itemId; }
     private Transform FindTransform(string n) { foreach (Transform t in GetComponentsInChildren<Transform>(true)) if (t.name == n) return t; return null; }
 }
