@@ -58,6 +58,7 @@ public class BattlePanel : MonoBehaviour
     [SerializeField] private Button healButton;
     [SerializeField] private Button skillButton;
     [SerializeField] private Button itemButton;
+    [SerializeField] private BattleItemPanel battleItemPanel;
     [SerializeField] private BattleSkillPanel battleSkillPanel;
     [SerializeField] private Button statusButton;
     [SerializeField] private Button escapeButton;
@@ -354,19 +355,35 @@ public class BattlePanel : MonoBehaviour
             return;
         }
 
-        BattleStatusData target = GetMissingMp(debugHeroineStatus) > GetMissingMp(debugPlayerStatus)
-            ? debugHeroineStatus
-            : debugPlayerStatus;
-        if (target == null || GetMissingMp(target) <= 0)
+        ShopItemData item = Resources.Load<ShopItemData>("ShopItems/" + ManaPotionItemId);
+        if (item == null || gameManager.GetItemQuantity(ManaPotionItemId) <= 0)
         {
-            AddLog("MP を回復する必要がありません。");
+            AddLog("マナポーションを所持していません。");
             Refresh();
             return;
         }
 
-        if (!gameManager.TryConsumeBattleItem(ManaPotionItemId, out ShopItemData item))
+        if (battleItemPanel == null)
         {
-            AddLog("マナポーションを所持していません。");
+            battleItemPanel = FindObjectOfType<BattleItemPanel>(true);
+        }
+
+        if (battleItemPanel != null)
+        {
+            battleItemPanel.Open(item, debugPlayerStatus, debugHeroineStatus, UseSelectedBattleItem);
+            return;
+        }
+
+        UseSelectedBattleItem(item, GetMissingMp(debugHeroineStatus) > GetMissingMp(debugPlayerStatus));
+    }
+
+    private void UseSelectedBattleItem(ShopItemData item, bool targetHeroine)
+    {
+        BattleStatusData target = targetHeroine ? debugHeroineStatus : debugPlayerStatus;
+        if (target == null || GetMissingMp(target) <= 0 || item == null ||
+            !gameManager.TryConsumeBattleItem(item.itemId, out item))
+        {
+            AddLog("アイテムを使用できません。");
             Refresh();
             return;
         }
