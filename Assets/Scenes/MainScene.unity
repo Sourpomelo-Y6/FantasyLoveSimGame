@@ -1868,7 +1868,7 @@ GameObject:
   - component: {fileID: 127190537}
   - component: {fileID: 127190536}
   m_Layer: 5
-  m_Name: HeroineHpText
+  m_Name: HeroineTargetHpText
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -5782,7 +5782,7 @@ GameObject:
   - component: {fileID: 399506006}
   - component: {fileID: 399506005}
   m_Layer: 5
-  m_Name: HeroineImage
+  m_Name: HeroineTargetImage
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -9049,7 +9049,7 @@ GameObject:
   - component: {fileID: 596627876}
   - component: {fileID: 596627875}
   m_Layer: 5
-  m_Name: HeroineMpText
+  m_Name: HeroineTargetMpText
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -11119,7 +11119,7 @@ GameObject:
   - component: {fileID: 790994758}
   - component: {fileID: 790994757}
   m_Layer: 5
-  m_Name: PlayNameText
+  m_Name: PlayerNameText
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -12505,7 +12505,7 @@ GameObject:
   - component: {fileID: 924077415}
   - component: {fileID: 924077414}
   m_Layer: 5
-  m_Name: PlayerMpText
+  m_Name: PlayerTargetMpText
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -14042,7 +14042,7 @@ GameObject:
   - component: {fileID: 1019693048}
   - component: {fileID: 1019693047}
   m_Layer: 5
-  m_Name: PlayNameText
+  m_Name: PlayerTargetNameText
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -14258,7 +14258,7 @@ GameObject:
   - component: {fileID: 1038165050}
   - component: {fileID: 1038165049}
   m_Layer: 5
-  m_Name: HeroineNameText
+  m_Name: HeroineTargetNameText
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -23728,6 +23728,14 @@ MonoBehaviour:
   closeButton: {fileID: 338475567}
   playerTargetStatusText: {fileID: 0}
   heroineTargetStatusText: {fileID: 0}
+  playerTargetImage: {fileID: 1790811559}
+  heroineTargetImage: {fileID: 399506005}
+  playerTargetNameText: {fileID: 1019693047}
+  heroineTargetNameText: {fileID: 1038165049}
+  playerTargetHpText: {fileID: 2085742329}
+  heroineTargetHpText: {fileID: 127190536}
+  playerTargetMpText: {fileID: 924077414}
+  heroineTargetMpText: {fileID: 596627875}
   itemList: {fileID: 208291710}
   itemButtonPrefab: {fileID: 8903933452858774335, guid: 927623ad922b22d45b19e500f9628c25, type: 3}
 --- !u!1 &1750394674
@@ -24652,7 +24660,7 @@ GameObject:
   - component: {fileID: 1790811560}
   - component: {fileID: 1790811559}
   m_Layer: 5
-  m_Name: PlayerImage
+  m_Name: PlayerTargetImage
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -25869,7 +25877,7 @@ MonoBehaviour:
   healButton: {fileID: 199220330}
   skillButton: {fileID: 161385836}
   itemButton: {fileID: 601263457}
-  battleItemPanel: {fileID: 0}
+  battleItemPanel: {fileID: 1742367239}
   battleSkillPanel: {fileID: 178891820}
   statusButton: {fileID: 1705656314}
   escapeButton: {fileID: 1937766294}
@@ -28556,7 +28564,7 @@ GameObject:
   - component: {fileID: 2085742330}
   - component: {fileID: 2085742329}
   m_Layer: 5
-  m_Name: PlayerHpText
+  m_Name: PlayerTargetHpText
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

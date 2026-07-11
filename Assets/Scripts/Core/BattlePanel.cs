@@ -388,6 +388,8 @@ public class BattlePanel : MonoBehaviour
         if (battleItemPanel != null)
         {
             battleItemPanel.Open(items, debugPlayerStatus, debugHeroineStatus, UseSelectedBattleItem);
+            battleItemPanel.SetStatusEffects(playerStatusEffects, heroineStatusEffects);
+            battleItemPanel.SetCharacterImages(playerImage != null ? playerImage.sprite : null, heroineImage != null ? heroineImage.sprite : null);
             return;
         }
 
