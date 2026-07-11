@@ -3398,8 +3398,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -518.49994, y: 70.393585}
-  m_SizeDelta: {x: 160, y: 0}
+  m_AnchoredPosition: {x: -518.5, y: 62.636}
+  m_SizeDelta: {x: 1037, y: 593.69}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &208291711
 MonoBehaviour:
@@ -3414,7 +3414,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_HorizontalFit: 0
-  m_VerticalFit: 2
+  m_VerticalFit: 0
 --- !u!114 &208291712
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3434,12 +3434,12 @@ MonoBehaviour:
     m_Bottom: 0
   m_ChildAlignment: 0
   m_Spacing: 6
-  m_ChildForceExpandWidth: 0
+  m_ChildForceExpandWidth: 1
   m_ChildForceExpandHeight: 0
   m_ChildControlWidth: 0
-  m_ChildControlHeight: 1
-  m_ChildScaleWidth: 0
-  m_ChildScaleHeight: 0
+  m_ChildControlHeight: 0
+  m_ChildScaleWidth: 1
+  m_ChildScaleHeight: 1
   m_ReverseArrangement: 0
 --- !u!1 &214083000
 GameObject:
@@ -23641,6 +23641,7 @@ GameObject:
   - component: {fileID: 1742367236}
   - component: {fileID: 1742367238}
   - component: {fileID: 1742367237}
+  - component: {fileID: 1742367239}
   m_Layer: 5
   m_Name: BattleItemPanel
   m_TagString: Untagged
@@ -23708,6 +23709,27 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1742367235}
   m_CullTransparentMesh: 1
+--- !u!114 &1742367239
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1742367235}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ce98636fb75303c439b29b329b13036b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  panelRoot: {fileID: 1742367235}
+  playerTargetButton: {fileID: 1608591787}
+  heroineTargetButton: {fileID: 1227646231}
+  useButton: {fileID: 1675164924}
+  closeButton: {fileID: 338475567}
+  playerTargetStatusText: {fileID: 0}
+  heroineTargetStatusText: {fileID: 0}
+  itemList: {fileID: 208291710}
+  itemButtonPrefab: {fileID: 8903933452858774335, guid: 927623ad922b22d45b19e500f9628c25, type: 3}
 --- !u!1 &1750394674
 GameObject:
   m_ObjectHideFlags: 0
@@ -25847,6 +25869,7 @@ MonoBehaviour:
   healButton: {fileID: 199220330}
   skillButton: {fileID: 161385836}
   itemButton: {fileID: 601263457}
+  battleItemPanel: {fileID: 0}
   battleSkillPanel: {fileID: 178891820}
   statusButton: {fileID: 1705656314}
   escapeButton: {fileID: 1937766294}

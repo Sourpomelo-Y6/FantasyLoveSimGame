@@ -2712,6 +2712,14 @@ public class GameManager : MonoBehaviour
         return true;
     }
 
+    public List<ShopItemData> GetBattleItems()
+    {
+        List<ShopItemData> items = new List<ShopItemData>();
+        foreach (ShopItemData item in Resources.LoadAll<ShopItemData>("ShopItems"))
+            if (item != null && item.isBattleConsumable && GetItemQuantity(item.itemId) > 0) items.Add(item);
+        return items;
+    }
+
     public List<string> GetUnlockedOutfitIds()
     {
         return new List<string>(unlockedOutfitIds);

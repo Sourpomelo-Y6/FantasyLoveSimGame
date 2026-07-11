@@ -355,8 +355,8 @@ public class BattlePanel : MonoBehaviour
             return;
         }
 
-        ShopItemData item = Resources.Load<ShopItemData>("ShopItems/" + ManaPotionItemId);
-        if (item == null || gameManager.GetItemQuantity(ManaPotionItemId) <= 0)
+        List<ShopItemData> items = gameManager.GetBattleItems();
+        if (items.Count == 0)
         {
             AddLog("マナポーションを所持していません。");
             Refresh();
@@ -366,21 +366,38 @@ public class BattlePanel : MonoBehaviour
         if (battleItemPanel == null)
         {
             battleItemPanel = FindObjectOfType<BattleItemPanel>(true);
+            if (battleItemPanel == null)
+            {
+                Transform[] transforms = FindObjectsOfType<Transform>(true);
+                for (int i = 0; i < transforms.Length; i++)
+                {
+                    if (transforms[i].gameObject.name == "BattleItemPanel")
+                    {
+                        battleItemPanel = transforms[i].GetComponent<BattleItemPanel>();
+                        if (battleItemPanel == null)
+                        {
+                            battleItemPanel = transforms[i].gameObject.AddComponent<BattleItemPanel>();
+                        }
+
+                        break;
+                    }
+                }
+            }
         }
 
         if (battleItemPanel != null)
         {
-            battleItemPanel.Open(item, debugPlayerStatus, debugHeroineStatus, UseSelectedBattleItem);
+            battleItemPanel.Open(items, debugPlayerStatus, debugHeroineStatus, UseSelectedBattleItem);
             return;
         }
 
-        UseSelectedBattleItem(item, GetMissingMp(debugHeroineStatus) > GetMissingMp(debugPlayerStatus));
+        UseSelectedBattleItem(items[0], GetMissingMp(debugHeroineStatus) > GetMissingMp(debugPlayerStatus));
     }
 
     private void UseSelectedBattleItem(ShopItemData item, bool targetHeroine)
     {
         BattleStatusData target = targetHeroine ? debugHeroineStatus : debugPlayerStatus;
-        if (target == null || GetMissingMp(target) <= 0 || item == null ||
+        if (target == null || (GetMissingMp(target) <= 0 && GetMissingHp(target) <= 0) || item == null ||
             !gameManager.TryConsumeBattleItem(item.itemId, out item))
         {
             AddLog("アイテムを使用できません。");
@@ -389,10 +406,12 @@ public class BattlePanel : MonoBehaviour
         }
 
         int before = target.currentMp;
-        target.currentMp += Mathf.Max(1, item.mpRecoveryAmount);
+        int beforeHp = target.currentHp;
+        target.currentMp += item.mpRecoveryAmount;
+        target.currentHp += item.hpRecoveryAmount;
         target.Clamp();
         string itemName = !string.IsNullOrEmpty(item.displayName) ? item.displayName : item.itemId;
-        AddLog(ResolveBattleStatusTargetName(target) + " は " + itemName + " を使い、MP を " + (target.currentMp - before) + " 回復した。");
+        AddLog(ResolveBattleStatusTargetName(target) + " は " + itemName + " を使い、HP " + (target.currentHp - beforeHp) + " / MP " + (target.currentMp - before) + " 回復した。");
         ApplyEnemyTurn();
         AddHpSummaryLog();
         Refresh();

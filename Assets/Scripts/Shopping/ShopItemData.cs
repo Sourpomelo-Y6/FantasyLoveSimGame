@@ -12,6 +12,7 @@ public class ShopItemData : ScriptableObject
     [Header("Battle Consumable")]
     public bool isBattleConsumable;
     [Min(0)] public int mpRecoveryAmount;
+    [Min(0)] public int hpRecoveryAmount;
 
     [Header("Purchase Conditions")]
     public int requiredAffection;

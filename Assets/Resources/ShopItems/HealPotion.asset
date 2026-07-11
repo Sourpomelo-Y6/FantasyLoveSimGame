@@ -1,0 +1,15 @@
+%YAML 1.1
+--- !u!114 &11400000
+MonoBehaviour:
+  m_Script: {fileID: 11500000, guid: b7d04bb961644f1499034c6db5a7e371, type: 3}
+  m_Name: HealPotion
+  itemId: HealPotion
+  displayName: ヒールポーション
+  price: 50
+  isBattleConsumable: 1
+  mpRecoveryAmount: 0
+  hpRecoveryAmount: 20
+  requiredAffection: 0
+  requiredDay: 0
+  requiredPurchasedItemIds: []
+  unlockedOutfitIds: []
