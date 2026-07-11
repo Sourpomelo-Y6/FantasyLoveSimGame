@@ -21,16 +21,22 @@ public class BattleItemPanel : MonoBehaviour
     [SerializeField] private TextMeshProUGUI heroineTargetHpText;
     [SerializeField] private TextMeshProUGUI playerTargetMpText;
     [SerializeField] private TextMeshProUGUI heroineTargetMpText;
+    [SerializeField] private TextMeshProUGUI descriptionText;
+    [SerializeField] private GameObject playerSelectedFrame;
+    [SerializeField] private GameObject heroineSelectedFrame;
     [SerializeField] private Transform itemList;
     [SerializeField] private Button itemButtonPrefab;
+    [SerializeField] private Color selectedItemColor = new Color(1f, 0.85f, 0.35f, 1f);
     private readonly List<GameObject> rows = new List<GameObject>();
+    private readonly List<Button> itemButtons = new List<Button>();
+    private readonly List<ShopItemData> displayedItems = new List<ShopItemData>();
+    private readonly List<Color> itemNormalColors = new List<Color>();
     private ShopItemData item;
     private BattleStatusData player;
     private BattleStatusData heroine;
     private bool targetHeroine;
     private Action<ShopItemData, bool> confirmed;
-    private IReadOnlyList<BattleStatusEffect> playerEffects;
-    private IReadOnlyList<BattleStatusEffect> heroineEffects;
+    private Func<ShopItemData, int> quantityResolver;
     public void Open(ShopItemData value, BattleStatusData playerStatus, BattleStatusData heroineStatus, Action<ShopItemData, bool> onConfirmed)
     {
         item = value; player = playerStatus; heroine = heroineStatus; confirmed = onConfirmed; targetHeroine = heroine != null;
@@ -42,6 +48,9 @@ public class BattleItemPanel : MonoBehaviour
         playerTargetNameText = playerTargetNameText ?? FindText("PlayerTargetNameText"); heroineTargetNameText = heroineTargetNameText ?? FindText("HeroineTargetNameText");
         playerTargetHpText = playerTargetHpText ?? FindText("PlayerTargetHpText"); heroineTargetHpText = heroineTargetHpText ?? FindText("HeroineTargetHpText");
         playerTargetMpText = playerTargetMpText ?? FindText("PlayerTargetMpText"); heroineTargetMpText = heroineTargetMpText ?? FindText("HeroineTargetMpText");
+        descriptionText = descriptionText ?? FindText("DescriptionText");
+        playerSelectedFrame = playerSelectedFrame ?? FindObject("PlayerSelectedFrame");
+        heroineSelectedFrame = heroineSelectedFrame ?? FindObject("HeroineSelectedFrame");
         playerTargetButton.onClick.RemoveAllListeners(); playerTargetButton.onClick.AddListener(() => { targetHeroine = false; Refresh(); });
         heroineTargetButton.onClick.RemoveAllListeners(); heroineTargetButton.onClick.AddListener(() => { targetHeroine = true; Refresh(); });
         useButton.onClick.RemoveAllListeners(); useButton.onClick.AddListener(() => { confirmed?.Invoke(item, targetHeroine); Close(); });
@@ -50,15 +59,21 @@ public class BattleItemPanel : MonoBehaviour
     }
     public void Open(IReadOnlyList<ShopItemData> items, BattleStatusData playerStatus, BattleStatusData heroineStatus, Action<ShopItemData, bool> onConfirmed)
     {
+        Open(items, playerStatus, heroineStatus, null, onConfirmed);
+    }
+    public void Open(IReadOnlyList<ShopItemData> items, BattleStatusData playerStatus, BattleStatusData heroineStatus, Func<ShopItemData, int> getQuantity, Action<ShopItemData, bool> onConfirmed)
+    {
         Open(items != null && items.Count > 0 ? items[0] : null, playerStatus, heroineStatus, onConfirmed);
+        quantityResolver = getQuantity;
         itemList = itemList ?? FindTransform("ItemList"); itemButtonPrefab = itemButtonPrefab ?? Find("BattleItemButtonPrefab");
-        foreach (GameObject row in rows) Destroy(row); rows.Clear();
+        foreach (GameObject row in rows) Destroy(row); rows.Clear(); itemButtons.Clear(); displayedItems.Clear(); itemNormalColors.Clear();
         if (items == null || itemList == null || itemButtonPrefab == null) return;
-        foreach (ShopItemData entry in items) { ShopItemData captured = entry; Button row = Instantiate(itemButtonPrefab, itemList); row.gameObject.SetActive(true); row.GetComponentInChildren<TMP_Text>().text = entry.displayName + " 所持: " + ""; row.onClick.RemoveAllListeners(); row.onClick.AddListener(() => { item = captured; Refresh(); }); rows.Add(row.gameObject); }
+        foreach (ShopItemData entry in items) { ShopItemData captured = entry; Button row = Instantiate(itemButtonPrefab, itemList); row.gameObject.SetActive(true); TMP_Text label = row.GetComponentInChildren<TMP_Text>(); if (label != null) label.text = GetDisplayName(entry) + " 所持: " + GetQuantity(entry); row.onClick.RemoveAllListeners(); row.onClick.AddListener(() => { item = captured; Refresh(); }); rows.Add(row.gameObject); itemButtons.Add(row); displayedItems.Add(entry); Image background = row.GetComponent<Image>(); itemNormalColors.Add(background != null ? background.color : Color.white); }
+        Refresh();
     }
     public void SetStatusEffects(IReadOnlyList<BattleStatusEffect> player, IReadOnlyList<BattleStatusEffect> heroine)
     {
-        playerEffects = player; heroineEffects = heroine; Refresh();
+        Refresh();
     }
     public void SetCharacterImages(Sprite playerSprite, Sprite heroineSprite) { if (playerTargetImage != null) { playerTargetImage.sprite = playerSprite; playerTargetImage.enabled = playerSprite != null; } if (heroineTargetImage != null) { heroineTargetImage.sprite = heroineSprite; heroineTargetImage.enabled = heroineSprite != null; } }
     private void Refresh()
@@ -66,14 +81,33 @@ public class BattleItemPanel : MonoBehaviour
         if (heroineTargetButton != null) heroineTargetButton.gameObject.SetActive(heroine != null);
         if (playerTargetStatusText != null) playerTargetStatusText.gameObject.SetActive(false);
         if (heroineTargetStatusText != null) heroineTargetStatusText.gameObject.SetActive(false);
+        if (playerSelectedFrame != null) playerSelectedFrame.SetActive(!targetHeroine);
+        if (heroineSelectedFrame != null) heroineSelectedFrame.SetActive(targetHeroine && heroine != null);
         SetCard(playerTargetNameText, playerTargetHpText, playerTargetMpText, player, "主人公");
         SetCard(heroineTargetNameText, heroineTargetHpText, heroineTargetMpText, heroine, "ヒロイン");
+        if (descriptionText != null) descriptionText.text = BuildDescription();
+        for (int i = 0; i < itemButtons.Count; i++)
+        {
+            Image background = itemButtons[i] != null ? itemButtons[i].GetComponent<Image>() : null;
+            if (background != null) background.color = displayedItems[i] == item ? selectedItemColor : itemNormalColors[i];
+        }
     }
-    private string Status(BattleStatusData s, IReadOnlyList<BattleStatusEffect> effects, bool selected) { if (s == null) return "同行者なし"; int hp = Mathf.Min(s.maxHp, s.currentHp + (selected && item != null ? item.hpRecoveryAmount : 0)); int mp = Mathf.Min(s.maxMp, s.currentMp + (selected && item != null ? item.mpRecoveryAmount : 0)); string text = "HP " + s.currentHp + "/" + s.maxHp + (selected ? " → " + hp + "/" + s.maxHp : "") + "\nMP " + s.currentMp + "/" + s.maxMp + (selected ? " → " + mp + "/" + s.maxMp : ""); if (effects != null) foreach (BattleStatusEffect e in effects) text += "\n" + e.displayName + " " + (e.appliedValue >= 0 ? "↑" : "↓") + Mathf.Abs(e.appliedValue) + " 残り" + e.remainingTargetTurns + "T"; return text; }
     private void Close() { if (panelRoot != null) panelRoot.SetActive(false); confirmed = null; }
     private Button Find(string n) { foreach (Button b in GetComponentsInChildren<Button>(true)) if (b.name == n) return b; return null; }
     private TextMeshProUGUI FindText(string n) { foreach (TextMeshProUGUI t in GetComponentsInChildren<TextMeshProUGUI>(true)) if (t.name == n) return t; return null; }
     private Image FindImage(string n) { foreach (Image i in GetComponentsInChildren<Image>(true)) if (i.name == n) return i; return null; }
+    private GameObject FindObject(string n) { foreach (Transform t in GetComponentsInChildren<Transform>(true)) if (t.name == n) return t.gameObject; return null; }
     private static void SetCard(TextMeshProUGUI name, TextMeshProUGUI hp, TextMeshProUGUI mp, BattleStatusData status, string label) { if (name != null) name.text = label; if (hp != null) hp.text = status == null ? "HP -" : "HP " + status.currentHp + " / " + status.maxHp; if (mp != null) mp.text = status == null ? "MP -" : "MP " + status.currentMp + " / " + status.maxMp; }
+    private string BuildDescription()
+    {
+        if (item == null) return "使用するアイテムを選択してください。";
+        string text = GetDisplayName(item) + "\n";
+        if (item.hpRecoveryAmount > 0) text += "HP " + item.hpRecoveryAmount + " 回復";
+        if (item.mpRecoveryAmount > 0) text += (item.hpRecoveryAmount > 0 ? " / " : "") + "MP " + item.mpRecoveryAmount + " 回復";
+        if (item.hpRecoveryAmount <= 0 && item.mpRecoveryAmount <= 0) text += "戦闘中に使用できます。";
+        return text;
+    }
+    private int GetQuantity(ShopItemData value) { return quantityResolver != null ? quantityResolver(value) : 0; }
+    private static string GetDisplayName(ShopItemData value) { if (value == null) return ""; return !string.IsNullOrEmpty(value.displayName) ? value.displayName : value.itemId; }
     private Transform FindTransform(string n) { foreach (Transform t in GetComponentsInChildren<Transform>(true)) if (t.name == n) return t; return null; }
 }
