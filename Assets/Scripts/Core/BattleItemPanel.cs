@@ -125,32 +125,13 @@ public class BattleItemPanel : MonoBehaviour
             return;
         }
 
-        SelectAvailableItemIfNeeded();
-        Refresh();
+        Close();
     }
 
     private bool ConfirmWithAction()
     {
         confirmed?.Invoke(item, targetHeroine);
         return true;
-    }
-
-    private void SelectAvailableItemIfNeeded()
-    {
-        if (item != null && GetQuantity(item) > 0)
-        {
-            return;
-        }
-
-        item = null;
-        foreach (ShopItemData displayedItem in displayedItems)
-        {
-            if (GetQuantity(displayedItem) > 0)
-            {
-                item = displayedItem;
-                return;
-            }
-        }
     }
 
     private void Close() { if (panelRoot != null) panelRoot.SetActive(false); confirmed = null; confirmedWithResult = null; }
@@ -163,16 +144,26 @@ public class BattleItemPanel : MonoBehaviour
     {
         if (item == null) return "使用するアイテムを選択してください。";
         BattleStatusData target = GetSelectedTarget();
-        string text = GetDisplayName(item) + "\n";
-        if (item.hpRecoveryAmount > 0) text += "HP " + item.hpRecoveryAmount + " 回復";
-        if (item.mpRecoveryAmount > 0) text += (item.hpRecoveryAmount > 0 ? " / " : "") + "MP " + item.mpRecoveryAmount + " 回復";
-        if (item.hpRecoveryAmount <= 0 && item.mpRecoveryAmount <= 0) text += "戦闘中に使用できます。";
-        text += "\n対象: " + (targetHeroine ? "ヒロイン" : "主人公");
-        if (target == null) return text + "\n対象がいません。";
-        if (item.hpRecoveryAmount > 0) text += "\nHP " + target.currentHp + " / " + target.maxHp + " → " + Mathf.Min(target.maxHp, target.currentHp + item.hpRecoveryAmount) + " / " + target.maxHp;
-        if (item.mpRecoveryAmount > 0) text += "\nMP " + target.currentMp + " / " + target.maxMp + " → " + Mathf.Min(target.maxMp, target.currentMp + item.mpRecoveryAmount) + " / " + target.maxMp;
-        if (!CanUseSelectedItem()) text += "\n現在は使用できません。";
+        string effect = BuildEffectSummary();
+        string text = GetDisplayName(item) + " / " + effect + "\n" + (targetHeroine ? "ヒロイン" : "主人公");
+        if (target == null) return text + ": 対象なし";
+        if (!CanUseSelectedItem()) return text + ": 使用不可";
+        text += ": " + BuildRecoveryPreview(target);
         return text;
+    }
+    private string BuildEffectSummary()
+    {
+        string effect = "";
+        if (item.hpRecoveryAmount > 0) effect += "HP+" + item.hpRecoveryAmount;
+        if (item.mpRecoveryAmount > 0) effect += (effect.Length > 0 ? " " : "") + "MP+" + item.mpRecoveryAmount;
+        return effect.Length > 0 ? effect : "戦闘用";
+    }
+    private string BuildRecoveryPreview(BattleStatusData target)
+    {
+        string preview = "";
+        if (item.hpRecoveryAmount > 0) preview += "HP " + target.currentHp + "→" + Mathf.Min(target.maxHp, target.currentHp + item.hpRecoveryAmount);
+        if (item.mpRecoveryAmount > 0) preview += (preview.Length > 0 ? " / " : "") + "MP " + target.currentMp + "→" + Mathf.Min(target.maxMp, target.currentMp + item.mpRecoveryAmount);
+        return preview;
     }
     private BattleStatusData GetSelectedTarget() { return targetHeroine ? heroine : player; }
     private bool CanUseSelectedItem()

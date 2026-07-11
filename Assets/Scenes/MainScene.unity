@@ -3149,7 +3149,7 @@ MonoBehaviour:
       m_Calls: []
   m_text: DescriptionText
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
+  m_fontAsset: {fileID: 11400000, guid: de9f20a90f1fdf24a89d9000a7ddf0e0, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
@@ -3213,7 +3213,7 @@ MonoBehaviour:
   m_margin: {x: 0, y: 0, z: 0, w: 0}
   m_isUsingLegacyAnimationComponent: 0
   m_isVolumetricText: 0
-  m_hasFontAssetChanged: 0
+  m_hasFontAssetChanged: 1
   m_baseMaterial: {fileID: 0}
   m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
 --- !u!222 &180138813
@@ -23813,8 +23813,12 @@ MonoBehaviour:
   heroineTargetHpText: {fileID: 127190536}
   playerTargetMpText: {fileID: 924077414}
   heroineTargetMpText: {fileID: 596627875}
+  descriptionText: {fileID: 180138812}
+  playerSelectedFrame: {fileID: 2108141157}
+  heroineSelectedFrame: {fileID: 23732740}
   itemList: {fileID: 208291710}
   itemButtonPrefab: {fileID: 8903933452858774335, guid: 927623ad922b22d45b19e500f9628c25, type: 3}
+  selectedItemColor: {r: 1, g: 0.85, b: 0.35, a: 1}
 --- !u!1 &1750394674
 GameObject:
   m_ObjectHideFlags: 0

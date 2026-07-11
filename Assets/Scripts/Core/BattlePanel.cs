@@ -407,6 +407,12 @@ public class BattlePanel : MonoBehaviour
             return false;
         }
 
+        turnCount++;
+        AddLog("--- " + turnCount + "ターン目 ---");
+        ApplyPlayerImage(BattleSpriteIdle);
+        ApplyHeroineImage(BattleSpriteIdle);
+        ApplyEnemyImage(currentDebugEnemy, BattleSpriteIdle);
+
         int before = target.currentMp;
         int beforeHp = target.currentHp;
         target.currentMp += item.mpRecoveryAmount;
@@ -414,7 +420,14 @@ public class BattlePanel : MonoBehaviour
         target.Clamp();
         string itemName = !string.IsNullOrEmpty(item.displayName) ? item.displayName : item.itemId;
         AddLog(ResolveBattleStatusTargetName(target) + " は " + itemName + " を使い、HP " + (target.currentHp - beforeHp) + " / MP " + (target.currentMp - before) + " 回復した。");
+        TickStatusEffects(debugPlayerStatus);
         ApplyEnemyTurn();
+        if (IsDefeated(debugPlayerStatus))
+        {
+            FinishBattle("敗北", ResolveDefeatMessage());
+            return true;
+        }
+
         AddHpSummaryLog();
         Refresh();
         return true;
