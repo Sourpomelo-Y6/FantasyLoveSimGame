@@ -192,7 +192,11 @@ public class StatusProgressPanel : MonoBehaviour
         return "累計訓練回数：" + Math.Max(0, stats.totalTrainingCount) +
             "\n主人公 LP 消費回数：" + Math.Max(0, stats.playerLpConsumedCount) +
             "\n相手 LP 消費回数：" + Math.Max(0, stats.opponentLpConsumedCount) +
-            "\nモンスター撃破数：" + Math.Max(0, stats.totalMonsterDefeatCount);
+            "\nモンスター撃破数：" + Math.Max(0, stats.totalMonsterDefeatCount) +
+            "\n主人公スキルポイント：" +
+                (gameManager != null ? gameManager.PlayerSkillPoints : 0) +
+            "\nヒロインスキルポイント：" +
+                (gameManager != null ? gameManager.HeroineSkillPoints : 0);
     }
 
     private string BuildCategoryText(SkillProgressStats stats)

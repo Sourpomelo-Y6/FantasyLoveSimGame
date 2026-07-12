@@ -14,6 +14,10 @@ public class TrainingResult
     public int affectionReward;
     public int trainingProficiencyReward;
     public int totalTrainingProficiency;
+    public int playerSkillPointReward;
+    public int heroineSkillPointReward;
+    public int totalPlayerSkillPoints;
+    public int totalHeroineSkillPoints;
     public int simultaneousKnockoutBonus;
     public int totalAffectionReward;
     public bool wasInterrupted;
@@ -36,6 +40,8 @@ public class TrainingResult
         {
             result.affectionReward = training.affectionReward;
             result.trainingProficiencyReward = training.trainingProficiencyReward;
+            result.playerSkillPointReward = training.playerSkillPointReward;
+            result.heroineSkillPointReward = training.heroineSkillPointReward;
             result.simultaneousKnockoutBonus = training.simultaneousKnockoutBonus;
         }
 

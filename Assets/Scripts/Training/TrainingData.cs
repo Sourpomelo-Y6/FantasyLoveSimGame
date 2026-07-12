@@ -22,6 +22,8 @@ public class TrainingData : ScriptableObject
     [Header("Rewards")]
     public int affectionReward = 0;
     public int trainingProficiencyReward = 1;
+    public int playerSkillPointReward = 1;
+    public int heroineSkillPointReward = 1;
     public int simultaneousKnockoutBonus = 1;
 
     public string GetDisplayName()

@@ -267,6 +267,8 @@ public class GameManager : MonoBehaviour
     private readonly HashSet<string> unlockedOutfitIds = new HashSet<string>();
     private readonly Dictionary<string, int> trainingProficiencies = new Dictionary<string, int>();
     private readonly SkillProgressStats skillProgressStats = new SkillProgressStats();
+    private int playerSkillPoints;
+    private int heroineSkillPoints;
     private readonly Queue<DialogueMessage> queuedDialogueMessages = new Queue<DialogueMessage>();
     private readonly List<DialogueMessage> pendingScheduledEventFollowUpMessages = new List<DialogueMessage>();
     private readonly List<MessageLogPanel.MessageLogEntry> messageLogEntries =
@@ -2293,6 +2295,8 @@ public class GameManager : MonoBehaviour
         saveData.unlockedOutfitIds = new List<string>(unlockedOutfitIds);
         saveData.trainingProficiencies = CreateTrainingProficiencySaveData();
         saveData.skillProgressStats = skillProgressStats.Clone();
+        saveData.playerSkillPoints = Mathf.Max(0, playerSkillPoints);
+        saveData.heroineSkillPoints = Mathf.Max(0, heroineSkillPoints);
 
         saveData.shownConversationIds = new List<string>(shownConversationIds);
         saveData.shownGameEventIds = new List<string>(shownGameEventIds);
@@ -2457,6 +2461,8 @@ public class GameManager : MonoBehaviour
         ApplyUnlockedOutfitsToManager();
         LoadTrainingProficiencies(saveData.trainingProficiencies);
         skillProgressStats.CopyFrom(saveData.skillProgressStats);
+        playerSkillPoints = Mathf.Max(0, saveData.playerSkillPoints);
+        heroineSkillPoints = Mathf.Max(0, saveData.heroineSkillPoints);
         UnlockAvailableSkills();
 
         outfitPreferenceManager.SetPreferences(saveData.outfitPreferences);
@@ -2743,6 +2749,51 @@ public class GameManager : MonoBehaviour
     public SkillProgressStats GetSkillProgressStats()
     {
         return skillProgressStats.Clone();
+    }
+
+    public int PlayerSkillPoints => playerSkillPoints;
+    public int HeroineSkillPoints => heroineSkillPoints;
+
+    public bool TrySpendPlayerSkillPoints(int amount)
+    {
+        bool spent = TrySpendSkillPoints(ref playerSkillPoints, amount);
+        if (spent)
+        {
+            RefreshStatusDetailPanel();
+        }
+        return spent;
+    }
+
+    public bool TrySpendHeroineSkillPoints(int amount)
+    {
+        bool spent = TrySpendSkillPoints(ref heroineSkillPoints, amount);
+        if (spent)
+        {
+            RefreshStatusDetailPanel();
+        }
+        return spent;
+    }
+
+    private static bool TrySpendSkillPoints(ref int currentPoints, int amount)
+    {
+        if (amount <= 0 || currentPoints < amount)
+        {
+            return false;
+        }
+
+        currentPoints -= amount;
+        return true;
+    }
+
+    private static int AddSkillPoints(int currentPoints, int amount)
+    {
+        if (amount <= 0)
+        {
+            return Mathf.Max(0, currentPoints);
+        }
+
+        long total = (long)Mathf.Max(0, currentPoints) + amount;
+        return total > int.MaxValue ? int.MaxValue : (int)total;
     }
 
     private void RecordTrainingProgress(TrainingResult result)
@@ -7099,6 +7150,14 @@ public class GameManager : MonoBehaviour
                 AddTrainingProficiency(result.trainingId, result.trainingProficiencyReward);
         }
 
+        if (ShouldApplyTrainingRewards(result))
+        {
+            playerSkillPoints = AddSkillPoints(playerSkillPoints, result.playerSkillPointReward);
+            heroineSkillPoints = AddSkillPoints(heroineSkillPoints, result.heroineSkillPointReward);
+            result.totalPlayerSkillPoints = playerSkillPoints;
+            result.totalHeroineSkillPoints = heroineSkillPoints;
+        }
+
         List<SkillData> newlyUnlockedSkills = UnlockAvailableSkills();
         string resultMessage = BuildTrainingResultMessage(result);
         if (newlyUnlockedSkills.Count > 0)
@@ -7169,6 +7228,20 @@ public class GameManager : MonoBehaviour
                 "（現在 " +
                 result.totalTrainingProficiency +
                 "）";
+        }
+
+        if (result.playerSkillPointReward > 0)
+        {
+            message += "\n主人公スキルポイント +" +
+                result.playerSkillPointReward +
+                "（現在 " + result.totalPlayerSkillPoints + "）";
+        }
+
+        if (result.heroineSkillPointReward > 0)
+        {
+            message += "\nヒロインスキルポイント +" +
+                result.heroineSkillPointReward +
+                "（現在 " + result.totalHeroineSkillPoints + "）";
         }
 
         return message;

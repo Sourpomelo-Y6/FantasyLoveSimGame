@@ -22,4 +22,6 @@ MonoBehaviour:
   initialHeroineLp: 1
   affectionReward: 2
   trainingProficiencyReward: 2
+  playerSkillPointReward: 2
+  heroineSkillPointReward: 2
   simultaneousKnockoutBonus: 2
