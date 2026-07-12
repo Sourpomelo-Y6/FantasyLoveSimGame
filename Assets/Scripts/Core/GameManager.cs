@@ -339,6 +339,7 @@ public class GameManager : MonoBehaviour
 
     [Header("Skill UI")]
     [SerializeField] private SkillPanel skillPanel;
+    [SerializeField] private SkillTreePanel skillTreePanel;
     [SerializeField] private string skillResourcePath = "Skills";
     private SkillData[] skillDataList;
 
@@ -2936,10 +2937,17 @@ public class GameManager : MonoBehaviour
 
     public void OpenSkillPanel()
     {
+        EnsureSkillTreePanel();
+        if (skillTreePanel != null)
+        {
+            skillTreePanel.Open(this);
+            return;
+        }
+
         EnsureSkillPanel();
         if (skillPanel == null)
         {
-            ShowSystemMessage("SkillPanel が設定されていないため、スキル一覧を開けません。");
+            ShowSystemMessage("スキル画面が設定されていないため、開けません。");
             return;
         }
 
@@ -8216,6 +8224,19 @@ public class GameManager : MonoBehaviour
         }
 
         skillPanel.Initialize(this);
+    }
+
+    private void EnsureSkillTreePanel()
+    {
+        if (skillTreePanel == null)
+        {
+            skillTreePanel = FindObjectOfType<SkillTreePanel>(true);
+        }
+
+        if (skillTreePanel != null)
+        {
+            skillTreePanel.Initialize(this);
+        }
     }
 
     private void EnsureShopPanel()
