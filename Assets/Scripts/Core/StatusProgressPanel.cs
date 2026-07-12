@@ -107,7 +107,37 @@ public class StatusProgressPanel : MonoBehaviour
                 break;
         }
 
+        RefreshContentLayout();
         RefreshButtonStates();
+    }
+
+    private void RefreshContentLayout()
+    {
+        RectTransform textRect = contentText != null ? contentText.rectTransform : null;
+        RectTransform contentRect = textRect != null ? textRect.parent as RectTransform : null;
+        if (textRect == null || contentRect == null)
+        {
+            return;
+        }
+
+        contentText.ForceMeshUpdate();
+        float preferredHeight = Mathf.Max(1f, contentText.preferredHeight);
+        RectTransform viewportRect = contentRect.parent as RectTransform;
+        float viewportHeight = viewportRect != null ? viewportRect.rect.height : 0f;
+        float contentHeight = Mathf.Max(preferredHeight, viewportHeight);
+
+        contentRect.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, contentHeight);
+        textRect.anchorMin = new Vector2(0f, 1f);
+        textRect.anchorMax = new Vector2(1f, 1f);
+        textRect.pivot = new Vector2(0f, 1f);
+        textRect.anchoredPosition = Vector2.zero;
+        textRect.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, preferredHeight);
+
+        ScrollRect scrollRect = contentRect.GetComponentInParent<ScrollRect>();
+        if (scrollRect != null)
+        {
+            scrollRect.verticalNormalizedPosition = 1f;
+        }
     }
 
     private void HookButtons()
