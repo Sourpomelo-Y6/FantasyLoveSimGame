@@ -14,6 +14,8 @@ public class StatusDetailPanel : MonoBehaviour
     [Header("Panel")]
     [SerializeField] private GameObject panelRoot;
     [SerializeField] private Button closeButton;
+    [SerializeField] private Button progressButton;
+    [SerializeField] private StatusProgressPanel progressPanel;
 
     [Header("Detail View")]
     [SerializeField] private TextMeshProUGUI titleText;
@@ -70,6 +72,11 @@ public class StatusDetailPanel : MonoBehaviour
             closeButton.onClick.AddListener(Close);
         }
 
+        if (progressButton != null)
+        {
+            progressButton.onClick.AddListener(OpenProgressPanel);
+        }
+
         if (abilityAcquireButton != null)
         {
             abilityAcquireButton.onClick.AddListener(UnlockSelectedAbility);
@@ -94,6 +101,7 @@ public class StatusDetailPanel : MonoBehaviour
         gameManager = manager;
         heroineStatus = heroine;
         playerStatus = manager != null ? manager.PlayerStatus : playerStatus;
+        InitializeProgressPanel();
         EnsureUiReferences();
     }
 
@@ -103,6 +111,7 @@ public class StatusDetailPanel : MonoBehaviour
         heroineStatus = heroine;
         timeManager = time;
         playerStatus = manager != null ? manager.PlayerStatus : playerStatus;
+        InitializeProgressPanel();
         EnsureUiReferences();
     }
 
@@ -124,12 +133,32 @@ public class StatusDetailPanel : MonoBehaviour
 
     public void Close()
     {
+        if (progressPanel != null)
+        {
+            progressPanel.Close();
+        }
         PanelRoot.SetActive(false);
     }
 
     public void RefreshStatusDisplay()
     {
         Refresh();
+        if (progressPanel != null)
+        {
+            progressPanel.RefreshDisplay();
+        }
+    }
+
+    public void OpenProgressPanel()
+    {
+        InitializeProgressPanel();
+        if (progressPanel == null)
+        {
+            Debug.LogWarning("StatusProgressPanel が設定されていないため、実績を表示できません。");
+            return;
+        }
+
+        progressPanel.Open();
     }
 
     public void ShowAbilityAcquirePanelForConditional()
@@ -797,6 +826,19 @@ public class StatusDetailPanel : MonoBehaviour
 
         Debug.LogWarning("StatusDetailPanel の UI 参照が不足しています。Hierarchy 上に UI を配置し、Inspector で参照を割り当ててください。");
         hasWarnedMissingReferences = true;
+    }
+
+    private void InitializeProgressPanel()
+    {
+        if (progressPanel == null)
+        {
+            progressPanel = GetComponentInChildren<StatusProgressPanel>(true);
+        }
+
+        if (progressPanel != null)
+        {
+            progressPanel.Initialize(gameManager);
+        }
     }
 
     private bool HasRequiredReferences()
