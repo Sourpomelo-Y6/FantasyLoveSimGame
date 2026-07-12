@@ -14,6 +14,7 @@ public class TrainingSessionState
     public int elapsedSteps;
     public int simultaneousKnockoutCount;
     public int totalStepAffectionReward;
+    public int totalStepTrainingProficiencyReward;
     public int playerLpConsumedCount;
     public int heroineLpConsumedCount;
     public List<TrainingProgressEntry> progressEntries = new List<TrainingProgressEntry>();
@@ -59,6 +60,8 @@ public class TrainingSessionState
         if (training != null)
         {
             totalStepAffectionReward += Math.Max(0, training.affectionRewardPerStep);
+            totalStepTrainingProficiencyReward +=
+                Math.Max(0, training.trainingProficiencyRewardPerStep);
         }
     }
 
@@ -139,6 +142,9 @@ public class TrainingSessionState
         entry.elapsedSteps++;
         entry.playerLpConsumedCount += playerLpConsumed;
         entry.opponentLpConsumedCount += heroineLpConsumed;
+        entry.trainingProficiencyReward += training != null
+            ? Math.Max(0, training.trainingProficiencyRewardPerStep)
+            : 0;
     }
 
     private void Clamp()
@@ -183,4 +189,5 @@ public class TrainingProgressEntry
     public int elapsedSteps;
     public int playerLpConsumedCount;
     public int opponentLpConsumedCount;
+    public int trainingProficiencyReward;
 }

@@ -27,7 +27,7 @@ MonoBehaviour:
   requiredAffection: 0
   requiredDay: 1
   requiredTrainingId: LightPractice
-  requiredTrainingProficiency: 5
+  requiredTrainingProficiency: 50
   requiredSkillIds:
   - PowerStrike
   canUseInBattle: 1

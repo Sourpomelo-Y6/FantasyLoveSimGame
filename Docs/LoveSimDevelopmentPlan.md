@@ -593,7 +593,7 @@ LP と訓練用 HP は訓練画面内の一時値から始める。
 `TrainingPanel` は HP/LP 終了時、途中終了時、進行中に閉じた時に一度だけ `GameManager.OnTrainingPanelResult(...)` へ結果を通知する。
 `TrainingData.affectionRewardPerStep` は進行ボタンを押して有効な 1 ステップを進めるたびに訓練セッションへ累積する。初期値は全訓練 `1` とし、中断しても進めたステップ分の好感度は反映する。`GameManager.OnTrainingPanelResult(...)` は完了かつ非中断の場合だけ `TrainingData.affectionReward` と同時 0 ボーナスを追加し、中断時は完了報酬を与えない。
 訓練結果は `ShowSystemMessage(...)` で画面に表示し、メッセージログにも残す。1 ステップ以上進めた訓練は、完了/中断に関わらず時間を 1 段階進める。
-訓練熟練度は `SaveData.trainingProficiencies` に `trainingId` ごとの値として保存し、完了時のみ `trainingProficiencyReward` を加算する。訓練完了後は `GameManager` が `SkillData` の好感度、日数、訓練熟練度、前提スキル条件を確認し、条件を満たしたスキルを `SaveData.unlockedSkillIds` へ自動解放する。
+訓練熟練度は `SaveData.trainingProficiencies` に `trainingId` ごとの値として保存する。有効な 1 ステップごとに `trainingProficiencyRewardPerStep` を加算し、初期訓練はすべて `1`。中断してもステップ分は保持し、完了かつ非中断の場合だけ従来の `trainingProficiencyReward` を倍率変更なしで完了ボーナスとして追加する。完了ボーナスは軽い稽古 `1`、実戦形式 `2`、持久訓練 `3`。訓練を途中で切り替えた場合は、各ステップで実際に選択していた `trainingId` へ熟練度を加算する。訓練ごとの熟練度上限は `999999`。結果反映後は `GameManager` が `SkillData` の好感度、日数、訓練熟練度、前提スキル条件を確認し、条件を満たしたスキルを `SaveData.unlockedSkillIds` へ自動解放する。
 `TrainingPanel` は訓練ボタンと選択中タイトルに現在の熟練度を表示する。
 まだ熟練度によるスキル解放、訓練メニューの段階変化、シーン配置の細かい見た目調整は次段階で扱う。
 
@@ -606,7 +606,7 @@ LP と訓練用 HP は訓練画面内の一時値から始める。
 実績集計基盤は実装済み。`TrainingData.trainingCategoryId`、`SaveData.skillProgressStats`、全体・訓練 ID 別・カテゴリー別の訓練回数と双方の LP 消費回数、全体・敵 ID 別のモンスター撃破数を保存する。訓練中にメニューを切り替えた場合も、各ステップで使用した訓練 ID とカテゴリーへ LP 消費を記録する。全体訓練回数は 1 セッションにつき 1 回、訓練 ID とカテゴリー別の回数は、そのセッションで 1 ステップ以上実行した対象ごとに各 1 回加算する。初期カテゴリーは `Fundamentals`、`Combat`、`Endurance`。予定戦闘の勝利時だけ撃破数を加算し、デバッグ戦闘、逃走、敗北は除外する。`GameManager.GetSkillProgressStats()` から表示用コピーを取得でき、集計時は `[SkillProgress]` ログを出力する。
 状態確認 UI のコード接続として `StatusProgressPanel` を追加済み。全体、カテゴリー別、訓練別、敵別の 4 表示をボタンで切り替え、訓練名と敵名は Resources 内のデータから表示名を解決する。`StatusDetailPanel.progressButton` から開き、`progressPanel` は状態詳細の子に置けば非アクティブ状態でも自動検出できる。`MainScene` には `StatusProgressPanel`、タイトル Text、スクロール可能な本文 Text、全体・カテゴリー・訓練・敵の切り替え Button、閉じる Button を配置し、Inspector 参照を割り当て済み。
 スキルポイント基盤は実装済み。主人公とヒロインのポイントを `SaveData.playerSkillPoints` / `heroineSkillPoints` に分けて保存し、旧セーブでは 0 として扱う。`TrainingData.playerSkillPointReward` / `heroineSkillPointReward` を完了かつ非中断の訓練結果にだけ加算し、結果メッセージと `StatusProgressPanel` の全体表示へ現在値を出す。初期報酬は軽い稽古が双方 1、実戦形式と持久訓練が双方 2。将来のスキルツリーは `GameManager.PlayerSkillPoints` / `HeroineSkillPoints` を参照し、`TrySpendPlayerSkillPoints(...)` / `TrySpendHeroineSkillPoints(...)` で不足・不正値を防いで消費する。モンスター撃破によるポイント報酬は未実装。
-好感度は小数型を使わず整数で管理し、上限を `9999` とする。従来の好感度、増減値、条件値はすべて10倍へ移行し、従来の100相当を1000とする。ランク境界は200、400、600、800、1000。`HeroineStatus.endingUnlockAffection` は1000とし、`maxAffection` から分離する。従来の `maxAffection = 100` は当時の全体上限を表していたため、通常会話や行動が1000以降で消えないよう新しい既定値は9999とする。1000以降は新しい解放条件を必須とせず、好感度の累積値として9999まで増加できる。セーブバージョンは10とし、旧尺度の好感度セーブとの互換性は保証しない。
+好感度は小数型を使わず整数で管理し、上限を `9999` とする。従来の好感度、増減値、条件値はすべて10倍へ移行し、従来の100相当を1000とする。ランク境界は200、400、600、800、1000。`HeroineStatus.endingUnlockAffection` は1000とし、`maxAffection` から分離する。従来の `maxAffection = 100` は当時の全体上限を表していたため、通常会話や行動が1000以降で消えないよう新しい既定値は9999とする。1000以降は新しい解放条件を必須とせず、好感度の累積値として9999まで増加できる。熟練度ステップ報酬追加後のセーブバージョンは11とし、旧尺度の好感度・熟練度セーブとの互換性は保証しない。
 
 スキルシステムは、現在の `StatusAbilityData` とは別の `SkillData` 系 ScriptableObject として拡張する。
 `StatusAbilityData` は画面機能や衣装確認モードなどの能力解放に使い、戦闘・訓練で選択する技や効果はスキルとして分ける。
@@ -621,7 +621,7 @@ LP と訓練用 HP は訓練画面内の一時値から始める。
 `SkillData`、`SkillCategory`、`SkillEffectType`、`SkillTargetType` は追加済み。
 スキルデータには、`skillId`、表示名、カテゴリ、説明、消費コスト、対象、効果種別、威力または回復量、解放条件、使用可能な戦闘種別を持たせる。
 初期確認用のスキルデータは `Assets/Resources/Skills` に `PowerStrike`、`GuardStance`、`FirstAid` を用意する。
-それぞれ `LightPractice` 熟練度 3、`EnduranceTraining` 熟練度 3、`SparringPractice` 熟練度 5 を解放条件にする。
+熟練度尺度の10倍化後は、`PowerStrike` が `LightPractice` 30、`GuardStance` が `EnduranceTraining` 30、`FirstAid` が `SparringPractice` 50を解放条件にする。`BattleFocus` は `LightPractice` 50、`ArmorBreak` は `EnduranceTraining` 50とする。
 戦闘用スキルは `BattlePanel` のコマンドとして表示し、汎用スキルはステータスやイベント条件で参照できるようにする。
 訓練用スキルは模擬戦闘で優先的に使い、勝敗だけでなく「うまく防げた」「連携できた」などの訓練結果に接続する。
 取得済みスキル ID は `SaveData.unlockedSkillIds` に保存し、`GameManager.IsSkillUnlocked(...)` / `UnlockSkill(...)` / `GetUnlockedSkillIds()` で扱う。

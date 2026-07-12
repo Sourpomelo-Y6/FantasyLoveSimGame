@@ -164,6 +164,12 @@ public class TrainingPanel : MonoBehaviour
                 "好感度 +" + currentTraining.affectionRewardPerStep +
                 "（今回 +" + currentState.totalStepAffectionReward + "）");
         }
+        if (currentTraining.trainingProficiencyRewardPerStep > 0)
+        {
+            AddLog(
+                "熟練度 +" + currentTraining.trainingProficiencyRewardPerStep +
+                "（今回 +" + currentState.totalStepTrainingProficiencyReward + "）");
+        }
 
         if (currentState.simultaneousKnockoutCount > previousSimultaneousCount)
         {

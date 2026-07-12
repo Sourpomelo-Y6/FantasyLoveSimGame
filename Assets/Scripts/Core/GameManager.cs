@@ -9,6 +9,7 @@ using UnityEngine.Serialization;
 
 public class GameManager : MonoBehaviour
 {
+    private const int MaxTrainingProficiency = 999999;
     private const string CommonScheduledEventResourcePath = "ScheduledEvents";
     private const string BattleResultEventResourcePath = "BattleResultEvents";
     private const string BattlePanelResultMessageResourcePath = "BattlePanelResultMessages";
@@ -2946,7 +2947,8 @@ public class GameManager : MonoBehaviour
         }
 
         int currentValue = GetTrainingProficiency(trainingId);
-        int nextValue = Mathf.Max(0, currentValue + value);
+        long total = (long)currentValue + value;
+        int nextValue = (int)Math.Max(0L, Math.Min(MaxTrainingProficiency, total));
         trainingProficiencies[trainingId] = nextValue;
         return nextValue;
     }
@@ -2964,7 +2966,7 @@ public class GameManager : MonoBehaviour
             entries.Add(new TrainingProficiencyEntry
             {
                 trainingId = pair.Key,
-                proficiency = Mathf.Max(0, pair.Value)
+                proficiency = Mathf.Clamp(pair.Value, 0, MaxTrainingProficiency)
             });
         }
 
@@ -2987,7 +2989,8 @@ public class GameManager : MonoBehaviour
                 continue;
             }
 
-            trainingProficiencies[entry.trainingId] = Mathf.Max(0, entry.proficiency);
+            trainingProficiencies[entry.trainingId] =
+                Mathf.Clamp(entry.proficiency, 0, MaxTrainingProficiency);
         }
     }
 
@@ -7144,11 +7147,7 @@ public class GameManager : MonoBehaviour
             RefreshStatusDetailPanel();
         }
 
-        if (ShouldApplyTrainingRewards(result) && result.trainingProficiencyReward != 0)
-        {
-            result.totalTrainingProficiency =
-                AddTrainingProficiency(result.trainingId, result.trainingProficiencyReward);
-        }
+        ApplyTrainingProficiencyRewards(result);
 
         if (ShouldApplyTrainingRewards(result))
         {
@@ -7185,6 +7184,39 @@ public class GameManager : MonoBehaviour
         return result != null && result.elapsedSteps > 0;
     }
 
+    private void ApplyTrainingProficiencyRewards(TrainingResult result)
+    {
+        if (result == null)
+        {
+            return;
+        }
+
+        if (result.progressEntries != null)
+        {
+            for (int i = 0; i < result.progressEntries.Count; i++)
+            {
+                TrainingProgressEntry progress = result.progressEntries[i];
+                if (progress == null ||
+                    string.IsNullOrEmpty(progress.trainingId) ||
+                    progress.trainingProficiencyReward <= 0)
+                {
+                    continue;
+                }
+
+                AddTrainingProficiency(
+                    progress.trainingId,
+                    progress.trainingProficiencyReward);
+            }
+        }
+
+        if (ShouldApplyTrainingRewards(result) && result.trainingProficiencyReward > 0)
+        {
+            AddTrainingProficiency(result.trainingId, result.trainingProficiencyReward);
+        }
+
+        result.totalTrainingProficiency = GetTrainingProficiency(result.trainingId);
+    }
+
     private void AdvanceTimeAfterTrainingResult()
     {
         pendingAdvanceTime = true;
@@ -7214,6 +7246,11 @@ public class GameManager : MonoBehaviour
         {
             message += "\nステップ好感度 +" + result.totalStepAffectionReward;
         }
+        if (result.totalStepTrainingProficiencyReward > 0)
+        {
+            message += "\nステップ熟練度 +" +
+                result.totalStepTrainingProficiencyReward;
+        }
 
         if (result.wasInterrupted)
         {
@@ -7228,7 +7265,7 @@ public class GameManager : MonoBehaviour
         message += "\n合計好感度 " + FormatSignedValue(result.totalAffectionReward);
         if (result.trainingProficiencyReward != 0)
         {
-            message += "\n訓練熟練度 " +
+            message += "\n完了熟練度 " +
                 FormatSignedValue(result.trainingProficiencyReward) +
                 "（現在 " +
                 result.totalTrainingProficiency +

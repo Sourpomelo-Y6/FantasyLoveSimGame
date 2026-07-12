@@ -22,6 +22,7 @@ public class TrainingData : ScriptableObject
     [Header("Rewards")]
     public int affectionRewardPerStep = 1;
     public int affectionReward = 0;
+    public int trainingProficiencyRewardPerStep = 1;
     public int trainingProficiencyReward = 1;
     public int playerSkillPointReward = 1;
     public int heroineSkillPointReward = 1;

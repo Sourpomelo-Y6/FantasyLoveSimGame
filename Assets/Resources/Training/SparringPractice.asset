@@ -22,6 +22,7 @@ MonoBehaviour:
   initialHeroineLp: 1
   affectionRewardPerStep: 1
   affectionReward: 20
+  trainingProficiencyRewardPerStep: 1
   trainingProficiencyReward: 2
   playerSkillPointReward: 2
   heroineSkillPointReward: 2

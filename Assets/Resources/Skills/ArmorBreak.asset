@@ -27,7 +27,7 @@ MonoBehaviour:
   requiredAffection: 0
   requiredDay: 1
   requiredTrainingId: EnduranceTraining
-  requiredTrainingProficiency: 5
+  requiredTrainingProficiency: 50
   requiredSkillIds:
   - GuardStance
   canUseInBattle: 1
