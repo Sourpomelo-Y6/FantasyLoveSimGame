@@ -20,8 +20,9 @@ MonoBehaviour:
   heroineHpCostPerStep: 8
   initialPlayerLp: 1
   initialHeroineLp: 1
-  affectionReward: 1
+  affectionRewardPerStep: 1
+  affectionReward: 10
   trainingProficiencyReward: 1
   playerSkillPointReward: 1
   heroineSkillPointReward: 1
-  simultaneousKnockoutBonus: 1
+  simultaneousKnockoutBonus: 10

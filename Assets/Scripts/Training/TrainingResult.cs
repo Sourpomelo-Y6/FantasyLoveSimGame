@@ -12,6 +12,7 @@ public class TrainingResult
     public int opponentLpConsumedCount;
     public List<TrainingProgressEntry> progressEntries = new List<TrainingProgressEntry>();
     public int affectionReward;
+    public int totalStepAffectionReward;
     public int trainingProficiencyReward;
     public int totalTrainingProficiency;
     public int playerSkillPointReward;
@@ -49,6 +50,7 @@ public class TrainingResult
         {
             result.elapsedSteps = state.elapsedSteps;
             result.simultaneousKnockoutCount = state.simultaneousKnockoutCount;
+            result.totalStepAffectionReward = state.totalStepAffectionReward;
             result.playerLpConsumedCount = state.playerLpConsumedCount;
             result.opponentLpConsumedCount = state.heroineLpConsumedCount;
             if (state.progressEntries != null)
@@ -75,9 +77,10 @@ public class TrainingResult
             result.isFinished = state.isFinished;
         }
 
+        result.totalAffectionReward = result.totalStepAffectionReward;
         if (result.isFinished && !result.wasInterrupted)
         {
-            result.totalAffectionReward =
+            result.totalAffectionReward +=
                 result.affectionReward +
                 result.simultaneousKnockoutBonus * result.simultaneousKnockoutCount;
         }

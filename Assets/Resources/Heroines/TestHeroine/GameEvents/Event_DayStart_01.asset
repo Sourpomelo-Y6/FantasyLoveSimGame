@@ -20,7 +20,7 @@ MonoBehaviour:
   minDay: 0
   maxDay: 0
   minAffection: 0
-  maxAffection: 100
+  maxAffection: 9999
   requiredShownEventIds: []
   blockedShownEventIds: []
   requiredOutfitIds:

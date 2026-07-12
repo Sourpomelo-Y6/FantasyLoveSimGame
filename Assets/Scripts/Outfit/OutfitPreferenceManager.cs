@@ -82,7 +82,7 @@ public class OutfitPreferenceManager : MonoBehaviour
 
                 if (heroineStatus != null)
                 {
-                    heroineStatus.AddAffection(1);
+                    heroineStatus.AddAffection(10);
                 }
 
                 return GetReactionMessage(
@@ -95,7 +95,7 @@ public class OutfitPreferenceManager : MonoBehaviour
 
                 if (heroineStatus != null)
                 {
-                    heroineStatus.AddAffection(-1);
+                    heroineStatus.AddAffection(-10);
                 }
 
                 return GetReactionMessage(

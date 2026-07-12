@@ -20,5 +20,5 @@ MonoBehaviour:
   description: "\u7279\u306B\u52B9\u679C\u306E\u306A\u3044\u30B9\u30AD\u30EB"
   sortOrder: 20
   isEnabled: 1
-  requiredAffection: 10
+  requiredAffection: 100
   requiredDay: 3

@@ -19,8 +19,8 @@ MonoBehaviour:
   choices: []
   priority: 100
   showOnce: 1
-  minAffection: 80
-  maxAffection: 100
+  minAffection: 800
+  maxAffection: 9999
   anyTimeSlot: 1
   allowedTimeSlots: 
   anySeason: 1

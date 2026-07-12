@@ -21,4 +21,4 @@ MonoBehaviour:
   eventMessage: 二人で洞窟へ向かいました。暗がりで声を掛け合うたび、距離が少し縮まります。
   stillId: Scheduled_DuoCave_01
   stillSprite: {fileID: 21300000, guid: 5c6fb3e6b88652b44ae9e0b0cf684c89, type: 3}
-  affectionChange: 3
+  affectionChange: 30

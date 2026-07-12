@@ -35,4 +35,4 @@ MonoBehaviour:
   anySeason: 1
   allowedSeasons: []
   minAffection: 0
-  maxAffection: 100
+  maxAffection: 9999

@@ -819,7 +819,7 @@ public static class HeroineAssetImporter
         conversation.priority = item.priority;
         conversation.showOnce = conditions.once;
         conversation.minAffection = Math.Max(0, conditions.minAffection);
-        conversation.maxAffection = conditions.maxAffection > 0 ? conditions.maxAffection : 100;
+        conversation.maxAffection = conditions.maxAffection > 0 ? conditions.maxAffection : 9999;
         conversation.costumeId = conditions.costumeId ?? string.Empty;
 
         ApplySingleEnumCondition(
@@ -856,7 +856,7 @@ public static class HeroineAssetImporter
         conversation.priority = item.priority;
         conversation.showOnce = conditions.once;
         conversation.minAffection = Math.Max(0, conditions.minAffection);
-        conversation.maxAffection = conditions.maxAffection > 0 ? conditions.maxAffection : 100;
+        conversation.maxAffection = conditions.maxAffection > 0 ? conditions.maxAffection : 9999;
         conversation.costumeId = conditions.costumeId ?? string.Empty;
 
         ApplySingleEnumCondition(
@@ -1836,7 +1836,7 @@ public static class HeroineAssetImporter
             advanceTime = conditions.advanceTime,
             priority = item.priority,
             minAffection = Math.Max(0, conditions.minAffection),
-            maxAffection = conditions.maxAffection > 0 ? conditions.maxAffection : 100,
+            maxAffection = conditions.maxAffection > 0 ? conditions.maxAffection : 9999,
             costumeId = conditions.costumeId ?? string.Empty
         };
 

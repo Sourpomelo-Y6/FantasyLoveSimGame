@@ -36,7 +36,7 @@ MonoBehaviour:
     advanceTime: 1
     priority: 0
     minAffection: 0
-    maxAffection: 100
+    maxAffection: 9999
     costumeId: 
     anyTimeSlot: 1
     allowedTimeSlots: 
@@ -54,4 +54,4 @@ MonoBehaviour:
   anySeason: 1
   allowedSeasons: 
   minAffection: 0
-  maxAffection: 100
+  maxAffection: 9999

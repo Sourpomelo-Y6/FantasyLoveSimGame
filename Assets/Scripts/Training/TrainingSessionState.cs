@@ -13,6 +13,7 @@ public class TrainingSessionState
     public int heroineLp;
     public int elapsedSteps;
     public int simultaneousKnockoutCount;
+    public int totalStepAffectionReward;
     public int playerLpConsumedCount;
     public int heroineLpConsumedCount;
     public List<TrainingProgressEntry> progressEntries = new List<TrainingProgressEntry>();
@@ -55,6 +56,10 @@ public class TrainingSessionState
         playerLpConsumedCount += playerLpConsumed;
         heroineLpConsumedCount += heroineLpConsumed;
         RecordProgress(training, playerLpConsumed, heroineLpConsumed);
+        if (training != null)
+        {
+            totalStepAffectionReward += Math.Max(0, training.affectionRewardPerStep);
+        }
     }
 
     public void Interrupt()

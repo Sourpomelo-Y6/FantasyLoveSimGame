@@ -28,7 +28,7 @@ public class ActionReactionData
 
     [Header("Affection Condition")]
     public int minAffection = 0;
-    public int maxAffection = 100;
+    public int maxAffection = 9999;
 
     [Header("Costume Condition")]
     public string costumeId;

@@ -10,7 +10,7 @@ public class EndingData : ScriptableObject
     public string message = "好感度MAXエンドです。あなたと過ごした日々を、私は忘れません。";
 
     public Sprite stillSprite;
-    public int requiredAffection = 100;
+    public int requiredAffection = 1000;
     public string costumeId;
     public string[] requiredShownEventIds;
 }

@@ -19,4 +19,4 @@ MonoBehaviour:
   eventSpeakerType: 0
   preparationMessage: 今日は昼に森へ出かける予定です。出発までに服装を整えられます。
   eventMessage: 森の中をゆっくり歩きました。木漏れ日の下で、少し気持ちが軽くなります。
-  affectionChange: 1
+  affectionChange: 10

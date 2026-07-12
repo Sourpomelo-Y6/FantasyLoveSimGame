@@ -33,7 +33,7 @@
 | 行動反応 | 天候・時間帯・季節・好感度で差分を切り替え |
 | 衣装システム | 着用中の衣装に対する反応と評価を保存 |
 | 時間経過 | 朝→昼→夜→翌日 |
-| 好感度 | 0〜100 |
+| 好感度 | 0〜9999。従来の値を10倍した整数尺度を使い、1000を従来の100相当として扱う |
 | 行動HP効果 | `ActionData` / `ActionReactionData` の `playerHpChange` と `heroineHpChange` で HP を増減できる。`休む` はプレイヤーとヒロインの HP を 20 回復する |
 | 背景切り替え | 時間帯・天候に応じて背景 Sprite を切り替え |
 | ゲームイベント | `GameStart` / `DayStart` / `Manual` の汎用イベント |
@@ -43,7 +43,7 @@
 | 買い物 | `DuoShopping` 予定から `ShopPanel` を開き、所持金消費、購入済み保存、衣装解放を行う |
 | 探索・戦闘 | 森、洞窟、湖の探索で敵候補を解決し、簡易戦闘または `BattlePanel` に接続できる |
 | 訓練・スキル | `TrainingPanel` で訓練を進め、好感度報酬と訓練熟練度を保存する。条件達成スキルを自動解放し、`SkillPanel` と `BattlePanel` で使える |
-| エンディング | 好感度100で `EndingScene` に遷移し、条件一致する `EndingData` を表示 |
+| エンディング | 好感度1000で入口を解放し、条件一致する `EndingData` を表示。好感度上限9999とは分離する |
 
 通常の起点は `TitleScene` で、そこから `MainScene` に進む構成を想定しています。
 
@@ -591,7 +591,7 @@ LP と訓練用 HP は訓練画面内の一時値から始める。
 行動ボタン用に `ActionExecutionType.OpenTrainingPanel` と `TrainingAction` を用意する。
 訓練終了結果は `TrainingResult` で扱い、`trainingId`、訓練名、経過ステップ数、同時 0 回数、中断フラグ、終了フラグを持たせる。
 `TrainingPanel` は HP/LP 終了時、途中終了時、進行中に閉じた時に一度だけ `GameManager.OnTrainingPanelResult(...)` へ結果を通知する。
-`GameManager.OnTrainingPanelResult(...)` は完了時のみ `TrainingData.affectionReward` と同時 0 ボーナスを好感度へ反映し、途中終了時は報酬なしにする。
+`TrainingData.affectionRewardPerStep` は進行ボタンを押して有効な 1 ステップを進めるたびに訓練セッションへ累積する。初期値は全訓練 `1` とし、中断しても進めたステップ分の好感度は反映する。`GameManager.OnTrainingPanelResult(...)` は完了かつ非中断の場合だけ `TrainingData.affectionReward` と同時 0 ボーナスを追加し、中断時は完了報酬を与えない。
 訓練結果は `ShowSystemMessage(...)` で画面に表示し、メッセージログにも残す。1 ステップ以上進めた訓練は、完了/中断に関わらず時間を 1 段階進める。
 訓練熟練度は `SaveData.trainingProficiencies` に `trainingId` ごとの値として保存し、完了時のみ `trainingProficiencyReward` を加算する。訓練完了後は `GameManager` が `SkillData` の好感度、日数、訓練熟練度、前提スキル条件を確認し、条件を満たしたスキルを `SaveData.unlockedSkillIds` へ自動解放する。
 `TrainingPanel` は訓練ボタンと選択中タイトルに現在の熟練度を表示する。
@@ -606,6 +606,7 @@ LP と訓練用 HP は訓練画面内の一時値から始める。
 実績集計基盤は実装済み。`TrainingData.trainingCategoryId`、`SaveData.skillProgressStats`、全体・訓練 ID 別・カテゴリー別の訓練回数と双方の LP 消費回数、全体・敵 ID 別のモンスター撃破数を保存する。訓練中にメニューを切り替えた場合も、各ステップで使用した訓練 ID とカテゴリーへ LP 消費を記録する。全体訓練回数は 1 セッションにつき 1 回、訓練 ID とカテゴリー別の回数は、そのセッションで 1 ステップ以上実行した対象ごとに各 1 回加算する。初期カテゴリーは `Fundamentals`、`Combat`、`Endurance`。予定戦闘の勝利時だけ撃破数を加算し、デバッグ戦闘、逃走、敗北は除外する。`GameManager.GetSkillProgressStats()` から表示用コピーを取得でき、集計時は `[SkillProgress]` ログを出力する。
 状態確認 UI のコード接続として `StatusProgressPanel` を追加済み。全体、カテゴリー別、訓練別、敵別の 4 表示をボタンで切り替え、訓練名と敵名は Resources 内のデータから表示名を解決する。`StatusDetailPanel.progressButton` から開き、`progressPanel` は状態詳細の子に置けば非アクティブ状態でも自動検出できる。`MainScene` には `StatusProgressPanel`、タイトル Text、スクロール可能な本文 Text、全体・カテゴリー・訓練・敵の切り替え Button、閉じる Button を配置し、Inspector 参照を割り当て済み。
 スキルポイント基盤は実装済み。主人公とヒロインのポイントを `SaveData.playerSkillPoints` / `heroineSkillPoints` に分けて保存し、旧セーブでは 0 として扱う。`TrainingData.playerSkillPointReward` / `heroineSkillPointReward` を完了かつ非中断の訓練結果にだけ加算し、結果メッセージと `StatusProgressPanel` の全体表示へ現在値を出す。初期報酬は軽い稽古が双方 1、実戦形式と持久訓練が双方 2。将来のスキルツリーは `GameManager.PlayerSkillPoints` / `HeroineSkillPoints` を参照し、`TrySpendPlayerSkillPoints(...)` / `TrySpendHeroineSkillPoints(...)` で不足・不正値を防いで消費する。モンスター撃破によるポイント報酬は未実装。
+好感度は小数型を使わず整数で管理し、上限を `9999` とする。従来の好感度、増減値、条件値はすべて10倍へ移行し、従来の100相当を1000とする。ランク境界は200、400、600、800、1000。`HeroineStatus.endingUnlockAffection` は1000とし、`maxAffection` から分離する。従来の `maxAffection = 100` は当時の全体上限を表していたため、通常会話や行動が1000以降で消えないよう新しい既定値は9999とする。1000以降は新しい解放条件を必須とせず、好感度の累積値として9999まで増加できる。セーブバージョンは10とし、旧尺度の好感度セーブとの互換性は保証しない。
 
 スキルシステムは、現在の `StatusAbilityData` とは別の `SkillData` 系 ScriptableObject として拡張する。
 `StatusAbilityData` は画面機能や衣装確認モードなどの能力解放に使い、戦闘・訓練で選択する技や効果はスキルとして分ける。

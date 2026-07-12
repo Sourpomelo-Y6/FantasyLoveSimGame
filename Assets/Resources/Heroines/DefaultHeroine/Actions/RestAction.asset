@@ -37,7 +37,7 @@ MonoBehaviour:
     advanceTime: 1
     priority: 20
     minAffection: 0
-    maxAffection: 100
+    maxAffection: 9999
     anyTimeSlot: 0
     allowedTimeSlots: 02000000
     anyWeather: 1
@@ -53,4 +53,4 @@ MonoBehaviour:
   anySeason: 1
   allowedSeasons:
   minAffection: 0
-  maxAffection: 100
+  maxAffection: 9999

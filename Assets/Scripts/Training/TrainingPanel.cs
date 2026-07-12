@@ -158,6 +158,12 @@ public class TrainingPanel : MonoBehaviour
             "Step " + currentState.elapsedSteps +
             ": 主人公 -" + currentTraining.playerHpCostPerStep +
             " / ヒロイン -" + currentTraining.heroineHpCostPerStep);
+        if (currentTraining.affectionRewardPerStep > 0)
+        {
+            AddLog(
+                "好感度 +" + currentTraining.affectionRewardPerStep +
+                "（今回 +" + currentState.totalStepAffectionReward + "）");
+        }
 
         if (currentState.simultaneousKnockoutCount > previousSimultaneousCount)
         {

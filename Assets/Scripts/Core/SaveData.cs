@@ -4,7 +4,7 @@ using System.Collections.Generic;
 [Serializable]
 public class SaveData
 {
-    public int saveVersion = 9;
+    public int saveVersion = 10;
     public int saveSlotIndex;
     public string savedAt;
     public string heroineId;

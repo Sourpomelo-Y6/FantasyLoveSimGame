@@ -38,7 +38,7 @@ public class ConversationDataItem
 
     [Header("Affection Condition")]
     public int minAffection = 0;
-    public int maxAffection = 100;
+    public int maxAffection = 9999;
 
     [Header("Costume Condition")]
     public string costumeId;
@@ -85,7 +85,7 @@ public class ConversationData : ScriptableObject
 
     [Header("Affection Condition")]
     public int minAffection = 0;
-    public int maxAffection = 100;
+    public int maxAffection = 9999;
 
     [Header("Costume Condition")]
     public string costumeId;

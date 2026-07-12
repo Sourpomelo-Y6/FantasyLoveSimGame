@@ -19,4 +19,4 @@ MonoBehaviour:
   eventSpeakerType: 0
   preparationMessage: 今日は昼に洞窟へ向かう予定です。動きやすい服にしておくとよさそうです。
   eventMessage: 洞窟の入口まで足を運びました。ひんやりした空気に、少し冒険の気配を感じます。
-  affectionChange: 1
+  affectionChange: 10

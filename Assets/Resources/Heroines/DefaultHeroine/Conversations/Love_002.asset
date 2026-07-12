@@ -19,17 +19,17 @@ MonoBehaviour:
   choices:
   - choiceText: "\u4E00\u7DD2\u306B\u3044\u308B\u3068\u5B89\u5FC3\u3067\u304D\u308B\u4EBA"
     responseText: "\u2026\u2026\u305D\u308C\u306F\u3001\u3068\u3066\u3082\u7D20\u6575\u3067\u3059\u306D\u3002\u79C1\u3082\u305D\u3046\u601D\u3044\u307E\u3059\u3002"
-    affectionChange: 8
+    affectionChange: 80
   - choiceText: "\u56F0\u3063\u305F\u6642\u306B\u52A9\u3051\u3066\u304F\u308C\u308B\u4EBA"
     responseText: "\u652F\u3048\u5408\u3048\u308B\u95A2\u4FC2\u3063\u3066\u3001\u304D\u3063\u3068\u5927\u5207\u3067\u3059\u3088\u306D\u3002"
-    affectionChange: 5
+    affectionChange: 50
   - choiceText: "\u307E\u3060\u3088\u304F\u5206\u304B\u3089\u306A\u3044"
     responseText: "\u305D\u3046\u3067\u3059\u304B\u3002\u6025\u3044\u3067\u7B54\u3048\u3092\u51FA\u3059\u3082\u306E\u3067\u3082\u306A\u3044\u306E\u304B\u3082\u3057\u308C\u307E\u305B\u3093\u306D\u3002"
-    affectionChange: 1
+    affectionChange: 10
   priority: 0
   showOnce: 0
   minAffection: 0
-  maxAffection: 100
+  maxAffection: 9999
   anyTimeSlot: 1
   allowedTimeSlots: 
   anySeason: 1

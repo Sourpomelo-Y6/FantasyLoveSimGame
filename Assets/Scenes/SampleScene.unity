@@ -1186,7 +1186,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   heroineName: "\u30D2\u30ED\u30A4\u30F3"
   affection: 0
-  maxAffection: 100
+  maxAffection: 9999
+  endingUnlockAffection: 1000
 --- !u!4 &507334146
 Transform:
   m_ObjectHideFlags: 0

@@ -2045,7 +2045,7 @@ public class GameManager : MonoBehaviour
 
     private void FinishSimpleConversation()
     {
-        heroineStatus.AddAffection(2);
+        heroineStatus.AddAffection(20);
 
         if (IsNightBeforeAdvance())
         {
@@ -4565,19 +4565,19 @@ public class GameManager : MonoBehaviour
 
         if (reactionType == OutfitReactionType.Praise)
         {
-            heroineStatus.AddAffection(1);
+            heroineStatus.AddAffection(10);
             return message + "\nDuo schedule bonus: praise feels stronger today.";
         }
 
         if (reactionType == OutfitReactionType.Dislike)
         {
-            heroineStatus.AddAffection(-1);
+            heroineStatus.AddAffection(-10);
             return message + "\nDuo schedule penalty: the reaction lands harder today.";
         }
 
         if (reactionType == OutfitReactionType.Bored)
         {
-            heroineStatus.AddAffection(-1);
+            heroineStatus.AddAffection(-10);
             return message + "\nDuo schedule penalty: boredom is less welcome today.";
         }
 
@@ -7210,17 +7210,22 @@ public class GameManager : MonoBehaviour
             "\nステップ数: " + result.elapsedSteps +
             "\n同時限界: " + result.simultaneousKnockoutCount + "回";
 
+        if (result.totalStepAffectionReward > 0)
+        {
+            message += "\nステップ好感度 +" + result.totalStepAffectionReward;
+        }
+
         if (result.wasInterrupted)
         {
-            return message + "\n途中終了のため報酬なし";
+            return message + "\n途中終了のため完了報酬なし";
         }
 
         if (!result.isFinished)
         {
-            return message + "\n未完了のため報酬なし";
+            return message + "\n未完了のため完了報酬なし";
         }
 
-        message += "\n好感度 " + FormatSignedValue(result.totalAffectionReward);
+        message += "\n合計好感度 " + FormatSignedValue(result.totalAffectionReward);
         if (result.trainingProficiencyReward != 0)
         {
             message += "\n訓練熟練度 " +

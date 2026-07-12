@@ -19,8 +19,8 @@ MonoBehaviour:
   sortOrder: 80
   minDay: 0
   maxDay: 0
-  minAffection: 20
-  maxAffection: 100
+  minAffection: 200
+  maxAffection: 9999
   requiredShownEventIds: []
   blockedShownEventIds: []
   requiredOutfitIds: []

@@ -7,7 +7,8 @@ public class HeroineStatus : MonoBehaviour
 
     [Header("Affection")]
     [SerializeField] private int affection = 0;
-    [SerializeField] private int maxAffection = 100;
+    [SerializeField] private int maxAffection = 9999;
+    [SerializeField] private int endingUnlockAffection = 1000;
 
     [Header("Battle")]
     [SerializeField] private BattleStatusData battleStatus = new BattleStatusData
@@ -25,6 +26,7 @@ public class HeroineStatus : MonoBehaviour
     public string HeroineName => heroineName;
     public int Affection => affection;
     public int MaxAffection => maxAffection;
+    public int EndingUnlockAffection => endingUnlockAffection;
     public BattleStatusData BattleStatus => battleStatus;
     public int CurrentHp => battleStatus != null ? battleStatus.currentHp : 0;
     public int MaxHp => battleStatus != null ? battleStatus.maxHp : 0;
@@ -91,7 +93,10 @@ public class HeroineStatus : MonoBehaviour
 
     public void AddAffection(int value)
     {
-        affection += value;
+        long nextValue = (long)affection + value;
+        affection = nextValue > int.MaxValue
+            ? int.MaxValue
+            : nextValue < int.MinValue ? int.MinValue : (int)nextValue;
         ClampAffection();
     }
 
@@ -103,32 +108,32 @@ public class HeroineStatus : MonoBehaviour
 
     public bool CanEnding()
     {
-        return affection >= maxAffection;
+        return affection >= endingUnlockAffection;
     }
 
     public string GetAffectionRankName()
     {
-        if (affection >= 100)
+        if (affection >= 1000)
         {
             return "好感度MAX";
         }
 
-        if (affection >= 80)
+        if (affection >= 800)
         {
             return "かなり親密";
         }
 
-        if (affection >= 60)
+        if (affection >= 600)
         {
             return "気になる相手";
         }
 
-        if (affection >= 40)
+        if (affection >= 400)
         {
             return "仲の良い友人";
         }
 
-        if (affection >= 20)
+        if (affection >= 200)
         {
             return "友人";
         }
@@ -138,6 +143,12 @@ public class HeroineStatus : MonoBehaviour
 
     private void ClampAffection()
     {
+        if (maxAffection < 1)
+        {
+            maxAffection = 9999;
+        }
+
+        endingUnlockAffection = Mathf.Clamp(endingUnlockAffection, 0, maxAffection);
         if (affection < 0)
         {
             affection = 0;

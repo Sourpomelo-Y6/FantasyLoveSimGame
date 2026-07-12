@@ -19,4 +19,4 @@ MonoBehaviour:
   eventSpeakerType: 0
   preparationMessage: 今日は家で過ごす予定です。くつろげる服に着替えてもよさそうです。
   eventMessage: 家でゆっくり過ごしました。落ち着いた時間の中で、自然に会話が続きます。
-  affectionChange: 2
+  affectionChange: 20

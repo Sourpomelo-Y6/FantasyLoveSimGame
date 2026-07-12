@@ -19,7 +19,7 @@ MonoBehaviour:
   resultMessage: "\u30D2\u30ED\u30A4\u30F3\u306B\u5C0F\u3055\u306A\u8D08\u308A\u7269\u3092\u6E21\u3057\u307E\u3057\u305F\u3002\u5B09\u3057\u305D\u3046\u306B\u53D7\u3051\u53D6\u3063\u3066\u304F\u308C\u307E\u3057\u305F\u3002"
   unavailableMessage: "\u4ECA\u306F\u3053\u306E\u884C\u52D5\u306F\u3067\u304D\u307E\u305B\u3093\u3002"
   useHeroineNameAsSpeaker: 1
-  affectionChange: 5
+  affectionChange: 50
   advanceTime: 1
   reactions: []
   sortOrder: 50
@@ -31,4 +31,4 @@ MonoBehaviour:
   anySeason: 1
   allowedSeasons: 
   minAffection: 0
-  maxAffection: 100
+  maxAffection: 9999
