@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 
 [Serializable]
 public class TrainingSessionState
@@ -12,6 +13,9 @@ public class TrainingSessionState
     public int heroineLp;
     public int elapsedSteps;
     public int simultaneousKnockoutCount;
+    public int playerLpConsumedCount;
+    public int heroineLpConsumedCount;
+    public List<TrainingProgressEntry> progressEntries = new List<TrainingProgressEntry>();
     public bool wasInterrupted;
     public bool isFinished;
 
@@ -39,10 +43,18 @@ public class TrainingSessionState
             return;
         }
 
+        int previousPlayerLp = playerLp;
+        int previousHeroineLp = heroineLp;
         elapsedSteps++;
         playerHp -= training != null ? training.playerHpCostPerStep : 0;
         heroineHp -= training != null ? training.heroineHpCostPerStep : 0;
         ResolveHpAndLp();
+
+        int playerLpConsumed = Math.Max(0, previousPlayerLp - playerLp);
+        int heroineLpConsumed = Math.Max(0, previousHeroineLp - heroineLp);
+        playerLpConsumedCount += playerLpConsumed;
+        heroineLpConsumedCount += heroineLpConsumed;
+        RecordProgress(training, playerLpConsumed, heroineLpConsumed);
     }
 
     public void Interrupt()
@@ -93,6 +105,37 @@ public class TrainingSessionState
         }
     }
 
+    private void RecordProgress(TrainingData training, int playerLpConsumed, int heroineLpConsumed)
+    {
+        string currentTrainingId = training != null ? training.trainingId : trainingId;
+        string categoryId = training != null ? training.trainingCategoryId : string.Empty;
+        TrainingProgressEntry entry = null;
+        for (int i = 0; i < progressEntries.Count; i++)
+        {
+            TrainingProgressEntry candidate = progressEntries[i];
+            if (candidate != null &&
+                string.Equals(candidate.trainingId, currentTrainingId, StringComparison.Ordinal))
+            {
+                entry = candidate;
+                break;
+            }
+        }
+
+        if (entry == null)
+        {
+            entry = new TrainingProgressEntry
+            {
+                trainingId = currentTrainingId,
+                trainingCategoryId = categoryId
+            };
+            progressEntries.Add(entry);
+        }
+
+        entry.elapsedSteps++;
+        entry.playerLpConsumedCount += playerLpConsumed;
+        entry.opponentLpConsumedCount += heroineLpConsumed;
+    }
+
     private void Clamp()
     {
         if (playerMaxHp < 1)
@@ -125,4 +168,14 @@ public class TrainingSessionState
             heroineLp = 0;
         }
     }
+}
+
+[Serializable]
+public class TrainingProgressEntry
+{
+    public string trainingId;
+    public string trainingCategoryId;
+    public int elapsedSteps;
+    public int playerLpConsumedCount;
+    public int opponentLpConsumedCount;
 }

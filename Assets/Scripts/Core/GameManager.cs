@@ -266,6 +266,7 @@ public class GameManager : MonoBehaviour
     private readonly Dictionary<string, int> itemQuantities = new Dictionary<string, int>();
     private readonly HashSet<string> unlockedOutfitIds = new HashSet<string>();
     private readonly Dictionary<string, int> trainingProficiencies = new Dictionary<string, int>();
+    private readonly SkillProgressStats skillProgressStats = new SkillProgressStats();
     private readonly Queue<DialogueMessage> queuedDialogueMessages = new Queue<DialogueMessage>();
     private readonly List<DialogueMessage> pendingScheduledEventFollowUpMessages = new List<DialogueMessage>();
     private readonly List<MessageLogPanel.MessageLogEntry> messageLogEntries =
@@ -2291,6 +2292,7 @@ public class GameManager : MonoBehaviour
         saveData.itemQuantities = CreateItemQuantitySaveData();
         saveData.unlockedOutfitIds = new List<string>(unlockedOutfitIds);
         saveData.trainingProficiencies = CreateTrainingProficiencySaveData();
+        saveData.skillProgressStats = skillProgressStats.Clone();
 
         saveData.shownConversationIds = new List<string>(shownConversationIds);
         saveData.shownGameEventIds = new List<string>(shownGameEventIds);
@@ -2454,6 +2456,7 @@ public class GameManager : MonoBehaviour
         ApplyPurchasedItemOutfitUnlocks();
         ApplyUnlockedOutfitsToManager();
         LoadTrainingProficiencies(saveData.trainingProficiencies);
+        skillProgressStats.CopyFrom(saveData.skillProgressStats);
         UnlockAvailableSkills();
 
         outfitPreferenceManager.SetPreferences(saveData.outfitPreferences);
@@ -2735,6 +2738,153 @@ public class GameManager : MonoBehaviour
         return trainingProficiencies.TryGetValue(trainingId, out int value)
             ? value
             : 0;
+    }
+
+    public SkillProgressStats GetSkillProgressStats()
+    {
+        return skillProgressStats.Clone();
+    }
+
+    private void RecordTrainingProgress(TrainingResult result)
+    {
+        if (result == null || result.elapsedSteps <= 0)
+        {
+            return;
+        }
+
+        skillProgressStats.totalTrainingCount++;
+        skillProgressStats.playerLpConsumedCount += Math.Max(0, result.playerLpConsumedCount);
+        skillProgressStats.opponentLpConsumedCount += Math.Max(0, result.opponentLpConsumedCount);
+
+        HashSet<string> countedTrainingIds = new HashSet<string>();
+        Dictionary<string, TrainingCategoryProgressStatEntry> categoryChanges =
+            new Dictionary<string, TrainingCategoryProgressStatEntry>();
+        if (result.progressEntries != null)
+        {
+            for (int i = 0; i < result.progressEntries.Count; i++)
+            {
+                TrainingProgressEntry progress = result.progressEntries[i];
+                if (progress == null || progress.elapsedSteps <= 0)
+                {
+                    continue;
+                }
+
+                if (!string.IsNullOrEmpty(progress.trainingId))
+                {
+                    TrainingProgressStatEntry trainingStat =
+                        GetOrCreateTrainingProgressStat(progress.trainingId);
+                    if (countedTrainingIds.Add(progress.trainingId))
+                    {
+                        trainingStat.trainingCount++;
+                    }
+                    trainingStat.playerLpConsumedCount += Math.Max(0, progress.playerLpConsumedCount);
+                    trainingStat.opponentLpConsumedCount += Math.Max(0, progress.opponentLpConsumedCount);
+                }
+
+                if (!string.IsNullOrEmpty(progress.trainingCategoryId))
+                {
+                    if (!categoryChanges.TryGetValue(
+                        progress.trainingCategoryId,
+                        out TrainingCategoryProgressStatEntry categoryChange))
+                    {
+                        categoryChange = new TrainingCategoryProgressStatEntry
+                        {
+                            trainingCategoryId = progress.trainingCategoryId,
+                            trainingCount = 1
+                        };
+                        categoryChanges.Add(progress.trainingCategoryId, categoryChange);
+                    }
+
+                    categoryChange.playerLpConsumedCount +=
+                        Math.Max(0, progress.playerLpConsumedCount);
+                    categoryChange.opponentLpConsumedCount +=
+                        Math.Max(0, progress.opponentLpConsumedCount);
+                }
+            }
+        }
+
+        foreach (KeyValuePair<string, TrainingCategoryProgressStatEntry> pair in categoryChanges)
+        {
+            TrainingCategoryProgressStatEntry categoryStat =
+                GetOrCreateTrainingCategoryProgressStat(pair.Key);
+            categoryStat.trainingCount += pair.Value.trainingCount;
+            categoryStat.playerLpConsumedCount += pair.Value.playerLpConsumedCount;
+            categoryStat.opponentLpConsumedCount += pair.Value.opponentLpConsumedCount;
+        }
+
+        Debug.Log(
+            "[SkillProgress] Training=" + skillProgressStats.totalTrainingCount +
+            " / PlayerLp=" + skillProgressStats.playerLpConsumedCount +
+            " / OpponentLp=" + skillProgressStats.opponentLpConsumedCount);
+    }
+
+    private TrainingProgressStatEntry GetOrCreateTrainingProgressStat(string trainingId)
+    {
+        for (int i = 0; i < skillProgressStats.trainingStats.Count; i++)
+        {
+            TrainingProgressStatEntry entry = skillProgressStats.trainingStats[i];
+            if (entry != null && string.Equals(entry.trainingId, trainingId, StringComparison.Ordinal))
+            {
+                return entry;
+            }
+        }
+
+        TrainingProgressStatEntry created = new TrainingProgressStatEntry { trainingId = trainingId };
+        skillProgressStats.trainingStats.Add(created);
+        return created;
+    }
+
+    private TrainingCategoryProgressStatEntry GetOrCreateTrainingCategoryProgressStat(
+        string trainingCategoryId)
+    {
+        for (int i = 0; i < skillProgressStats.trainingCategoryStats.Count; i++)
+        {
+            TrainingCategoryProgressStatEntry entry = skillProgressStats.trainingCategoryStats[i];
+            if (entry != null && string.Equals(
+                entry.trainingCategoryId,
+                trainingCategoryId,
+                StringComparison.Ordinal))
+            {
+                return entry;
+            }
+        }
+
+        TrainingCategoryProgressStatEntry created = new TrainingCategoryProgressStatEntry
+        {
+            trainingCategoryId = trainingCategoryId
+        };
+        skillProgressStats.trainingCategoryStats.Add(created);
+        return created;
+    }
+
+    private void RecordMonsterDefeat(string enemyId)
+    {
+        skillProgressStats.totalMonsterDefeatCount++;
+        if (!string.IsNullOrEmpty(enemyId))
+        {
+            EnemyDefeatStatEntry enemyStat = null;
+            for (int i = 0; i < skillProgressStats.enemyDefeatStats.Count; i++)
+            {
+                EnemyDefeatStatEntry candidate = skillProgressStats.enemyDefeatStats[i];
+                if (candidate != null &&
+                    string.Equals(candidate.enemyId, enemyId, StringComparison.Ordinal))
+                {
+                    enemyStat = candidate;
+                    break;
+                }
+            }
+
+            if (enemyStat == null)
+            {
+                enemyStat = new EnemyDefeatStatEntry { enemyId = enemyId };
+                skillProgressStats.enemyDefeatStats.Add(enemyStat);
+            }
+            enemyStat.defeatCount++;
+        }
+
+        Debug.Log(
+            "[SkillProgress] MonsterDefeats=" + skillProgressStats.totalMonsterDefeatCount +
+            " / EnemyId=" + enemyId);
     }
 
     private int AddTrainingProficiency(string trainingId, int value)
@@ -6908,6 +7058,7 @@ public class GameManager : MonoBehaviour
             return;
         }
 
+        RecordTrainingProgress(result);
         ApplyTrainingResultRewards(result);
 
         Debug.Log(
@@ -7090,6 +7241,10 @@ public class GameManager : MonoBehaviour
         bool isScheduledBattleResult = waitingForBattlePanelScheduledEvent && pendingBattlePanelScheduledEvent != null;
         bool isDuoExploration = isScheduledBattleResult &&
             IsDuoExplorationSchedule(pendingBattlePanelScheduledEvent.ScheduleType);
+        if (isScheduledBattleResult && result.resultType == BattlePanel.BattleResultType.Victory)
+        {
+            RecordMonsterDefeat(result.enemyId);
+        }
         List<string> recoveryMessages = ApplyBattlePanelResultStatus(result);
         string resultMessage = ResolveBattlePanelResultMessage(result);
         lastBattlePanelSimpleResult = ConvertBattlePanelResultToSimpleBattleResult(

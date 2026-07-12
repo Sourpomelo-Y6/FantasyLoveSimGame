@@ -5,6 +5,7 @@ public class TrainingData : ScriptableObject
 {
     [Header("Basic")]
     public string trainingId = "Training";
+    public string trainingCategoryId = "General";
     public string displayName = "訓練";
 
     [TextArea(2, 5)]
