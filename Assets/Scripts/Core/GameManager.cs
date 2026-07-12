@@ -10,6 +10,7 @@ using UnityEngine.Serialization;
 public class GameManager : MonoBehaviour
 {
     private const int MaxTrainingProficiency = 999999;
+    private const string SkillTreeNodeResourcePath = "SkillTreeNodes";
     private const string CommonScheduledEventResourcePath = "ScheduledEvents";
     private const string BattleResultEventResourcePath = "BattleResultEvents";
     private const string BattlePanelResultMessageResourcePath = "BattlePanelResultMessages";
@@ -262,6 +263,8 @@ public class GameManager : MonoBehaviour
     private readonly HashSet<string> shownGameEventIds = new HashSet<string>();
     private readonly HashSet<string> unlockedStatusAbilityIds = new HashSet<string>();
     private readonly HashSet<string> unlockedSkillIds = new HashSet<string>();
+    private readonly HashSet<string> acquiredPlayerSkillTreeNodeIds = new HashSet<string>();
+    private readonly HashSet<string> acquiredHeroineSkillTreeNodeIds = new HashSet<string>();
     private readonly HashSet<string> unlockedStillIds = new HashSet<string>();
     private readonly HashSet<string> purchasedItemIds = new HashSet<string>();
     private readonly Dictionary<string, int> itemQuantities = new Dictionary<string, int>();
@@ -2298,6 +2301,10 @@ public class GameManager : MonoBehaviour
         saveData.skillProgressStats = skillProgressStats.Clone();
         saveData.playerSkillPoints = Mathf.Max(0, playerSkillPoints);
         saveData.heroineSkillPoints = Mathf.Max(0, heroineSkillPoints);
+        saveData.acquiredPlayerSkillTreeNodeIds =
+            new List<string>(acquiredPlayerSkillTreeNodeIds);
+        saveData.acquiredHeroineSkillTreeNodeIds =
+            new List<string>(acquiredHeroineSkillTreeNodeIds);
 
         saveData.shownConversationIds = new List<string>(shownConversationIds);
         saveData.shownGameEventIds = new List<string>(shownGameEventIds);
@@ -2464,6 +2471,12 @@ public class GameManager : MonoBehaviour
         skillProgressStats.CopyFrom(saveData.skillProgressStats);
         playerSkillPoints = Mathf.Max(0, saveData.playerSkillPoints);
         heroineSkillPoints = Mathf.Max(0, saveData.heroineSkillPoints);
+        LoadSkillTreeNodeIds(
+            acquiredPlayerSkillTreeNodeIds,
+            saveData.acquiredPlayerSkillTreeNodeIds);
+        LoadSkillTreeNodeIds(
+            acquiredHeroineSkillTreeNodeIds,
+            saveData.acquiredHeroineSkillTreeNodeIds);
         UnlockAvailableSkills();
 
         outfitPreferenceManager.SetPreferences(saveData.outfitPreferences);
@@ -2576,6 +2589,261 @@ public class GameManager : MonoBehaviour
     public List<SkillData> GetSkills()
     {
         return new List<SkillData>(GetSkillDataList());
+    }
+
+    public List<SkillTreeNodeData> GetSkillTreeNodes()
+    {
+        List<SkillTreeNodeData> nodes = new List<SkillTreeNodeData>(
+            Resources.LoadAll<SkillTreeNodeData>(SkillTreeNodeResourcePath));
+        nodes.RemoveAll(node => node == null || string.IsNullOrEmpty(node.nodeId));
+        nodes.Sort((a, b) =>
+        {
+            int ownerComparison = a.owner.CompareTo(b.owner);
+            return ownerComparison != 0
+                ? ownerComparison
+                : a.sortOrder.CompareTo(b.sortOrder);
+        });
+        return nodes;
+    }
+
+    public List<string> GetAcquiredSkillTreeNodeIds(SkillTreeOwner owner)
+    {
+        List<string> nodeIds = new List<string>(GetSkillTreeNodeSet(owner));
+        nodeIds.Sort(StringComparer.Ordinal);
+        return nodeIds;
+    }
+
+    public bool IsSkillTreeNodeAcquired(string nodeId, SkillTreeOwner owner)
+    {
+        return !string.IsNullOrEmpty(nodeId) && GetSkillTreeNodeSet(owner).Contains(nodeId);
+    }
+
+    public SkillTreeNodeEvaluation EvaluateSkillTreeNode(SkillTreeNodeData node)
+    {
+        SkillTreeNodeEvaluation evaluation = new SkillTreeNodeEvaluation
+        {
+            node = node,
+            state = SkillTreeNodeState.Locked
+        };
+        if (node == null || string.IsNullOrEmpty(node.nodeId))
+        {
+            return evaluation;
+        }
+
+        evaluation.currentSkillPoints = node.owner == SkillTreeOwner.Player
+            ? playerSkillPoints
+            : heroineSkillPoints;
+        evaluation.requiredSkillPoints = Mathf.Max(0, node.skillPointCost);
+        if (IsSkillTreeNodeAcquired(node.nodeId, node.owner))
+        {
+            evaluation.state = SkillTreeNodeState.Acquired;
+            return evaluation;
+        }
+
+        if (node.prerequisiteNodes != null)
+        {
+            for (int i = 0; i < node.prerequisiteNodes.Count; i++)
+            {
+                SkillTreeNodeData prerequisite = node.prerequisiteNodes[i];
+                if (prerequisite != null &&
+                    !IsSkillTreeNodeAcquired(prerequisite.nodeId, prerequisite.owner))
+                {
+                    evaluation.missingPrerequisiteNodeIds.Add(prerequisite.nodeId);
+                }
+            }
+        }
+
+        bool conditionsMet = true;
+        if (node.unlockConditions != null)
+        {
+            for (int i = 0; i < node.unlockConditions.Count; i++)
+            {
+                SkillTreeUnlockCondition condition = node.unlockConditions[i];
+                if (condition == null)
+                {
+                    continue;
+                }
+
+                SkillTreeConditionProgress progress = new SkillTreeConditionProgress
+                {
+                    condition = condition,
+                    currentValue = GetSkillTreeConditionValue(condition),
+                    requiredValue = Mathf.Max(0, condition.requiredValue)
+                };
+                evaluation.conditions.Add(progress);
+                if (!progress.IsMet)
+                {
+                    conditionsMet = false;
+                }
+            }
+        }
+
+        if (evaluation.missingPrerequisiteNodeIds.Count > 0 || !conditionsMet)
+        {
+            evaluation.state = SkillTreeNodeState.Locked;
+        }
+        else if (evaluation.currentSkillPoints < evaluation.requiredSkillPoints)
+        {
+            evaluation.state = SkillTreeNodeState.InsufficientPoints;
+        }
+        else
+        {
+            evaluation.state = SkillTreeNodeState.Available;
+        }
+
+        return evaluation;
+    }
+
+    public bool TryAcquireSkillTreeNode(SkillTreeNodeData node)
+    {
+        SkillTreeNodeEvaluation evaluation = EvaluateSkillTreeNode(node);
+        if (evaluation.state != SkillTreeNodeState.Available)
+        {
+            return false;
+        }
+
+        bool spent = node.owner == SkillTreeOwner.Player
+            ? TrySpendPlayerSkillPoints(evaluation.requiredSkillPoints)
+            : TrySpendHeroineSkillPoints(evaluation.requiredSkillPoints);
+        if (!spent && evaluation.requiredSkillPoints > 0)
+        {
+            return false;
+        }
+
+        GetSkillTreeNodeSet(node.owner).Add(node.nodeId);
+        if (node.owner == SkillTreeOwner.Player && node.skill != null)
+        {
+            UnlockSkill(node.skill.skillId);
+        }
+
+        RefreshStatusDetailPanel();
+        Debug.Log(
+            "[SkillTree] Acquired node=" + node.nodeId +
+            " / owner=" + node.owner +
+            " / cost=" + evaluation.requiredSkillPoints);
+        return true;
+    }
+
+    private int GetSkillTreeConditionValue(SkillTreeUnlockCondition condition)
+    {
+        switch (condition.conditionType)
+        {
+            case SkillTreeConditionType.TrainingProficiency:
+                return GetTrainingProficiency(condition.targetId);
+            case SkillTreeConditionType.TrainingCount:
+                return GetTrainingProgressValue(condition, 0);
+            case SkillTreeConditionType.PlayerLpConsumedCount:
+                return GetTrainingProgressValue(condition, 1);
+            case SkillTreeConditionType.OpponentLpConsumedCount:
+                return GetTrainingProgressValue(condition, 2);
+            case SkillTreeConditionType.MonsterDefeatCount:
+                return GetMonsterDefeatProgressValue(condition);
+            case SkillTreeConditionType.Affection:
+                return heroineStatus != null ? heroineStatus.Affection : 0;
+            case SkillTreeConditionType.Day:
+                return timeManager != null ? timeManager.Day : 0;
+            default:
+                return 0;
+        }
+    }
+
+    private int GetTrainingProgressValue(SkillTreeUnlockCondition condition, int valueKind)
+    {
+        if (condition.scope == SkillTreeProgressScope.Total)
+        {
+            return valueKind == 0
+                ? skillProgressStats.totalTrainingCount
+                : valueKind == 1
+                    ? skillProgressStats.playerLpConsumedCount
+                    : skillProgressStats.opponentLpConsumedCount;
+        }
+
+        if (condition.scope == SkillTreeProgressScope.Training)
+        {
+            for (int i = 0; i < skillProgressStats.trainingStats.Count; i++)
+            {
+                TrainingProgressStatEntry entry = skillProgressStats.trainingStats[i];
+                if (entry != null && string.Equals(
+                    entry.trainingId,
+                    condition.targetId,
+                    StringComparison.Ordinal))
+                {
+                    return valueKind == 0
+                        ? entry.trainingCount
+                        : valueKind == 1
+                            ? entry.playerLpConsumedCount
+                            : entry.opponentLpConsumedCount;
+                }
+            }
+        }
+
+        if (condition.scope == SkillTreeProgressScope.TrainingCategory)
+        {
+            for (int i = 0; i < skillProgressStats.trainingCategoryStats.Count; i++)
+            {
+                TrainingCategoryProgressStatEntry entry =
+                    skillProgressStats.trainingCategoryStats[i];
+                if (entry != null && string.Equals(
+                    entry.trainingCategoryId,
+                    condition.targetId,
+                    StringComparison.Ordinal))
+                {
+                    return valueKind == 0
+                        ? entry.trainingCount
+                        : valueKind == 1
+                            ? entry.playerLpConsumedCount
+                            : entry.opponentLpConsumedCount;
+                }
+            }
+        }
+
+        return 0;
+    }
+
+    private int GetMonsterDefeatProgressValue(SkillTreeUnlockCondition condition)
+    {
+        if (condition.scope != SkillTreeProgressScope.Enemy)
+        {
+            return skillProgressStats.totalMonsterDefeatCount;
+        }
+
+        for (int i = 0; i < skillProgressStats.enemyDefeatStats.Count; i++)
+        {
+            EnemyDefeatStatEntry entry = skillProgressStats.enemyDefeatStats[i];
+            if (entry != null && string.Equals(
+                entry.enemyId,
+                condition.targetId,
+                StringComparison.Ordinal))
+            {
+                return entry.defeatCount;
+            }
+        }
+
+        return 0;
+    }
+
+    private HashSet<string> GetSkillTreeNodeSet(SkillTreeOwner owner)
+    {
+        return owner == SkillTreeOwner.Player
+            ? acquiredPlayerSkillTreeNodeIds
+            : acquiredHeroineSkillTreeNodeIds;
+    }
+
+    private static void LoadSkillTreeNodeIds(HashSet<string> target, List<string> source)
+    {
+        target.Clear();
+        if (source == null)
+        {
+            return;
+        }
+
+        for (int i = 0; i < source.Count; i++)
+        {
+            if (!string.IsNullOrEmpty(source[i]))
+            {
+                target.Add(source[i]);
+            }
+        }
     }
 
     public List<SkillData> GetUnlockedBattleSkills()
