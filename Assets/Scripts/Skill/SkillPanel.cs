@@ -89,7 +89,7 @@ public class SkillPanel : MonoBehaviour
         {
             descriptionText.text = battleSelectionMode
                 ? "解放済みの戦闘用スキルを選択してください。"
-                : "訓練を完了して条件を満たすと、スキルは自動で解放されます。";
+                : "スキルポイントを使い、スキルツリーで習得したスキルを確認できます。";
         }
 
         RefreshSkillList();

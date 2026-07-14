@@ -42,7 +42,7 @@
 | タイトルキャラクター選択 | `Resources.LoadAll<HeroineProfileData>("Heroines")` で候補を列挙し、新規ゲーム開始時のヒロインを選べる |
 | 買い物 | `DuoShopping` 予定から `ShopPanel` を開き、所持金消費、購入済み保存、衣装解放を行う |
 | 探索・戦闘 | 森、洞窟、湖の探索で敵候補を解決し、簡易戦闘または `BattlePanel` に接続できる |
-| 訓練・スキル | `TrainingPanel` で訓練を進め、好感度報酬と訓練熟練度を保存する。条件達成スキルを自動解放し、`SkillPanel` と `BattlePanel` で使える |
+| 訓練・スキル | `TrainingPanel` で訓練を進め、好感度、熟練度、実績、スキルポイントを保存する。条件を満たしたノードを `SkillTreePanel` で取得し、習得したスキルを戦闘で使える |
 | エンディング | 好感度1000で入口を解放し、条件一致する `EndingData` を表示。好感度上限9999とは分離する |
 
 通常の起点は `TitleScene` で、そこから `MainScene` に進む構成を想定しています。
@@ -593,11 +593,11 @@ LP と訓練用 HP は訓練画面内の一時値から始める。
 `TrainingPanel` は HP/LP 終了時、途中終了時、進行中に閉じた時に一度だけ `GameManager.OnTrainingPanelResult(...)` へ結果を通知する。
 `TrainingData.affectionRewardPerStep` は進行ボタンを押して有効な 1 ステップを進めるたびに訓練セッションへ累積する。初期値は全訓練 `1` とし、中断しても進めたステップ分の好感度は反映する。`GameManager.OnTrainingPanelResult(...)` は完了かつ非中断の場合だけ `TrainingData.affectionReward` と同時 0 ボーナスを追加し、中断時は完了報酬を与えない。
 訓練結果は `ShowSystemMessage(...)` で画面に表示し、メッセージログにも残す。1 ステップ以上進めた訓練は、完了/中断に関わらず時間を 1 段階進める。
-訓練熟練度は `SaveData.trainingProficiencies` に `trainingId` ごとの値として保存する。有効な 1 ステップごとに `trainingProficiencyRewardPerStep` を加算し、初期訓練はすべて `1`。中断してもステップ分は保持し、完了かつ非中断の場合だけ従来の `trainingProficiencyReward` を倍率変更なしで完了ボーナスとして追加する。完了ボーナスは軽い稽古 `1`、実戦形式 `2`、持久訓練 `3`。訓練を途中で切り替えた場合は、各ステップで実際に選択していた `trainingId` へ熟練度を加算する。訓練ごとの熟練度上限は `999999`。結果反映後は `GameManager` が `SkillData` の好感度、日数、訓練熟練度、前提スキル条件を確認し、条件を満たしたスキルを `SaveData.unlockedSkillIds` へ自動解放する。
+訓練熟練度は `SaveData.trainingProficiencies` に `trainingId` ごとの値として保存する。有効な 1 ステップごとに `trainingProficiencyRewardPerStep` を加算し、初期訓練はすべて `1`。中断してもステップ分は保持し、完了かつ非中断の場合だけ従来の `trainingProficiencyReward` を倍率変更なしで完了ボーナスとして追加する。完了ボーナスは軽い稽古 `1`、実戦形式 `2`、持久訓練 `3`。訓練を途中で切り替えた場合は、各ステップで実際に選択していた `trainingId` へ熟練度を加算する。訓練ごとの熟練度上限は `999999`。熟練度と訓練実績はスキルを直接解放せず、スキルツリーノードの取得条件として評価する。
 `TrainingPanel` は訓練ボタンと選択中タイトルに現在の熟練度を表示する。
-まだ熟練度によるスキル解放、訓練メニューの段階変化、シーン配置の細かい見た目調整は次段階で扱う。
+訓練メニューの段階変化と、シーン配置の細かい見た目調整は次段階で扱う。
 
-将来のスキル取得は、条件達成だけで自動解放する方式から、訓練などで得たスキルポイントをスキルツリー上で消費して取得する方式へ拡張する。熟練度や各種実績はスキルを直接取得させるものではなく、原則としてツリーノードを購入可能にする解放条件として利用する。既存の自動解放方式は、スキルツリー実装時にこの購入条件方式へ移行する。
+スキル取得は、訓練などで得たスキルポイントをスキルツリー上で消費して取得する。熟練度や各種実績はスキルを直接取得させるものではなく、ツリーノードを購入可能にする解放条件として利用する。従来の条件達成による自動解放は廃止済み。
 スキル解放条件に利用するため、累計訓練回数、訓練中に主人公の LP が減った回数、訓練相手の LP を減らした回数、モンスター撃破数を永続的に記録する。訓練回数は、訓練を 1 ステップ以上進めて結果を確定した時点で 1 回として数え、途中終了も回数には含める。LP の減少回数は失った LP のポイント数ではなく、HP 0 により LP 消費が発生した回数として数える。同時に両者が LP を消費した場合は、主人公側と相手側をそれぞれ 1 回ずつ加算する。モンスター撃破数は勝利が確定して報酬処理へ進んだ敵のみを数え、逃走、敗北、デバッグ上の未確定結果、訓練相手は含めない。
 どの訓練で実績を達成したか判定できるよう、全体累計だけでなく `trainingId` ごとにも、訓練回数、主人公 LP 消費回数、相手 LP 消費回数を記録する。さらに `TrainingData` に `trainingCategoryId` または `TrainingCategory` を追加し、攻撃、防御、持久、連携などの訓練カテゴリーを定義する。同じカテゴリーに属する全訓練についても、訓練回数、主人公 LP 消費回数、相手 LP 消費回数をカテゴリー別に集計する。1 回の結果確定時には、全体、選択中 `trainingId`、所属カテゴリーの各カウンターを同時に更新する。
 保存領域は、全体集計を持つ `SkillProgressStats` のような構造を `SaveData` に追加し、`totalTrainingCount`、`playerLpConsumedCount`、`opponentLpConsumedCount`、`totalMonsterDefeatCount` を保持する方針にする。加えて、`trainingId` 別と `trainingCategoryId` 別に `trainingCount`、`playerLpConsumedCount`、`opponentLpConsumedCount` を持つ集計リストを保存する。将来「特定の敵や種族を何体倒したか」を条件にできるよう、敵 ID、モンスター分類 ID ごとのカウンターも追加できる構成にする。ロード互換性のため、未保存のカウンターと新設カテゴリーは 0 として扱う。カテゴリー ID は表示名と分離した変更されにくい識別子を使う。
@@ -605,11 +605,11 @@ LP と訓練用 HP は訓練画面内の一時値から始める。
 状態確認 UI からも `SkillProgressStats` の訓練・戦闘実績を閲覧できるようにする。`StatusDetailPanel` の基本能力表示へ全件を常時並べず、「実績」タブまたは実績詳細パネルへ分離し、全体集計、訓練カテゴリー別、訓練 ID 別、モンスター撃破実績の順に確認できる構成を基本とする。全体には累計訓練回数、主人公 LP 消費回数、相手 LP 消費回数、総モンスター撃破数を表示し、カテゴリーや個別訓練、敵別の内訳は折りたたみまたは切り替え表示にする。値は保存済み集計から読み出し、訓練・戦闘結果確定後とセーブデータのロード後に更新する。未記録項目は 0 として表示し、将来はスキル解放条件の現在値確認画面から同じ集計表示へ移動できるようにする。
 実績集計基盤は実装済み。`TrainingData.trainingCategoryId`、`SaveData.skillProgressStats`、全体・訓練 ID 別・カテゴリー別の訓練回数と双方の LP 消費回数、全体・敵 ID 別のモンスター撃破数を保存する。訓練中にメニューを切り替えた場合も、各ステップで使用した訓練 ID とカテゴリーへ LP 消費を記録する。全体訓練回数は 1 セッションにつき 1 回、訓練 ID とカテゴリー別の回数は、そのセッションで 1 ステップ以上実行した対象ごとに各 1 回加算する。初期カテゴリーは `Fundamentals`、`Combat`、`Endurance`。予定戦闘の勝利時だけ撃破数を加算し、デバッグ戦闘、逃走、敗北は除外する。`GameManager.GetSkillProgressStats()` から表示用コピーを取得でき、集計時は `[SkillProgress]` ログを出力する。
 状態確認 UI のコード接続として `StatusProgressPanel` を追加済み。全体、カテゴリー別、訓練別、敵別の 4 表示をボタンで切り替え、訓練名と敵名は Resources 内のデータから表示名を解決する。`StatusDetailPanel.progressButton` から開き、`progressPanel` は状態詳細の子に置けば非アクティブ状態でも自動検出できる。`MainScene` には `StatusProgressPanel`、タイトル Text、スクロール可能な本文 Text、全体・カテゴリー・訓練・敵の切り替え Button、閉じる Button を配置し、Inspector 参照を割り当て済み。
-スキルポイント基盤は実装済み。主人公とヒロインのポイントを `SaveData.playerSkillPoints` / `heroineSkillPoints` に分けて保存し、旧セーブでは 0 として扱う。`TrainingData.playerSkillPointReward` / `heroineSkillPointReward` を完了かつ非中断の訓練結果にだけ加算し、結果メッセージと `StatusProgressPanel` の全体表示へ現在値を出す。初期報酬は軽い稽古が双方 1、実戦形式と持久訓練が双方 2。将来のスキルツリーは `GameManager.PlayerSkillPoints` / `HeroineSkillPoints` を参照し、`TrySpendPlayerSkillPoints(...)` / `TrySpendHeroineSkillPoints(...)` で不足・不正値を防いで消費する。モンスター撃破によるポイント報酬は未実装。
+スキルポイント基盤は実装済み。主人公とヒロインのポイントを `SaveData.playerSkillPoints` / `heroineSkillPoints` に分けて保存し、旧セーブでは 0 として扱う。`TrainingData.playerSkillPointReward` / `heroineSkillPointReward` を完了かつ非中断の訓練結果にだけ加算し、結果メッセージと `StatusProgressPanel` の全体表示へ現在値を出す。初期報酬は軽い稽古が双方 1、実戦形式と持久訓練が双方 2。スキルツリーは `GameManager.PlayerSkillPoints` / `HeroineSkillPoints` を参照し、`TrySpendPlayerSkillPoints(...)` / `TrySpendHeroineSkillPoints(...)` で不足・不正値を防いで消費する。モンスター撃破によるポイント報酬は未実装。
 スキルツリーノードのデータ基盤は実装済み。`SkillTreeNodeData` は固定 `nodeId`、表示名、`Player` / `Heroine` の所有者、取得後に解放する `SkillData`、必要スキルポイント、前提ノード、条件一覧、将来の UI 用 `treePosition` を持つ。条件は訓練熟練度、訓練回数、主人公 LP 消費回数、相手 LP 消費回数、モンスター撃破数、好感度、日数に対応し、集計範囲として全体、訓練 ID、訓練カテゴリー ID、敵 ID を指定できる。条件はすべて AND で評価する。
-`GameManager.GetSkillTreeNodes()` は `Assets/Resources/SkillTreeNodes` からノードを読み、`EvaluateSkillTreeNode(...)` は `Locked` / `Available` / `InsufficientPoints` / `Acquired` と、条件ごとの現在値・必要値、未取得の前提ノード ID を返す。`TryAcquireSkillTreeNode(...)` は取得直前に再評価し、所有者側のポイントを安全に消費して取得済みノード ID を保存する。主人公ノードは対応する既存スキル ID も解放するが、ヒロインノードは主人公用 `unlockedSkillIds` へ混入させず、将来のヒロイン自動行動接続までノード取得状態だけを保存する。取得済みノードは `SaveData.acquiredPlayerSkillTreeNodeIds` / `acquiredHeroineSkillTreeNodeIds` に分けて保存し、セーブバージョンは12とする。
-初期主人公ノードは `PowerStrike`、`GuardStance`、`FirstAid` が各 1 ポイント、`BattleFocus` と `ArmorBreak` が各 2 ポイント。`BattleFocus` は `PowerStrike`、`ArmorBreak` は `GuardStance` を前提とする。ヒロイン用ノードはデータ型と保存・評価処理だけ対応済みで、既存の `HeroineProfileData.battleSkills` との接続後にアセットを追加する。スキルツリー UI と取得導線は未実装。移行中は既存の熟練度による自動スキル解放を維持し、取得 UI の完成後にポイント消費方式を正本へ切り替える。
-好感度は小数型を使わず整数で管理し、上限を `9999` とする。従来の好感度、増減値、条件値はすべて10倍へ移行し、従来の100相当を1000とする。ランク境界は200、400、600、800、1000。`HeroineStatus.endingUnlockAffection` は1000とし、`maxAffection` から分離する。従来の `maxAffection = 100` は当時の全体上限を表していたため、通常会話や行動が1000以降で消えないよう新しい既定値は9999とする。1000以降は新しい解放条件を必須とせず、好感度の累積値として9999まで増加できる。現在のセーブバージョンは12とし、旧尺度の好感度・熟練度セーブとの互換性は保証しない。
+`GameManager.GetSkillTreeNodes()` は `Assets/Resources/SkillTreeNodes` からノードを読み、`EvaluateSkillTreeNode(...)` は `Locked` / `Available` / `InsufficientPoints` / `Acquired` と、条件ごとの現在値・必要値、未取得の前提ノード ID を返す。`TryAcquireSkillTreeNode(...)` は取得直前に再評価し、所有者側のポイントを安全に消費して取得済みノード ID を保存する。主人公ノードは対応する既存スキル ID も解放するが、ヒロインノードは主人公用 `unlockedSkillIds` へ混入させず、将来のヒロイン自動行動接続までノード取得状態だけを保存する。取得済みノードは `SaveData.acquiredPlayerSkillTreeNodeIds` / `acquiredHeroineSkillTreeNodeIds` に分けて保存し、セーブバージョンは13とする。起動時とロード時には取得済み主人公ノードから使用可能スキルを再構築する。
+初期主人公ノードは `PowerStrike`、`GuardStance`、`FirstAid` が各 1 ポイント、`BattleFocus` と `ArmorBreak` が各 2 ポイント。`BattleFocus` は `PowerStrike`、`ArmorBreak` は `GuardStance` を前提とする。`SkillTreePanel` は主人公・ヒロインの切替、所持ポイント、ノード一覧、状態、前提ノード、条件進捗、取得操作に対応済み。通常メニューのスキル導線はこの画面を開き、既存 `SkillPanel` は戦闘選択のフォールバックとして残す。取得済み主人公ノードを使用可能スキルの正本とし、従来の自動解放は廃止済み。ヒロイン用ノードはデータ型と保存・評価処理だけ対応済みで、既存の `HeroineProfileData.battleSkills` との接続後にアセットを追加する。
+好感度は小数型を使わず整数で管理し、上限を `9999` とする。従来の好感度、増減値、条件値はすべて10倍へ移行し、従来の100相当を1000とする。ランク境界は200、400、600、800、1000。`HeroineStatus.endingUnlockAffection` は1000とし、`maxAffection` から分離する。従来の `maxAffection = 100` は当時の全体上限を表していたため、通常会話や行動が1000以降で消えないよう新しい既定値は9999とする。1000以降は新しい解放条件を必須とせず、好感度の累積値として9999まで増加できる。現在のセーブバージョンは13とし、旧尺度の好感度・熟練度セーブとの互換性は保証しない。
 
 スキルシステムは、現在の `StatusAbilityData` とは別の `SkillData` 系 ScriptableObject として拡張する。
 `StatusAbilityData` は画面機能や衣装確認モードなどの能力解放に使い、戦闘・訓練で選択する技や効果はスキルとして分ける。
@@ -627,7 +627,7 @@ LP と訓練用 HP は訓練画面内の一時値から始める。
 熟練度尺度の10倍化後は、`PowerStrike` が `LightPractice` 30、`GuardStance` が `EnduranceTraining` 30、`FirstAid` が `SparringPractice` 50を解放条件にする。`BattleFocus` は `LightPractice` 50、`ArmorBreak` は `EnduranceTraining` 50とする。
 戦闘用スキルは `BattlePanel` のコマンドとして表示し、汎用スキルはステータスやイベント条件で参照できるようにする。
 訓練用スキルは模擬戦闘で優先的に使い、勝敗だけでなく「うまく防げた」「連携できた」などの訓練結果に接続する。
-取得済みスキル ID は `SaveData.unlockedSkillIds` に保存し、`GameManager.IsSkillUnlocked(...)` / `UnlockSkill(...)` / `GetUnlockedSkillIds()` で扱う。
+使用可能スキル ID は `SaveData.unlockedSkillIds` に派生情報として保存し、取得済み主人公ノードから起動・ロード時に再構築する。参照には `GameManager.IsSkillUnlocked(...)` / `GetUnlockedSkillIds()` を使い、外部から直接解放しない。
 スキル熟練度や装備中スキルを保存する場合は、将来 `skillProficiencies`、`equippedSkillIds` のような保存領域を追加する。
 
 スキル取得と装備は、`StatusDetailPanel` に直接詰め込まず、別の `SkillPanel` として扱う。

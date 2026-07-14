@@ -1343,7 +1343,7 @@ public class GameManager : MonoBehaviour
         LoadActionsFromResources();
         LoadGameEventsFromResources();
         LoadScheduledEventsFromResources();
-        UnlockAvailableSkills();
+        SynchronizeUnlockedSkillsWithSkillTree();
 
         CreateGenreButtons();
         CreateActionButtons();
@@ -2478,7 +2478,7 @@ public class GameManager : MonoBehaviour
         LoadSkillTreeNodeIds(
             acquiredHeroineSkillTreeNodeIds,
             saveData.acquiredHeroineSkillTreeNodeIds);
-        UnlockAvailableSkills();
+        SynchronizeUnlockedSkillsWithSkillTree();
 
         outfitPreferenceManager.SetPreferences(saveData.outfitPreferences);
 
@@ -2572,7 +2572,7 @@ public class GameManager : MonoBehaviour
         return !string.IsNullOrEmpty(skillId) && unlockedSkillIds.Contains(skillId);
     }
 
-    public void UnlockSkill(string skillId)
+    private void UnlockSkill(string skillId)
     {
         if (string.IsNullOrEmpty(skillId))
         {
@@ -7433,18 +7433,7 @@ public class GameManager : MonoBehaviour
             result.totalHeroineSkillPoints = heroineSkillPoints;
         }
 
-        List<SkillData> newlyUnlockedSkills = UnlockAvailableSkills();
         string resultMessage = BuildTrainingResultMessage(result);
-        if (newlyUnlockedSkills.Count > 0)
-        {
-            List<string> names = new List<string>();
-            foreach (SkillData skill in newlyUnlockedSkills)
-            {
-                names.Add(skill.GetDisplayName());
-            }
-
-            resultMessage += "\nスキル解放: " + string.Join(", ", names.ToArray());
-        }
 
         if (ShouldAdvanceTimeAfterTraining(result))
         {
@@ -8185,29 +8174,23 @@ public class GameManager : MonoBehaviour
         return skillDataList;
     }
 
-    private List<SkillData> UnlockAvailableSkills()
+    private void SynchronizeUnlockedSkillsWithSkillTree()
     {
-        List<SkillData> newlyUnlockedSkills = new List<SkillData>();
-        bool unlockedInPass;
-        do
+        unlockedSkillIds.Clear();
+        List<SkillTreeNodeData> nodes = GetSkillTreeNodes();
+        for (int i = 0; i < nodes.Count; i++)
         {
-            unlockedInPass = false;
-            foreach (SkillData skill in GetSkillDataList())
+            SkillTreeNodeData node = nodes[i];
+            if (node == null ||
+                node.owner != SkillTreeOwner.Player ||
+                node.skill == null ||
+                !IsSkillTreeNodeAcquired(node.nodeId, SkillTreeOwner.Player))
             {
-                if (skill == null || string.IsNullOrEmpty(skill.skillId) ||
-                    IsSkillUnlocked(skill.skillId) || !MeetsSkillUnlockConditions(skill))
-                {
-                    continue;
-                }
-
-                UnlockSkill(skill.skillId);
-                newlyUnlockedSkills.Add(skill);
-                unlockedInPass = true;
+                continue;
             }
-        }
-        while (unlockedInPass);
 
-        return newlyUnlockedSkills;
+            UnlockSkill(node.skill.skillId);
+        }
     }
 
     private void EnsureSkillPanel()
