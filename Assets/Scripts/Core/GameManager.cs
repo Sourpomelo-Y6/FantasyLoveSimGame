@@ -8022,6 +8022,10 @@ public class GameManager : MonoBehaviour
             result.trainingId +
             " / Steps: " +
             result.elapsedSteps +
+            " / MaxSteps: " +
+            result.maxSteps +
+            " / EndReason: " +
+            result.endReason +
             " / SimultaneousDown: " +
             result.simultaneousKnockoutCount +
             " / Interrupted: " +
@@ -8129,6 +8133,8 @@ public class GameManager : MonoBehaviour
         string trainingName = string.IsNullOrEmpty(result.trainingName) ? "訓練" : result.trainingName;
         string message = "訓練結果: " + trainingName +
             "\nステップ数: " + result.elapsedSteps +
+            (result.maxSteps > 0 ? " / " + result.maxSteps : " / 制限なし") +
+            "\n終了理由: " + GetTrainingEndReasonLabel(result.endReason) +
             "\n同時限界: " + result.simultaneousKnockoutCount + "回";
 
         if (result.totalStepAffectionReward > 0)
@@ -8176,6 +8182,21 @@ public class GameManager : MonoBehaviour
         }
 
         return message;
+    }
+
+    private static string GetTrainingEndReasonLabel(TrainingEndReason endReason)
+    {
+        switch (endReason)
+        {
+            case TrainingEndReason.HpOrLpDepleted:
+                return "HP・LP終了";
+            case TrainingEndReason.StepLimitReached:
+                return "最大ステップ到達";
+            case TrainingEndReason.Interrupted:
+                return "途中終了";
+            default:
+                return "未確定";
+        }
     }
 
     private static bool ShouldApplyTrainingRewards(TrainingResult result)

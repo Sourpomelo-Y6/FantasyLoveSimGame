@@ -20,6 +20,7 @@ MonoBehaviour:
   heroineHpCostPerStep: 12
   initialPlayerLp: 1
   initialHeroineLp: 1
+  maxSteps: 20
   affectionRewardPerStep: 1
   affectionReward: 20
   trainingProficiencyRewardPerStep: 1

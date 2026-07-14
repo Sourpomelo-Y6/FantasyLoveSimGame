@@ -7,6 +7,7 @@ public class TrainingResult
     public string trainingId;
     public string trainingName;
     public int elapsedSteps;
+    public int maxSteps;
     public int simultaneousKnockoutCount;
     public int playerLpConsumedCount;
     public int opponentLpConsumedCount;
@@ -24,6 +25,7 @@ public class TrainingResult
     public int totalAffectionReward;
     public bool wasInterrupted;
     public bool isFinished;
+    public TrainingEndReason endReason;
 
     public static TrainingResult Create(TrainingData training, TrainingSessionState state)
     {
@@ -50,6 +52,7 @@ public class TrainingResult
         if (state != null)
         {
             result.elapsedSteps = state.elapsedSteps;
+            result.maxSteps = state.maxSteps;
             result.simultaneousKnockoutCount = state.simultaneousKnockoutCount;
             result.totalStepAffectionReward = state.totalStepAffectionReward;
             result.totalStepTrainingProficiencyReward =
@@ -79,6 +82,7 @@ public class TrainingResult
             }
             result.wasInterrupted = state.wasInterrupted;
             result.isFinished = state.isFinished;
+            result.endReason = state.endReason;
         }
 
         result.totalAffectionReward = result.totalStepAffectionReward;

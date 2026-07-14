@@ -18258,6 +18258,7 @@ MonoBehaviour:
   trainingButtonPrefab: {fileID: 2948870624512965510, guid: 0e160264960b04e4dadfa3deab376b4c, type: 3}
   emptyText: {fileID: 938389637}
   trainingNameText: {fileID: 1559386651}
+  stepCountText: {fileID: 0}
   playerHpText: {fileID: 1366480399}
   heroineHpText: {fileID: 260821344}
   playerLpText: {fileID: 1785336713}
@@ -19868,6 +19869,16 @@ MonoBehaviour:
   nodeButtonPrefab: {fileID: 0}
   descriptionText: {fileID: 0}
   acquireButton: {fileID: 0}
+  useTreeLayout: 1
+  treeNodeSize: {x: 240, y: 72}
+  treePadding: {x: 60, y: 60}
+  connectorThickness: 6
+  lockedConnectorColor: {r: 0.37254903, g: 0.37254903, b: 0.37254903, a: 1}
+  lockedColor: {r: 0.47058824, g: 0.47058824, b: 0.47058824, a: 1}
+  insufficientPointsColor: {r: 0.8235294, g: 0.6666667, b: 0.21568628, a: 1}
+  availableColor: {r: 0.3137255, g: 0.7058824, b: 0.39215687, a: 1}
+  acquiredColor: {r: 0.29411766, g: 0.5294118, b: 0.8235294, a: 1}
+  selectedOutlineColor: {r: 1, g: 1, b: 1, a: 1}
 --- !u!1 &1225611363
 GameObject:
   m_ObjectHideFlags: 0
@@ -30524,8 +30535,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 684.67865, y: -60.750374}
-  m_SizeDelta: {x: 651.7994, y: 623.4967}
+  m_AnchoredPosition: {x: 677.2775, y: -5.4167}
+  m_SizeDelta: {x: 666.6016, y: 734.16}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1900934438
 MonoBehaviour:
@@ -30659,8 +30670,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 684.68, y: 305.894}
-  m_SizeDelta: {x: 651.8, y: 52.9823}
+  m_AnchoredPosition: {x: 164.09, y: 311.533}
+  m_SizeDelta: {x: 295.98, y: 57.9164}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1907350157
 MonoBehaviour:

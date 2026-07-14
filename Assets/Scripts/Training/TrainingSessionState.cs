@@ -2,6 +2,15 @@ using System;
 using System.Collections.Generic;
 
 [Serializable]
+public enum TrainingEndReason
+{
+    None,
+    HpOrLpDepleted,
+    StepLimitReached,
+    Interrupted
+}
+
+[Serializable]
 public class TrainingSessionState
 {
     public string trainingId;
@@ -12,6 +21,7 @@ public class TrainingSessionState
     public int playerLp;
     public int heroineLp;
     public int elapsedSteps;
+    public int maxSteps;
     public int simultaneousKnockoutCount;
     public int totalStepAffectionReward;
     public int totalStepTrainingProficiencyReward;
@@ -20,6 +30,7 @@ public class TrainingSessionState
     public List<TrainingProgressEntry> progressEntries = new List<TrainingProgressEntry>();
     public bool wasInterrupted;
     public bool isFinished;
+    public TrainingEndReason endReason;
 
     public static TrainingSessionState Create(
         TrainingData training,
@@ -34,6 +45,8 @@ public class TrainingSessionState
         state.heroineHp = heroineStatus != null ? heroineStatus.currentHp : state.heroineMaxHp;
         state.playerLp = training != null ? training.initialPlayerLp : 0;
         state.heroineLp = training != null ? training.initialHeroineLp : 0;
+        state.maxSteps = training != null ? Math.Max(0, training.maxSteps) : 0;
+        state.endReason = TrainingEndReason.None;
         state.Clamp();
         return state;
     }
@@ -63,12 +76,19 @@ public class TrainingSessionState
             totalStepTrainingProficiencyReward +=
                 Math.Max(0, training.trainingProficiencyRewardPerStep);
         }
+
+        if (!isFinished && maxSteps > 0 && elapsedSteps >= maxSteps)
+        {
+            isFinished = true;
+            endReason = TrainingEndReason.StepLimitReached;
+        }
     }
 
     public void Interrupt()
     {
         wasInterrupted = true;
         isFinished = true;
+        endReason = TrainingEndReason.Interrupted;
     }
 
     private void ResolveHpAndLp()
@@ -94,6 +114,7 @@ public class TrainingSessionState
         if ((playerHp <= 0 && playerLp <= 0) || (heroineHp <= 0 && heroineLp <= 0))
         {
             isFinished = true;
+            endReason = TrainingEndReason.HpOrLpDepleted;
         }
 
         Clamp();

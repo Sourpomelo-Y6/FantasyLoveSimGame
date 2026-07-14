@@ -18,6 +18,8 @@ public class TrainingData : ScriptableObject
     [Header("Initial Session")]
     public int initialPlayerLp = 1;
     public int initialHeroineLp = 1;
+    [Tooltip("訓練セッションの最大ステップ数。0 以下は無制限。")]
+    public int maxSteps = 0;
 
     [Header("Rewards")]
     public int affectionRewardPerStep = 1;

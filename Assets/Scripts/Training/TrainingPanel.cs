@@ -17,6 +17,7 @@ public class TrainingPanel : MonoBehaviour
 
     [Header("Status")]
     [SerializeField] private TextMeshProUGUI trainingNameText;
+    [SerializeField] private TextMeshProUGUI stepCountText;
     [SerializeField] private TextMeshProUGUI playerHpText;
     [SerializeField] private TextMeshProUGUI heroineHpText;
     [SerializeField] private TextMeshProUGUI playerLpText;
@@ -135,6 +136,9 @@ public class TrainingPanel : MonoBehaviour
             hasReportedResult = false;
             logLines.Clear();
             AddLog(training.GetDisplayName() + "を開始しました。");
+            AddLog(currentState.maxSteps > 0
+                ? "最大ステップ: " + currentState.maxSteps
+                : "最大ステップ: 制限なし");
         }
         else
         {
@@ -178,7 +182,7 @@ public class TrainingPanel : MonoBehaviour
 
         if (currentState.isFinished)
         {
-            AddLog("訓練を終了しました。");
+            AddLog(GetTrainingEndLog(currentState.endReason));
             NotifyTrainingResult();
         }
 
@@ -258,9 +262,21 @@ public class TrainingPanel : MonoBehaviour
     {
         if (trainingNameText != null)
         {
-            trainingNameText.text = currentTraining != null
+            string trainingLabel = currentTraining != null
                 ? FormatTrainingNameWithProficiency(currentTraining)
                 : noTrainingLabel;
+            if (stepCountText == null && currentState != null)
+            {
+                trainingLabel += " / " + FormatStepCount(currentState);
+            }
+            trainingNameText.text = trainingLabel;
+        }
+
+        if (stepCountText != null)
+        {
+            stepCountText.text = currentState != null
+                ? FormatStepCount(currentState)
+                : "Step: -";
         }
 
         if (playerHpText != null)
@@ -317,6 +333,33 @@ public class TrainingPanel : MonoBehaviour
     private static string FormatHp(int currentHp, int maxHp)
     {
         return currentHp + " / " + maxHp;
+    }
+
+    private static string FormatStepCount(TrainingSessionState state)
+    {
+        if (state == null)
+        {
+            return "Step: -";
+        }
+
+        return state.maxSteps > 0
+            ? "Step " + state.elapsedSteps + " / " + state.maxSteps
+            : "Step " + state.elapsedSteps + " / 制限なし";
+    }
+
+    private static string GetTrainingEndLog(TrainingEndReason endReason)
+    {
+        switch (endReason)
+        {
+            case TrainingEndReason.StepLimitReached:
+                return "最大ステップ数に到達し、訓練を完了しました。";
+            case TrainingEndReason.HpOrLpDepleted:
+                return "HP・LPの終了条件により訓練を完了しました。";
+            case TrainingEndReason.Interrupted:
+                return "訓練を途中でやめました。";
+            default:
+                return "訓練を終了しました。";
+        }
     }
 
     private string FormatTrainingNameWithProficiency(TrainingData training)
@@ -398,6 +441,11 @@ public class TrainingPanel : MonoBehaviour
         if (trainingNameText == null)
         {
             trainingNameText = FindText("TrainingNameText");
+        }
+
+        if (stepCountText == null)
+        {
+            stepCountText = FindText("StepCountText");
         }
 
         if (playerHpText == null)
