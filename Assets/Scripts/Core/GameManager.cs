@@ -1343,6 +1343,7 @@ public class GameManager : MonoBehaviour
     {
         EnsureCoreStatusReferences();
         ApplyHeroineProfileSettings();
+        ValidateSkillTreeDataOnStartup();
 
         LoadConversationsFromResources();
         LoadActionsFromResources();
@@ -2733,6 +2734,13 @@ public class GameManager : MonoBehaviour
         }
 
         return skillTreeNodeDataList;
+    }
+
+    [System.Diagnostics.Conditional("UNITY_EDITOR")]
+    [System.Diagnostics.Conditional("DEVELOPMENT_BUILD")]
+    private void ValidateSkillTreeDataOnStartup()
+    {
+        SkillTreeDataValidator.ValidateResources().Log();
     }
 
     public SkillTreeNodeEvaluation EvaluateSkillTreeNode(SkillTreeNodeData node)
