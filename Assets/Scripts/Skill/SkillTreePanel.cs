@@ -115,7 +115,10 @@ public class SkillTreePanel : MonoBehaviour
         for (int i = 0; i < nodes.Count; i++)
         {
             SkillTreeNodeData node = nodes[i];
-            if (node == null || node.owner != currentOwner)
+            if (node == null ||
+                node.owner != currentOwner ||
+                (currentOwner == SkillTreeOwner.Heroine &&
+                    !gameManager.IsSkillTreeNodeForCurrentHeroine(node)))
             {
                 continue;
             }
@@ -175,7 +178,11 @@ public class SkillTreePanel : MonoBehaviour
     private bool HasNodesForCurrentOwner()
     {
         List<SkillTreeNodeData> nodes = gameManager.GetSkillTreeNodes();
-        return nodes.Exists(node => node != null && node.owner == currentOwner);
+        return nodes.Exists(node =>
+            node != null &&
+            node.owner == currentOwner &&
+            (currentOwner != SkillTreeOwner.Heroine ||
+                gameManager.IsSkillTreeNodeForCurrentHeroine(node)));
     }
 
     private string BuildDescription(SkillTreeNodeEvaluation evaluation)
@@ -190,6 +197,14 @@ public class SkillTreePanel : MonoBehaviour
         {
             builder.AppendLine();
             builder.AppendLine(node.skill.description);
+        }
+        else if (node.owner == SkillTreeOwner.Heroine &&
+            !string.IsNullOrEmpty(node.grantedHeroineSkillId))
+        {
+            builder.AppendLine();
+            builder.AppendLine(
+                "習得スキル：" +
+                gameManager.GetHeroineBattleSkillDisplayName(node.grantedHeroineSkillId));
         }
 
         if (node.prerequisiteNodes != null && node.prerequisiteNodes.Count > 0)

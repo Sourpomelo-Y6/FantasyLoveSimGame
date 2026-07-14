@@ -54,6 +54,12 @@ public class SkillTreeNodeData : ScriptableObject
     public SkillData skill;
     public int sortOrder;
 
+    [Header("Heroine Skill")]
+    [Tooltip("Heroine ノードで対象とする HeroineProfileData.heroineId。空なら全ヒロイン共通。")]
+    public string targetHeroineId;
+    [Tooltip("取得時に使用可能にする HeroineBattleSkillData.skillId。")]
+    public string grantedHeroineSkillId;
+
     [Header("Acquisition")]
     [Min(0)] public int skillPointCost = 1;
     public List<SkillTreeNodeData> prerequisiteNodes = new List<SkillTreeNodeData>();

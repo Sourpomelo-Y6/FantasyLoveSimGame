@@ -342,6 +342,7 @@ public class GameManager : MonoBehaviour
     [SerializeField] private SkillTreePanel skillTreePanel;
     [SerializeField] private string skillResourcePath = "Skills";
     private SkillData[] skillDataList;
+    private SkillTreeNodeData[] skillTreeNodeDataList;
 
     [Header("Battle Result Events")]
     [SerializeField] private string battleResultEventResourcePath = BattleResultEventResourcePath;
@@ -2594,8 +2595,7 @@ public class GameManager : MonoBehaviour
 
     public List<SkillTreeNodeData> GetSkillTreeNodes()
     {
-        List<SkillTreeNodeData> nodes = new List<SkillTreeNodeData>(
-            Resources.LoadAll<SkillTreeNodeData>(SkillTreeNodeResourcePath));
+        List<SkillTreeNodeData> nodes = new List<SkillTreeNodeData>(GetSkillTreeNodeDataList());
         nodes.RemoveAll(node => node == null || string.IsNullOrEmpty(node.nodeId));
         nodes.Sort((a, b) =>
         {
@@ -2619,6 +2619,70 @@ public class GameManager : MonoBehaviour
         return !string.IsNullOrEmpty(nodeId) && GetSkillTreeNodeSet(owner).Contains(nodeId);
     }
 
+    public bool IsSkillTreeNodeForCurrentHeroine(SkillTreeNodeData node)
+    {
+        if (node == null || node.owner != SkillTreeOwner.Heroine)
+        {
+            return node != null;
+        }
+
+        return string.IsNullOrEmpty(node.targetHeroineId) ||
+            string.Equals(node.targetHeroineId, currentHeroineId, StringComparison.Ordinal);
+    }
+
+    public bool IsHeroineBattleSkillUnlocked(string skillId)
+    {
+        if (string.IsNullOrEmpty(skillId))
+        {
+            return false;
+        }
+
+        SkillTreeNodeData[] nodes = GetSkillTreeNodeDataList();
+        for (int i = 0; i < nodes.Length; i++)
+        {
+            SkillTreeNodeData node = nodes[i];
+            if (node != null &&
+                node.owner == SkillTreeOwner.Heroine &&
+                IsSkillTreeNodeForCurrentHeroine(node) &&
+                string.Equals(node.grantedHeroineSkillId, skillId, StringComparison.Ordinal) &&
+                IsSkillTreeNodeAcquired(node.nodeId, SkillTreeOwner.Heroine))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    public string GetHeroineBattleSkillDisplayName(string skillId)
+    {
+        if (heroineProfile != null)
+        {
+            List<HeroineBattleSkillData> skills = heroineProfile.GetBattleSkills();
+            for (int i = 0; i < skills.Count; i++)
+            {
+                HeroineBattleSkillData skill = skills[i];
+                if (skill != null &&
+                    string.Equals(skill.skillId, skillId, StringComparison.Ordinal))
+                {
+                    return skill.GetDisplayName();
+                }
+            }
+        }
+
+        return string.IsNullOrEmpty(skillId) ? "ヒロインスキル" : skillId;
+    }
+
+    private SkillTreeNodeData[] GetSkillTreeNodeDataList()
+    {
+        if (skillTreeNodeDataList == null)
+        {
+            skillTreeNodeDataList = Resources.LoadAll<SkillTreeNodeData>(SkillTreeNodeResourcePath);
+        }
+
+        return skillTreeNodeDataList;
+    }
+
     public SkillTreeNodeEvaluation EvaluateSkillTreeNode(SkillTreeNodeData node)
     {
         SkillTreeNodeEvaluation evaluation = new SkillTreeNodeEvaluation
@@ -2627,6 +2691,13 @@ public class GameManager : MonoBehaviour
             state = SkillTreeNodeState.Locked
         };
         if (node == null || string.IsNullOrEmpty(node.nodeId))
+        {
+            return evaluation;
+        }
+
+        if (node.owner == SkillTreeOwner.Heroine &&
+            (!IsSkillTreeNodeForCurrentHeroine(node) ||
+                string.IsNullOrEmpty(node.grantedHeroineSkillId)))
         {
             return evaluation;
         }

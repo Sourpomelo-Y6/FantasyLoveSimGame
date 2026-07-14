@@ -617,7 +617,11 @@ public class BattlePanel : MonoBehaviour
 
     private bool CanHeroineUseSkill(HeroineBattleSkillData skill)
     {
-        if (skill == null || debugHeroineStatus == null || debugHeroineStatus.currentMp < Mathf.Max(0, skill.cost))
+        if (skill == null ||
+            gameManager == null ||
+            !gameManager.IsHeroineBattleSkillUnlocked(skill.skillId) ||
+            debugHeroineStatus == null ||
+            debugHeroineStatus.currentMp < Mathf.Max(0, skill.cost))
         {
             return false;
         }
