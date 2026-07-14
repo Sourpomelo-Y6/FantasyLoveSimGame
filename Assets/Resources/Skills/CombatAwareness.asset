@@ -1,0 +1,40 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c8d5a5be1d394c0d94d9bb0e0a81a0a6, type: 3}
+  m_Name: CombatAwareness
+  m_EditorClassIdentifier:
+  skillId: CombatAwareness
+  displayName: "実戦感覚"
+  category: 2
+  effectType: 0
+  targetType: 0
+  sortOrder: 140
+  isEnabled: 1
+  description: "実戦形式の動きから効率よく経験を得る主人公用訓練スキル。実戦カテゴリーでは1ステップごとの熟練度を1増加する。"
+  cost: 0
+  power: 0
+  affectedStat: 0
+  statusDurationTurns: 2
+  trainingPlayerHpCostReduction: 0
+  trainingHeroineHpCostReduction: 0
+  trainingAffectionRewardModifier: 0
+  trainingProficiencyRewardModifier: 1
+  trainingApplicationScope: 1
+  trainingApplicationTargetId: Combat
+  requiredAffection: 0
+  requiredDay: 1
+  requiredTrainingId:
+  requiredTrainingProficiency: 0
+  requiredSkillIds: []
+  canUseInBattle: 0
+  canUseInTraining: 1
+  canUseInExploration: 0
