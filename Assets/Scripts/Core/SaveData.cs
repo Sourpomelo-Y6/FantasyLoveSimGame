@@ -4,7 +4,7 @@ using System.Collections.Generic;
 [Serializable]
 public class SaveData
 {
-    public int saveVersion = 14;
+    public int saveVersion = 15;
     public int saveSlotIndex;
     public string savedAt;
     public string heroineId;
@@ -37,6 +37,8 @@ public class SaveData
     public List<string> unlockedStatusAbilityIds = new List<string>();
     public List<string> unlockedSkillIds = new List<string>();
     public List<string> equippedPlayerBattleSkillIds = new List<string>();
+    public List<HeroineBattleSkillLoadoutEntry> heroineBattleSkillLoadouts =
+        new List<HeroineBattleSkillLoadoutEntry>();
     public List<string> unlockedStillIds = new List<string>();
     public List<string> purchasedItemIds = new List<string>();
     public List<ItemQuantityEntry> itemQuantities = new List<ItemQuantityEntry>();
@@ -68,6 +70,13 @@ public class TrainingProficiencyEntry
 {
     public string trainingId;
     public int proficiency;
+}
+
+[Serializable]
+public class HeroineBattleSkillLoadoutEntry
+{
+    public string heroineId;
+    public List<string> equippedSkillIds = new List<string>();
 }
 
 [Serializable]

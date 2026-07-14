@@ -184,9 +184,9 @@ public class SkillTreePanel : MonoBehaviour
         if (label != null)
         {
             string equipmentLabel = evaluation.state == SkillTreeNodeState.Acquired &&
-                IsNodeEquippable(node) &&
-                gameManager.IsPlayerBattleSkillEquipped(node.skill.skillId)
-                    ? " / 装備中"
+                IsNodeLoadoutConfigurable(node) &&
+                IsNodeInLoadout(node)
+                    ? (node.owner == SkillTreeOwner.Player ? " / 装備中" : " / 編成中")
                     : "";
             label.text = node.GetDisplayName() + " / 必要SP " +
                 Mathf.Max(0, node.skillPointCost) + " / " + GetStateLabel(evaluation.state) +
@@ -388,15 +388,14 @@ public class SkillTreePanel : MonoBehaviour
         if (acquireButton != null)
         {
             bool canToggleEquipment = evaluation.state == SkillTreeNodeState.Acquired &&
-                IsNodeEquippable(selectedNode);
+                IsNodeLoadoutConfigurable(selectedNode);
             acquireButton.interactable =
                 evaluation.state == SkillTreeNodeState.Available || canToggleEquipment;
             if (canToggleEquipment)
             {
-                SetAcquireButtonLabel(
-                    gameManager.IsPlayerBattleSkillEquipped(selectedNode.skill.skillId)
-                        ? "外す"
-                        : "装備する");
+                SetAcquireButtonLabel(IsNodeInLoadout(selectedNode)
+                    ? "外す"
+                    : (selectedNode.owner == SkillTreeOwner.Player ? "装備する" : "編成する"));
             }
             else
             {
@@ -425,15 +424,24 @@ public class SkillTreePanel : MonoBehaviour
         builder.AppendLine("必要スキルポイント：" + evaluation.requiredSkillPoints);
         builder.AppendLine(BuildAvailabilityMessage(evaluation));
 
-        if (evaluation.state == SkillTreeNodeState.Acquired && IsNodeEquippable(node))
+        if (evaluation.state == SkillTreeNodeState.Acquired && IsNodeLoadoutConfigurable(node))
         {
-            int equippedCount = gameManager.GetEquippedPlayerBattleSkillIds().Count;
-            builder.AppendLine(
-                "装備状態：" +
-                (gameManager.IsPlayerBattleSkillEquipped(node.skill.skillId)
-                    ? "装備中"
-                    : "未装備") +
-                "（" + equippedCount + " / " + gameManager.PlayerBattleSkillSlotCount + "）");
+            if (node.owner == SkillTreeOwner.Player)
+            {
+                int equippedCount = gameManager.GetEquippedPlayerBattleSkillIds().Count;
+                builder.AppendLine(
+                    "装備状態：" +
+                    (IsNodeInLoadout(node) ? "装備中" : "未装備") +
+                    "（" + equippedCount + " / " + gameManager.PlayerBattleSkillSlotCount + "）");
+            }
+            else
+            {
+                int equippedCount = gameManager.GetEquippedHeroineBattleSkillIds().Count;
+                builder.AppendLine(
+                    "編成状態：" +
+                    (IsNodeInLoadout(node) ? "編成中" : "未編成") +
+                    "（" + equippedCount + " / " + gameManager.HeroineBattleSkillSlotCount + "）");
+            }
         }
 
         if (node.skill != null && !string.IsNullOrEmpty(node.skill.description))
@@ -486,12 +494,22 @@ public class SkillTreePanel : MonoBehaviour
         }
 
         SkillTreeNodeEvaluation evaluation = gameManager.EvaluateSkillTreeNode(selectedNode);
-        if (evaluation.state == SkillTreeNodeState.Acquired && IsNodeEquippable(selectedNode))
+        if (evaluation.state == SkillTreeNodeState.Acquired &&
+            IsNodeLoadoutConfigurable(selectedNode))
         {
             string equipmentMessage;
-            gameManager.TryTogglePlayerBattleSkill(
-                selectedNode.skill.skillId,
-                out equipmentMessage);
+            if (selectedNode.owner == SkillTreeOwner.Player)
+            {
+                gameManager.TryTogglePlayerBattleSkill(
+                    selectedNode.skill.skillId,
+                    out equipmentMessage);
+            }
+            else
+            {
+                gameManager.TryToggleHeroineBattleSkill(
+                    selectedNode.grantedHeroineSkillId,
+                    out equipmentMessage);
+            }
             feedbackMessage = equipmentMessage;
             Refresh();
             return;
@@ -508,14 +526,26 @@ public class SkillTreePanel : MonoBehaviour
         Refresh();
     }
 
-    private static bool IsNodeEquippable(SkillTreeNodeData node)
+    private static bool IsNodeLoadoutConfigurable(SkillTreeNodeData node)
     {
-        return node != null &&
-            node.owner == SkillTreeOwner.Player &&
-            node.skill != null &&
+        if (node == null) return false;
+        if (node.owner == SkillTreeOwner.Heroine)
+        {
+            return !string.IsNullOrEmpty(node.grantedHeroineSkillId);
+        }
+
+        return node.skill != null &&
             node.skill.isEnabled &&
             node.skill.category == SkillCategory.Battle &&
             node.skill.canUseInBattle;
+    }
+
+    private bool IsNodeInLoadout(SkillTreeNodeData node)
+    {
+        if (node == null || gameManager == null) return false;
+        return node.owner == SkillTreeOwner.Player
+            ? node.skill != null && gameManager.IsPlayerBattleSkillEquipped(node.skill.skillId)
+            : gameManager.IsHeroineBattleSkillEquipped(node.grantedHeroineSkillId);
     }
 
     private void SetAcquireButtonLabel(string label)

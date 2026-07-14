@@ -11,6 +11,7 @@ public class GameManager : MonoBehaviour
 {
     private const int MaxTrainingProficiency = 999999;
     private const int DefaultPlayerBattleSkillSlotCount = 4;
+    private const int DefaultHeroineBattleSkillSlotCount = 3;
     private const string SkillTreeNodeResourcePath = "SkillTreeNodes";
     private const string CommonScheduledEventResourcePath = "ScheduledEvents";
     private const string BattleResultEventResourcePath = "BattleResultEvents";
@@ -269,6 +270,8 @@ public class GameManager : MonoBehaviour
     private readonly HashSet<string> unlockedStatusAbilityIds = new HashSet<string>();
     private readonly HashSet<string> unlockedSkillIds = new HashSet<string>();
     private readonly List<string> equippedPlayerBattleSkillIds = new List<string>();
+    private readonly Dictionary<string, List<string>> heroineBattleSkillLoadouts =
+        new Dictionary<string, List<string>>(StringComparer.Ordinal);
     private readonly HashSet<string> acquiredPlayerSkillTreeNodeIds = new HashSet<string>();
     private readonly HashSet<string> acquiredHeroineSkillTreeNodeIds = new HashSet<string>();
     private readonly HashSet<string> unlockedStillIds = new HashSet<string>();
@@ -1353,6 +1356,7 @@ public class GameManager : MonoBehaviour
         LoadScheduledEventsFromResources();
         SynchronizeUnlockedSkillsWithSkillTree();
         NormalizeEquippedPlayerBattleSkills(true);
+        NormalizeAllHeroineBattleSkillLoadouts(true);
 
         CreateGenreButtons();
         CreateActionButtons();
@@ -2306,6 +2310,7 @@ public class GameManager : MonoBehaviour
         NormalizeEquippedPlayerBattleSkills(false);
         saveData.equippedPlayerBattleSkillIds =
             new List<string>(equippedPlayerBattleSkillIds);
+        saveData.heroineBattleSkillLoadouts = CreateHeroineBattleSkillLoadoutSaveData();
         saveData.unlockedStillIds = new List<string>(unlockedStillIds);
         saveData.purchasedItemIds = new List<string>(purchasedItemIds);
         saveData.itemQuantities = CreateItemQuantitySaveData();
@@ -2504,6 +2509,8 @@ public class GameManager : MonoBehaviour
         }
         SynchronizeUnlockedSkillsWithSkillTree();
         NormalizeEquippedPlayerBattleSkills(saveData.saveVersion < 14);
+        LoadHeroineBattleSkillLoadouts(saveData.heroineBattleSkillLoadouts);
+        NormalizeAllHeroineBattleSkillLoadouts(saveData.saveVersion < 15);
 
         outfitPreferenceManager.SetPreferences(saveData.outfitPreferences);
 
@@ -2718,7 +2725,12 @@ public class GameManager : MonoBehaviour
 
     public bool IsHeroineBattleSkillUnlocked(string skillId)
     {
-        if (string.IsNullOrEmpty(skillId))
+        return IsHeroineBattleSkillUnlockedForHeroine(currentHeroineId, skillId);
+    }
+
+    private bool IsHeroineBattleSkillUnlockedForHeroine(string heroineId, string skillId)
+    {
+        if (string.IsNullOrEmpty(heroineId) || string.IsNullOrEmpty(skillId))
         {
             return false;
         }
@@ -2729,7 +2741,8 @@ public class GameManager : MonoBehaviour
             SkillTreeNodeData node = nodes[i];
             if (node != null &&
                 node.owner == SkillTreeOwner.Heroine &&
-                IsSkillTreeNodeForCurrentHeroine(node) &&
+                (string.IsNullOrEmpty(node.targetHeroineId) ||
+                    string.Equals(node.targetHeroineId, heroineId, StringComparison.Ordinal)) &&
                 string.Equals(node.grantedHeroineSkillId, skillId, StringComparison.Ordinal) &&
                 IsSkillTreeNodeAcquired(node.nodeId, SkillTreeOwner.Heroine))
             {
@@ -2738,6 +2751,275 @@ public class GameManager : MonoBehaviour
         }
 
         return false;
+    }
+
+    public int HeroineBattleSkillSlotCount => DefaultHeroineBattleSkillSlotCount;
+
+    public List<string> GetEquippedHeroineBattleSkillIds()
+    {
+        return GetEquippedHeroineBattleSkillIds(currentHeroineId);
+    }
+
+    public List<string> GetEquippedHeroineBattleSkillIds(string heroineId)
+    {
+        if (string.IsNullOrEmpty(heroineId))
+        {
+            return new List<string>();
+        }
+
+        NormalizeHeroineBattleSkillLoadout(heroineId, false);
+        return new List<string>(GetOrCreateHeroineBattleSkillLoadout(heroineId));
+    }
+
+    public bool IsHeroineBattleSkillEquipped(string skillId)
+    {
+        return IsHeroineBattleSkillEquipped(currentHeroineId, skillId);
+    }
+
+    public bool IsHeroineBattleSkillEquipped(string heroineId, string skillId)
+    {
+        if (string.IsNullOrEmpty(heroineId) || string.IsNullOrEmpty(skillId))
+        {
+            return false;
+        }
+
+        NormalizeHeroineBattleSkillLoadout(heroineId, false);
+        return GetOrCreateHeroineBattleSkillLoadout(heroineId).Contains(skillId);
+    }
+
+    public bool TryEquipHeroineBattleSkill(string skillId, out string message)
+    {
+        string heroineId = currentHeroineId;
+        if (string.IsNullOrEmpty(heroineId))
+        {
+            message = "ヒロインが選択されていません。";
+            return false;
+        }
+
+        NormalizeHeroineBattleSkillLoadout(heroineId, false);
+        HeroineBattleSkillData skill = FindHeroineBattleSkillData(heroineId, skillId);
+        if (!IsEquippableHeroineBattleSkill(heroineId, skill))
+        {
+            message = "現在のヒロインが習得済みの戦闘スキルだけを編成できます。";
+            return false;
+        }
+
+        List<string> loadout = GetOrCreateHeroineBattleSkillLoadout(heroineId);
+        if (loadout.Contains(skillId))
+        {
+            message = skill.GetDisplayName() + "はすでに編成中です。";
+            return true;
+        }
+
+        if (loadout.Count >= DefaultHeroineBattleSkillSlotCount)
+        {
+            message = "ヒロインの編成枠がいっぱいです。先に別のスキルを外してください。";
+            return false;
+        }
+
+        loadout.Add(skillId);
+        message = skill.GetDisplayName() + "を編成しました。";
+        return true;
+    }
+
+    public bool TryUnequipHeroineBattleSkill(string skillId, out string message)
+    {
+        string heroineId = currentHeroineId;
+        if (string.IsNullOrEmpty(heroineId))
+        {
+            message = "ヒロインが選択されていません。";
+            return false;
+        }
+
+        NormalizeHeroineBattleSkillLoadout(heroineId, false);
+        HeroineBattleSkillData skill = FindHeroineBattleSkillData(heroineId, skillId);
+        List<string> loadout = GetOrCreateHeroineBattleSkillLoadout(heroineId);
+        if (string.IsNullOrEmpty(skillId) || !loadout.Remove(skillId))
+        {
+            message = "このヒロインスキルは編成されていません。";
+            return false;
+        }
+
+        message = (skill != null ? skill.GetDisplayName() : skillId) + "を編成から外しました。";
+        return true;
+    }
+
+    public bool TryToggleHeroineBattleSkill(string skillId, out string message)
+    {
+        return IsHeroineBattleSkillEquipped(skillId)
+            ? TryUnequipHeroineBattleSkill(skillId, out message)
+            : TryEquipHeroineBattleSkill(skillId, out message);
+    }
+
+    private void TryAutoEquipHeroineBattleSkill(string heroineId, string skillId)
+    {
+        if (string.IsNullOrEmpty(heroineId) || string.IsNullOrEmpty(skillId))
+        {
+            return;
+        }
+
+        NormalizeHeroineBattleSkillLoadout(heroineId, false);
+        HeroineBattleSkillData skill = FindHeroineBattleSkillData(heroineId, skillId);
+        List<string> loadout = GetOrCreateHeroineBattleSkillLoadout(heroineId);
+        if (IsEquippableHeroineBattleSkill(heroineId, skill) &&
+            loadout.Count < DefaultHeroineBattleSkillSlotCount &&
+            !loadout.Contains(skillId))
+        {
+            loadout.Add(skillId);
+        }
+    }
+
+    private bool IsEquippableHeroineBattleSkill(
+        string heroineId,
+        HeroineBattleSkillData skill)
+    {
+        return skill != null &&
+            IsHeroineBattleSkillUnlockedForHeroine(heroineId, skill.skillId);
+    }
+
+    private HeroineBattleSkillData FindHeroineBattleSkillData(
+        string heroineId,
+        string skillId)
+    {
+        if (string.IsNullOrEmpty(heroineId) || string.IsNullOrEmpty(skillId))
+        {
+            return null;
+        }
+
+        HeroineProfileData profile = FindHeroineProfileById(heroineId);
+        if (profile == null)
+        {
+            return null;
+        }
+
+        List<HeroineBattleSkillData> skills = profile.GetBattleSkills();
+        for (int i = 0; i < skills.Count; i++)
+        {
+            HeroineBattleSkillData skill = skills[i];
+            if (skill != null && string.Equals(skill.skillId, skillId, StringComparison.Ordinal))
+            {
+                return skill;
+            }
+        }
+
+        return null;
+    }
+
+    private List<string> GetOrCreateHeroineBattleSkillLoadout(string heroineId)
+    {
+        List<string> loadout;
+        if (!heroineBattleSkillLoadouts.TryGetValue(heroineId, out loadout))
+        {
+            loadout = new List<string>();
+            heroineBattleSkillLoadouts[heroineId] = loadout;
+        }
+
+        return loadout;
+    }
+
+    private void NormalizeHeroineBattleSkillLoadout(string heroineId, bool fillEmptySlots)
+    {
+        if (string.IsNullOrEmpty(heroineId) || FindHeroineProfileById(heroineId) == null)
+        {
+            return;
+        }
+
+        List<string> loadout = GetOrCreateHeroineBattleSkillLoadout(heroineId);
+        HashSet<string> seenIds = new HashSet<string>(StringComparer.Ordinal);
+        List<string> normalizedIds = new List<string>();
+        for (int i = 0;
+            i < loadout.Count && normalizedIds.Count < DefaultHeroineBattleSkillSlotCount;
+            i++)
+        {
+            string skillId = loadout[i];
+            HeroineBattleSkillData skill = FindHeroineBattleSkillData(heroineId, skillId);
+            if (IsEquippableHeroineBattleSkill(heroineId, skill) && seenIds.Add(skillId))
+            {
+                normalizedIds.Add(skillId);
+            }
+        }
+        loadout.Clear();
+        loadout.AddRange(normalizedIds);
+
+        if (!fillEmptySlots)
+        {
+            return;
+        }
+
+        HeroineProfileData profile = FindHeroineProfileById(heroineId);
+        List<HeroineBattleSkillData> skills = profile.GetBattleSkills();
+        for (int i = 0;
+            i < skills.Count && loadout.Count < DefaultHeroineBattleSkillSlotCount;
+            i++)
+        {
+            HeroineBattleSkillData skill = skills[i];
+            if (IsEquippableHeroineBattleSkill(heroineId, skill) && seenIds.Add(skill.skillId))
+            {
+                loadout.Add(skill.skillId);
+            }
+        }
+    }
+
+    private void NormalizeAllHeroineBattleSkillLoadouts(bool fillEmptySlots)
+    {
+        HeroineProfileData[] profiles = Resources.LoadAll<HeroineProfileData>("Heroines");
+        HashSet<string> validHeroineIds = new HashSet<string>(StringComparer.Ordinal);
+        for (int i = 0; i < profiles.Length; i++)
+        {
+            HeroineProfileData profile = profiles[i];
+            if (profile == null || string.IsNullOrEmpty(profile.heroineId)) continue;
+            validHeroineIds.Add(profile.heroineId);
+            NormalizeHeroineBattleSkillLoadout(profile.heroineId, fillEmptySlots);
+        }
+
+        List<string> savedHeroineIds = new List<string>(heroineBattleSkillLoadouts.Keys);
+        for (int i = 0; i < savedHeroineIds.Count; i++)
+        {
+            if (!validHeroineIds.Contains(savedHeroineIds[i]))
+            {
+                heroineBattleSkillLoadouts.Remove(savedHeroineIds[i]);
+            }
+        }
+    }
+
+    private List<HeroineBattleSkillLoadoutEntry> CreateHeroineBattleSkillLoadoutSaveData()
+    {
+        NormalizeAllHeroineBattleSkillLoadouts(false);
+        List<string> heroineIds = new List<string>(heroineBattleSkillLoadouts.Keys);
+        heroineIds.Sort(StringComparer.Ordinal);
+        List<HeroineBattleSkillLoadoutEntry> entries =
+            new List<HeroineBattleSkillLoadoutEntry>();
+        for (int i = 0; i < heroineIds.Count; i++)
+        {
+            string heroineId = heroineIds[i];
+            entries.Add(new HeroineBattleSkillLoadoutEntry
+            {
+                heroineId = heroineId,
+                equippedSkillIds = new List<string>(heroineBattleSkillLoadouts[heroineId])
+            });
+        }
+
+        return entries;
+    }
+
+    private void LoadHeroineBattleSkillLoadouts(List<HeroineBattleSkillLoadoutEntry> entries)
+    {
+        heroineBattleSkillLoadouts.Clear();
+        if (entries == null)
+        {
+            return;
+        }
+
+        for (int i = 0; i < entries.Count; i++)
+        {
+            HeroineBattleSkillLoadoutEntry entry = entries[i];
+            if (entry == null || string.IsNullOrEmpty(entry.heroineId)) continue;
+            List<string> loadout = GetOrCreateHeroineBattleSkillLoadout(entry.heroineId);
+            if (entry.equippedSkillIds != null)
+            {
+                loadout.AddRange(entry.equippedSkillIds);
+            }
+        }
     }
 
     public string GetHeroineBattleSkillDisplayName(string skillId)
@@ -2928,6 +3210,14 @@ public class GameManager : MonoBehaviour
         {
             UnlockSkill(node.skill.skillId);
             TryAutoEquipPlayerBattleSkill(node.skill);
+        }
+        else if (node.owner == SkillTreeOwner.Heroine &&
+            !string.IsNullOrEmpty(node.grantedHeroineSkillId))
+        {
+            string heroineId = string.IsNullOrEmpty(node.targetHeroineId)
+                ? currentHeroineId
+                : node.targetHeroineId;
+            TryAutoEquipHeroineBattleSkill(heroineId, node.grantedHeroineSkillId);
         }
 
         RefreshStatusDetailPanel();

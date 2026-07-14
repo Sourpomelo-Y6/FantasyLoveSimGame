@@ -622,6 +622,7 @@ public class BattlePanel : MonoBehaviour
         if (skill == null ||
             gameManager == null ||
             !gameManager.IsHeroineBattleSkillUnlocked(skill.skillId) ||
+            !gameManager.IsHeroineBattleSkillEquipped(skill.skillId) ||
             debugHeroineStatus == null ||
             debugHeroineStatus.currentMp < Mathf.Max(0, skill.cost))
         {
