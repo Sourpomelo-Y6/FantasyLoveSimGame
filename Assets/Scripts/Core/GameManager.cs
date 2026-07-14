@@ -272,6 +272,10 @@ public class GameManager : MonoBehaviour
     private readonly List<string> equippedPlayerBattleSkillIds = new List<string>();
     private readonly Dictionary<string, List<string>> heroineBattleSkillLoadouts =
         new Dictionary<string, List<string>>(StringComparer.Ordinal);
+    private readonly HashSet<string> activePlayerTrainingSkillIds =
+        new HashSet<string>(StringComparer.Ordinal);
+    private readonly Dictionary<string, HashSet<string>> activeHeroineTrainingSkillIds =
+        new Dictionary<string, HashSet<string>>(StringComparer.Ordinal);
     private readonly HashSet<string> acquiredPlayerSkillTreeNodeIds = new HashSet<string>();
     private readonly HashSet<string> acquiredHeroineSkillTreeNodeIds = new HashSet<string>();
     private readonly HashSet<string> unlockedStillIds = new HashSet<string>();
@@ -1357,6 +1361,8 @@ public class GameManager : MonoBehaviour
         SynchronizeUnlockedSkillsWithSkillTree();
         NormalizeEquippedPlayerBattleSkills(true);
         NormalizeAllHeroineBattleSkillLoadouts(true);
+        NormalizeActivePlayerTrainingSkills(true);
+        NormalizeAllActiveHeroineTrainingSkills(true);
 
         CreateGenreButtons();
         CreateActionButtons();
@@ -2311,6 +2317,11 @@ public class GameManager : MonoBehaviour
         saveData.equippedPlayerBattleSkillIds =
             new List<string>(equippedPlayerBattleSkillIds);
         saveData.heroineBattleSkillLoadouts = CreateHeroineBattleSkillLoadoutSaveData();
+        NormalizeActivePlayerTrainingSkills(false);
+        saveData.activePlayerTrainingSkillIds =
+            CreateSortedSkillIdList(activePlayerTrainingSkillIds);
+        saveData.heroineTrainingSkillActivations =
+            CreateHeroineTrainingSkillActivationSaveData();
         saveData.unlockedStillIds = new List<string>(unlockedStillIds);
         saveData.purchasedItemIds = new List<string>(purchasedItemIds);
         saveData.itemQuantities = CreateItemQuantitySaveData();
@@ -2511,6 +2522,10 @@ public class GameManager : MonoBehaviour
         NormalizeEquippedPlayerBattleSkills(saveData.saveVersion < 14);
         LoadHeroineBattleSkillLoadouts(saveData.heroineBattleSkillLoadouts);
         NormalizeAllHeroineBattleSkillLoadouts(saveData.saveVersion < 15);
+        LoadActivePlayerTrainingSkills(saveData.activePlayerTrainingSkillIds);
+        NormalizeActivePlayerTrainingSkills(saveData.saveVersion < 16);
+        LoadActiveHeroineTrainingSkills(saveData.heroineTrainingSkillActivations);
+        NormalizeAllActiveHeroineTrainingSkills(saveData.saveVersion < 16);
 
         outfitPreferenceManager.SetPreferences(saveData.outfitPreferences);
 
@@ -2679,6 +2694,104 @@ public class GameManager : MonoBehaviour
         return IsPlayerBattleSkillEquipped(skillId)
             ? TryUnequipPlayerBattleSkill(skillId, out message)
             : TryEquipPlayerBattleSkill(skillId, out message);
+    }
+
+    public List<string> GetActivePlayerTrainingSkillIds()
+    {
+        NormalizeActivePlayerTrainingSkills(false);
+        return CreateSortedSkillIdList(activePlayerTrainingSkillIds);
+    }
+
+    public bool IsPlayerTrainingSkillActive(string skillId)
+    {
+        return !string.IsNullOrEmpty(skillId) &&
+            activePlayerTrainingSkillIds.Contains(skillId);
+    }
+
+    public bool TryTogglePlayerTrainingSkill(string skillId, out string message)
+    {
+        NormalizeActivePlayerTrainingSkills(false);
+        SkillData skill = FindSkillData(skillId);
+        if (!IsActivatablePlayerTrainingSkill(skill))
+        {
+            message = "習得済みの訓練スキルだけを有効にできます。";
+            return false;
+        }
+
+        if (activePlayerTrainingSkillIds.Remove(skillId))
+        {
+            message = skill.GetDisplayName() + "を無効にしました。";
+        }
+        else
+        {
+            activePlayerTrainingSkillIds.Add(skillId);
+            message = skill.GetDisplayName() + "を有効にしました。";
+        }
+
+        return true;
+    }
+
+    public List<string> GetActiveHeroineTrainingSkillIds()
+    {
+        return GetActiveHeroineTrainingSkillIds(currentHeroineId);
+    }
+
+    public List<string> GetActiveHeroineTrainingSkillIds(string heroineId)
+    {
+        if (string.IsNullOrEmpty(heroineId))
+        {
+            return new List<string>();
+        }
+
+        NormalizeActiveHeroineTrainingSkills(heroineId, false);
+        return CreateSortedSkillIdList(GetOrCreateActiveHeroineTrainingSkillIds(heroineId));
+    }
+
+    public bool IsHeroineTrainingSkillActive(string skillId)
+    {
+        return IsHeroineTrainingSkillActive(currentHeroineId, skillId);
+    }
+
+    public bool IsHeroineTrainingSkillActive(string heroineId, string skillId)
+    {
+        if (string.IsNullOrEmpty(heroineId) || string.IsNullOrEmpty(skillId))
+        {
+            return false;
+        }
+
+        NormalizeActiveHeroineTrainingSkills(heroineId, false);
+        return GetOrCreateActiveHeroineTrainingSkillIds(heroineId).Contains(skillId);
+    }
+
+    public bool TryToggleHeroineTrainingSkill(string skillId, out string message)
+    {
+        string heroineId = currentHeroineId;
+        if (string.IsNullOrEmpty(heroineId))
+        {
+            message = "ヒロインが選択されていません。";
+            return false;
+        }
+
+        NormalizeActiveHeroineTrainingSkills(heroineId, false);
+        SkillData skill = FindSkillData(skillId);
+        if (!IsActivatableHeroineTrainingSkill(heroineId, skill))
+        {
+            message = "現在のヒロインが習得済みの訓練スキルだけを有効にできます。";
+            return false;
+        }
+
+        HashSet<string> activeIds = GetOrCreateActiveHeroineTrainingSkillIds(heroineId);
+        if (activeIds.Remove(skillId))
+        {
+            message = skill.GetDisplayName() + "を無効にしました。";
+        }
+        else
+        {
+            activeIds.Add(skillId);
+            message = skill.GetDisplayName() + "を有効にしました。";
+        }
+
+        return true;
     }
 
     public List<SkillData> GetSkills()
@@ -3120,7 +3233,8 @@ public class GameManager : MonoBehaviour
 
         if (node.owner == SkillTreeOwner.Heroine &&
             (!IsSkillTreeNodeForCurrentHeroine(node) ||
-                string.IsNullOrEmpty(node.grantedHeroineSkillId)))
+                (string.IsNullOrEmpty(node.grantedHeroineSkillId) &&
+                    !IsTrainingSkillData(node.skill))))
         {
             return evaluation;
         }
@@ -3210,14 +3324,21 @@ public class GameManager : MonoBehaviour
         {
             UnlockSkill(node.skill.skillId);
             TryAutoEquipPlayerBattleSkill(node.skill);
+            TryAutoActivatePlayerTrainingSkill(node.skill);
         }
-        else if (node.owner == SkillTreeOwner.Heroine &&
-            !string.IsNullOrEmpty(node.grantedHeroineSkillId))
+        else if (node.owner == SkillTreeOwner.Heroine)
         {
             string heroineId = string.IsNullOrEmpty(node.targetHeroineId)
                 ? currentHeroineId
                 : node.targetHeroineId;
-            TryAutoEquipHeroineBattleSkill(heroineId, node.grantedHeroineSkillId);
+            if (IsTrainingSkillData(node.skill))
+            {
+                TryAutoActivateHeroineTrainingSkill(heroineId, node.skill);
+            }
+            else if (!string.IsNullOrEmpty(node.grantedHeroineSkillId))
+            {
+                TryAutoEquipHeroineBattleSkill(heroineId, node.grantedHeroineSkillId);
+            }
         }
 
         RefreshStatusDetailPanel();
@@ -3440,6 +3561,246 @@ public class GameManager : MonoBehaviour
         {
             equippedPlayerBattleSkillIds.Add(skill.skillId);
         }
+    }
+
+    private static bool IsTrainingSkillData(SkillData skill)
+    {
+        return skill != null &&
+            skill.isEnabled &&
+            skill.category == SkillCategory.Training &&
+            skill.canUseInTraining;
+    }
+
+    private bool IsActivatablePlayerTrainingSkill(SkillData skill)
+    {
+        return IsTrainingSkillData(skill) && IsSkillUnlocked(skill.skillId);
+    }
+
+    private bool IsActivatableHeroineTrainingSkill(string heroineId, SkillData skill)
+    {
+        if (string.IsNullOrEmpty(heroineId) || !IsTrainingSkillData(skill))
+        {
+            return false;
+        }
+
+        SkillTreeNodeData[] nodes = GetSkillTreeNodeDataList();
+        for (int i = 0; i < nodes.Length; i++)
+        {
+            SkillTreeNodeData node = nodes[i];
+            if (node != null &&
+                node.owner == SkillTreeOwner.Heroine &&
+                node.skill != null &&
+                string.Equals(node.skill.skillId, skill.skillId, StringComparison.Ordinal) &&
+                (string.IsNullOrEmpty(node.targetHeroineId) ||
+                    string.Equals(node.targetHeroineId, heroineId, StringComparison.Ordinal)) &&
+                IsSkillTreeNodeAcquired(node.nodeId, SkillTreeOwner.Heroine))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private void NormalizeActivePlayerTrainingSkills(bool activateAllAcquired)
+    {
+        List<string> savedIds = new List<string>(activePlayerTrainingSkillIds);
+        activePlayerTrainingSkillIds.Clear();
+        for (int i = 0; i < savedIds.Count; i++)
+        {
+            SkillData skill = FindSkillData(savedIds[i]);
+            if (IsActivatablePlayerTrainingSkill(skill))
+            {
+                activePlayerTrainingSkillIds.Add(skill.skillId);
+            }
+        }
+
+        if (!activateAllAcquired)
+        {
+            return;
+        }
+
+        SkillData[] skills = GetSkillDataList();
+        for (int i = 0; i < skills.Length; i++)
+        {
+            SkillData skill = skills[i];
+            if (IsActivatablePlayerTrainingSkill(skill))
+            {
+                activePlayerTrainingSkillIds.Add(skill.skillId);
+            }
+        }
+    }
+
+    private HashSet<string> GetOrCreateActiveHeroineTrainingSkillIds(string heroineId)
+    {
+        HashSet<string> activeIds;
+        if (!activeHeroineTrainingSkillIds.TryGetValue(heroineId, out activeIds))
+        {
+            activeIds = new HashSet<string>(StringComparer.Ordinal);
+            activeHeroineTrainingSkillIds[heroineId] = activeIds;
+        }
+
+        return activeIds;
+    }
+
+    private void NormalizeActiveHeroineTrainingSkills(
+        string heroineId,
+        bool activateAllAcquired)
+    {
+        if (string.IsNullOrEmpty(heroineId) || FindHeroineProfileById(heroineId) == null)
+        {
+            return;
+        }
+
+        HashSet<string> activeIds = GetOrCreateActiveHeroineTrainingSkillIds(heroineId);
+        List<string> savedIds = new List<string>(activeIds);
+        activeIds.Clear();
+        for (int i = 0; i < savedIds.Count; i++)
+        {
+            SkillData skill = FindSkillData(savedIds[i]);
+            if (IsActivatableHeroineTrainingSkill(heroineId, skill))
+            {
+                activeIds.Add(skill.skillId);
+            }
+        }
+
+        if (!activateAllAcquired)
+        {
+            return;
+        }
+
+        SkillTreeNodeData[] nodes = GetSkillTreeNodeDataList();
+        for (int i = 0; i < nodes.Length; i++)
+        {
+            SkillTreeNodeData node = nodes[i];
+            if (node == null ||
+                node.owner != SkillTreeOwner.Heroine ||
+                node.skill == null ||
+                (!string.IsNullOrEmpty(node.targetHeroineId) &&
+                    !string.Equals(node.targetHeroineId, heroineId, StringComparison.Ordinal)))
+            {
+                continue;
+            }
+
+            if (IsSkillTreeNodeAcquired(node.nodeId, SkillTreeOwner.Heroine) &&
+                IsTrainingSkillData(node.skill))
+            {
+                activeIds.Add(node.skill.skillId);
+            }
+        }
+    }
+
+    private void NormalizeAllActiveHeroineTrainingSkills(bool activateAllAcquired)
+    {
+        HeroineProfileData[] profiles = Resources.LoadAll<HeroineProfileData>("Heroines");
+        HashSet<string> validHeroineIds = new HashSet<string>(StringComparer.Ordinal);
+        for (int i = 0; i < profiles.Length; i++)
+        {
+            HeroineProfileData profile = profiles[i];
+            if (profile == null || string.IsNullOrEmpty(profile.heroineId)) continue;
+            validHeroineIds.Add(profile.heroineId);
+            NormalizeActiveHeroineTrainingSkills(profile.heroineId, activateAllAcquired);
+        }
+
+        List<string> savedHeroineIds =
+            new List<string>(activeHeroineTrainingSkillIds.Keys);
+        for (int i = 0; i < savedHeroineIds.Count; i++)
+        {
+            if (!validHeroineIds.Contains(savedHeroineIds[i]))
+            {
+                activeHeroineTrainingSkillIds.Remove(savedHeroineIds[i]);
+            }
+        }
+    }
+
+    private void TryAutoActivatePlayerTrainingSkill(SkillData skill)
+    {
+        if (IsActivatablePlayerTrainingSkill(skill))
+        {
+            activePlayerTrainingSkillIds.Add(skill.skillId);
+        }
+    }
+
+    private void TryAutoActivateHeroineTrainingSkill(string heroineId, SkillData skill)
+    {
+        if (IsActivatableHeroineTrainingSkill(heroineId, skill))
+        {
+            GetOrCreateActiveHeroineTrainingSkillIds(heroineId).Add(skill.skillId);
+        }
+    }
+
+    private void LoadActivePlayerTrainingSkills(List<string> skillIds)
+    {
+        activePlayerTrainingSkillIds.Clear();
+        if (skillIds == null) return;
+        for (int i = 0; i < skillIds.Count; i++)
+        {
+            if (!string.IsNullOrEmpty(skillIds[i]))
+            {
+                activePlayerTrainingSkillIds.Add(skillIds[i]);
+            }
+        }
+    }
+
+    private void LoadActiveHeroineTrainingSkills(
+        List<HeroineTrainingSkillActivationEntry> entries)
+    {
+        activeHeroineTrainingSkillIds.Clear();
+        if (entries == null) return;
+        for (int i = 0; i < entries.Count; i++)
+        {
+            HeroineTrainingSkillActivationEntry entry = entries[i];
+            if (entry == null || string.IsNullOrEmpty(entry.heroineId)) continue;
+            HashSet<string> activeIds =
+                GetOrCreateActiveHeroineTrainingSkillIds(entry.heroineId);
+            if (entry.activeSkillIds == null) continue;
+            for (int j = 0; j < entry.activeSkillIds.Count; j++)
+            {
+                if (!string.IsNullOrEmpty(entry.activeSkillIds[j]))
+                {
+                    activeIds.Add(entry.activeSkillIds[j]);
+                }
+            }
+        }
+    }
+
+    private List<HeroineTrainingSkillActivationEntry>
+        CreateHeroineTrainingSkillActivationSaveData()
+    {
+        NormalizeAllActiveHeroineTrainingSkills(false);
+        List<string> heroineIds = new List<string>(activeHeroineTrainingSkillIds.Keys);
+        heroineIds.Sort(StringComparer.Ordinal);
+        List<HeroineTrainingSkillActivationEntry> entries =
+            new List<HeroineTrainingSkillActivationEntry>();
+        for (int i = 0; i < heroineIds.Count; i++)
+        {
+            string heroineId = heroineIds[i];
+            entries.Add(new HeroineTrainingSkillActivationEntry
+            {
+                heroineId = heroineId,
+                activeSkillIds = CreateSortedSkillIdList(
+                    activeHeroineTrainingSkillIds[heroineId])
+            });
+        }
+
+        return entries;
+    }
+
+    private static List<string> CreateSortedSkillIdList(IEnumerable<string> skillIds)
+    {
+        List<string> result = new List<string>();
+        if (skillIds != null)
+        {
+            foreach (string skillId in skillIds)
+            {
+                if (!string.IsNullOrEmpty(skillId))
+                {
+                    result.Add(skillId);
+                }
+            }
+        }
+        result.Sort(StringComparer.Ordinal);
+        return result;
     }
 
     private SkillData FindSkillData(string skillId)

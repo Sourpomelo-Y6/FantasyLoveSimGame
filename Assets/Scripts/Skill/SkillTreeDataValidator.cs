@@ -151,7 +151,7 @@ public static class SkillTreeDataValidator
         }
         else
         {
-            ValidateHeroineSkill(node, heroinesById, report);
+            ValidateHeroineSkill(node, skillsById, heroinesById, report);
         }
 
         ValidatePrerequisites(node, nodeSet, report);
@@ -160,6 +160,7 @@ public static class SkillTreeDataValidator
 
     private static void ValidateHeroineSkill(
         SkillTreeNodeData node,
+        Dictionary<string, SkillData> skillsById,
         Dictionary<string, HeroineProfileData> heroinesById,
         SkillTreeValidationReport report)
     {
@@ -170,6 +171,29 @@ public static class SkillTreeDataValidator
             report.Warn(
                 label + " の targetHeroineId に一致するプロフィールがありません: " +
                 node.targetHeroineId);
+            return;
+        }
+
+        if (node.skill != null)
+        {
+            if (string.IsNullOrWhiteSpace(node.skill.skillId) ||
+                !skillsById.ContainsKey(node.skill.skillId))
+            {
+                report.Warn(
+                    label + " のヒロイン訓練スキルが Resources/Skills に存在しません: skillId=" +
+                    node.skill.skillId);
+            }
+            else if (node.skill.category != SkillCategory.Training ||
+                !node.skill.canUseInTraining)
+            {
+                report.Warn(label + " のヒロイン用 SkillData は訓練スキルではありません。");
+            }
+
+            if (!string.IsNullOrWhiteSpace(node.grantedHeroineSkillId))
+            {
+                report.Warn(
+                    label + " に訓練スキルと戦闘スキルが同時に設定されています。");
+            }
             return;
         }
 

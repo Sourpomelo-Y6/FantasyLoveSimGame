@@ -51,6 +51,7 @@ public class SkillTreeNodeData : ScriptableObject
     public string nodeId = "SkillTreeNode";
     public string displayName = "スキルノード";
     public SkillTreeOwner owner = SkillTreeOwner.Player;
+    [Tooltip("主人公スキル、または主人公・ヒロイン共通形式の訓練スキル。")]
     public SkillData skill;
     public int sortOrder;
 
