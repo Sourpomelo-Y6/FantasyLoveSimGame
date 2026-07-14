@@ -2,6 +2,32 @@
 
 このドキュメントは、開発中によく出る確認事項と対処をまとめる。
 
+## Clone後に日本語が四角や豆腐文字になる
+
+### 原因
+
+利用者が用意する日本語フォント、生成したTMP Font Asset、フォントアトラスはGit管理していないため、新しい環境ではフォント設定が空になる。
+
+### 対処
+
+1. 日本語対応の`.ttf`または`.otf`を`Assets/Fonts/Local`へ配置する
+2. `Tools > TextMeshPro > Japanese Font Setup`を開く
+3. `Window > TextMeshPro > Font Asset Creator`からTMP Font Assetを生成する
+4. EditorWindowの`Default Font Asset`へ指定する
+5. `選択フォントを設定へ保存`を実行する
+
+詳細は[`JapaneseFontSetup.md`](JapaneseFontSetup.md)を参照する。
+
+## Japanese TextMeshPro font is not configured警告が出る
+
+`Assets/Resources/JapaneseFontSettings.asset`は存在するが、`defaultFontAsset`が未設定になっている。上記の手順でローカルFont Assetを設定する。設定がない状態でもゲームは例外停止せず、既存フォントを維持する。
+
+## Font Assetを設定したSceneやPrefabをコミットしてよいか
+
+ローカルFont Assetを直接参照した差分はコミットしない。Git管理されないFont AssetのGUIDが保存され、別環境で参照切れになるためである。
+
+通常は`JapaneseFontSettings`と起動時の`JapaneseFontApplier`を利用する。EditorWindowの全Scene・全Prefab一括適用はローカル確認用として扱う。ローカルFont Assetを保存した後の`JapaneseFontSettings.asset`差分も同じ理由でコミットしない。
+
 ## TestHeroine の行動メニューが DefaultHeroine より少ない
 
 ### 原因
@@ -81,4 +107,3 @@ TestHeroine の画像を使う場合は、`Assets/Images/Heroines/TestHeroine/Ac
 
 本番ヒロインでは、DefaultHeroine と同じ行動メニューを最初から用意する方が扱いやすい。
 ただし、ヒロイン固有の行動だけに絞る場合は、`Actions` 配下に置く `ActionData` を意図的に減らしてよい。
-

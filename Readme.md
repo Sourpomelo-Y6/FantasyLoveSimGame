@@ -47,13 +47,32 @@ This project is licensed under the MIT License. See [LICENSE](LICENSE) for detai
 ## 起動方法
 
 1. Unity Hub でこのフォルダをプロジェクトとして開く
-2. `Assets/Scenes/MainScene.unity` を開く
-3. Play ボタンで実行する
-4. [`Docs/JapaneseFontSetup.md`](Docs/JapaneseFontSetup.md) の手順で、ローカルの日本語フォントをTextMeshProへ設定する
+2. 下記の「TextMeshPro日本語フォントの初期設定」を行う
+3. `Assets/Scenes/MainScene.unity` を開く
+4. Play ボタンで実行する
+
+## TextMeshPro日本語フォントの初期設定
+
+日本語フォント本体と生成したTMP Font Assetは、ライセンスと容量の都合によりGitリポジトリへ含めていません。CloneまたはPullした環境ごとに、次の設定が必要です。
+
+1. 使用許諾を確認した日本語対応の`.ttf`または`.otf`を用意する
+2. UnityのProjectウィンドウで`Assets/Fonts/Local`フォルダを作り、フォントを配置する
+3. `Tools > TextMeshPro > Japanese Font Setup`を開く
+4. `Source Font (.ttf / .otf)`へ元フォントを指定する
+5. `Window > TextMeshPro > Font Asset Creator`を開き、元フォントからTMP Font Assetを作成する
+6. 生成したFont Assetも`Assets/Fonts/Local`へ保存する
+7. Japanese Font Setupへ戻り、`Default Font Asset`へ生成したFont Assetを指定する
+8. `選択フォントを設定へ保存`を押す
+9. Playして日本語が欠けずに表示されることを確認する
+
+ゲーム起動時には`JapaneseFontApplier`が自動的にロード済みSceneの`TMP_Text`へ設定フォントを適用します。Canvasや各Textへコンポーネントを手動追加する必要はありません。
+
+新しく作成するTextMeshProにも同じフォントを使う場合は、`Edit > Project Settings > TextMesh Pro > Default Font Asset`も手動設定してください。詳しい生成設定、既存Scene・Prefabへの一括適用、Gitへコミットしないファイルについては、[TextMeshPro日本語フォント設定](Docs/JapaneseFontSetup.md)を参照してください。
 
 ## 注意
 
-- 日本語アセットの一部はファイルサイズが大きいため、GitHub へそのままコミットできない場合があります
+- `Assets/Fonts/Local`内のフォント、TMP Font Asset、フォントアトラスはGit管理しません
+- ローカルFont Assetを直接適用したScene・Prefabや、割り当て後の`JapaneseFontSettings.asset`は、GUID参照切れを防ぐためコミットしないでください
 - セットアップ時に不足があれば、`Docs/Images` や `Assets/Images` 配下の画像を個別に追加してください
 
 ## 操作

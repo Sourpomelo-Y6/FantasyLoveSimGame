@@ -139,9 +139,17 @@
 - `Assets/Resources/Heroines/DefaultHeroine/Actions/`: 現在ヒロインの行動資産
 - `Assets/Resources/Heroines/DefaultHeroine/Conversations/`: 現在ヒロインの会話資産
 - `Assets/Scenes/`: シーン
-- `Assets/Fonts/`: 日本語表示用フォント資産
+- `Assets/Fonts/Local/`: 各開発環境で用意する日本語フォントと生成TMP Font Asset。Git管理しない
 - `Assets/Settings/`: URP 関連設定
 - `Assets/TextMesh Pro/`: TextMeshPro 標準アセット群
+
+### TextMeshPro日本語フォント
+
+日本語フォント本体と生成TMP Font Assetはリポジトリに含めない。新しい環境では`Tools > TextMeshPro > Japanese Font Setup`を開き、`Assets/Fonts/Local`へ配置した`.ttf`または`.otf`からFont Assetを生成して、`Assets/Resources/JapaneseFontSettings.asset`へ設定する。詳細手順は[`Docs/JapaneseFontSetup.md`](JapaneseFontSetup.md)を参照する。
+
+Runtimeでは`JapaneseFontApplier`が起動時に自動生成され、設定済みの場合だけ非アクティブを含むロード済みSceneの`TMP_Text`へ適用する。各CanvasやGameObjectへの手動追加は不要。新規TMP向けのDefault Font Assetは`Edit > Project Settings > TextMesh Pro`から手動設定する。
+
+EditorWindowのScene・Prefab一括適用はローカル確認専用。適用後のScene・Prefabと、ローカルFont Assetを割り当てた`JapaneseFontSettings.asset`には非Git管理アセットのGUIDが入るため、その差分をコミットしない。
 
 ## GameManager の役割
 
