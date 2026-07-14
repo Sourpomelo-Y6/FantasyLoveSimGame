@@ -10,6 +10,7 @@ using UnityEngine.Serialization;
 public class GameManager : MonoBehaviour
 {
     private const int MaxTrainingProficiency = 999999;
+    private const int DefaultPlayerBattleSkillSlotCount = 4;
     private const string SkillTreeNodeResourcePath = "SkillTreeNodes";
     private const string CommonScheduledEventResourcePath = "ScheduledEvents";
     private const string BattleResultEventResourcePath = "BattleResultEvents";
@@ -267,6 +268,7 @@ public class GameManager : MonoBehaviour
     private readonly HashSet<string> shownGameEventIds = new HashSet<string>();
     private readonly HashSet<string> unlockedStatusAbilityIds = new HashSet<string>();
     private readonly HashSet<string> unlockedSkillIds = new HashSet<string>();
+    private readonly List<string> equippedPlayerBattleSkillIds = new List<string>();
     private readonly HashSet<string> acquiredPlayerSkillTreeNodeIds = new HashSet<string>();
     private readonly HashSet<string> acquiredHeroineSkillTreeNodeIds = new HashSet<string>();
     private readonly HashSet<string> unlockedStillIds = new HashSet<string>();
@@ -1350,6 +1352,7 @@ public class GameManager : MonoBehaviour
         LoadGameEventsFromResources();
         LoadScheduledEventsFromResources();
         SynchronizeUnlockedSkillsWithSkillTree();
+        NormalizeEquippedPlayerBattleSkills(true);
 
         CreateGenreButtons();
         CreateActionButtons();
@@ -2300,6 +2303,9 @@ public class GameManager : MonoBehaviour
                 : new OutfitPromptAbilitySet();
         saveData.unlockedStatusAbilityIds = new List<string>(unlockedStatusAbilityIds);
         saveData.unlockedSkillIds = new List<string>(unlockedSkillIds);
+        NormalizeEquippedPlayerBattleSkills(false);
+        saveData.equippedPlayerBattleSkillIds =
+            new List<string>(equippedPlayerBattleSkillIds);
         saveData.unlockedStillIds = new List<string>(unlockedStillIds);
         saveData.purchasedItemIds = new List<string>(purchasedItemIds);
         saveData.itemQuantities = CreateItemQuantitySaveData();
@@ -2484,7 +2490,20 @@ public class GameManager : MonoBehaviour
         LoadSkillTreeNodeIds(
             acquiredHeroineSkillTreeNodeIds,
             saveData.acquiredHeroineSkillTreeNodeIds);
+        equippedPlayerBattleSkillIds.Clear();
+        if (saveData.equippedPlayerBattleSkillIds != null)
+        {
+            for (int i = 0; i < saveData.equippedPlayerBattleSkillIds.Count; i++)
+            {
+                string skillId = saveData.equippedPlayerBattleSkillIds[i];
+                if (!string.IsNullOrEmpty(skillId))
+                {
+                    equippedPlayerBattleSkillIds.Add(skillId);
+                }
+            }
+        }
         SynchronizeUnlockedSkillsWithSkillTree();
+        NormalizeEquippedPlayerBattleSkills(saveData.saveVersion < 14);
 
         outfitPreferenceManager.SetPreferences(saveData.outfitPreferences);
 
@@ -2591,6 +2610,68 @@ public class GameManager : MonoBehaviour
     public List<string> GetUnlockedSkillIds()
     {
         return new List<string>(unlockedSkillIds);
+    }
+
+    public int PlayerBattleSkillSlotCount => DefaultPlayerBattleSkillSlotCount;
+
+    public List<string> GetEquippedPlayerBattleSkillIds()
+    {
+        NormalizeEquippedPlayerBattleSkills(false);
+        return new List<string>(equippedPlayerBattleSkillIds);
+    }
+
+    public bool IsPlayerBattleSkillEquipped(string skillId)
+    {
+        return !string.IsNullOrEmpty(skillId) &&
+            equippedPlayerBattleSkillIds.Contains(skillId);
+    }
+
+    public bool TryEquipPlayerBattleSkill(string skillId, out string message)
+    {
+        NormalizeEquippedPlayerBattleSkills(false);
+        SkillData skill = FindSkillData(skillId);
+        if (!IsEquippablePlayerBattleSkill(skill))
+        {
+            message = "習得済みの戦闘スキルだけを装備できます。";
+            return false;
+        }
+
+        if (equippedPlayerBattleSkillIds.Contains(skillId))
+        {
+            message = skill.GetDisplayName() + "はすでに装備中です。";
+            return true;
+        }
+
+        if (equippedPlayerBattleSkillIds.Count >= DefaultPlayerBattleSkillSlotCount)
+        {
+            message = "装備枠がいっぱいです。先に別のスキルを外してください。";
+            return false;
+        }
+
+        equippedPlayerBattleSkillIds.Add(skillId);
+        message = skill.GetDisplayName() + "を装備しました。";
+        return true;
+    }
+
+    public bool TryUnequipPlayerBattleSkill(string skillId, out string message)
+    {
+        NormalizeEquippedPlayerBattleSkills(false);
+        SkillData skill = FindSkillData(skillId);
+        if (string.IsNullOrEmpty(skillId) || !equippedPlayerBattleSkillIds.Remove(skillId))
+        {
+            message = "このスキルは装備されていません。";
+            return false;
+        }
+
+        message = (skill != null ? skill.GetDisplayName() : skillId) + "を外しました。";
+        return true;
+    }
+
+    public bool TryTogglePlayerBattleSkill(string skillId, out string message)
+    {
+        return IsPlayerBattleSkillEquipped(skillId)
+            ? TryUnequipPlayerBattleSkill(skillId, out message)
+            : TryEquipPlayerBattleSkill(skillId, out message);
     }
 
     public List<SkillData> GetSkills()
@@ -2846,6 +2927,7 @@ public class GameManager : MonoBehaviour
         if (node.owner == SkillTreeOwner.Player && node.skill != null)
         {
             UnlockSkill(node.skill.skillId);
+            TryAutoEquipPlayerBattleSkill(node.skill);
         }
 
         RefreshStatusDetailPanel();
@@ -2996,6 +3078,100 @@ public class GameManager : MonoBehaviour
         return skills;
     }
 
+    public List<SkillData> GetEquippedPlayerBattleSkills()
+    {
+        NormalizeEquippedPlayerBattleSkills(false);
+        List<SkillData> result = new List<SkillData>();
+        for (int i = 0; i < equippedPlayerBattleSkillIds.Count; i++)
+        {
+            SkillData skill = FindSkillData(equippedPlayerBattleSkillIds[i]);
+            if (IsEquippablePlayerBattleSkill(skill))
+            {
+                result.Add(skill);
+            }
+        }
+
+        return result;
+    }
+
+    private void NormalizeEquippedPlayerBattleSkills(bool fillEmptySlots)
+    {
+        HashSet<string> seenIds = new HashSet<string>(StringComparer.Ordinal);
+        List<string> normalizedIds = new List<string>();
+        for (int i = 0;
+            i < equippedPlayerBattleSkillIds.Count &&
+                normalizedIds.Count < DefaultPlayerBattleSkillSlotCount;
+            i++)
+        {
+            string skillId = equippedPlayerBattleSkillIds[i];
+            SkillData skill = FindSkillData(skillId);
+            if (IsEquippablePlayerBattleSkill(skill) && seenIds.Add(skillId))
+            {
+                normalizedIds.Add(skillId);
+            }
+        }
+        equippedPlayerBattleSkillIds.Clear();
+        equippedPlayerBattleSkillIds.AddRange(normalizedIds);
+
+        if (!fillEmptySlots)
+        {
+            return;
+        }
+
+        List<SkillData> unlockedBattleSkills = GetUnlockedBattleSkills();
+        for (int i = 0;
+            i < unlockedBattleSkills.Count &&
+                equippedPlayerBattleSkillIds.Count < DefaultPlayerBattleSkillSlotCount;
+            i++)
+        {
+            SkillData skill = unlockedBattleSkills[i];
+            if (skill != null && seenIds.Add(skill.skillId))
+            {
+                equippedPlayerBattleSkillIds.Add(skill.skillId);
+            }
+        }
+    }
+
+    private bool IsEquippablePlayerBattleSkill(SkillData skill)
+    {
+        return skill != null &&
+            skill.isEnabled &&
+            skill.category == SkillCategory.Battle &&
+            skill.canUseInBattle &&
+            IsSkillUnlocked(skill.skillId);
+    }
+
+    private void TryAutoEquipPlayerBattleSkill(SkillData skill)
+    {
+        NormalizeEquippedPlayerBattleSkills(false);
+        if (IsEquippablePlayerBattleSkill(skill) &&
+            equippedPlayerBattleSkillIds.Count < DefaultPlayerBattleSkillSlotCount &&
+            !equippedPlayerBattleSkillIds.Contains(skill.skillId))
+        {
+            equippedPlayerBattleSkillIds.Add(skill.skillId);
+        }
+    }
+
+    private SkillData FindSkillData(string skillId)
+    {
+        if (string.IsNullOrEmpty(skillId))
+        {
+            return null;
+        }
+
+        SkillData[] skills = GetSkillDataList();
+        for (int i = 0; i < skills.Length; i++)
+        {
+            SkillData skill = skills[i];
+            if (skill != null && string.Equals(skill.skillId, skillId, StringComparison.Ordinal))
+            {
+                return skill;
+            }
+        }
+
+        return null;
+    }
+
     public bool MeetsSkillUnlockConditions(SkillData skill)
     {
         if (skill == null || !skill.isEnabled)
@@ -3087,7 +3263,7 @@ public class GameManager : MonoBehaviour
 
     public bool TryOpenBattleSkillSelection(Action<SkillData> onSelected)
     {
-        if (GetUnlockedBattleSkills().Count == 0)
+        if (GetEquippedPlayerBattleSkills().Count == 0)
         {
             return false;
         }

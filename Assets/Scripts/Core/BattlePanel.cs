@@ -323,10 +323,10 @@ public class BattlePanel : MonoBehaviour
             return;
         }
 
-        List<SkillData> skills = gameManager.GetUnlockedBattleSkills();
+        List<SkillData> skills = gameManager.GetEquippedPlayerBattleSkills();
         if (skills.Count == 0)
         {
-            AddLog("使用できる戦闘スキルがありません。訓練でスキルを解放してください。");
+            AddLog("装備中の戦闘スキルがありません。スキルツリーで装備してください。");
             Refresh();
             return;
         }

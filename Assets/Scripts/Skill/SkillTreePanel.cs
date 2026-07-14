@@ -183,8 +183,14 @@ public class SkillTreePanel : MonoBehaviour
         TextMeshProUGUI label = button.GetComponentInChildren<TextMeshProUGUI>(true);
         if (label != null)
         {
+            string equipmentLabel = evaluation.state == SkillTreeNodeState.Acquired &&
+                IsNodeEquippable(node) &&
+                gameManager.IsPlayerBattleSkillEquipped(node.skill.skillId)
+                    ? " / 装備中"
+                    : "";
             label.text = node.GetDisplayName() + " / 必要SP " +
-                Mathf.Max(0, node.skillPointCost) + " / " + GetStateLabel(evaluation.state);
+                Mathf.Max(0, node.skillPointCost) + " / " + GetStateLabel(evaluation.state) +
+                equipmentLabel;
         }
 
         button.onClick.AddListener(() => SelectNode(node));
@@ -363,7 +369,11 @@ public class SkillTreePanel : MonoBehaviour
                     ? "習得するノードを選択してください。"
                     : "このキャラクターのスキルツリーノードはまだありません。";
             }
-            if (acquireButton != null) acquireButton.interactable = false;
+            if (acquireButton != null)
+            {
+                acquireButton.interactable = false;
+                SetAcquireButtonLabel("取得");
+            }
             return;
         }
 
@@ -377,7 +387,22 @@ public class SkillTreePanel : MonoBehaviour
         }
         if (acquireButton != null)
         {
-            acquireButton.interactable = evaluation.state == SkillTreeNodeState.Available;
+            bool canToggleEquipment = evaluation.state == SkillTreeNodeState.Acquired &&
+                IsNodeEquippable(selectedNode);
+            acquireButton.interactable =
+                evaluation.state == SkillTreeNodeState.Available || canToggleEquipment;
+            if (canToggleEquipment)
+            {
+                SetAcquireButtonLabel(
+                    gameManager.IsPlayerBattleSkillEquipped(selectedNode.skill.skillId)
+                        ? "外す"
+                        : "装備する");
+            }
+            else
+            {
+                SetAcquireButtonLabel(
+                    evaluation.state == SkillTreeNodeState.Acquired ? "取得済み" : "取得");
+            }
         }
     }
 
@@ -399,6 +424,17 @@ public class SkillTreePanel : MonoBehaviour
         builder.AppendLine("状態：" + GetStateLabel(evaluation.state));
         builder.AppendLine("必要スキルポイント：" + evaluation.requiredSkillPoints);
         builder.AppendLine(BuildAvailabilityMessage(evaluation));
+
+        if (evaluation.state == SkillTreeNodeState.Acquired && IsNodeEquippable(node))
+        {
+            int equippedCount = gameManager.GetEquippedPlayerBattleSkillIds().Count;
+            builder.AppendLine(
+                "装備状態：" +
+                (gameManager.IsPlayerBattleSkillEquipped(node.skill.skillId)
+                    ? "装備中"
+                    : "未装備") +
+                "（" + equippedCount + " / " + gameManager.PlayerBattleSkillSlotCount + "）");
+        }
 
         if (node.skill != null && !string.IsNullOrEmpty(node.skill.description))
         {
@@ -449,6 +485,18 @@ public class SkillTreePanel : MonoBehaviour
             return;
         }
 
+        SkillTreeNodeEvaluation evaluation = gameManager.EvaluateSkillTreeNode(selectedNode);
+        if (evaluation.state == SkillTreeNodeState.Acquired && IsNodeEquippable(selectedNode))
+        {
+            string equipmentMessage;
+            gameManager.TryTogglePlayerBattleSkill(
+                selectedNode.skill.skillId,
+                out equipmentMessage);
+            feedbackMessage = equipmentMessage;
+            Refresh();
+            return;
+        }
+
         if (!gameManager.TryAcquireSkillTreeNode(selectedNode))
         {
             feedbackMessage = "取得できませんでした。条件とスキルポイントを確認してください。";
@@ -458,6 +506,26 @@ public class SkillTreePanel : MonoBehaviour
 
         feedbackMessage = selectedNode.GetDisplayName() + "を習得しました。";
         Refresh();
+    }
+
+    private static bool IsNodeEquippable(SkillTreeNodeData node)
+    {
+        return node != null &&
+            node.owner == SkillTreeOwner.Player &&
+            node.skill != null &&
+            node.skill.isEnabled &&
+            node.skill.category == SkillCategory.Battle &&
+            node.skill.canUseInBattle;
+    }
+
+    private void SetAcquireButtonLabel(string label)
+    {
+        if (acquireButton == null) return;
+        TextMeshProUGUI buttonText = acquireButton.GetComponentInChildren<TextMeshProUGUI>(true);
+        if (buttonText != null)
+        {
+            buttonText.text = label;
+        }
     }
 
     private static string GetStateLabel(SkillTreeNodeState state)

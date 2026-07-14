@@ -88,7 +88,7 @@ public class SkillPanel : MonoBehaviour
         if (descriptionText != null)
         {
             descriptionText.text = battleSelectionMode
-                ? "解放済みの戦闘用スキルを選択してください。"
+                ? "装備中の戦闘用スキルを選択してください。"
                 : "スキルポイントを使い、スキルツリーで習得したスキルを確認できます。";
         }
 
@@ -105,7 +105,7 @@ public class SkillPanel : MonoBehaviour
         ClearSkillList();
         HideSkillButtonTemplate();
         List<SkillData> skills = battleSelectionMode
-            ? gameManager.GetUnlockedBattleSkills()
+            ? gameManager.GetEquippedPlayerBattleSkills()
             : gameManager.GetSkills();
 
         foreach (SkillData skill in skills)
@@ -145,11 +145,15 @@ public class SkillPanel : MonoBehaviour
 
     private string BuildSkillButtonLabel(SkillData skill, bool unlocked)
     {
+        string equipped = unlocked && gameManager.IsPlayerBattleSkillEquipped(skill.skillId)
+            ? " / 装備中"
+            : "";
         return skill.GetDisplayName() +
             " / MP " +
             Mathf.Max(0, skill.cost) +
             " / " +
-            (unlocked ? unlockedLabel : lockedLabel);
+            (unlocked ? unlockedLabel : lockedLabel) +
+            equipped;
     }
 
     private void ShowSkillDescription(SkillData skill)
@@ -161,10 +165,14 @@ public class SkillPanel : MonoBehaviour
 
         bool unlocked = gameManager.IsSkillUnlocked(skill.skillId);
         string state = unlocked ? unlockedLabel : lockedLabel;
+        string equipmentState = unlocked && skill.category == SkillCategory.Battle && skill.canUseInBattle
+            ? "\n装備状態: " +
+                (gameManager.IsPlayerBattleSkillEquipped(skill.skillId) ? "装備中" : "未装備")
+            : "";
         descriptionText.text =
             skill.GetDisplayName() + " / " + state + "\n" +
             skill.description + "\n\n" +
-            "消費 MP: " + Mathf.Max(0, skill.cost) + "\n" +
+            "消費 MP: " + Mathf.Max(0, skill.cost) + equipmentState + "\n" +
             gameManager.GetSkillUnlockConditionText(skill);
     }
 
