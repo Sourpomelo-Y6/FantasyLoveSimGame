@@ -2673,6 +2673,54 @@ public class GameManager : MonoBehaviour
         return string.IsNullOrEmpty(skillId) ? "ヒロインスキル" : skillId;
     }
 
+    public string GetSkillTreeConditionTargetDisplayName(SkillTreeUnlockCondition condition)
+    {
+        if (condition == null || string.IsNullOrEmpty(condition.targetId))
+        {
+            return string.Empty;
+        }
+
+        if (condition.scope == SkillTreeProgressScope.Training)
+        {
+            TrainingData[] trainings = GetTrainingDataList();
+            for (int i = 0; i < trainings.Length; i++)
+            {
+                TrainingData training = trainings[i];
+                if (training != null &&
+                    string.Equals(training.trainingId, condition.targetId, StringComparison.Ordinal))
+                {
+                    return training.GetDisplayName();
+                }
+            }
+        }
+
+        if (condition.scope == SkillTreeProgressScope.TrainingCategory)
+        {
+            switch (condition.targetId)
+            {
+                case "Fundamentals": return "基礎";
+                case "Combat": return "実戦";
+                case "Endurance": return "持久";
+            }
+        }
+
+        if (condition.scope == SkillTreeProgressScope.Enemy)
+        {
+            EnemyData[] enemies = Resources.LoadAll<EnemyData>("Enemies");
+            for (int i = 0; i < enemies.Length; i++)
+            {
+                EnemyData enemy = enemies[i];
+                if (enemy != null &&
+                    string.Equals(enemy.enemyId, condition.targetId, StringComparison.Ordinal))
+                {
+                    return enemy.GetDisplayName();
+                }
+            }
+        }
+
+        return condition.targetId;
+    }
+
     private SkillTreeNodeData[] GetSkillTreeNodeDataList()
     {
         if (skillTreeNodeDataList == null)

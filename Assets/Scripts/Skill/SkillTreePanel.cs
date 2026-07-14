@@ -21,10 +21,20 @@ public class SkillTreePanel : MonoBehaviour
     [SerializeField] private TextMeshProUGUI descriptionText;
     [SerializeField] private Button acquireButton;
 
+    [Header("Node Colors")]
+    [SerializeField] private Color lockedColor = new Color32(120, 120, 120, 255);
+    [SerializeField] private Color insufficientPointsColor = new Color32(210, 170, 55, 255);
+    [SerializeField] private Color availableColor = new Color32(80, 180, 100, 255);
+    [SerializeField] private Color acquiredColor = new Color32(75, 135, 210, 255);
+    [SerializeField] private Color selectedOutlineColor = Color.white;
+
     private readonly List<GameObject> spawnedNodeButtons = new List<GameObject>();
+    private readonly Dictionary<Button, SkillTreeNodeData> nodeButtonNodes =
+        new Dictionary<Button, SkillTreeNodeData>();
     private GameManager gameManager;
     private SkillTreeOwner currentOwner = SkillTreeOwner.Player;
     private SkillTreeNodeData selectedNode;
+    private string feedbackMessage = string.Empty;
     private bool buttonsHooked;
 
     private GameObject PanelRoot => panelRoot != null ? panelRoot : gameObject;
@@ -49,6 +59,7 @@ public class SkillTreePanel : MonoBehaviour
         Initialize(manager);
         currentOwner = SkillTreeOwner.Player;
         selectedNode = null;
+        feedbackMessage = string.Empty;
         PanelRoot.SetActive(true);
         Refresh();
     }
@@ -77,6 +88,7 @@ public class SkillTreePanel : MonoBehaviour
 
         currentOwner = owner;
         selectedNode = null;
+        feedbackMessage = string.Empty;
         Refresh();
     }
 
@@ -92,7 +104,10 @@ public class SkillTreePanel : MonoBehaviour
             : gameManager.HeroineSkillPoints;
         if (skillPointText != null)
         {
-            skillPointText.text = "スキルポイント：" + points;
+            string ownerName = currentOwner == SkillTreeOwner.Player
+                ? "主人公"
+                : ResolveCurrentHeroineName();
+            skillPointText.text = ownerName + " / スキルポイント：" + points;
         }
 
         if (playerButton != null) playerButton.interactable = currentOwner != SkillTreeOwner.Player;
@@ -132,6 +147,7 @@ public class SkillTreePanel : MonoBehaviour
         Button button = Instantiate(nodeButtonPrefab, nodeListParent);
         button.gameObject.SetActive(true);
         spawnedNodeButtons.Add(button.gameObject);
+        nodeButtonNodes[button] = node;
 
         SkillTreeNodeEvaluation evaluation = gameManager.EvaluateSkillTreeNode(node);
         TextMeshProUGUI label = button.GetComponentInChildren<TextMeshProUGUI>(true);
@@ -142,11 +158,14 @@ public class SkillTreePanel : MonoBehaviour
         }
 
         button.onClick.AddListener(() => SelectNode(node));
+        ApplyNodeButtonVisual(button, evaluation, node == selectedNode);
     }
 
     private void SelectNode(SkillTreeNodeData node)
     {
         selectedNode = node;
+        feedbackMessage = string.Empty;
+        RefreshNodeButtonVisuals();
         RefreshSelectedNode();
     }
 
@@ -167,7 +186,10 @@ public class SkillTreePanel : MonoBehaviour
         SkillTreeNodeEvaluation evaluation = gameManager.EvaluateSkillTreeNode(selectedNode);
         if (descriptionText != null)
         {
-            descriptionText.text = BuildDescription(evaluation);
+            string description = BuildDescription(evaluation);
+            descriptionText.text = string.IsNullOrEmpty(feedbackMessage)
+                ? description
+                : feedbackMessage + "\n\n" + description;
         }
         if (acquireButton != null)
         {
@@ -192,6 +214,7 @@ public class SkillTreePanel : MonoBehaviour
         builder.AppendLine(node.GetDisplayName());
         builder.AppendLine("状態：" + GetStateLabel(evaluation.state));
         builder.AppendLine("必要スキルポイント：" + evaluation.requiredSkillPoints);
+        builder.AppendLine(BuildAvailabilityMessage(evaluation));
 
         if (node.skill != null && !string.IsNullOrEmpty(node.skill.description))
         {
@@ -237,11 +260,19 @@ public class SkillTreePanel : MonoBehaviour
 
     private void AcquireSelectedNode()
     {
-        if (selectedNode == null || !gameManager.TryAcquireSkillTreeNode(selectedNode))
+        if (selectedNode == null)
         {
             return;
         }
 
+        if (!gameManager.TryAcquireSkillTreeNode(selectedNode))
+        {
+            feedbackMessage = "取得できませんでした。条件とスキルポイントを確認してください。";
+            RefreshSelectedNode();
+            return;
+        }
+
+        feedbackMessage = selectedNode.GetDisplayName() + "を習得しました。";
         Refresh();
     }
 
@@ -256,10 +287,13 @@ public class SkillTreePanel : MonoBehaviour
         }
     }
 
-    private static string GetConditionLabel(SkillTreeUnlockCondition condition)
+    private string GetConditionLabel(SkillTreeUnlockCondition condition)
     {
         if (condition == null) return "不明な条件";
-        string target = string.IsNullOrEmpty(condition.targetId) ? "" : "（" + condition.targetId + "）";
+        string targetName = gameManager != null
+            ? gameManager.GetSkillTreeConditionTargetDisplayName(condition)
+            : condition.targetId;
+        string target = string.IsNullOrEmpty(targetName) ? "" : "（" + targetName + "）";
         switch (condition.conditionType)
         {
             case SkillTreeConditionType.TrainingProficiency: return "訓練熟練度" + target;
@@ -280,6 +314,79 @@ public class SkillTreePanel : MonoBehaviour
             if (spawnedNodeButtons[i] != null) Destroy(spawnedNodeButtons[i]);
         }
         spawnedNodeButtons.Clear();
+        nodeButtonNodes.Clear();
+    }
+
+    private string ResolveCurrentHeroineName()
+    {
+        HeroineProfileData profile = gameManager != null ? gameManager.CurrentHeroineProfile : null;
+        return profile != null && !string.IsNullOrEmpty(profile.displayName)
+            ? profile.displayName
+            : "ヒロイン";
+    }
+
+    private static string BuildAvailabilityMessage(SkillTreeNodeEvaluation evaluation)
+    {
+        switch (evaluation.state)
+        {
+            case SkillTreeNodeState.Available:
+                return "このノードは取得できます。";
+            case SkillTreeNodeState.InsufficientPoints:
+                return "取得不可：スキルポイントが " +
+                    Mathf.Max(0, evaluation.requiredSkillPoints - evaluation.currentSkillPoints) +
+                    " 不足しています。";
+            case SkillTreeNodeState.Acquired:
+                return "このノードは習得済みです。";
+            default:
+                return "取得不可：前提ノードまたは解放条件を満たしていません。";
+        }
+    }
+
+    private void RefreshNodeButtonVisuals()
+    {
+        foreach (KeyValuePair<Button, SkillTreeNodeData> pair in nodeButtonNodes)
+        {
+            if (pair.Key == null || pair.Value == null) continue;
+            ApplyNodeButtonVisual(
+                pair.Key,
+                gameManager.EvaluateSkillTreeNode(pair.Value),
+                pair.Value == selectedNode);
+        }
+    }
+
+    private void ApplyNodeButtonVisual(
+        Button button,
+        SkillTreeNodeEvaluation evaluation,
+        bool selected)
+    {
+        Color stateColor = GetNodeStateColor(evaluation.state);
+        ColorBlock colors = button.colors;
+        colors.normalColor = stateColor;
+        colors.highlightedColor = Color.Lerp(stateColor, Color.white, 0.2f);
+        colors.selectedColor = colors.highlightedColor;
+        colors.pressedColor = Color.Lerp(stateColor, Color.black, 0.15f);
+        colors.disabledColor = stateColor;
+        button.colors = colors;
+
+        Outline outline = button.GetComponent<Outline>();
+        if (outline == null)
+        {
+            outline = button.gameObject.AddComponent<Outline>();
+            outline.effectDistance = new Vector2(3f, -3f);
+        }
+        outline.effectColor = selectedOutlineColor;
+        outline.enabled = selected;
+    }
+
+    private Color GetNodeStateColor(SkillTreeNodeState state)
+    {
+        switch (state)
+        {
+            case SkillTreeNodeState.Available: return availableColor;
+            case SkillTreeNodeState.InsufficientPoints: return insufficientPointsColor;
+            case SkillTreeNodeState.Acquired: return acquiredColor;
+            default: return lockedColor;
+        }
     }
 
     private void HideNodeButtonTemplate()
