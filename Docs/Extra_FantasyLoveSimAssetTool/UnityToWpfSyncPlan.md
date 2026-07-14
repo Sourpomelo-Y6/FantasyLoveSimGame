@@ -121,6 +121,7 @@ game_events_from_unity.json
 
 WPF 側では `ConversationEntries` の `Kind=GameEvents` へ merge する候補にする。
 `category` と `conditions` は `Docs/GameEventDataGuide.md` の運用へ寄せる。
+現在の `GameEventData.requiredSkillIds` は `conditions.requiredSkillIds` として出力し、WPF Toolへ戻した後も失わないようにする。
 
 ### 5. HeroineAssetCatalog / HeroineLayeredSpriteData
 
@@ -173,6 +174,10 @@ scheduled_events_from_unity.json
 
 `HeroineProfileData.scheduledEventResourcePath` から `ScheduledEventData` を読み、`scheduleType`、`actionId`、`triggerTimeSlot`、`outfitPromptMode`、`eventSpeakerType`、`preparationMessage`、`eventMessage`、`stillId`、`affectionChange` を戻す。
 共通フォールバックの `Assets/Resources/ScheduledEvents/` は、ヒロイン固有データと混ざらないよう逆 export 対象にしない。
+
+### 8. HeroineTrainingImageData
+
+訓練画像の画像本体やUnity GUIDは戻さず、`trainingId`、表示状態、対応する `assetId` だけを `training_images_from_unity.json` として戻す。WPF Toolは既存のAccepted画像と照合し、見つからない `assetId` をwarningとして表示する。詳細は `TrainingImagePlan.md` を参照する。
 
 ## Unity Editor 拡張案
 

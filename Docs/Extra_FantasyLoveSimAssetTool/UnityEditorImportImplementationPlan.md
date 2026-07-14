@@ -158,6 +158,7 @@ FantasyLoveSim/Import Enemy Export
 
 - `conversations_export.json` -> `Conversations/<ConversationId>.asset`
 - `game_events_export.json` -> `GameEvents/<EventId>.asset`
+- `training_images_export.json` -> `TrainingImages/HeroineTrainingImageData.asset`
 - `scheduled_events_export.json` -> `ScheduledEvents/<ScheduledEvent>.asset`
 - `action_reactions_export.json` -> `Actions/<Action>.asset` の `ActionData.reactions`
 - `endings_export.json` -> `Endings/<EndingId>.asset`
@@ -198,8 +199,9 @@ Assets/Images/Enemies/<EnemyId>/Battle/<FileName>
 9. `HeroineAssetCatalog.asset` を作成、更新する。
 10. `Data/sprite_layers_export.json` があれば `HeroineLayeredSpriteData.asset` を作成、更新する。
 11. 会話系 JSON があれば、それぞれの ScriptableObject を作成、更新する。
-12. `AssetDatabase.SaveAssets` を実行する。
-13. Import report を表示する。
+12. `training_images_export.json` があれば、Training画像を `HeroineAssetCatalog` から解決して `HeroineTrainingImageData.asset` を作成、更新する。
+13. `AssetDatabase.SaveAssets` を実行する。
+14. Import report を表示する。
 
 画像コピーの前に既存画像がある場合は、最初の実装では上書きしてよい。
 確認ダイアログは、運用で事故が出てから追加する。
@@ -214,6 +216,7 @@ Assets/Images/Heroines/<HeroineId>/
   Event/
   Actions/
   Ending/
+  Training/
 ```
 
 ScriptableObject:
@@ -229,6 +232,8 @@ Assets/Resources/Heroines/<HeroineId>/
     <EventId>.asset
   Actions/
     <Action>.asset
+  TrainingImages/
+    HeroineTrainingImageData.asset
   Endings/
     <EndingId>.asset
 ```
@@ -250,6 +255,8 @@ Runtime の ScriptableObject 型を JSON DTO と兼用しない。
 DTO は `HeroineExportJsonModels.cs` にまとめる。
 JSON パーサーは Unity 標準の `JsonUtility` でもよいが、トップレベル配列や柔軟性が必要なら `Newtonsoft.Json` を使う。
 Unity プロジェクト側の依存方針に合わせる。
+
+`game_events_export.json` の `conditions.requiredSkillIds` は、JSONにフィールドが存在する場合だけ `GameEventData.requiredSkillIds` を更新する。旧JSONでフィールドが省略されている場合は、Unity側の既存条件を空配列で上書きしない。Training画像のDTOと更新規則は `TrainingImagePlan.md`、その他の同期対象は `CurrentFeatureSyncPlan.md` を参照する。
 
 ## Sprite 解決
 
