@@ -96,6 +96,10 @@ public class GameManager : MonoBehaviour
         public int HeroineDamageTaken;
         public int RewardMoney;
         public int AffectionChange;
+        public int PlayerSkillPointReward;
+        public int HeroineSkillPointReward;
+        public int TotalPlayerSkillPoints;
+        public int TotalHeroineSkillPoints;
         public string Message;
         public List<string> LogLines;
     }
@@ -6162,6 +6166,11 @@ public class GameManager : MonoBehaviour
         result.PlayerWon = true;
         result.RewardMoney = enemy != null ? Math.Max(0, enemy.rewardMoney) : 0;
         result.AffectionChange = enemy != null ? enemy.affectionChangeOnWin : 0;
+        ApplyBattleSkillPointRewards(
+            enemy != null ? enemy.playerSkillPointReward : 0,
+            enemy != null ? enemy.heroineSkillPointReward : 0,
+            ref result);
+        RecordMonsterDefeat(enemy != null ? enemy.enemyId : string.Empty);
 
         if (result.RewardMoney > 0 && playerStatus != null)
         {
@@ -6284,6 +6293,28 @@ public class GameManager : MonoBehaviour
         if (result.AffectionChange != 0)
         {
             message += "\n勝利時好感度：" + FormatSignedValue(result.AffectionChange);
+        }
+
+        message += BuildBattleSkillPointRewardMessage(result);
+
+        return message;
+    }
+
+    private static string BuildBattleSkillPointRewardMessage(SimpleBattleResult result)
+    {
+        string message = "";
+        if (result.PlayerSkillPointReward > 0)
+        {
+            message += "\n主人公スキルポイント +" +
+                result.PlayerSkillPointReward +
+                "（現在 " + result.TotalPlayerSkillPoints + "）";
+        }
+
+        if (result.HeroineSkillPointReward > 0)
+        {
+            message += "\nヒロインスキルポイント +" +
+                result.HeroineSkillPointReward +
+                "（現在 " + result.TotalHeroineSkillPoints + "）";
         }
 
         return message;
@@ -7864,6 +7895,10 @@ public class GameManager : MonoBehaviour
             HeroineDamageTaken = EstimateDamageTaken(heroineBattleStatus),
             RewardMoney = 0,
             AffectionChange = 0,
+            PlayerSkillPointReward = 0,
+            HeroineSkillPointReward = 0,
+            TotalPlayerSkillPoints = playerSkillPoints,
+            TotalHeroineSkillPoints = heroineSkillPoints,
             LogLines = new List<string>()
         };
         ApplyBattlePanelOutcomeRewards(ref simpleResult, result, applyOutcomeRewards, isDuoExploration);
@@ -7876,6 +7911,7 @@ public class GameManager : MonoBehaviour
             simpleResult.RewardMoney,
             simpleResult.AffectionChange,
             applyOutcomeRewards);
+        simpleResult.Message += BuildBattleSkillPointRewardMessage(simpleResult);
 
         AddBattleLogLine(ref simpleResult, "結果: " + ResolveBattlePanelResultLabel(result));
         AddBattleLogLine(ref simpleResult, "敵: " + ResolveBattlePanelEnemyName(result));
@@ -7908,11 +7944,19 @@ public class GameManager : MonoBehaviour
         {
             result.RewardMoney = 0;
             result.AffectionChange = 0;
+            result.PlayerSkillPointReward = 0;
+            result.HeroineSkillPointReward = 0;
+            result.TotalPlayerSkillPoints = playerSkillPoints;
+            result.TotalHeroineSkillPoints = heroineSkillPoints;
             return;
         }
 
         result.RewardMoney = Math.Max(0, battleResult.rewardMoney);
         result.AffectionChange = isDuoExploration ? battleResult.affectionChangeOnWin : 0;
+        ApplyBattleSkillPointRewards(
+            battleResult.playerSkillPointReward,
+            battleResult.heroineSkillPointReward,
+            ref result);
 
         if (result.RewardMoney > 0 && playerStatus != null)
         {
@@ -7925,6 +7969,21 @@ public class GameManager : MonoBehaviour
         }
 
         RefreshStatusDetailPanel();
+    }
+
+    private void ApplyBattleSkillPointRewards(
+        int playerReward,
+        int heroineReward,
+        ref SimpleBattleResult result)
+    {
+        int previousPlayerPoints = playerSkillPoints;
+        int previousHeroinePoints = heroineSkillPoints;
+        playerSkillPoints = AddSkillPoints(playerSkillPoints, Math.Max(0, playerReward));
+        heroineSkillPoints = AddSkillPoints(heroineSkillPoints, Math.Max(0, heroineReward));
+        result.PlayerSkillPointReward = playerSkillPoints - previousPlayerPoints;
+        result.HeroineSkillPointReward = heroineSkillPoints - previousHeroinePoints;
+        result.TotalPlayerSkillPoints = playerSkillPoints;
+        result.TotalHeroineSkillPoints = heroineSkillPoints;
     }
 
     private static string BuildSimpleBattleResultMessage(
@@ -8102,15 +8161,38 @@ public class GameManager : MonoBehaviour
                 : "戦闘報酬なし";
         }
 
-        string line = simpleResult.RewardMoney > 0
-            ? "戦闘報酬: " + simpleResult.RewardMoney
-            : "戦闘報酬なし";
+        string line = "";
+        if (simpleResult.RewardMoney > 0)
+        {
+            line = "戦闘報酬: " + simpleResult.RewardMoney;
+        }
         if (simpleResult.AffectionChange != 0)
         {
-            line += " / 勝利時好感度: " + FormatSignedValue(simpleResult.AffectionChange);
+            line = AppendRewardLogPart(
+                line,
+                "勝利時好感度: " + FormatSignedValue(simpleResult.AffectionChange));
         }
 
-        return line;
+        if (simpleResult.PlayerSkillPointReward > 0)
+        {
+            line = AppendRewardLogPart(
+                line,
+                "主人公SP: +" + simpleResult.PlayerSkillPointReward);
+        }
+
+        if (simpleResult.HeroineSkillPointReward > 0)
+        {
+            line = AppendRewardLogPart(
+                line,
+                "ヒロインSP: +" + simpleResult.HeroineSkillPointReward);
+        }
+
+        return string.IsNullOrEmpty(line) ? "戦闘報酬なし" : line;
+    }
+
+    private static string AppendRewardLogPart(string current, string part)
+    {
+        return string.IsNullOrEmpty(current) ? part : current + " / " + part;
     }
 
     private static string ResolveBattlePanelResultLabel(BattlePanel.BattleResult result)

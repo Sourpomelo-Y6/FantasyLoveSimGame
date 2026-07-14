@@ -11,6 +11,8 @@ public class EnemyData : ScriptableObject
     public List<EnemyBattleSkillData> battleSkills = new List<EnemyBattleSkillData>();
     public int rewardMoney = 0;
     public int affectionChangeOnWin = 0;
+    [Min(0)] public int playerSkillPointReward = 1;
+    [Min(0)] public int heroineSkillPointReward = 1;
     [TextArea(2, 4)] public string victoryMessage = "戦闘に勝利しました。";
     [TextArea(2, 4)] public string defeatMessage = "戦闘に敗北しました。";
 

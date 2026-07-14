@@ -47,5 +47,7 @@ MonoBehaviour:
     maxUsesPerBattle: 1
   rewardMoney: 10
   affectionChangeOnWin: 2
+  playerSkillPointReward: 1
+  heroineSkillPointReward: 1
   victoryMessage: "\u6E56\u306E\u7CBE\u970A\u306B\u8A8D\u3081\u3089\u308C\u307E\u3057\u305F\u3002"
   defeatMessage: "\u6E56\u306E\u7CBE\u970A\u306E\u8A66\u7DF4\u304B\u3089\u9000\u304D\u307E\u3057\u305F\u3002"

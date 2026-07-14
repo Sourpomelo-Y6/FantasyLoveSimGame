@@ -22,6 +22,8 @@ public class BattlePanel : MonoBehaviour
         public string enemyName;
         public int rewardMoney;
         public int affectionChangeOnWin;
+        public int playerSkillPointReward;
+        public int heroineSkillPointReward;
         public int turnCount;
         public BattleStatusData playerStatus;
         public BattleStatusData heroineStatus;
@@ -1043,6 +1045,12 @@ public class BattlePanel : MonoBehaviour
             enemyName = enemyDisplayName,
             rewardMoney = currentDebugEnemy != null ? currentDebugEnemy.rewardMoney : 0,
             affectionChangeOnWin = currentDebugEnemy != null ? currentDebugEnemy.affectionChangeOnWin : 0,
+            playerSkillPointReward = currentDebugEnemy != null
+                ? Mathf.Max(0, currentDebugEnemy.playerSkillPointReward)
+                : 0,
+            heroineSkillPointReward = currentDebugEnemy != null
+                ? Mathf.Max(0, currentDebugEnemy.heroineSkillPointReward)
+                : 0,
             turnCount = turnCount,
             playerStatus = debugPlayerStatus != null ? debugPlayerStatus.Clone() : null,
             heroineStatus = debugHeroineStatus != null ? debugHeroineStatus.Clone() : null,
