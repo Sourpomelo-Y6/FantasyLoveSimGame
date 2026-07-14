@@ -20,10 +20,15 @@ MonoBehaviour:
   targetHeroineId: TestHeroine
   grantedHeroineSkillId: GuardedStance
   skillPointCost: 1
-  prerequisiteNodes: []
+  prerequisiteNodes:
+  - {fileID: 11400000, guid: 7a46e3b72cfc4515bc7f5716d452e6d0, type: 2}
   unlockConditions:
   - conditionType: 0
     scope: 1
     targetId: EnduranceTraining
     requiredValue: 30
-  treePosition: {x: 0, y: -200}
+  - conditionType: 2
+    scope: 0
+    targetId:
+    requiredValue: 1
+  treePosition: {x: 280, y: -100}

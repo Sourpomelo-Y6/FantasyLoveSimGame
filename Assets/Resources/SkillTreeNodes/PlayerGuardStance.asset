@@ -24,4 +24,4 @@ MonoBehaviour:
     scope: 1
     targetId: EnduranceTraining
     requiredValue: 30
-  treePosition: {x: 0, y: -180}
+  treePosition: {x: 0, y: -100}

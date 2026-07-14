@@ -25,4 +25,8 @@ MonoBehaviour:
     scope: 1
     targetId: LightPractice
     requiredValue: 50
-  treePosition: {x: 260, y: 0}
+  - conditionType: 4
+    scope: 0
+    targetId:
+    requiredValue: 2
+  treePosition: {x: 280, y: 120}

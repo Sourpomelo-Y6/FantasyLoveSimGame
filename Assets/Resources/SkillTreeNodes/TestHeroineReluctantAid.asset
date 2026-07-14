@@ -20,10 +20,15 @@ MonoBehaviour:
   targetHeroineId: TestHeroine
   grantedHeroineSkillId: ReluctantAid
   skillPointCost: 1
-  prerequisiteNodes: []
+  prerequisiteNodes:
+  - {fileID: 11400000, guid: 7a46e3b72cfc4515bc7f5716d452e6d0, type: 2}
   unlockConditions:
   - conditionType: 0
     scope: 1
     targetId: SparringPractice
     requiredValue: 50
-  treePosition: {x: 0, y: -100}
+  - conditionType: 1
+    scope: 2
+    targetId: Fundamentals
+    requiredValue: 3
+  treePosition: {x: 280, y: 100}

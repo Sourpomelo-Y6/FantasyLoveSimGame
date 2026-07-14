@@ -25,4 +25,8 @@ MonoBehaviour:
     scope: 1
     targetId: EnduranceTraining
     requiredValue: 50
-  treePosition: {x: 260, y: -180}
+  - conditionType: 3
+    scope: 2
+    targetId: Combat
+    requiredValue: 1
+  treePosition: {x: 280, y: -180}

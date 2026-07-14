@@ -18,10 +18,15 @@ MonoBehaviour:
   skill: {fileID: 11400000, guid: 2e86032cbf194986bfd5f543d96cb1a3, type: 2}
   sortOrder: 30
   skillPointCost: 1
-  prerequisiteNodes: []
+  prerequisiteNodes:
+  - {fileID: 11400000, guid: bb0f883025c249498db83a34e9f836c2, type: 2}
   unlockConditions:
   - conditionType: 0
     scope: 1
     targetId: SparringPractice
     requiredValue: 50
-  treePosition: {x: 0, y: 180}
+  - conditionType: 2
+    scope: 0
+    targetId:
+    requiredValue: 1
+  treePosition: {x: 280, y: -20}

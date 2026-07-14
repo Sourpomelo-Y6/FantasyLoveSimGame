@@ -21,6 +21,13 @@ public class SkillTreePanel : MonoBehaviour
     [SerializeField] private TextMeshProUGUI descriptionText;
     [SerializeField] private Button acquireButton;
 
+    [Header("Tree Layout")]
+    [SerializeField] private bool useTreeLayout = true;
+    [SerializeField] private Vector2 treeNodeSize = new Vector2(240f, 72f);
+    [SerializeField] private Vector2 treePadding = new Vector2(60f, 60f);
+    [SerializeField] private float connectorThickness = 6f;
+    [SerializeField] private Color lockedConnectorColor = new Color32(95, 95, 95, 255);
+
     [Header("Node Colors")]
     [SerializeField] private Color lockedColor = new Color32(120, 120, 120, 255);
     [SerializeField] private Color insufficientPointsColor = new Color32(210, 170, 55, 255);
@@ -29,8 +36,11 @@ public class SkillTreePanel : MonoBehaviour
     [SerializeField] private Color selectedOutlineColor = Color.white;
 
     private readonly List<GameObject> spawnedNodeButtons = new List<GameObject>();
+    private readonly List<GameObject> spawnedConnectors = new List<GameObject>();
     private readonly Dictionary<Button, SkillTreeNodeData> nodeButtonNodes =
         new Dictionary<Button, SkillTreeNodeData>();
+    private readonly Dictionary<SkillTreeNodeData, RectTransform> nodeRects =
+        new Dictionary<SkillTreeNodeData, RectTransform>();
     private GameManager gameManager;
     private SkillTreeOwner currentOwner = SkillTreeOwner.Player;
     private SkillTreeNodeData selectedNode;
@@ -126,6 +136,7 @@ public class SkillTreePanel : MonoBehaviour
             return;
         }
 
+        List<SkillTreeNodeData> visibleNodes = new List<SkillTreeNodeData>();
         List<SkillTreeNodeData> nodes = gameManager.GetSkillTreeNodes();
         for (int i = 0; i < nodes.Count; i++)
         {
@@ -138,11 +149,30 @@ public class SkillTreePanel : MonoBehaviour
                 continue;
             }
 
-            CreateNodeButton(node);
+            visibleNodes.Add(node);
+        }
+
+        if (useTreeLayout)
+        {
+            PrepareTreeLayout(visibleNodes);
+        }
+
+        for (int i = 0; i < visibleNodes.Count; i++)
+        {
+            Button button = CreateNodeButton(visibleNodes[i]);
+            if (useTreeLayout)
+            {
+                PositionTreeNode(button, visibleNodes[i], visibleNodes);
+            }
+        }
+
+        if (useTreeLayout)
+        {
+            CreateTreeConnectors(visibleNodes);
         }
     }
 
-    private void CreateNodeButton(SkillTreeNodeData node)
+    private Button CreateNodeButton(SkillTreeNodeData node)
     {
         Button button = Instantiate(nodeButtonPrefab, nodeListParent);
         button.gameObject.SetActive(true);
@@ -159,6 +189,160 @@ public class SkillTreePanel : MonoBehaviour
 
         button.onClick.AddListener(() => SelectNode(node));
         ApplyNodeButtonVisual(button, evaluation, node == selectedNode);
+        return button;
+    }
+
+    private void PrepareTreeLayout(List<SkillTreeNodeData> nodes)
+    {
+        VerticalLayoutGroup layoutGroup = nodeListParent.GetComponent<VerticalLayoutGroup>();
+        if (layoutGroup != null) layoutGroup.enabled = false;
+
+        ContentSizeFitter sizeFitter = nodeListParent.GetComponent<ContentSizeFitter>();
+        if (sizeFitter != null) sizeFitter.enabled = false;
+
+        RectTransform content = nodeListParent as RectTransform;
+        if (content == null) return;
+
+        float minX;
+        float maxX;
+        float minY;
+        float maxY;
+        GetTreeBounds(nodes, out minX, out maxX, out minY, out maxY);
+
+        RectTransform viewport = content.parent as RectTransform;
+        float minimumWidth = viewport != null ? viewport.rect.width : 0f;
+        float minimumHeight = viewport != null ? viewport.rect.height : 0f;
+        float width = Mathf.Max(
+            minimumWidth,
+            maxX - minX + treeNodeSize.x + treePadding.x * 2f);
+        float height = Mathf.Max(
+            minimumHeight,
+            maxY - minY + treeNodeSize.y + treePadding.y * 2f);
+
+        content.anchorMin = new Vector2(0f, 1f);
+        content.anchorMax = new Vector2(0f, 1f);
+        content.pivot = new Vector2(0f, 1f);
+        content.anchoredPosition = Vector2.zero;
+        content.sizeDelta = new Vector2(width, height);
+
+        ScrollRect scrollRect = content.GetComponentInParent<ScrollRect>();
+        if (scrollRect != null)
+        {
+            scrollRect.horizontal = width > minimumWidth + 0.5f;
+            scrollRect.vertical = height > minimumHeight + 0.5f;
+            scrollRect.horizontalNormalizedPosition = 0f;
+            scrollRect.verticalNormalizedPosition = 1f;
+        }
+    }
+
+    private void PositionTreeNode(
+        Button button,
+        SkillTreeNodeData node,
+        List<SkillTreeNodeData> visibleNodes)
+    {
+        RectTransform rect = button != null ? button.transform as RectTransform : null;
+        if (rect == null) return;
+
+        float minX;
+        float maxX;
+        float minY;
+        float maxY;
+        GetTreeBounds(visibleNodes, out minX, out maxX, out minY, out maxY);
+
+        rect.anchorMin = new Vector2(0f, 1f);
+        rect.anchorMax = new Vector2(0f, 1f);
+        rect.pivot = new Vector2(0.5f, 0.5f);
+        rect.sizeDelta = treeNodeSize;
+        rect.anchoredPosition = new Vector2(
+            node.treePosition.x - minX + treePadding.x + treeNodeSize.x * 0.5f,
+            -(maxY - node.treePosition.y + treePadding.y + treeNodeSize.y * 0.5f));
+        nodeRects[node] = rect;
+    }
+
+    private static void GetTreeBounds(
+        List<SkillTreeNodeData> nodes,
+        out float minX,
+        out float maxX,
+        out float minY,
+        out float maxY)
+    {
+        minX = maxX = minY = maxY = 0f;
+        if (nodes == null || nodes.Count == 0) return;
+
+        minX = maxX = nodes[0].treePosition.x;
+        minY = maxY = nodes[0].treePosition.y;
+        for (int i = 1; i < nodes.Count; i++)
+        {
+            Vector2 position = nodes[i].treePosition;
+            minX = Mathf.Min(minX, position.x);
+            maxX = Mathf.Max(maxX, position.x);
+            minY = Mathf.Min(minY, position.y);
+            maxY = Mathf.Max(maxY, position.y);
+        }
+    }
+
+    private void CreateTreeConnectors(List<SkillTreeNodeData> visibleNodes)
+    {
+        HashSet<SkillTreeNodeData> visibleNodeSet =
+            new HashSet<SkillTreeNodeData>(visibleNodes);
+        for (int i = 0; i < visibleNodes.Count; i++)
+        {
+            SkillTreeNodeData node = visibleNodes[i];
+            if (node.prerequisiteNodes == null) continue;
+
+            for (int j = 0; j < node.prerequisiteNodes.Count; j++)
+            {
+                SkillTreeNodeData prerequisite = node.prerequisiteNodes[j];
+                if (prerequisite == null || !visibleNodeSet.Contains(prerequisite)) continue;
+                CreateTreeConnector(prerequisite, node);
+            }
+        }
+    }
+
+    private void CreateTreeConnector(
+        SkillTreeNodeData prerequisite,
+        SkillTreeNodeData target)
+    {
+        RectTransform fromRect;
+        RectTransform toRect;
+        if (!nodeRects.TryGetValue(prerequisite, out fromRect) ||
+            !nodeRects.TryGetValue(target, out toRect))
+        {
+            return;
+        }
+
+        Vector2 from = fromRect.anchoredPosition;
+        Vector2 to = toRect.anchoredPosition;
+        Vector2 direction = to - from;
+        float distance = direction.magnitude;
+        if (distance <= 0.01f) return;
+
+        GameObject connector = new GameObject(
+            "Connection_" + prerequisite.nodeId + "_" + target.nodeId,
+            typeof(RectTransform),
+            typeof(CanvasRenderer),
+            typeof(Image));
+        connector.transform.SetParent(nodeListParent, false);
+        connector.transform.SetAsFirstSibling();
+        spawnedConnectors.Add(connector);
+
+        RectTransform connectorRect = connector.GetComponent<RectTransform>();
+        connectorRect.anchorMin = new Vector2(0f, 1f);
+        connectorRect.anchorMax = new Vector2(0f, 1f);
+        connectorRect.pivot = new Vector2(0.5f, 0.5f);
+        connectorRect.anchoredPosition = (from + to) * 0.5f;
+        connectorRect.sizeDelta = new Vector2(distance, Mathf.Max(1f, connectorThickness));
+        connectorRect.localRotation = Quaternion.Euler(
+            0f,
+            0f,
+            Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg);
+
+        SkillTreeNodeEvaluation evaluation = gameManager.EvaluateSkillTreeNode(target);
+        Image image = connector.GetComponent<Image>();
+        image.raycastTarget = false;
+        image.color = evaluation.state == SkillTreeNodeState.Locked
+            ? lockedConnectorColor
+            : GetNodeStateColor(evaluation.state);
     }
 
     private void SelectNode(SkillTreeNodeData node)
@@ -309,12 +493,19 @@ public class SkillTreePanel : MonoBehaviour
 
     private void ClearSpawnedNodes()
     {
+        for (int i = 0; i < spawnedConnectors.Count; i++)
+        {
+            if (spawnedConnectors[i] != null) Destroy(spawnedConnectors[i]);
+        }
+        spawnedConnectors.Clear();
+
         for (int i = 0; i < spawnedNodeButtons.Count; i++)
         {
             if (spawnedNodeButtons[i] != null) Destroy(spawnedNodeButtons[i]);
         }
         spawnedNodeButtons.Clear();
         nodeButtonNodes.Clear();
+        nodeRects.Clear();
     }
 
     private string ResolveCurrentHeroineName()
