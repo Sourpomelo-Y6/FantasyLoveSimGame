@@ -1,0 +1,46 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 92b5d3d53c514e3aa4a399b12e4c45dd, type: 3}
+  m_Name: Manual_Consideration_01
+  m_EditorClassIdentifier:
+  eventId: Manual_Consideration_01
+  triggerType: 2
+  showOnce: 0
+  isEnabled: 1
+  sortOrder: 110
+  minDay: 0
+  maxDay: 0
+  minAffection: 0
+  maxAffection: 9999
+  requiredShownEventIds: []
+  blockedShownEventIds: []
+  requiredOutfitIds: []
+  blockedOutfitIds: []
+  requiredOutfits: []
+  blockedOutfits: []
+  requiredSkillIds:
+  - Consideration
+  anyWeather: 1
+  allowedWeathers: []
+  pages:
+  - speakerType: 0
+    speakerName:
+    message: "……よく気づいたわね。少しだけ、あなたに相談したいことがあるの。"
+    expressionId: Shy
+    stillId:
+    stillSprite: {fileID: 0}
+  - speakerType: 4
+    speakerName:
+    message: "いつもと様子が違ったから。話せることなら聞かせてほしい。"
+    expressionId: Neutral
+    stillId:
+    stillSprite: {fileID: 0}

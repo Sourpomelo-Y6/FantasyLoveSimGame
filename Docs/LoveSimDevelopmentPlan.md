@@ -365,6 +365,7 @@ AssetTool の `sprite_layers_export.json` は importer で `HeroineLayeredSprite
 - `blockedOutfitIds`: 現在の衣装IDが指定一覧のどれかに一致した場合は発生しない
 - `requiredOutfits`: 指定した `OutfitData` アセットの衣装を着ている場合だけ発生する
 - `blockedOutfits`: 指定した `OutfitData` アセットの衣装を着ている場合は発生しない
+- `requiredSkillIds`: 指定した主人公スキルをすべて取得している場合だけ発生する
 
 条件判定は `GameManager.CanStartGameEvent(GameEventData gameEvent)` に集約し、`GetGameEventsForTrigger()` と `TryStartManualGameEvent()` の両方から使う。
 既存の `GameStartIntro` と `TestManualEvent` は条件未設定なら今まで通り発生するようにし、既存データの互換を壊さない。
@@ -373,6 +374,8 @@ AssetTool の `sprite_layers_export.json` は importer で `HeroineLayeredSprite
 衣装条件は現在の `OutfitManager.CurrentOutfit.outfitId` を見て判定する。
 文字列ID欄の `requiredOutfitIds` / `blockedOutfitIds` も残しているが、通常は Unity Inspector で `OutfitData` アセットを選べる `requiredOutfits` / `blockedOutfits` を使う。
 衣装の種類や属性ではなく、実際に着ている衣装を直接指定する方が、表示するスチルとの対応を崩しにくい。
+汎用スキルのイベント条件接続は実装済み。`requiredSkillIds` は取得済み主人公ノードから再構築されるスキル ID を参照し、条件のためだけのセーブ項目は追加しない。空または未取得の ID が含まれるイベントは開始不可として安全に扱う。`GameEventDataValidator` は存在しない ID と同一イベント内の重複・空 ID を検出し、`FantasyLoveSim > Validate Game Event Data` から全ヒロインのイベントを検証できる。Editor Play / Development Build の起動時にも全ヒロインのイベントを検証する。
+確認用として汎用スキル「気配り」と主人公ノード `Player_Consideration`、TestHeroine 専用手動イベント `Manual_Consideration_01` を追加する。訓練を1回完了して訓練回数と SP を獲得し、1 SP で「気配り」を取得すると、F7 からイベントを開始できる。取得前は同じ操作をしても開始しない。イベントは繰り返し確認できるよう `showOnce=false` とする。
 
 イベントスチル画像は `Assets/Images/Heroines/<HeroineId>/Event/` に置き、ファイル名はイベントIDに寄せる。
 例として、`GameStartIntro` で使う画像は `GameStartIntro_01.png` のようにする。

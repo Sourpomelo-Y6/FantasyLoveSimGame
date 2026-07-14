@@ -3240,6 +3240,7 @@ public class GameManager : MonoBehaviour
     private void ValidateSkillTreeDataOnStartup()
     {
         SkillTreeDataValidator.ValidateResources().Log();
+        GameEventDataValidator.ValidateResources().Log();
     }
 
     public SkillTreeNodeEvaluation EvaluateSkillTreeNode(SkillTreeNodeData node)
@@ -4953,6 +4954,11 @@ public class GameManager : MonoBehaviour
             return false;
         }
 
+        if (!HasRequiredGameEventSkills(gameEvent.requiredSkillIds))
+        {
+            return false;
+        }
+
         if (!IsGameEventWeatherAvailable(gameEvent))
         {
             return false;
@@ -4966,6 +4972,25 @@ public class GameManager : MonoBehaviour
         if (HasBlockedShownGameEvent(gameEvent.blockedShownEventIds))
         {
             return false;
+        }
+
+        return true;
+    }
+
+    private bool HasRequiredGameEventSkills(List<string> requiredSkillIds)
+    {
+        if (requiredSkillIds == null || requiredSkillIds.Count == 0)
+        {
+            return true;
+        }
+
+        for (int i = 0; i < requiredSkillIds.Count; i++)
+        {
+            string skillId = requiredSkillIds[i];
+            if (string.IsNullOrWhiteSpace(skillId) || !IsSkillUnlocked(skillId))
+            {
+                return false;
+            }
         }
 
         return true;

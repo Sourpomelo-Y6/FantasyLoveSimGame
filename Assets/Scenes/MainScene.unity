@@ -24069,7 +24069,7 @@ MonoBehaviour:
   battleResultEventResourcePath: BattleResultEvents
   battlePanelResultMessageResourcePath: BattlePanelResultMessages
   battleResultEvents: []
-  debugManualGameEventId: TestManualEvent
+  debugManualGameEventId: Manual_Consideration_01
   debugManualGameEventKey: 288
   debugAddMoneyKey: 289
   debugSpendMoneyKey: 290
