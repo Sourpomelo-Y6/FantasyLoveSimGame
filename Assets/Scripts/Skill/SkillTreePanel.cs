@@ -454,6 +454,11 @@ public class SkillTreePanel : MonoBehaviour
             }
         }
 
+        if (IsTrainingSkillNode(node))
+        {
+            builder.AppendLine("適用対象：" + GetTrainingApplicationLabel(node.skill));
+        }
+
         if (node.skill != null && !string.IsNullOrEmpty(node.skill.description))
         {
             builder.AppendLine();
@@ -646,6 +651,39 @@ public class SkillTreePanel : MonoBehaviour
             case SkillTreeConditionType.Day: return "経過日数";
             default: return condition.conditionType.ToString();
         }
+    }
+
+    private string GetTrainingApplicationLabel(SkillData skill)
+    {
+        if (skill == null)
+        {
+            return "不明";
+        }
+
+        if (skill.trainingApplicationScope ==
+            TrainingSkillApplicationScope.AllTrainings)
+        {
+            return "全訓練";
+        }
+
+        SkillTreeProgressScope progressScope =
+            skill.trainingApplicationScope ==
+                TrainingSkillApplicationScope.TrainingCategory
+                ? SkillTreeProgressScope.TrainingCategory
+                : SkillTreeProgressScope.Training;
+        SkillTreeUnlockCondition target = new SkillTreeUnlockCondition
+        {
+            scope = progressScope,
+            targetId = skill.trainingApplicationTargetId
+        };
+        string displayName = gameManager != null
+            ? gameManager.GetSkillTreeConditionTargetDisplayName(target)
+            : skill.trainingApplicationTargetId;
+        string scopeLabel = progressScope == SkillTreeProgressScope.TrainingCategory
+            ? "カテゴリー"
+            : "訓練";
+        return scopeLabel + "（" +
+            (string.IsNullOrEmpty(displayName) ? "未設定" : displayName) + "）";
     }
 
     private void ClearSpawnedNodes()

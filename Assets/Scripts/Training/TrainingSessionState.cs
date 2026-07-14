@@ -30,18 +30,20 @@ public class TrainingStepModifiers
     }
 
     public static TrainingStepModifiers Create(
+        TrainingData training,
         IEnumerable<SkillData> playerSkills,
         IEnumerable<SkillData> heroineSkills)
     {
         TrainingStepModifiers modifiers = new TrainingStepModifiers();
         HashSet<string> appliedSkillIds =
             new HashSet<string>(StringComparer.Ordinal);
-        modifiers.AddSkills(playerSkills, appliedSkillIds);
-        modifiers.AddSkills(heroineSkills, appliedSkillIds);
+        modifiers.AddSkills(training, playerSkills, appliedSkillIds);
+        modifiers.AddSkills(training, heroineSkills, appliedSkillIds);
         return modifiers;
     }
 
     private void AddSkills(
+        TrainingData training,
         IEnumerable<SkillData> skills,
         HashSet<string> appliedSkillIds)
     {
@@ -56,6 +58,7 @@ public class TrainingStepModifiers
                 !skill.isEnabled ||
                 skill.category != SkillCategory.Training ||
                 !skill.canUseInTraining ||
+                !skill.AppliesToTraining(training) ||
                 string.IsNullOrEmpty(skill.skillId) ||
                 !appliedSkillIds.Add(skill.skillId))
             {

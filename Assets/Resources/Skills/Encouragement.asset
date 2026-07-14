@@ -28,6 +28,8 @@ MonoBehaviour:
   trainingHeroineHpCostReduction: 0
   trainingAffectionRewardModifier: 1
   trainingProficiencyRewardModifier: 0
+  trainingApplicationScope: 0
+  trainingApplicationTargetId:
   requiredAffection: 0
   requiredDay: 1
   requiredTrainingId:

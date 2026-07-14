@@ -98,9 +98,7 @@ public class TrainingPanel : MonoBehaviour
             activeHeroineTrainingSkills.AddRange(
                 gameManager.GetActiveHeroineTrainingSkills());
         }
-        activeTrainingSkillModifiers = TrainingStepModifiers.Create(
-            activePlayerTrainingSkills,
-            activeHeroineTrainingSkills);
+        activeTrainingSkillModifiers = new TrainingStepModifiers();
         currentTraining = null;
         currentState = null;
         hasReportedResult = false;
@@ -146,6 +144,10 @@ public class TrainingPanel : MonoBehaviour
         }
 
         currentTraining = training;
+        activeTrainingSkillModifiers = TrainingStepModifiers.Create(
+            training,
+            activePlayerTrainingSkills,
+            activeHeroineTrainingSkills);
         if (currentState == null)
         {
             currentState = TrainingSessionState.Create(training, playerBattleStatus, heroineBattleStatus);
@@ -169,18 +171,21 @@ public class TrainingPanel : MonoBehaviour
 
     private void AddTrainingPreviewLogs(TrainingData training)
     {
-        string playerSkills = FormatActiveSkillNames(activePlayerTrainingSkills);
-        string heroineSkills = FormatActiveSkillNames(activeHeroineTrainingSkills);
-        if (activePlayerTrainingSkills.Count == 0 &&
-            activeHeroineTrainingSkills.Count == 0)
+        List<string> playerSkillNames = GetApplicableSkillNames(
+            activePlayerTrainingSkills,
+            training);
+        List<string> heroineSkillNames = GetApplicableSkillNames(
+            activeHeroineTrainingSkills,
+            training);
+        if (playerSkillNames.Count == 0 && heroineSkillNames.Count == 0)
         {
             AddLog("有効スキル: なし");
         }
         else
         {
             AddLog(
-                "有効スキル: 主人公[" + playerSkills +
-                "] / ヒロイン[" + heroineSkills + "]");
+                "有効スキル: 主人公[" + FormatSkillNames(playerSkillNames) +
+                "] / ヒロイン[" + FormatSkillNames(heroineSkillNames) + "]");
         }
 
         TrainingStepResult preview = TrainingSessionState.CalculateStepResult(
@@ -194,7 +199,9 @@ public class TrainingPanel : MonoBehaviour
             " / 熟練度 " + preview.trainingProficiencyReward);
     }
 
-    private static string FormatActiveSkillNames(List<SkillData> skills)
+    private static List<string> GetApplicableSkillNames(
+        List<SkillData> skills,
+        TrainingData training)
     {
         List<string> names = new List<string>();
         if (skills != null)
@@ -202,14 +209,21 @@ public class TrainingPanel : MonoBehaviour
             for (int i = 0; i < skills.Count; i++)
             {
                 SkillData skill = skills[i];
-                if (skill != null)
+                if (skill != null && skill.AppliesToTraining(training))
                 {
                     names.Add(skill.GetDisplayName());
                 }
             }
         }
 
-        return names.Count > 0 ? string.Join("、", names.ToArray()) : "なし";
+        return names;
+    }
+
+    private static string FormatSkillNames(List<string> names)
+    {
+        return names != null && names.Count > 0
+            ? string.Join("、", names.ToArray())
+            : "なし";
     }
 
     private void AdvanceStep()

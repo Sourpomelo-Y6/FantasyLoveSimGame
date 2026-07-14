@@ -154,8 +154,61 @@ public static class SkillTreeDataValidator
             ValidateHeroineSkill(node, skillsById, heroinesById, report);
         }
 
+        ValidateTrainingSkillApplication(
+            node,
+            trainingIds,
+            categoryIds,
+            report);
         ValidatePrerequisites(node, nodeSet, report);
         ValidateConditions(node, trainingIds, categoryIds, enemyIds, report);
+    }
+
+    private static void ValidateTrainingSkillApplication(
+        SkillTreeNodeData node,
+        HashSet<string> trainingIds,
+        HashSet<string> categoryIds,
+        SkillTreeValidationReport report)
+    {
+        SkillData skill = node != null ? node.skill : null;
+        if (skill == null ||
+            skill.category != SkillCategory.Training ||
+            !skill.canUseInTraining)
+        {
+            return;
+        }
+
+        string label = GetNodeLabel(node);
+        string targetId = skill.trainingApplicationTargetId;
+        switch (skill.trainingApplicationScope)
+        {
+            case TrainingSkillApplicationScope.AllTrainings:
+                if (!string.IsNullOrWhiteSpace(targetId))
+                {
+                    report.Warn(
+                        label + " の全訓練対象スキルに不要な適用対象 ID があります: " +
+                        targetId);
+                }
+                break;
+            case TrainingSkillApplicationScope.TrainingCategory:
+                if (string.IsNullOrWhiteSpace(targetId) ||
+                    !categoryIds.Contains(targetId))
+                {
+                    report.Warn(
+                        label + " の適用対象カテゴリーが存在しません: " + targetId);
+                }
+                break;
+            case TrainingSkillApplicationScope.Training:
+                if (string.IsNullOrWhiteSpace(targetId) ||
+                    !trainingIds.Contains(targetId))
+                {
+                    report.Warn(
+                        label + " の適用対象訓練が存在しません: " + targetId);
+                }
+                break;
+            default:
+                report.Warn(label + " の訓練スキル適用範囲が不正です。");
+                break;
+        }
     }
 
     private static void ValidateHeroineSkill(

@@ -1,5 +1,13 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
+
+public enum TrainingSkillApplicationScope
+{
+    AllTrainings,
+    TrainingCategory,
+    Training
+}
 
 [CreateAssetMenu(menuName = "LoveSim/Skill Data")]
 public class SkillData : ScriptableObject
@@ -28,6 +36,11 @@ public class SkillData : ScriptableObject
     [Min(0)] public int trainingHeroineHpCostReduction = 0;
     public int trainingAffectionRewardModifier = 0;
     public int trainingProficiencyRewardModifier = 0;
+    [Tooltip("訓練スキルを適用する範囲。")]
+    public TrainingSkillApplicationScope trainingApplicationScope =
+        TrainingSkillApplicationScope.AllTrainings;
+    [Tooltip("カテゴリー指定なら TrainingData.trainingCategoryId、訓練指定なら trainingId。")]
+    public string trainingApplicationTargetId;
 
     [Header("Unlock Condition")]
     public int requiredAffection = 0;
@@ -54,5 +67,33 @@ public class SkillData : ScriptableObject
         }
 
         return new List<string>(requiredSkillIds);
+    }
+
+    public bool AppliesToTraining(TrainingData training)
+    {
+        if (training == null)
+        {
+            return false;
+        }
+
+        switch (trainingApplicationScope)
+        {
+            case TrainingSkillApplicationScope.AllTrainings:
+                return true;
+            case TrainingSkillApplicationScope.TrainingCategory:
+                return !string.IsNullOrEmpty(trainingApplicationTargetId) &&
+                    string.Equals(
+                        trainingApplicationTargetId,
+                        training.trainingCategoryId,
+                        StringComparison.Ordinal);
+            case TrainingSkillApplicationScope.Training:
+                return !string.IsNullOrEmpty(trainingApplicationTargetId) &&
+                    string.Equals(
+                        trainingApplicationTargetId,
+                        training.trainingId,
+                        StringComparison.Ordinal);
+            default:
+                return false;
+        }
     }
 }
