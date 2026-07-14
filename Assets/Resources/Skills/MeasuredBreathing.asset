@@ -19,11 +19,15 @@ MonoBehaviour:
   targetType: 0
   sortOrder: 100
   isEnabled: 1
-  description: "一定の呼吸で訓練に集中する主人公用訓練スキル。効果は次段階で接続する。"
+  description: "一定の呼吸で訓練に集中する主人公用訓練スキル。1ステップごとの主人公HP消費を1軽減する。"
   cost: 0
   power: 0
   affectedStat: 0
   statusDurationTurns: 2
+  trainingPlayerHpCostReduction: 1
+  trainingHeroineHpCostReduction: 0
+  trainingAffectionRewardModifier: 0
+  trainingProficiencyRewardModifier: 0
   requiredAffection: 0
   requiredDay: 1
   requiredTrainingId:

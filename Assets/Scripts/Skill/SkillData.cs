@@ -23,6 +23,12 @@ public class SkillData : ScriptableObject
     public SkillBattleStat affectedStat = SkillBattleStat.Attack;
     [Min(1)] public int statusDurationTurns = 2;
 
+    [Header("Training Effect")]
+    [Min(0)] public int trainingPlayerHpCostReduction = 0;
+    [Min(0)] public int trainingHeroineHpCostReduction = 0;
+    public int trainingAffectionRewardModifier = 0;
+    public int trainingProficiencyRewardModifier = 0;
+
     [Header("Unlock Condition")]
     public int requiredAffection = 0;
     public int requiredDay = 1;

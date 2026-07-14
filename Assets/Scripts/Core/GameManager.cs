@@ -2702,6 +2702,12 @@ public class GameManager : MonoBehaviour
         return CreateSortedSkillIdList(activePlayerTrainingSkillIds);
     }
 
+    public List<SkillData> GetActivePlayerTrainingSkills()
+    {
+        NormalizeActivePlayerTrainingSkills(false);
+        return CreateTrainingSkillDataList(activePlayerTrainingSkillIds);
+    }
+
     public bool IsPlayerTrainingSkillActive(string skillId)
     {
         return !string.IsNullOrEmpty(skillId) &&
@@ -2745,6 +2751,23 @@ public class GameManager : MonoBehaviour
 
         NormalizeActiveHeroineTrainingSkills(heroineId, false);
         return CreateSortedSkillIdList(GetOrCreateActiveHeroineTrainingSkillIds(heroineId));
+    }
+
+    public List<SkillData> GetActiveHeroineTrainingSkills()
+    {
+        return GetActiveHeroineTrainingSkills(currentHeroineId);
+    }
+
+    public List<SkillData> GetActiveHeroineTrainingSkills(string heroineId)
+    {
+        if (string.IsNullOrEmpty(heroineId))
+        {
+            return new List<SkillData>();
+        }
+
+        NormalizeActiveHeroineTrainingSkills(heroineId, false);
+        return CreateTrainingSkillDataList(
+            GetOrCreateActiveHeroineTrainingSkillIds(heroineId));
     }
 
     public bool IsHeroineTrainingSkillActive(string skillId)
@@ -3800,6 +3823,22 @@ public class GameManager : MonoBehaviour
             }
         }
         result.Sort(StringComparer.Ordinal);
+        return result;
+    }
+
+    private List<SkillData> CreateTrainingSkillDataList(IEnumerable<string> skillIds)
+    {
+        List<string> sortedIds = CreateSortedSkillIdList(skillIds);
+        List<SkillData> result = new List<SkillData>();
+        for (int i = 0; i < sortedIds.Count; i++)
+        {
+            SkillData skill = FindSkillData(sortedIds[i]);
+            if (IsTrainingSkillData(skill))
+            {
+                result.Add(skill);
+            }
+        }
+
         return result;
     }
 

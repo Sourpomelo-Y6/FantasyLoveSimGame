@@ -19,11 +19,15 @@ MonoBehaviour:
   targetType: 0
   sortOrder: 110
   isEnabled: 1
-  description: "主人公と歩調を合わせるヒロイン用訓練スキル。効果は次段階で接続する。"
+  description: "主人公と歩調を合わせるヒロイン用訓練スキル。1ステップごとのヒロインHP消費を1軽減する。"
   cost: 0
   power: 0
   affectedStat: 0
   statusDurationTurns: 2
+  trainingPlayerHpCostReduction: 0
+  trainingHeroineHpCostReduction: 1
+  trainingAffectionRewardModifier: 0
+  trainingProficiencyRewardModifier: 0
   requiredAffection: 0
   requiredDay: 1
   requiredTrainingId:

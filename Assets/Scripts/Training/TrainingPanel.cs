@@ -40,6 +40,8 @@ public class TrainingPanel : MonoBehaviour
     private BattleStatusData heroineBattleStatus;
     private TrainingData currentTraining;
     private TrainingSessionState currentState;
+    private TrainingStepModifiers activeTrainingSkillModifiers =
+        new TrainingStepModifiers();
     private GameManager gameManager;
     private bool hasReportedResult;
 
@@ -85,6 +87,11 @@ public class TrainingPanel : MonoBehaviour
 
         playerBattleStatus = playerStatus != null ? playerStatus.Clone() : new BattleStatusData();
         heroineBattleStatus = heroineStatus != null ? heroineStatus.Clone() : new BattleStatusData();
+        activeTrainingSkillModifiers = gameManager != null
+            ? TrainingStepModifiers.Create(
+                gameManager.GetActivePlayerTrainingSkills(),
+                gameManager.GetActiveHeroineTrainingSkills())
+            : new TrainingStepModifiers();
         currentTraining = null;
         currentState = null;
         hasReportedResult = false;
@@ -157,21 +164,27 @@ public class TrainingPanel : MonoBehaviour
         }
 
         int previousSimultaneousCount = currentState.simultaneousKnockoutCount;
-        currentState.AdvanceStep(currentTraining);
+        TrainingStepResult stepResult = currentState.AdvanceStep(
+            currentTraining,
+            activeTrainingSkillModifiers);
         AddLog(
             "Step " + currentState.elapsedSteps +
-            ": 主人公 -" + currentTraining.playerHpCostPerStep +
-            " / ヒロイン -" + currentTraining.heroineHpCostPerStep);
-        if (currentTraining.affectionRewardPerStep > 0)
+            ": 主人公 -" + stepResult.playerHpCost +
+            " / ヒロイン -" + stepResult.heroineHpCost);
+        if (stepResult.HasAppliedModifier)
+        {
+            AddLog(BuildTrainingSkillModifierLog(stepResult));
+        }
+        if (stepResult.affectionReward > 0)
         {
             AddLog(
-                "好感度 +" + currentTraining.affectionRewardPerStep +
+                "好感度 +" + stepResult.affectionReward +
                 "（今回 +" + currentState.totalStepAffectionReward + "）");
         }
-        if (currentTraining.trainingProficiencyRewardPerStep > 0)
+        if (stepResult.trainingProficiencyReward > 0)
         {
             AddLog(
-                "熟練度 +" + currentTraining.trainingProficiencyRewardPerStep +
+                "熟練度 +" + stepResult.trainingProficiencyReward +
                 "（今回 +" + currentState.totalStepTrainingProficiencyReward + "）");
         }
 
@@ -187,6 +200,42 @@ public class TrainingPanel : MonoBehaviour
         }
 
         RefreshStatus();
+    }
+
+    private static string BuildTrainingSkillModifierLog(TrainingStepResult stepResult)
+    {
+        List<string> parts = new List<string>();
+        int playerReduction = stepResult.basePlayerHpCost - stepResult.playerHpCost;
+        int heroineReduction = stepResult.baseHeroineHpCost - stepResult.heroineHpCost;
+        int affectionDifference =
+            stepResult.affectionReward - stepResult.baseAffectionReward;
+        int proficiencyDifference =
+            stepResult.trainingProficiencyReward -
+            stepResult.baseTrainingProficiencyReward;
+
+        if (playerReduction > 0)
+        {
+            parts.Add("主人公HP消費 -" + playerReduction);
+        }
+        if (heroineReduction > 0)
+        {
+            parts.Add("ヒロインHP消費 -" + heroineReduction);
+        }
+        if (affectionDifference != 0)
+        {
+            parts.Add("好感度 " + FormatSignedValue(affectionDifference));
+        }
+        if (proficiencyDifference != 0)
+        {
+            parts.Add("熟練度 " + FormatSignedValue(proficiencyDifference));
+        }
+
+        return "スキル補正: " + string.Join(" / ", parts.ToArray());
+    }
+
+    private static string FormatSignedValue(int value)
+    {
+        return value > 0 ? "+" + value : value.ToString();
     }
 
     private void InterruptTraining()
