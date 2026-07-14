@@ -15,6 +15,12 @@ public class TrainingResult
     public int affectionReward;
     public int totalStepAffectionReward;
     public int totalStepTrainingProficiencyReward;
+    public int totalPlayerHpCostReduction;
+    public int totalHeroineHpCostReduction;
+    public int totalAffectionRewardModifier;
+    public int totalTrainingProficiencyRewardModifier;
+    public List<string> effectiveTrainingSkillIds = new List<string>();
+    public List<string> effectiveTrainingSkillNames = new List<string>();
     public int trainingProficiencyReward;
     public int totalTrainingProficiency;
     public int playerSkillPointReward;
@@ -57,6 +63,21 @@ public class TrainingResult
             result.totalStepAffectionReward = state.totalStepAffectionReward;
             result.totalStepTrainingProficiencyReward =
                 state.totalStepTrainingProficiencyReward;
+            result.totalPlayerHpCostReduction = state.totalPlayerHpCostReduction;
+            result.totalHeroineHpCostReduction = state.totalHeroineHpCostReduction;
+            result.totalAffectionRewardModifier = state.totalAffectionRewardModifier;
+            result.totalTrainingProficiencyRewardModifier =
+                state.totalTrainingProficiencyRewardModifier;
+            if (state.effectiveTrainingSkillIds != null)
+            {
+                result.effectiveTrainingSkillIds.AddRange(
+                    state.effectiveTrainingSkillIds);
+            }
+            if (state.effectiveTrainingSkillNames != null)
+            {
+                result.effectiveTrainingSkillNames.AddRange(
+                    state.effectiveTrainingSkillNames);
+            }
             result.playerLpConsumedCount = state.playerLpConsumedCount;
             result.opponentLpConsumedCount = state.heroineLpConsumedCount;
             if (state.progressEntries != null)

@@ -8530,58 +8530,107 @@ public class GameManager : MonoBehaviour
             return "";
         }
 
-        string trainingName = string.IsNullOrEmpty(result.trainingName) ? "訓練" : result.trainingName;
-        string message = "訓練結果: " + trainingName +
-            "\nステップ数: " + result.elapsedSteps +
-            (result.maxSteps > 0 ? " / " + result.maxSteps : " / 制限なし") +
-            "\n終了理由: " + GetTrainingEndReasonLabel(result.endReason) +
-            "\n同時限界: " + result.simultaneousKnockoutCount + "回";
+        bool completed = result.isFinished && !result.wasInterrupted;
+        string trainingName = string.IsNullOrEmpty(result.trainingName)
+            ? "訓練"
+            : AbbreviateTrainingResultText(result.trainingName, 12);
+        string stepLimit = result.maxSteps > 0
+            ? result.maxSteps.ToString()
+            : "∞";
+        List<string> lines = new List<string>
+        {
+            trainingName + ": " + GetTrainingEndReasonLabel(result.endReason) +
+                " / " + result.elapsedSteps + "/" + stepLimit + "回" +
+                " / 同時限界" + result.simultaneousKnockoutCount + "回"
+        };
 
-        if (result.totalStepAffectionReward > 0)
-        {
-            message += "\nステップ好感度 +" + result.totalStepAffectionReward;
-        }
-        if (result.totalStepTrainingProficiencyReward > 0)
-        {
-            message += "\nステップ熟練度 +" +
-                result.totalStepTrainingProficiencyReward;
-        }
+        int totalProficiencyReward = result.totalStepTrainingProficiencyReward +
+            (completed ? result.trainingProficiencyReward : 0);
+        lines.Add(
+            "報酬: 好感度" + FormatSignedValue(result.totalAffectionReward) +
+            " / 熟練度" + FormatSignedValue(totalProficiencyReward) +
+            "（現在" + result.totalTrainingProficiency + "）");
 
-        if (result.wasInterrupted)
+        if (!completed)
         {
-            return message + "\n途中終了のため完了報酬なし";
+            lines.Add("完了報酬: なし");
         }
-
-        if (!result.isFinished)
+        else if (result.playerSkillPointReward > 0 || result.heroineSkillPointReward > 0)
         {
-            return message + "\n未完了のため完了報酬なし";
-        }
-
-        message += "\n合計好感度 " + FormatSignedValue(result.totalAffectionReward);
-        if (result.trainingProficiencyReward != 0)
-        {
-            message += "\n完了熟練度 " +
-                FormatSignedValue(result.trainingProficiencyReward) +
-                "（現在 " +
-                result.totalTrainingProficiency +
-                "）";
+            lines.Add(
+                "SP: 主" + FormatSignedValue(result.playerSkillPointReward) +
+                "（" + result.totalPlayerSkillPoints + "）" +
+                " / 姫" + FormatSignedValue(result.heroineSkillPointReward) +
+                "（" + result.totalHeroineSkillPoints + "）");
         }
 
-        if (result.playerSkillPointReward > 0)
+        AppendTrainingSkillEffectSummary(lines, result);
+        return string.Join("\n", lines.ToArray());
+    }
+
+    private static void AppendTrainingSkillEffectSummary(
+        List<string> lines,
+        TrainingResult result)
+    {
+        if (lines == null || result == null)
         {
-            message += "\n主人公スキルポイント +" +
-                result.playerSkillPointReward +
-                "（現在 " + result.totalPlayerSkillPoints + "）";
+            return;
         }
 
-        if (result.heroineSkillPointReward > 0)
+        bool hasSkillNames = result.effectiveTrainingSkillNames != null &&
+            result.effectiveTrainingSkillNames.Count > 0;
+        bool hasEffects = result.totalPlayerHpCostReduction != 0 ||
+            result.totalHeroineHpCostReduction != 0 ||
+            result.totalAffectionRewardModifier != 0 ||
+            result.totalTrainingProficiencyRewardModifier != 0;
+        if (!hasEffects && !hasSkillNames)
         {
-            message += "\nヒロインスキルポイント +" +
-                result.heroineSkillPointReward +
-                "（現在 " + result.totalHeroineSkillPoints + "）";
+            return;
         }
 
-        return message;
+        lines.Add(
+            "スキル効果: HP 主-" + result.totalPlayerHpCostReduction +
+            "/姫-" + result.totalHeroineHpCostReduction +
+            " / 好" + FormatSignedValue(result.totalAffectionRewardModifier) +
+            "/熟" + FormatSignedValue(result.totalTrainingProficiencyRewardModifier));
+        if (hasSkillNames)
+        {
+            lines.Add("発動: " + BuildTrainingSkillNameSummary(
+                result.effectiveTrainingSkillNames,
+                28));
+        }
+    }
+
+    private static string BuildTrainingSkillNameSummary(
+        List<string> skillNames,
+        int maxLength)
+    {
+        if (skillNames == null || skillNames.Count == 0)
+        {
+            return "なし";
+        }
+
+        string allNames = string.Join(" / ", skillNames.ToArray());
+        if (allNames.Length <= maxLength)
+        {
+            return allNames;
+        }
+
+        string suffix = skillNames.Count > 1
+            ? " ほか" + (skillNames.Count - 1) + "件"
+            : "";
+        int nameLength = Mathf.Max(1, maxLength - suffix.Length);
+        return AbbreviateTrainingResultText(skillNames[0], nameLength) + suffix;
+    }
+
+    private static string AbbreviateTrainingResultText(string value, int maxLength)
+    {
+        if (string.IsNullOrEmpty(value) || value.Length <= maxLength)
+        {
+            return value;
+        }
+
+        return value.Substring(0, Mathf.Max(1, maxLength - 1)) + "…";
     }
 
     private static string GetTrainingEndReasonLabel(TrainingEndReason endReason)

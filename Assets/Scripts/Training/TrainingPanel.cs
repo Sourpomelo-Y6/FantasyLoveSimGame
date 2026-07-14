@@ -420,7 +420,7 @@ public class TrainingPanel : MonoBehaviour
 
         if (resultLogText != null)
         {
-            resultLogText.text = logLines.Count > 0 ? string.Join("\n", logLines.ToArray()) : "";
+            RefreshResultLog();
         }
 
         bool canAdvance = currentState != null && !currentState.isFinished;
@@ -443,8 +443,37 @@ public class TrainingPanel : MonoBehaviour
         }
 
         logLines.Add(message);
-        while (logLines.Count > maxLogLines)
+        int lineLimit = Mathf.Max(1, maxLogLines);
+        while (logLines.Count > lineLimit)
         {
+            logLines.RemoveAt(0);
+        }
+    }
+
+    private void RefreshResultLog()
+    {
+        if (resultLogText == null)
+        {
+            return;
+        }
+
+        int lineLimit = Mathf.Max(1, maxLogLines);
+        resultLogText.maxVisibleLines = lineLimit;
+        resultLogText.overflowMode = TextOverflowModes.Truncate;
+        while (true)
+        {
+            resultLogText.text = logLines.Count > 0
+                ? string.Join("\n", logLines.ToArray())
+                : "";
+            resultLogText.ForceMeshUpdate(true, true);
+            int visibleLineCount = resultLogText.textInfo != null
+                ? resultLogText.textInfo.lineCount
+                : 0;
+            if (visibleLineCount <= lineLimit || logLines.Count <= 1)
+            {
+                break;
+            }
+
             logLines.RemoveAt(0);
         }
     }

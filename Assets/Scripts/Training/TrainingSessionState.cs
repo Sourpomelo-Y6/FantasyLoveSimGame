@@ -17,6 +17,7 @@ public class TrainingStepModifiers
     public int heroineHpCostReduction;
     public int affectionRewardModifier;
     public int trainingProficiencyRewardModifier;
+    public List<SkillData> applicableSkills = new List<SkillData>();
 
     public bool HasAnyEffect
     {
@@ -77,6 +78,7 @@ public class TrainingStepModifiers
             trainingProficiencyRewardModifier = AddClamped(
                 trainingProficiencyRewardModifier,
                 skill.trainingProficiencyRewardModifier);
+            applicableSkills.Add(skill);
         }
     }
 
@@ -101,6 +103,8 @@ public class TrainingStepResult
     public int affectionReward;
     public int baseTrainingProficiencyReward;
     public int trainingProficiencyReward;
+    public List<string> effectiveSkillIds = new List<string>();
+    public List<string> effectiveSkillNames = new List<string>();
 
     public bool HasAppliedModifier
     {
@@ -129,6 +133,12 @@ public class TrainingSessionState
     public int simultaneousKnockoutCount;
     public int totalStepAffectionReward;
     public int totalStepTrainingProficiencyReward;
+    public int totalPlayerHpCostReduction;
+    public int totalHeroineHpCostReduction;
+    public int totalAffectionRewardModifier;
+    public int totalTrainingProficiencyRewardModifier;
+    public List<string> effectiveTrainingSkillIds = new List<string>();
+    public List<string> effectiveTrainingSkillNames = new List<string>();
     public int playerLpConsumedCount;
     public int heroineLpConsumedCount;
     public List<TrainingProgressEntry> progressEntries = new List<TrainingProgressEntry>();
@@ -183,6 +193,7 @@ public class TrainingSessionState
             stepResult.trainingProficiencyReward);
         totalStepAffectionReward += stepResult.affectionReward;
         totalStepTrainingProficiencyReward += stepResult.trainingProficiencyReward;
+        RecordTrainingSkillEffects(stepResult);
         stepResult.wasApplied = true;
 
         if (!isFinished && maxSteps > 0 && elapsedSteps >= maxSteps)
@@ -230,7 +241,97 @@ public class TrainingSessionState
         result.trainingProficiencyReward = ApplyRewardModifier(
             result.baseTrainingProficiencyReward,
             modifiers != null ? modifiers.trainingProficiencyRewardModifier : 0);
+        CollectEffectiveSkills(result, modifiers);
         return result;
+    }
+
+    private static void CollectEffectiveSkills(
+        TrainingStepResult result,
+        TrainingStepModifiers modifiers)
+    {
+        if (result == null || modifiers == null || modifiers.applicableSkills == null)
+        {
+            return;
+        }
+
+        bool playerHpChanged = result.basePlayerHpCost != result.playerHpCost;
+        bool heroineHpChanged = result.baseHeroineHpCost != result.heroineHpCost;
+        bool affectionChanged = result.baseAffectionReward != result.affectionReward;
+        bool proficiencyChanged =
+            result.baseTrainingProficiencyReward != result.trainingProficiencyReward;
+        for (int i = 0; i < modifiers.applicableSkills.Count; i++)
+        {
+            SkillData skill = modifiers.applicableSkills[i];
+            if (skill == null || string.IsNullOrEmpty(skill.skillId))
+            {
+                continue;
+            }
+
+            bool hadEffect =
+                (playerHpChanged && skill.trainingPlayerHpCostReduction > 0) ||
+                (heroineHpChanged && skill.trainingHeroineHpCostReduction > 0) ||
+                (affectionChanged && skill.trainingAffectionRewardModifier != 0) ||
+                (proficiencyChanged && skill.trainingProficiencyRewardModifier != 0);
+            if (!hadEffect || result.effectiveSkillIds.Contains(skill.skillId))
+            {
+                continue;
+            }
+
+            result.effectiveSkillIds.Add(skill.skillId);
+            result.effectiveSkillNames.Add(skill.GetDisplayName());
+        }
+    }
+
+    private void RecordTrainingSkillEffects(TrainingStepResult stepResult)
+    {
+        if (stepResult == null)
+        {
+            return;
+        }
+
+        totalPlayerHpCostReduction = AddClamped(
+            totalPlayerHpCostReduction,
+            Math.Max(0, stepResult.basePlayerHpCost - stepResult.playerHpCost));
+        totalHeroineHpCostReduction = AddClamped(
+            totalHeroineHpCostReduction,
+            Math.Max(0, stepResult.baseHeroineHpCost - stepResult.heroineHpCost));
+        totalAffectionRewardModifier = AddClamped(
+            totalAffectionRewardModifier,
+            stepResult.affectionReward - stepResult.baseAffectionReward);
+        totalTrainingProficiencyRewardModifier = AddClamped(
+            totalTrainingProficiencyRewardModifier,
+            stepResult.trainingProficiencyReward -
+                stepResult.baseTrainingProficiencyReward);
+
+        if (stepResult.effectiveSkillIds == null)
+        {
+            return;
+        }
+
+        for (int i = 0; i < stepResult.effectiveSkillIds.Count; i++)
+        {
+            string skillId = stepResult.effectiveSkillIds[i];
+            if (string.IsNullOrEmpty(skillId) ||
+                effectiveTrainingSkillIds.Contains(skillId))
+            {
+                continue;
+            }
+
+            effectiveTrainingSkillIds.Add(skillId);
+            string skillName = stepResult.effectiveSkillNames != null &&
+                i < stepResult.effectiveSkillNames.Count
+                    ? stepResult.effectiveSkillNames[i]
+                    : skillId;
+            effectiveTrainingSkillNames.Add(skillName);
+        }
+    }
+
+    private static int AddClamped(int currentValue, int addedValue)
+    {
+        long total = (long)currentValue + addedValue;
+        if (total > int.MaxValue) return int.MaxValue;
+        if (total < int.MinValue) return int.MinValue;
+        return (int)total;
     }
 
     private static int ApplyHpCostReduction(int baseCost, int reduction)
