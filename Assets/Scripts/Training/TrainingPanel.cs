@@ -36,6 +36,8 @@ public class TrainingPanel : MonoBehaviour
     private readonly List<TrainingData> trainings = new List<TrainingData>();
     private readonly List<GameObject> trainingButtons = new List<GameObject>();
     private readonly List<string> logLines = new List<string>();
+    private readonly List<SkillData> activePlayerTrainingSkills = new List<SkillData>();
+    private readonly List<SkillData> activeHeroineTrainingSkills = new List<SkillData>();
     private BattleStatusData playerBattleStatus;
     private BattleStatusData heroineBattleStatus;
     private TrainingData currentTraining;
@@ -87,11 +89,18 @@ public class TrainingPanel : MonoBehaviour
 
         playerBattleStatus = playerStatus != null ? playerStatus.Clone() : new BattleStatusData();
         heroineBattleStatus = heroineStatus != null ? heroineStatus.Clone() : new BattleStatusData();
-        activeTrainingSkillModifiers = gameManager != null
-            ? TrainingStepModifiers.Create(
-                gameManager.GetActivePlayerTrainingSkills(),
-                gameManager.GetActiveHeroineTrainingSkills())
-            : new TrainingStepModifiers();
+        activePlayerTrainingSkills.Clear();
+        activeHeroineTrainingSkills.Clear();
+        if (gameManager != null)
+        {
+            activePlayerTrainingSkills.AddRange(
+                gameManager.GetActivePlayerTrainingSkills());
+            activeHeroineTrainingSkills.AddRange(
+                gameManager.GetActiveHeroineTrainingSkills());
+        }
+        activeTrainingSkillModifiers = TrainingStepModifiers.Create(
+            activePlayerTrainingSkills,
+            activeHeroineTrainingSkills);
         currentTraining = null;
         currentState = null;
         hasReportedResult = false;
@@ -146,14 +155,61 @@ public class TrainingPanel : MonoBehaviour
             AddLog(currentState.maxSteps > 0
                 ? "最大ステップ: " + currentState.maxSteps
                 : "最大ステップ: 制限なし");
+            AddTrainingPreviewLogs(training);
         }
         else
         {
             currentState.trainingId = training.trainingId;
             AddLog(training.GetDisplayName() + "に切り替えました。");
+            AddTrainingPreviewLogs(training);
         }
 
         RefreshStatus();
+    }
+
+    private void AddTrainingPreviewLogs(TrainingData training)
+    {
+        string playerSkills = FormatActiveSkillNames(activePlayerTrainingSkills);
+        string heroineSkills = FormatActiveSkillNames(activeHeroineTrainingSkills);
+        if (activePlayerTrainingSkills.Count == 0 &&
+            activeHeroineTrainingSkills.Count == 0)
+        {
+            AddLog("有効スキル: なし");
+        }
+        else
+        {
+            AddLog(
+                "有効スキル: 主人公[" + playerSkills +
+                "] / ヒロイン[" + heroineSkills + "]");
+        }
+
+        TrainingStepResult preview = TrainingSessionState.CalculateStepResult(
+            training,
+            activeTrainingSkillModifiers);
+        AddLog(
+            "消費予定: 主人公HP " + preview.playerHpCost +
+            " / ヒロインHP " + preview.heroineHpCost);
+        AddLog(
+            "報酬予定: 好感度 " + preview.affectionReward +
+            " / 熟練度 " + preview.trainingProficiencyReward);
+    }
+
+    private static string FormatActiveSkillNames(List<SkillData> skills)
+    {
+        List<string> names = new List<string>();
+        if (skills != null)
+        {
+            for (int i = 0; i < skills.Count; i++)
+            {
+                SkillData skill = skills[i];
+                if (skill != null)
+                {
+                    names.Add(skill.GetDisplayName());
+                }
+            }
+        }
+
+        return names.Count > 0 ? string.Join("、", names.ToArray()) : "なし";
     }
 
     private void AdvanceStep()

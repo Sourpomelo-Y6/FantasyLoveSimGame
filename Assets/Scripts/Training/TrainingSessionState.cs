@@ -156,7 +156,7 @@ public class TrainingSessionState
         TrainingData training,
         TrainingStepModifiers modifiers)
     {
-        TrainingStepResult stepResult = CreateStepResult(training, modifiers);
+        TrainingStepResult stepResult = CalculateStepResult(training, modifiers);
         if (isFinished)
         {
             return stepResult;
@@ -191,7 +191,7 @@ public class TrainingSessionState
         return stepResult;
     }
 
-    private static TrainingStepResult CreateStepResult(
+    public static TrainingStepResult CalculateStepResult(
         TrainingData training,
         TrainingStepModifiers modifiers)
     {
