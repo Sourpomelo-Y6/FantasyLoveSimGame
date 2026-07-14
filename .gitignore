@@ -1,6 +1,13 @@
-# Large generated TextMeshPro font asset
-Assets/Fonts/NotoSansJP-VariableFont_wght SDF.asset
-Assets/Fonts/NotoSansJP-VariableFont_wght SDF.asset.meta
+# Locally supplied Japanese fonts and generated TextMeshPro assets
+Assets/Fonts/Local/
+Assets/Fonts/**/*.ttf
+Assets/Fonts/**/*.ttf.meta
+Assets/Fonts/**/*.otf
+Assets/Fonts/**/*.otf.meta
+Assets/Fonts/**/* SDF.asset
+Assets/Fonts/**/* SDF.asset.meta
+Assets/Fonts/**/* SDF Atlas*.png
+Assets/Fonts/**/* SDF Atlas*.png.meta
 
 # Unity generated folders
 Library/

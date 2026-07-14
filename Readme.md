@@ -49,7 +49,7 @@ This project is licensed under the MIT License. See [LICENSE](LICENSE) for detai
 1. Unity Hub でこのフォルダをプロジェクトとして開く
 2. `Assets/Scenes/MainScene.unity` を開く
 3. Play ボタンで実行する
-4. Unity で日本語フォントを使える状態にして、`Assets/Fonts/NotoSansJP-VariableFont_wght.ttf` と `Assets/Fonts/NotoSansJP-VariableFont_wght SDF.asset` を再設定する
+4. [`Docs/JapaneseFontSetup.md`](Docs/JapaneseFontSetup.md) の手順で、ローカルの日本語フォントをTextMeshProへ設定する
 
 ## 注意
 
@@ -103,6 +103,8 @@ This project is licensed under the MIT License. See [LICENSE](LICENSE) for detai
 - [`Assets/Scenes/MainScene.unity`](Assets/Scenes/MainScene.unity): メインシーン
 - [`Assets/Scenes/EndingScene.unity`](Assets/Scenes/EndingScene.unity): エンディングシーン
 - [`Packages/manifest.json`](Packages/manifest.json): 利用パッケージ
+- [`Assets/Editor/JapaneseFontSetupWindow.cs`](Assets/Editor/JapaneseFontSetupWindow.cs): ローカル日本語フォントの設定・一括適用ツール
+- [`Docs/JapaneseFontSetup.md`](Docs/JapaneseFontSetup.md): 日本語フォントの導入手順とGit運用上の注意
 
 ## メモ
 
