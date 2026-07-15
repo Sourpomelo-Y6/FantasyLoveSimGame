@@ -44,6 +44,7 @@ public class TrainingPanel : MonoBehaviour
     private TrainingSessionState currentState;
     private TrainingStepModifiers activeTrainingSkillModifiers =
         new TrainingStepModifiers();
+    private HeroineTrainingImageData trainingImageData;
     private GameManager gameManager;
     private bool hasReportedResult;
 
@@ -101,6 +102,7 @@ public class TrainingPanel : MonoBehaviour
         activeTrainingSkillModifiers = new TrainingStepModifiers();
         currentTraining = null;
         currentState = null;
+        trainingImageData = LoadTrainingImageData();
         hasReportedResult = false;
         logLines.Clear();
 
@@ -166,6 +168,9 @@ public class TrainingPanel : MonoBehaviour
             AddTrainingPreviewLogs(training);
         }
 
+        ApplyTrainingImage(currentState.elapsedSteps > 0
+            ? TrainingVisualState.SelectedAfterFirstStep
+            : TrainingVisualState.SelectedBeforeFirstStep);
         RefreshStatus();
     }
 
@@ -237,6 +242,7 @@ public class TrainingPanel : MonoBehaviour
         TrainingStepResult stepResult = currentState.AdvanceStep(
             currentTraining,
             activeTrainingSkillModifiers);
+        ApplyTrainingImage(ResolveStepVisualState(stepResult));
         AddLog(
             "Step " + currentState.elapsedSteps +
             ": 主人公 -" + stepResult.playerHpCost +
@@ -270,6 +276,69 @@ public class TrainingPanel : MonoBehaviour
         }
 
         RefreshStatus();
+    }
+
+    private static TrainingVisualState ResolveStepVisualState(TrainingStepResult stepResult)
+    {
+        bool playerConsumed = stepResult != null && stepResult.playerLpConsumed > 0;
+        bool heroineConsumed = stepResult != null && stepResult.heroineLpConsumed > 0;
+        if (playerConsumed && heroineConsumed)
+        {
+            return TrainingVisualState.SimultaneousLpConsumed;
+        }
+        if (playerConsumed)
+        {
+            return TrainingVisualState.PlayerLpConsumed;
+        }
+        if (heroineConsumed)
+        {
+            return TrainingVisualState.HeroineLpConsumed;
+        }
+
+        return TrainingVisualState.SelectedAfterFirstStep;
+    }
+
+    private HeroineTrainingImageData LoadTrainingImageData()
+    {
+        if (gameManager == null || string.IsNullOrEmpty(gameManager.CurrentHeroineId))
+        {
+            return null;
+        }
+
+        string resourcePath =
+            "Heroines/" + gameManager.CurrentHeroineId +
+            "/TrainingImages/HeroineTrainingImageData";
+        HeroineTrainingImageData data = Resources.Load<HeroineTrainingImageData>(resourcePath);
+        if (data != null &&
+            !string.IsNullOrEmpty(data.heroineId) &&
+            data.heroineId != gameManager.CurrentHeroineId)
+        {
+            Debug.LogWarning(
+                "HeroineTrainingImageData の heroineId が現在のヒロインと一致しません: " +
+                data.heroineId + " / " + gameManager.CurrentHeroineId);
+            return null;
+        }
+
+        return data;
+    }
+
+    private void ApplyTrainingImage(TrainingVisualState state)
+    {
+        if (heroineImage == null || trainingImageData == null || currentTraining == null)
+        {
+            return;
+        }
+
+        Sprite sprite = trainingImageData.ResolveSprite(currentTraining.trainingId, state);
+        if (sprite == null)
+        {
+            // 未設定時は、現在表示中のヒロイン画像を維持する。
+            return;
+        }
+
+        heroineImage.sprite = sprite;
+        heroineImage.enabled = true;
+        heroineImage.preserveAspect = true;
     }
 
     private static string BuildTrainingSkillModifierLog(TrainingStepResult stepResult)
