@@ -126,6 +126,8 @@ public static class HeroineUnityDataExporter
             heroineId = profile.heroineId,
             source = "Unity",
             displayName = profile.displayName,
+            heroineFirstPerson = profile.heroineFirstPerson,
+            playerSecondPerson = profile.playerSecondPerson,
             initialDialogueMessage = profile.initialDialogueMessage,
             nextActionPrompt = profile.nextActionPrompt,
             morningGreeting = profile.morningGreeting,
@@ -134,11 +136,53 @@ public static class HeroineUnityDataExporter
             gameStartFollowUpMessage = profile.gameStartFollowUpMessage,
             outfitMessageOverrides = CreateOutfitMessageOverrides(profile.outfitMessageOverrides),
             outfitReactionMessageOverrides =
-                CreateOutfitReactionMessageOverrides(profile.outfitReactionMessageOverrides)
+                CreateOutfitReactionMessageOverrides(profile.outfitReactionMessageOverrides),
+            battleSkills = CreateHeroineBattleSkills(profile.battleSkills),
+            conversationResourcePath = profile.conversationResourcePath,
+            gameEventResourcePath = profile.gameEventResourcePath,
+            actionResourcePath = profile.actionResourcePath,
+            scheduledEventResourcePath = profile.scheduledEventResourcePath,
+            battleResultEventResourcePath = profile.battleResultEventResourcePath,
+            battlePanelResultMessageResourcePath = profile.battlePanelResultMessageResourcePath,
+            endingResourcePath = profile.endingResourcePath
         };
 
         WriteJson(Path.Combine(outputFolder, "heroine_profile_from_unity.json"), export);
         report.profileExported = true;
+    }
+
+    private static List<HeroineBattleSkillFromUnity> CreateHeroineBattleSkills(List<HeroineBattleSkillData> source)
+    {
+        List<HeroineBattleSkillFromUnity> result = new List<HeroineBattleSkillFromUnity>();
+        if (source == null)
+        {
+            return result;
+        }
+
+        foreach (HeroineBattleSkillData item in source)
+        {
+            if (item == null)
+            {
+                continue;
+            }
+
+            result.Add(new HeroineBattleSkillFromUnity
+            {
+                skillId = item.skillId,
+                displayName = item.displayName,
+                effectType = item.effectType.ToString(),
+                target = item.target.ToString(),
+                cost = item.cost,
+                power = item.power,
+                affectedStat = item.affectedStat.ToString(),
+                statusDurationTurns = item.statusDurationTurns,
+                useChancePercent = item.useChancePercent,
+                priority = item.priority,
+                maxUsesPerBattle = item.maxUsesPerBattle
+            });
+        }
+
+        return result;
     }
 
     private static void ExportActions(
@@ -821,7 +865,8 @@ public static class HeroineUnityDataExporter
             requiredShownEventIds = CreateStringList(gameEvent.requiredShownEventIds),
             blockedShownEventIds = CreateStringList(gameEvent.blockedShownEventIds),
             requiredOutfitIds = CreateOutfitIdList(gameEvent.requiredOutfitIds, gameEvent.requiredOutfits),
-            blockedOutfitIds = CreateOutfitIdList(gameEvent.blockedOutfitIds, gameEvent.blockedOutfits)
+            blockedOutfitIds = CreateOutfitIdList(gameEvent.blockedOutfitIds, gameEvent.blockedOutfits),
+            requiredSkillIds = CreateStringList(gameEvent.requiredSkillIds)
         };
     }
 
@@ -1223,6 +1268,8 @@ public static class HeroineUnityDataExporter
         public string heroineId;
         public string source;
         public string displayName;
+        public string heroineFirstPerson;
+        public string playerSecondPerson;
         public string initialDialogueMessage;
         public string nextActionPrompt;
         public string morningGreeting;
@@ -1231,6 +1278,30 @@ public static class HeroineUnityDataExporter
         public string gameStartFollowUpMessage;
         public List<OutfitMessageOverrideFromUnity> outfitMessageOverrides;
         public List<OutfitReactionMessageOverrideFromUnity> outfitReactionMessageOverrides;
+        public List<HeroineBattleSkillFromUnity> battleSkills;
+        public string conversationResourcePath;
+        public string gameEventResourcePath;
+        public string actionResourcePath;
+        public string scheduledEventResourcePath;
+        public string battleResultEventResourcePath;
+        public string battlePanelResultMessageResourcePath;
+        public string endingResourcePath;
+    }
+
+    [Serializable]
+    private sealed class HeroineBattleSkillFromUnity
+    {
+        public string skillId;
+        public string displayName;
+        public string effectType;
+        public string target;
+        public int cost;
+        public int power;
+        public string affectedStat;
+        public int statusDurationTurns;
+        public int useChancePercent;
+        public int priority;
+        public int maxUsesPerBattle;
     }
 
     [Serializable]
@@ -1450,6 +1521,7 @@ public static class HeroineUnityDataExporter
         public List<string> blockedShownEventIds;
         public List<string> requiredOutfitIds;
         public List<string> blockedOutfitIds;
+        public List<string> requiredSkillIds;
     }
 
     [Serializable]

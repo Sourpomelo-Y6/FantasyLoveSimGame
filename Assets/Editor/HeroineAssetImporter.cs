@@ -97,6 +97,14 @@ public static class HeroineAssetImporter
         profile.displayName = string.IsNullOrWhiteSpace(profileExport.displayName)
             ? profileExport.heroineId
             : profileExport.displayName;
+        if (profileExport.firstPerson != null)
+        {
+            profile.heroineFirstPerson = profileExport.firstPerson;
+        }
+        if (profileExport.secondPerson != null)
+        {
+            profile.playerSecondPerson = profileExport.secondPerson;
+        }
         profile.initialDialogueMessage = ResolveProfileText(
             profileExport.initialDialogueMessage,
             profile.initialDialogueMessage,
@@ -125,11 +133,60 @@ public static class HeroineAssetImporter
         ApplyOutfitReactionMessageOverrides(
             profile.outfitReactionMessageOverrides,
             profileExport.outfitReactionMessageOverrides);
-        profile.conversationResourcePath = $"Heroines/{profileExport.heroineId}/Conversations";
-        profile.gameEventResourcePath = $"Heroines/{profileExport.heroineId}/GameEvents";
-        profile.actionResourcePath = $"Heroines/{profileExport.heroineId}/Actions";
-        profile.scheduledEventResourcePath = $"Heroines/{profileExport.heroineId}/ScheduledEvents";
-        profile.endingResourcePath = $"Heroines/{profileExport.heroineId}/Endings";
+        ApplyBattleSkills(profile.battleSkills, profileExport.battleSkills);
+        profile.conversationResourcePath = ResolveResourcePath(profileExport.conversationResourcePath, profile.conversationResourcePath, profileExport.heroineId, "Conversations");
+        profile.gameEventResourcePath = ResolveResourcePath(profileExport.gameEventResourcePath, profile.gameEventResourcePath, profileExport.heroineId, "GameEvents");
+        profile.actionResourcePath = ResolveResourcePath(profileExport.actionResourcePath, profile.actionResourcePath, profileExport.heroineId, "Actions");
+        profile.scheduledEventResourcePath = ResolveResourcePath(profileExport.scheduledEventResourcePath, profile.scheduledEventResourcePath, profileExport.heroineId, "ScheduledEvents");
+        profile.battleResultEventResourcePath = ResolveResourcePath(profileExport.battleResultEventResourcePath, profile.battleResultEventResourcePath, profileExport.heroineId, "BattleResultEvents");
+        profile.battlePanelResultMessageResourcePath = ResolveResourcePath(profileExport.battlePanelResultMessageResourcePath, profile.battlePanelResultMessageResourcePath, profileExport.heroineId, "BattlePanelResultMessages");
+        profile.endingResourcePath = ResolveResourcePath(profileExport.endingResourcePath, profile.endingResourcePath, profileExport.heroineId, "Endings");
+    }
+
+    private static string ResolveResourcePath(string exportedPath, string currentPath, string heroineId, string defaultLeaf)
+    {
+        if (exportedPath != null)
+        {
+            return exportedPath;
+        }
+
+        string defaultPath = $"Heroines/{heroineId}/{defaultLeaf}";
+        return string.IsNullOrWhiteSpace(currentPath) || string.Equals(currentPath, defaultLeaf, StringComparison.Ordinal)
+            ? defaultPath
+            : currentPath;
+    }
+
+    private static void ApplyBattleSkills(List<HeroineBattleSkillData> target, HeroineBattleSkillExport[] source)
+    {
+        // null は古いJSONで項目が省略された状態。既存値を維持する。
+        if (target == null || source == null)
+        {
+            return;
+        }
+
+        target.Clear();
+        foreach (HeroineBattleSkillExport item in source)
+        {
+            if (item == null || string.IsNullOrWhiteSpace(item.skillId))
+            {
+                continue;
+            }
+
+            target.Add(new HeroineBattleSkillData
+            {
+                skillId = item.skillId,
+                displayName = item.displayName ?? string.Empty,
+                effectType = ParseEnumOrDefault(item.effectType, SkillEffectType.Damage),
+                target = ParseEnumOrDefault(item.target, HeroineSkillTarget.Enemy),
+                cost = Math.Max(0, item.cost),
+                power = item.power,
+                affectedStat = ParseEnumOrDefault(item.affectedStat, SkillBattleStat.Attack),
+                statusDurationTurns = Math.Max(1, item.statusDurationTurns),
+                useChancePercent = Mathf.Clamp(item.useChancePercent, 0, 100),
+                priority = item.priority,
+                maxUsesPerBattle = item.maxUsesPerBattle
+            });
+        }
     }
 
     private static string ResolveProfileText(string exportedText, string currentText, string fallback)
@@ -1237,6 +1294,10 @@ public static class HeroineAssetImporter
         gameEvent.minAffection = Math.Max(0, conditions.minAffection);
         gameEvent.maxAffection = Math.Max(0, conditions.maxAffection);
         EnsureGameEventLists(gameEvent);
+        if (conditions.requiredSkillIds != null)
+        {
+            ApplyStringList(gameEvent.requiredSkillIds, conditions.requiredSkillIds);
+        }
         ApplyStringList(gameEvent.requiredShownEventIds, conditions.requiredShownEventIds);
         ApplyStringList(gameEvent.blockedShownEventIds, conditions.blockedShownEventIds);
         ApplyStringList(gameEvent.requiredOutfitIds, conditions.requiredOutfitIds);
@@ -1254,6 +1315,11 @@ public static class HeroineAssetImporter
 
     private static void EnsureGameEventLists(GameEventData gameEvent)
     {
+        if (gameEvent.requiredSkillIds == null)
+        {
+            gameEvent.requiredSkillIds = new List<string>();
+        }
+
         if (gameEvent.requiredShownEventIds == null)
         {
             gameEvent.requiredShownEventIds = new List<string>();
@@ -2232,6 +2298,30 @@ public static class HeroineAssetImporter
         public string endingPolicy;
         public string[] likes;
         public string[] dislikes;
+        public HeroineBattleSkillExport[] battleSkills;
+        public string conversationResourcePath;
+        public string gameEventResourcePath;
+        public string actionResourcePath;
+        public string scheduledEventResourcePath;
+        public string battleResultEventResourcePath;
+        public string battlePanelResultMessageResourcePath;
+        public string endingResourcePath;
+    }
+
+    [Serializable]
+    private sealed class HeroineBattleSkillExport
+    {
+        public string skillId;
+        public string displayName;
+        public string effectType;
+        public string target;
+        public int cost;
+        public int power;
+        public string affectedStat;
+        public int statusDurationTurns;
+        public int useChancePercent;
+        public int priority;
+        public int maxUsesPerBattle;
     }
 
     [Serializable]
@@ -2378,6 +2468,7 @@ public static class HeroineAssetImporter
         public string[] blockedShownEventIds;
         public string[] requiredOutfitIds;
         public string[] blockedOutfitIds;
+        public string[] requiredSkillIds;
     }
 
     [Serializable]
