@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using UnityEditor;
 using UnityEngine;
 
@@ -10,6 +11,7 @@ public static class HeroineAssetImporter
     private const string ProfileJsonRelativePath = "Data/heroine_profile_export.json";
     private const string AssetsJsonRelativePath = "Data/assets_export.json";
     private const string SpriteLayersJsonRelativePath = "Data/sprite_layers_export.json";
+    private const string TrainingImagesJsonRelativePath = "Data/training_images_export.json";
     private const string ConversationsJsonRelativePath = "Data/conversations_export.json";
     private const string GameEventsJsonRelativePath = "Data/game_events_export.json";
     private const string ScheduledEventsJsonRelativePath = "Data/scheduled_events_export.json";
@@ -73,6 +75,7 @@ public static class HeroineAssetImporter
         ApplyProfile(profile, profileExport);
         ImportImages(exportFolder, profileExport.heroineId, report);
         ApplyDefaultHeroineSprite(profile, report.defaultSpritePath, report);
+        ImportTrainingImages(exportFolder, profileExport.heroineId, report);
         ImportSpriteLayers(exportFolder, profileExport.heroineId, report);
         ImportConversations(exportFolder, profileExport.heroineId, report);
         ImportGameEvents(exportFolder, profileExport.heroineId, report);
@@ -383,6 +386,202 @@ public static class HeroineAssetImporter
         catalog = ScriptableObject.CreateInstance<HeroineAssetCatalog>();
         AssetDatabase.CreateAsset(catalog, assetPath);
         return catalog;
+    }
+
+    private static void ImportTrainingImages(
+        string exportFolder,
+        string heroineId,
+        HeroineImportReport report)
+    {
+        string jsonPath = Path.Combine(exportFolder, TrainingImagesJsonRelativePath);
+        if (!File.Exists(jsonPath))
+        {
+            Debug.Log(
+                "training_images_export.json が見つからないため、既存の訓練画像設定は変更しません: " +
+                jsonPath);
+            return;
+        }
+
+        TrainingImagesExport exported;
+        try
+        {
+            exported = JsonUtility.FromJson<TrainingImagesExport>(File.ReadAllText(jsonPath));
+        }
+        catch (Exception ex)
+        {
+            report.Warn("training_images_export.json の読み込みに失敗しました: " + ex.Message);
+            return;
+        }
+
+        if (exported == null)
+        {
+            report.Warn("training_images_export.json を読み込めませんでした。");
+            return;
+        }
+
+        if (!string.IsNullOrWhiteSpace(exported.heroineId) &&
+            !string.Equals(exported.heroineId, heroineId, StringComparison.Ordinal))
+        {
+            report.Warn(
+                "training_images_export.json の heroineId が profile と一致しないためスキップしました: " +
+                exported.heroineId + " / " + heroineId);
+            report.trainingImageSkippedCount++;
+            return;
+        }
+
+        HeroineAssetCatalog catalog = LoadOrCreateAssetCatalog(heroineId);
+        Dictionary<string, HeroineAssetEntry> assetsById =
+            CreateCatalogAssetEntryMap(catalog, report);
+        report.trainingImageCount = assetsById.Values.Count(
+            entry => entry != null &&
+                string.Equals(entry.usage, "Training", StringComparison.OrdinalIgnoreCase) &&
+                entry.sprite != null);
+
+        string resourceFolder = $"Assets/Resources/Heroines/{heroineId}/TrainingImages";
+        EnsureFolder(resourceFolder);
+        string assetPath = resourceFolder + "/HeroineTrainingImageData.asset";
+        HeroineTrainingImageData data =
+            AssetDatabase.LoadAssetAtPath<HeroineTrainingImageData>(assetPath);
+        if (data == null)
+        {
+            data = ScriptableObject.CreateInstance<HeroineTrainingImageData>();
+            AssetDatabase.CreateAsset(data, assetPath);
+        }
+
+        data.heroineId = heroineId;
+        ApplyTrainingImageDefaults(data, exported.defaults, assetsById, report);
+        if (data.entries == null)
+        {
+            data.entries = new List<HeroineTrainingImageEntry>();
+        }
+        data.entries.Clear();
+
+        HashSet<string> trainingIds = new HashSet<string>(StringComparer.Ordinal);
+        HashSet<string> knownTrainingIds = new HashSet<string>(StringComparer.Ordinal);
+        foreach (TrainingData training in Resources.LoadAll<TrainingData>("Training"))
+        {
+            if (training != null && !string.IsNullOrWhiteSpace(training.trainingId))
+            {
+                knownTrainingIds.Add(training.trainingId);
+            }
+        }
+        if (exported.items != null)
+        {
+            foreach (TrainingImageExportItem item in exported.items)
+            {
+                if (item == null || string.IsNullOrWhiteSpace(item.trainingId))
+                {
+                    report.Warn("trainingId が空の訓練画像設定をスキップしました。");
+                    report.trainingImageSkippedCount++;
+                    continue;
+                }
+                if (!trainingIds.Add(item.trainingId))
+                {
+                    report.Warn("trainingId が重複している訓練画像設定をスキップしました: " + item.trainingId);
+                    report.trainingImageSkippedCount++;
+                    continue;
+                }
+                if (!knownTrainingIds.Contains(item.trainingId))
+                {
+                    report.Warn("存在しないtrainingIdの訓練画像設定をスキップしました: " + item.trainingId);
+                    report.trainingImageSkippedCount++;
+                    continue;
+                }
+
+                data.entries.Add(new HeroineTrainingImageEntry
+                {
+                    trainingId = item.trainingId,
+                    selectedBeforeFirstStepSprite = ResolveTrainingSprite(
+                        item.beforeFirstStepImageAssetId, assetsById, report),
+                    selectedAfterFirstStepSprite = ResolveTrainingSprite(
+                        item.afterFirstStepImageAssetId, assetsById, report),
+                    playerLpConsumedSprite = ResolveTrainingSprite(
+                        item.playerLpConsumedImageAssetId, assetsById, report),
+                    heroineLpConsumedSprite = ResolveTrainingSprite(
+                        item.heroineLpConsumedImageAssetId, assetsById, report),
+                    simultaneousLpConsumedSprite = ResolveTrainingSprite(
+                        item.simultaneousLpConsumedImageAssetId, assetsById, report)
+                });
+            }
+        }
+
+        report.trainingImageEntryCount = data.entries.Count;
+        report.trainingImageSettingsUpdated = true;
+        EditorUtility.SetDirty(data);
+    }
+
+    private static Dictionary<string, HeroineAssetEntry> CreateCatalogAssetEntryMap(
+        HeroineAssetCatalog catalog,
+        HeroineImportReport report)
+    {
+        Dictionary<string, HeroineAssetEntry> result =
+            new Dictionary<string, HeroineAssetEntry>(StringComparer.Ordinal);
+        if (catalog == null || catalog.assets == null)
+        {
+            return result;
+        }
+
+        foreach (HeroineAssetEntry entry in catalog.assets)
+        {
+            if (entry == null || string.IsNullOrWhiteSpace(entry.assetId))
+            {
+                continue;
+            }
+            if (result.ContainsKey(entry.assetId))
+            {
+                report.Warn("HeroineAssetCatalog の assetId が重複しています: " + entry.assetId);
+                continue;
+            }
+            result.Add(entry.assetId, entry);
+        }
+        return result;
+    }
+
+    private static void ApplyTrainingImageDefaults(
+        HeroineTrainingImageData data,
+        TrainingImageExportDefaults defaults,
+        Dictionary<string, HeroineAssetEntry> assetsById,
+        HeroineImportReport report)
+    {
+        defaults = defaults ?? new TrainingImageExportDefaults();
+        data.defaultBeforeFirstStepSprite = ResolveTrainingSprite(
+            defaults.beforeFirstStepImageAssetId, assetsById, report);
+        data.defaultAfterFirstStepSprite = ResolveTrainingSprite(
+            defaults.afterFirstStepImageAssetId, assetsById, report);
+        data.defaultPlayerLpConsumedSprite = ResolveTrainingSprite(
+            defaults.playerLpConsumedImageAssetId, assetsById, report);
+        data.defaultHeroineLpConsumedSprite = ResolveTrainingSprite(
+            defaults.heroineLpConsumedImageAssetId, assetsById, report);
+        data.defaultSimultaneousLpConsumedSprite = ResolveTrainingSprite(
+            defaults.simultaneousLpConsumedImageAssetId, assetsById, report);
+    }
+
+    private static Sprite ResolveTrainingSprite(
+        string assetId,
+        Dictionary<string, HeroineAssetEntry> assetsById,
+        HeroineImportReport report)
+    {
+        if (string.IsNullOrWhiteSpace(assetId))
+        {
+            return null;
+        }
+        if (!assetsById.TryGetValue(assetId, out HeroineAssetEntry entry) || entry == null)
+        {
+            report.Warn("訓練画像のAssetIdをカタログから解決できませんでした: " + assetId);
+            report.trainingImageUnresolvedCount++;
+            return null;
+        }
+        if (!string.Equals(entry.usage, "Training", StringComparison.OrdinalIgnoreCase))
+        {
+            report.Warn("訓練画像のUsageがTrainingではありません: " + assetId + " / " + entry.usage);
+        }
+        if (entry.sprite == null)
+        {
+            report.Warn("訓練画像のSpriteが未設定です: " + assetId);
+            report.trainingImageUnresolvedCount++;
+            return null;
+        }
+        return entry.sprite;
     }
 
     private static bool CanImportCatalogAsset(
@@ -2349,6 +2548,37 @@ public static class HeroineAssetImporter
     }
 
     [Serializable]
+    private sealed class TrainingImagesExport
+    {
+        public int schemaVersion;
+        public string heroineId;
+        public TrainingImageExportDefaults defaults;
+        public TrainingImageExportItem[] items;
+    }
+
+    [Serializable]
+    private sealed class TrainingImageExportDefaults
+    {
+        public string beforeFirstStepImageAssetId;
+        public string afterFirstStepImageAssetId;
+        public string playerLpConsumedImageAssetId;
+        public string heroineLpConsumedImageAssetId;
+        public string simultaneousLpConsumedImageAssetId;
+    }
+
+    [Serializable]
+    private sealed class TrainingImageExportItem
+    {
+        public string trainingId;
+        public string beforeFirstStepImageAssetId;
+        public string afterFirstStepImageAssetId;
+        public string playerLpConsumedImageAssetId;
+        public string heroineLpConsumedImageAssetId;
+        public string simultaneousLpConsumedImageAssetId;
+        public string memo;
+    }
+
+    [Serializable]
     private sealed class ConversationsExport
     {
         public string schemaVersion;
@@ -2591,6 +2821,11 @@ public static class HeroineAssetImporter
         public int scheduledEventCount;
         public int actionReactionCount;
         public int endingCount;
+        public int trainingImageCount;
+        public int trainingImageEntryCount;
+        public int trainingImageUnresolvedCount;
+        public int trainingImageSkippedCount;
+        public bool trainingImageSettingsUpdated;
         public string defaultSpritePath;
         public readonly List<string> warnings = new List<string>();
 
@@ -2603,7 +2838,7 @@ public static class HeroineAssetImporter
         public void LogSummary(string assetPath)
         {
             Debug.Log(
-                $"Heroine export を import しました: {assetPath}, copied images: {copiedImageCount}, catalog assets: {catalogAssetCount}, layers: {layerCount}, conversations: {conversationCount}, game events: {gameEventCount}, scheduled events: {scheduledEventCount}, action reactions: {actionReactionCount}, endings: {endingCount}, warnings: {warnings.Count}");
+                $"Heroine export を import しました: {assetPath}, copied images: {copiedImageCount}, catalog assets: {catalogAssetCount}, training images: {trainingImageCount}, training entries: {trainingImageEntryCount}, training unresolved: {trainingImageUnresolvedCount}, training skipped: {trainingImageSkippedCount}, layers: {layerCount}, conversations: {conversationCount}, game events: {gameEventCount}, scheduled events: {scheduledEventCount}, action reactions: {actionReactionCount}, endings: {endingCount}, warnings: {warnings.Count}");
         }
 
         public string CreateDialogMessage(string assetPath)
@@ -2613,6 +2848,11 @@ public static class HeroineAssetImporter
                 "Profile: " + assetPath + "\n" +
                 "Copied images: " + copiedImageCount + "\n" +
                 "Catalog assets: " + catalogAssetCount + "\n" +
+                "Training images: " + trainingImageCount + "\n" +
+                "Training settings updated: " + (trainingImageSettingsUpdated ? "Yes" : "No") + "\n" +
+                "Training entries: " + trainingImageEntryCount + "\n" +
+                "Training unresolved: " + trainingImageUnresolvedCount + "\n" +
+                "Training skipped: " + trainingImageSkippedCount + "\n" +
                 "Layers: " + layerCount + "\n" +
                 "Conversations: " + conversationCount + "\n" +
                 "Game events: " + gameEventCount + "\n" +
