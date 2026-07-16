@@ -17,60 +17,60 @@ MonoBehaviour:
   - trainingId: LightPractice
     visualState: 0
     messages:
-    - "軽い練習から始めよう。準備はできてる？"
+    - "べ、別にあんたの準備を待ってたわけじゃないけど……軽い練習から始めるわよ。"
   - trainingId: LightPractice
     visualState: 1
     messages:
-    - "いい調子だね。そのまま続けよう！"
+    - "ふーん、思ったより動けるじゃない。その調子でついてきなさい。"
   - trainingId: LightPractice
     visualState: 2
     messages:
-    - "無理しすぎないで。少し呼吸を整えよう？"
+    - "ちょっと、無理しすぎよ。倒れられたらわたしが困るんだから、息を整えなさい。"
   - trainingId: LightPractice
     visualState: 3
     messages:
-    - "ちょっと疲れたけど、まだ大丈夫だよ。"
+    - "こ、このくらい平気よ。あんたに心配されるほど弱くないんだから。"
   - trainingId: LightPractice
     visualState: 4
     messages:
-    - "二人とも夢中になりすぎたみたいだね。"
+    - "二人そろって限界なんて……ふふっ、今回は引き分けにしてあげる。"
   - trainingId: SparringPractice
     visualState: 0
     messages:
-    - "手加減はなしだよ。真剣に勝負しよう！"
+    - "模擬戦だからって手加減しないわよ。あんたの実力、見せてもらうんだから。"
   - trainingId: SparringPractice
     visualState: 1
     messages:
-    - "今の動き、悪くなかったよ。次はもっと速く！"
+    - "今のは悪くなかったわ。でも、次も通じると思わないことね。"
   - trainingId: SparringPractice
     visualState: 2
     messages:
-    - "隙あり！　でも、もう限界みたいだね。"
+    - "もう限界？　仕方ないわね……少しだけ待ってあげる。"
   - trainingId: SparringPractice
     visualState: 3
     messages:
-    - "やるね……私も本気を出さないと。"
+    - "やるじゃない……でも、わたしはまだ負けてないわ。"
   - trainingId: SparringPractice
     visualState: 4
     messages:
-    - "引き分けかな。次は絶対に負けないよ！"
+    - "まさか同時に倒れるなんてね。つ、次こそ決着をつけるわよ。"
   - trainingId: EnduranceTraining
     visualState: 0
     messages:
-    - "長い訓練になるよ。焦らず進もうね。"
+    - "持久訓練は長いわよ。途中で音を上げても置いていくからね。"
   - trainingId: EnduranceTraining
     visualState: 1
     messages:
-    - "まだ半分も来てないよ。しっかりついてきて！"
+    - "まだまだこれからよ。ほら、遅れないでついてきなさい。"
   - trainingId: EnduranceTraining
     visualState: 2
     messages:
-    - "あなたの頑張りは分かったから、無茶はしないで。"
+    - "顔色が悪いわよ。べ、別に心配じゃないけど、無茶は禁止。"
   - trainingId: EnduranceTraining
     visualState: 3
     messages:
-    - "足が重いけど……ここで諦めたくない。"
+    - "足が重いくらいで……ここで諦めるわけにはいかないわ。"
   - trainingId: EnduranceTraining
     visualState: 4
     messages:
-    - "最後まで一緒だったね。今日はここまでにしよう。"
+    - "最後まで一緒に限界を迎えるなんて……あんたも、よく頑張ったわね。"
