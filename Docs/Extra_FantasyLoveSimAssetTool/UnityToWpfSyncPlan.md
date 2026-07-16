@@ -43,6 +43,7 @@ UnityImport/
       scheduled_events_from_unity.json
       endings_from_unity.json
       training_dialogues_from_unity.json
+      training_catalog_from_unity.json
       sprite_links_from_unity.json
       export_report.json
 ```
@@ -185,6 +186,10 @@ scheduled_events_from_unity.json
 訓練セリフは実装済みの `training_dialogues_from_unity.json` で戻す。Unity Editorはヒロイン別の `HeroineTrainingDialogueData` を読み、`trainingId + visualState` ごとの `messages[]` を出力する。重複した枠は1枠へ統合し、空の候補は出力しない。
 
 WPF Toolの訓練画像タブにある `Unity訓練セリフ読込` からJSONを選択する。同一キーの既存枠は保持し、Unity側にしかない候補だけを追加する。同じ文面は重複追加しない。旧ローカルデータの `BeforeFirstStep` / `AfterFirstStep` は、現行の `SelectedBeforeFirstStep` / `SelectedAfterFirstStep` へ正規化する。
+
+### 10. TrainingData参照カタログ
+
+`training_catalog_from_unity.json` は、AssetToolが画像・セリフを制作すべき訓練を動的に知るための参照データとして実装済み。共通 `TrainingData` のゲームバランス値をToolへ移すものではない。現在ヒロインで利用可能または解放可能な訓練だけを出力し、Toolは `Unity訓練一覧読込` でID単位に追加・更新する。取り込み後は訓練数×5状態の不足枠を自動作成できる。
 
 ## Unity Editor 拡張案
 

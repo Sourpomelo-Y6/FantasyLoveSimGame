@@ -253,6 +253,18 @@ training_dialogues_from_unity.json
 
 AssetToolの訓練画像タブからこのファイルを読み込むと、`trainingId + visualState` が一致する既存枠へ未登録候補だけを追加する。既存候補は削除・置換しないため、Toolを正本としながらUnity側の手修正を安全に回収できる。
 
+### 動的な訓練カタログ
+
+初期3訓練をToolのソースコードへ固定せず、Unity Editorの同じFromUnity Exportで次も生成する。
+
+```text
+training_catalog_from_unity.json
+```
+
+`TrainingData`から `trainingId`、表示名、カテゴリー、初期解放状態を出力し、現在ヒロインに適用される訓練解放ノードID・表示名も付ける。初期未解放かつ現在ヒロインに解放経路がない訓練は出力しない。AssetToolの `Unity訓練一覧読込` は既存カタログを削除せずID単位で追加・更新する。
+
+`登録済み訓練の不足枠を準備` は、取り込んだ各訓練について固定5状態の画像候補、Prompt、セリフ枠、画像マッピングを不足分だけ作る。既存の採用画像、Prompt、マッピング、セリフ候補は上書きしない。旧プロフィールに訓練カタログがない場合は、互換用に初期3訓練を補完する。共通 `TrainingData` のHP消費や報酬は引き続きUnityを正本とし、Toolから書き戻さない。
+
 ## prompt JSON
 
 訓練画像の prompt 記録には次を追加する。

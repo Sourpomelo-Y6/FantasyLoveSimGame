@@ -63,6 +63,7 @@ public static class HeroineUnityDataExporter
         ExportGameEvents(profile, outputFolder, report);
         ExportScheduledEvents(profile, outputFolder, report);
         ExportEndings(profile, outputFolder, report);
+        ExportTrainingCatalog(profile, outputFolder, report);
         ExportTrainingDialogues(profile, outputFolder, report);
         WriteReport(profile, outputFolder, report);
 
@@ -81,6 +82,8 @@ public static class HeroineUnityDataExporter
             report.endingCount +
             " / training dialogues: " +
             report.trainingDialogueEntryCount +
+            " / trainings: " +
+            report.trainingCatalogCount +
             " / warnings: " +
             report.warnings.Count);
         EditorUtility.DisplayDialog(
@@ -279,6 +282,84 @@ public static class HeroineUnityDataExporter
 
         report.trainingDialogueEntryCount = export.items.Count;
         WriteJson(Path.Combine(outputFolder, "training_dialogues_from_unity.json"), export);
+    }
+
+    private static void ExportTrainingCatalog(
+        HeroineProfileData profile,
+        string outputFolder,
+        HeroineUnityExportReport report)
+    {
+        string heroineId = string.IsNullOrWhiteSpace(profile.heroineId)
+            ? profile.name
+            : profile.heroineId;
+        TrainingData[] trainings = Resources.LoadAll<TrainingData>("Training");
+        SkillTreeNodeData[] nodes = Resources.LoadAll<SkillTreeNodeData>("SkillTreeNodes");
+        Array.Sort(trainings, (left, right) => string.Compare(
+            left != null ? left.trainingId : string.Empty,
+            right != null ? right.trainingId : string.Empty,
+            StringComparison.Ordinal));
+
+        TrainingCatalogFromUnityExport export = new TrainingCatalogFromUnityExport
+        {
+            schemaVersion = SchemaVersion,
+            heroineId = heroineId,
+            source = "Unity",
+            items = new List<TrainingCatalogFromUnityItem>()
+        };
+        HashSet<string> seenIds = new HashSet<string>(StringComparer.Ordinal);
+        for (int i = 0; i < trainings.Length; i++)
+        {
+            TrainingData training = trainings[i];
+            if (training == null || string.IsNullOrWhiteSpace(training.trainingId))
+            {
+                continue;
+            }
+            if (!seenIds.Add(training.trainingId))
+            {
+                report.Warn("訓練カタログのtrainingIdが重複しています: " + training.trainingId);
+                continue;
+            }
+
+            List<string> unlockNodeIds = new List<string>();
+            List<string> unlockNodeNames = new List<string>();
+            for (int nodeIndex = 0; nodeIndex < nodes.Length; nodeIndex++)
+            {
+                SkillTreeNodeData node = nodes[nodeIndex];
+                if (node == null ||
+                    (node.owner == SkillTreeOwner.Heroine &&
+                        !string.IsNullOrWhiteSpace(node.targetHeroineId) &&
+                        !string.Equals(node.targetHeroineId, heroineId, StringComparison.Ordinal)) ||
+                    node.unlockedTrainingIds == null ||
+                    !node.unlockedTrainingIds.Contains(training.trainingId))
+                {
+                    continue;
+                }
+
+                if (!unlockNodeIds.Contains(node.nodeId))
+                {
+                    unlockNodeIds.Add(node.nodeId);
+                    unlockNodeNames.Add(node.GetDisplayName());
+                }
+            }
+
+            if (!training.unlockedByDefault && unlockNodeIds.Count == 0)
+            {
+                continue;
+            }
+
+            export.items.Add(new TrainingCatalogFromUnityItem
+            {
+                trainingId = training.trainingId,
+                displayName = training.GetDisplayName(),
+                trainingCategoryId = training.trainingCategoryId,
+                unlockedByDefault = training.unlockedByDefault,
+                unlockNodeIds = unlockNodeIds,
+                unlockNodeNames = unlockNodeNames
+            });
+        }
+
+        report.trainingCatalogCount = export.items.Count;
+        WriteJson(Path.Combine(outputFolder, "training_catalog_from_unity.json"), export);
     }
 
     private static void ExportActions(
@@ -1346,6 +1427,7 @@ public static class HeroineUnityDataExporter
             scheduledEventCount = report.scheduledEventCount,
             endingCount = report.endingCount,
             trainingDialogueEntryCount = report.trainingDialogueEntryCount,
+            trainingCatalogCount = report.trainingCatalogCount,
             warnings = report.warnings
         };
 
@@ -1408,6 +1490,26 @@ public static class HeroineUnityDataExporter
         public string heroineId;
         public string source;
         public List<TrainingDialogueFromUnityItem> items;
+    }
+
+    [Serializable]
+    private sealed class TrainingCatalogFromUnityExport
+    {
+        public int schemaVersion;
+        public string heroineId;
+        public string source;
+        public List<TrainingCatalogFromUnityItem> items;
+    }
+
+    [Serializable]
+    private sealed class TrainingCatalogFromUnityItem
+    {
+        public string trainingId;
+        public string displayName;
+        public string trainingCategoryId;
+        public bool unlockedByDefault;
+        public List<string> unlockNodeIds;
+        public List<string> unlockNodeNames;
     }
 
     [Serializable]
@@ -1706,6 +1808,7 @@ public static class HeroineUnityDataExporter
         public int scheduledEventCount;
         public int endingCount;
         public int trainingDialogueEntryCount;
+        public int trainingCatalogCount;
         public List<string> warnings;
     }
 
@@ -1717,6 +1820,7 @@ public static class HeroineUnityDataExporter
         public int scheduledEventCount;
         public int endingCount;
         public int trainingDialogueEntryCount;
+        public int trainingCatalogCount;
         public bool profileExported;
         public readonly List<string> warnings = new List<string>();
 
@@ -1737,6 +1841,7 @@ public static class HeroineUnityDataExporter
                 "Scheduled events: " + scheduledEventCount + "\n" +
                 "Endings: " + endingCount + "\n" +
                 "Training dialogue entries: " + trainingDialogueEntryCount + "\n" +
+                "Trainings: " + trainingCatalogCount + "\n" +
                 "Warnings: " + warnings.Count;
         }
     }
