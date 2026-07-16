@@ -231,6 +231,20 @@ TrainingMessageText
 同名の子GameObjectであれば自動検出する。Inspectorから明示的に参照を設定してもよい。
 訓練選択時とステップ進行時に、画像とセリフへ同じ `TrainingVisualState` を適用する。
 
+### AssetToolとUnity Importer
+
+AssetToolの訓練画像タブでは、選択中の画像枠に対応するセリフ候補を追加、編集、削除できる。
+`標準15枠を準備` は不足する画像枠とセリフ枠を同時に作成し、既存候補は上書きしない。
+Export時は次のファイルを生成する。
+
+```text
+Data/training_dialogues_export.json
+```
+
+JSONは `heroineId` と、`trainingId`、`visualState`、`messages[]` の一覧を持つ。
+Unity Importerはファイルが存在する場合だけ `HeroineTrainingDialogueData.asset` を更新する。旧Exportのようにファイルが存在しない場合は既存セリフを維持する。
+空のセリフ、重複キー、存在しないTrainingId、未知のVisualStateは警告またはスキップ対象とする。
+
 ## prompt JSON
 
 訓練画像の prompt 記録には次を追加する。

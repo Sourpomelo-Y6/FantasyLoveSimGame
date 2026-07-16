@@ -12,6 +12,7 @@ public static class HeroineAssetImporter
     private const string AssetsJsonRelativePath = "Data/assets_export.json";
     private const string SpriteLayersJsonRelativePath = "Data/sprite_layers_export.json";
     private const string TrainingImagesJsonRelativePath = "Data/training_images_export.json";
+    private const string TrainingDialoguesJsonRelativePath = "Data/training_dialogues_export.json";
     private const string ConversationsJsonRelativePath = "Data/conversations_export.json";
     private const string GameEventsJsonRelativePath = "Data/game_events_export.json";
     private const string ScheduledEventsJsonRelativePath = "Data/scheduled_events_export.json";
@@ -76,6 +77,7 @@ public static class HeroineAssetImporter
         ImportImages(exportFolder, profileExport.heroineId, report);
         ApplyDefaultHeroineSprite(profile, report.defaultSpritePath, report);
         ImportTrainingImages(exportFolder, profileExport.heroineId, report);
+        ImportTrainingDialogues(exportFolder, profileExport.heroineId, report);
         ImportSpriteLayers(exportFolder, profileExport.heroineId, report);
         ImportConversations(exportFolder, profileExport.heroineId, report);
         ImportGameEvents(exportFolder, profileExport.heroineId, report);
@@ -535,6 +537,100 @@ public static class HeroineAssetImporter
             result.Add(entry.assetId, entry);
         }
         return result;
+    }
+
+    private static void ImportTrainingDialogues(
+        string exportFolder,
+        string heroineId,
+        HeroineImportReport report)
+    {
+        string jsonPath = Path.Combine(exportFolder, TrainingDialoguesJsonRelativePath);
+        if (!File.Exists(jsonPath))
+        {
+            Debug.Log("training_dialogues_export.json がないため、既存の訓練セリフは変更しません: " + jsonPath);
+            return;
+        }
+
+        TrainingDialoguesExport exported;
+        try
+        {
+            exported = JsonUtility.FromJson<TrainingDialoguesExport>(File.ReadAllText(jsonPath));
+        }
+        catch (Exception ex)
+        {
+            report.Warn("training_dialogues_export.json の読み込みに失敗しました: " + ex.Message);
+            return;
+        }
+        if (exported == null ||
+            (!string.IsNullOrWhiteSpace(exported.heroineId) && exported.heroineId != heroineId))
+        {
+            report.Warn("training_dialogues_export.json のheroineIdが一致しないためスキップしました。");
+            return;
+        }
+
+        string resourceFolder = $"Assets/Resources/Heroines/{heroineId}/TrainingDialogues";
+        EnsureFolder(resourceFolder);
+        string assetPath = resourceFolder + "/HeroineTrainingDialogueData.asset";
+        HeroineTrainingDialogueData data = AssetDatabase.LoadAssetAtPath<HeroineTrainingDialogueData>(assetPath);
+        if (data == null)
+        {
+            data = ScriptableObject.CreateInstance<HeroineTrainingDialogueData>();
+            AssetDatabase.CreateAsset(data, assetPath);
+        }
+        data.heroineId = heroineId;
+        data.entries = new List<HeroineTrainingDialogueEntry>();
+
+        HashSet<string> knownTrainingIds = new HashSet<string>(
+            Resources.LoadAll<TrainingData>("Training")
+                .Where(training => training != null && !string.IsNullOrWhiteSpace(training.trainingId))
+                .Select(training => training.trainingId),
+            StringComparer.Ordinal);
+        HashSet<string> keys = new HashSet<string>(StringComparer.Ordinal);
+        if (exported.items != null)
+        {
+            foreach (TrainingDialogueExportItem item in exported.items)
+            {
+                if (item == null || string.IsNullOrWhiteSpace(item.visualState))
+                {
+                    report.Warn("visualStateが空の訓練セリフをスキップしました。");
+                    continue;
+                }
+                if (!string.IsNullOrWhiteSpace(item.trainingId) && !knownTrainingIds.Contains(item.trainingId))
+                {
+                    report.Warn("存在しないtrainingIdの訓練セリフをスキップしました: " + item.trainingId);
+                    continue;
+                }
+                if (!Enum.TryParse(item.visualState, out TrainingVisualState state))
+                {
+                    report.Warn("未知のvisualStateをスキップしました: " + item.visualState);
+                    continue;
+                }
+                string key = (item.trainingId ?? string.Empty) + "\n" + state;
+                if (!keys.Add(key))
+                {
+                    report.Warn("重複した訓練セリフをスキップしました: " + item.trainingId + " / " + state);
+                    continue;
+                }
+                List<string> messages = (item.messages ?? Array.Empty<string>())
+                    .Where(message => !string.IsNullOrWhiteSpace(message))
+                    .Select(message => message.Trim())
+                    .Distinct()
+                    .ToList();
+                if (messages.Count == 0)
+                {
+                    report.Warn("セリフ候補が空の項目をスキップしました: " + item.trainingId + " / " + state);
+                    continue;
+                }
+                data.entries.Add(new HeroineTrainingDialogueEntry
+                {
+                    trainingId = item.trainingId ?? string.Empty,
+                    visualState = state,
+                    messages = messages
+                });
+            }
+        }
+        report.trainingDialogueEntryCount = data.entries.Count;
+        EditorUtility.SetDirty(data);
     }
 
     private static void ApplyTrainingImageDefaults(
@@ -2579,6 +2675,22 @@ public static class HeroineAssetImporter
     }
 
     [Serializable]
+    private sealed class TrainingDialoguesExport
+    {
+        public int schemaVersion;
+        public string heroineId;
+        public TrainingDialogueExportItem[] items;
+    }
+
+    [Serializable]
+    private sealed class TrainingDialogueExportItem
+    {
+        public string trainingId;
+        public string visualState;
+        public string[] messages;
+    }
+
+    [Serializable]
     private sealed class ConversationsExport
     {
         public string schemaVersion;
@@ -2825,6 +2937,7 @@ public static class HeroineAssetImporter
         public int trainingImageEntryCount;
         public int trainingImageUnresolvedCount;
         public int trainingImageSkippedCount;
+        public int trainingDialogueEntryCount;
         public bool trainingImageSettingsUpdated;
         public string defaultSpritePath;
         public readonly List<string> warnings = new List<string>();
@@ -2838,7 +2951,7 @@ public static class HeroineAssetImporter
         public void LogSummary(string assetPath)
         {
             Debug.Log(
-                $"Heroine export を import しました: {assetPath}, copied images: {copiedImageCount}, catalog assets: {catalogAssetCount}, training images: {trainingImageCount}, training entries: {trainingImageEntryCount}, training unresolved: {trainingImageUnresolvedCount}, training skipped: {trainingImageSkippedCount}, layers: {layerCount}, conversations: {conversationCount}, game events: {gameEventCount}, scheduled events: {scheduledEventCount}, action reactions: {actionReactionCount}, endings: {endingCount}, warnings: {warnings.Count}");
+                $"Heroine export を import しました: {assetPath}, copied images: {copiedImageCount}, catalog assets: {catalogAssetCount}, training images: {trainingImageCount}, training entries: {trainingImageEntryCount}, training dialogues: {trainingDialogueEntryCount}, training unresolved: {trainingImageUnresolvedCount}, training skipped: {trainingImageSkippedCount}, layers: {layerCount}, conversations: {conversationCount}, game events: {gameEventCount}, scheduled events: {scheduledEventCount}, action reactions: {actionReactionCount}, endings: {endingCount}, warnings: {warnings.Count}");
         }
 
         public string CreateDialogMessage(string assetPath)
@@ -2851,6 +2964,7 @@ public static class HeroineAssetImporter
                 "Training images: " + trainingImageCount + "\n" +
                 "Training settings updated: " + (trainingImageSettingsUpdated ? "Yes" : "No") + "\n" +
                 "Training entries: " + trainingImageEntryCount + "\n" +
+                "Training dialogues: " + trainingDialogueEntryCount + "\n" +
                 "Training unresolved: " + trainingImageUnresolvedCount + "\n" +
                 "Training skipped: " + trainingImageSkippedCount + "\n" +
                 "Layers: " + layerCount + "\n" +
