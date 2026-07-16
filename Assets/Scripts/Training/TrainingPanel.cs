@@ -24,6 +24,10 @@ public class TrainingPanel : MonoBehaviour
     [SerializeField] private TextMeshProUGUI heroineLpText;
     [SerializeField] private TextMeshProUGUI resultLogText;
 
+    [Header("Heroine Dialogue")]
+    [SerializeField] private TextMeshProUGUI heroineNameText;
+    [SerializeField] private TextMeshProUGUI trainingMessageText;
+
     [Header("Controls")]
     [SerializeField] private Button advanceButton;
     [SerializeField] private Button quitButton;
@@ -45,6 +49,8 @@ public class TrainingPanel : MonoBehaviour
     private TrainingStepModifiers activeTrainingSkillModifiers =
         new TrainingStepModifiers();
     private HeroineTrainingImageData trainingImageData;
+    private HeroineTrainingDialogueData trainingDialogueData;
+    private string lastTrainingMessage = string.Empty;
     private GameManager gameManager;
     private bool hasReportedResult;
 
@@ -103,6 +109,13 @@ public class TrainingPanel : MonoBehaviour
         currentTraining = null;
         currentState = null;
         trainingImageData = LoadTrainingImageData();
+        trainingDialogueData = LoadTrainingDialogueData();
+        lastTrainingMessage = string.Empty;
+        RefreshHeroineName();
+        if (trainingMessageText != null)
+        {
+            trainingMessageText.text = string.Empty;
+        }
         hasReportedResult = false;
         logLines.Clear();
 
@@ -168,7 +181,7 @@ public class TrainingPanel : MonoBehaviour
             AddTrainingPreviewLogs(training);
         }
 
-        ApplyTrainingImage(currentState.elapsedSteps > 0
+        ApplyTrainingPresentation(currentState.elapsedSteps > 0
             ? TrainingVisualState.SelectedAfterFirstStep
             : TrainingVisualState.SelectedBeforeFirstStep);
         RefreshStatus();
@@ -242,7 +255,7 @@ public class TrainingPanel : MonoBehaviour
         TrainingStepResult stepResult = currentState.AdvanceStep(
             currentTraining,
             activeTrainingSkillModifiers);
-        ApplyTrainingImage(ResolveStepVisualState(stepResult));
+        ApplyTrainingPresentation(ResolveStepVisualState(stepResult));
         AddLog(
             "Step " + currentState.elapsedSteps +
             ": 主人公 -" + stepResult.playerHpCost +
@@ -322,6 +335,37 @@ public class TrainingPanel : MonoBehaviour
         return data;
     }
 
+    private HeroineTrainingDialogueData LoadTrainingDialogueData()
+    {
+        if (gameManager == null || string.IsNullOrEmpty(gameManager.CurrentHeroineId))
+        {
+            return null;
+        }
+
+        string resourcePath =
+            "Heroines/" + gameManager.CurrentHeroineId +
+            "/TrainingDialogues/HeroineTrainingDialogueData";
+        HeroineTrainingDialogueData data =
+            Resources.Load<HeroineTrainingDialogueData>(resourcePath);
+        if (data != null &&
+            !string.IsNullOrEmpty(data.heroineId) &&
+            data.heroineId != gameManager.CurrentHeroineId)
+        {
+            Debug.LogWarning(
+                "HeroineTrainingDialogueData の heroineId が現在のヒロインと一致しません: " +
+                data.heroineId + " / " + gameManager.CurrentHeroineId);
+            return null;
+        }
+
+        return data;
+    }
+
+    private void ApplyTrainingPresentation(TrainingVisualState state)
+    {
+        ApplyTrainingImage(state);
+        ApplyTrainingDialogue(state);
+    }
+
     private void ApplyTrainingImage(TrainingVisualState state)
     {
         if (heroineImage == null || trainingImageData == null || currentTraining == null)
@@ -339,6 +383,42 @@ public class TrainingPanel : MonoBehaviour
         heroineImage.sprite = sprite;
         heroineImage.enabled = true;
         heroineImage.preserveAspect = true;
+    }
+
+    private void ApplyTrainingDialogue(TrainingVisualState state)
+    {
+        if (trainingMessageText == null || trainingDialogueData == null || currentTraining == null)
+        {
+            return;
+        }
+
+        string message = trainingDialogueData.ResolveMessage(
+            currentTraining.trainingId,
+            state,
+            lastTrainingMessage);
+        if (string.IsNullOrEmpty(message))
+        {
+            // 未設定時は現在のセリフを維持する。
+            return;
+        }
+
+        lastTrainingMessage = message;
+        trainingMessageText.text = message;
+    }
+
+    private void RefreshHeroineName()
+    {
+        if (heroineNameText == null)
+        {
+            return;
+        }
+
+        HeroineProfileData profile = gameManager != null
+            ? gameManager.CurrentHeroineProfile
+            : null;
+        heroineNameText.text = profile != null && !string.IsNullOrEmpty(profile.displayName)
+            ? profile.displayName
+            : "ヒロイン";
     }
 
     private static string BuildTrainingSkillModifierLog(TrainingStepResult stepResult)
@@ -688,6 +768,16 @@ public class TrainingPanel : MonoBehaviour
         if (resultLogText == null)
         {
             resultLogText = FindText("ResultLogText");
+        }
+
+        if (heroineNameText == null)
+        {
+            heroineNameText = FindText("HeroineNameText");
+        }
+
+        if (trainingMessageText == null)
+        {
+            trainingMessageText = FindText("TrainingMessageText");
         }
 
         if (advanceButton == null)

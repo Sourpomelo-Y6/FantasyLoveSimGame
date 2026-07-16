@@ -211,6 +211,26 @@ messages[]
 
 将来は好感度、訓練熟練度、残りLP、経過ステップ数、初回、訓練完了、中断などを追加条件にできるようにする。ただし最初の実装では標準15枠との一対一対応を優先する。
 
+### Unity実装
+
+`HeroineTrainingDialogueData` と `TrainingPanel` の表示処理を実装済み。
+
+- データ配置: `Resources/Heroines/<HeroineId>/TrainingDialogues/HeroineTrainingDialogueData.asset`
+- TestHeroineには初期3訓練×5状態の標準15セリフを設定済み
+- 同じ枠に複数候補がある場合は、直前と同じセリフを除外してランダム選択
+- `trainingId` が空のエントリは、ヒロイン内の状態共通フォールバック
+- データまたはUIが未設定でも例外を発生させない
+
+`TrainingPanel` のUIには次のTextMeshProUGUIを追加する。
+
+```text
+HeroineNameText
+TrainingMessageText
+```
+
+同名の子GameObjectであれば自動検出する。Inspectorから明示的に参照を設定してもよい。
+訓練選択時とステップ進行時に、画像とセリフへ同じ `TrainingVisualState` を適用する。
+
 ## prompt JSON
 
 訓練画像の prompt 記録には次を追加する。
