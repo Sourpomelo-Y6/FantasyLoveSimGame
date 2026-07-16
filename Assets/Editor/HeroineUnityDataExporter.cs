@@ -63,6 +63,7 @@ public static class HeroineUnityDataExporter
         ExportGameEvents(profile, outputFolder, report);
         ExportScheduledEvents(profile, outputFolder, report);
         ExportEndings(profile, outputFolder, report);
+        ExportTrainingDialogues(profile, outputFolder, report);
         WriteReport(profile, outputFolder, report);
 
         Debug.Log(
@@ -78,6 +79,8 @@ public static class HeroineUnityDataExporter
             report.scheduledEventCount +
             " / endings: " +
             report.endingCount +
+            " / training dialogues: " +
+            report.trainingDialogueEntryCount +
             " / warnings: " +
             report.warnings.Count);
         EditorUtility.DisplayDialog(
@@ -183,6 +186,99 @@ public static class HeroineUnityDataExporter
         }
 
         return result;
+    }
+
+    private static void ExportTrainingDialogues(
+        HeroineProfileData profile,
+        string outputFolder,
+        HeroineUnityExportReport report)
+    {
+        string heroineId = string.IsNullOrWhiteSpace(profile.heroineId)
+            ? profile.name
+            : profile.heroineId;
+        string resourcePath =
+            "Heroines/" + heroineId + "/TrainingDialogues/HeroineTrainingDialogueData";
+        HeroineTrainingDialogueData data = Resources.Load<HeroineTrainingDialogueData>(resourcePath);
+        TrainingDialoguesFromUnityExport export = new TrainingDialoguesFromUnityExport
+        {
+            schemaVersion = SchemaVersion,
+            heroineId = heroineId,
+            source = "Unity",
+            items = new List<TrainingDialogueFromUnityItem>()
+        };
+
+        if (data == null)
+        {
+            report.Warn("訓練セリフデータが見つかりません: Resources/" + resourcePath);
+        }
+        else if (!string.IsNullOrWhiteSpace(data.heroineId) &&
+            !string.Equals(data.heroineId, heroineId, StringComparison.Ordinal))
+        {
+            report.Warn(
+                "訓練セリフデータのheroineIdが一致しません: " +
+                data.heroineId + " / " + heroineId);
+        }
+        else if (data.entries != null)
+        {
+            Dictionary<string, TrainingDialogueFromUnityItem> itemsByKey =
+                new Dictionary<string, TrainingDialogueFromUnityItem>(StringComparer.Ordinal);
+            foreach (HeroineTrainingDialogueEntry entry in data.entries)
+            {
+                if (entry == null)
+                {
+                    continue;
+                }
+
+                string trainingId = (entry.trainingId ?? string.Empty).Trim();
+                string visualState = entry.visualState.ToString();
+                string key = trainingId + "\n" + visualState;
+                if (!itemsByKey.TryGetValue(key, out TrainingDialogueFromUnityItem item))
+                {
+                    item = new TrainingDialogueFromUnityItem
+                    {
+                        trainingId = trainingId,
+                        visualState = visualState,
+                        messages = new List<string>()
+                    };
+                    itemsByKey.Add(key, item);
+                    export.items.Add(item);
+                }
+                else
+                {
+                    report.Warn("重複した訓練セリフ枠を統合しました: " + trainingId + " / " + visualState);
+                }
+
+                if (entry.messages == null)
+                {
+                    continue;
+                }
+
+                foreach (string sourceMessage in entry.messages)
+                {
+                    string message = (sourceMessage ?? string.Empty).Trim();
+                    if (message.Length > 0 && !item.messages.Contains(message))
+                    {
+                        item.messages.Add(message);
+                    }
+                }
+            }
+
+            export.items.RemoveAll(item =>
+            {
+                if (item.messages.Count > 0)
+                {
+                    return false;
+                }
+
+                report.Warn(
+                    "セリフ候補が空の訓練セリフ枠をスキップしました: " +
+                    item.trainingId + " / " + item.visualState);
+                return true;
+            });
+        }
+
+        report.trainingDialogueEntryCount = export.items.Count;
+        WriteJson(Path.Combine(outputFolder, "training_dialogues_from_unity.json"), export);
     }
 
     private static void ExportActions(
@@ -1249,6 +1345,7 @@ public static class HeroineUnityDataExporter
             gameEventCount = report.gameEventCount,
             scheduledEventCount = report.scheduledEventCount,
             endingCount = report.endingCount,
+            trainingDialogueEntryCount = report.trainingDialogueEntryCount,
             warnings = report.warnings
         };
 
@@ -1302,6 +1399,23 @@ public static class HeroineUnityDataExporter
         public int useChancePercent;
         public int priority;
         public int maxUsesPerBattle;
+    }
+
+    [Serializable]
+    private sealed class TrainingDialoguesFromUnityExport
+    {
+        public int schemaVersion;
+        public string heroineId;
+        public string source;
+        public List<TrainingDialogueFromUnityItem> items;
+    }
+
+    [Serializable]
+    private sealed class TrainingDialogueFromUnityItem
+    {
+        public string trainingId;
+        public string visualState;
+        public List<string> messages;
     }
 
     [Serializable]
@@ -1591,6 +1705,7 @@ public static class HeroineUnityDataExporter
         public int gameEventCount;
         public int scheduledEventCount;
         public int endingCount;
+        public int trainingDialogueEntryCount;
         public List<string> warnings;
     }
 
@@ -1601,6 +1716,7 @@ public static class HeroineUnityDataExporter
         public int gameEventCount;
         public int scheduledEventCount;
         public int endingCount;
+        public int trainingDialogueEntryCount;
         public bool profileExported;
         public readonly List<string> warnings = new List<string>();
 
@@ -1620,6 +1736,7 @@ public static class HeroineUnityDataExporter
                 "Game events: " + gameEventCount + "\n" +
                 "Scheduled events: " + scheduledEventCount + "\n" +
                 "Endings: " + endingCount + "\n" +
+                "Training dialogue entries: " + trainingDialogueEntryCount + "\n" +
                 "Warnings: " + warnings.Count;
         }
     }
