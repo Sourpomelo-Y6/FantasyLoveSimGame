@@ -170,29 +170,44 @@ public static class HeroineAssetImporter
             return;
         }
 
-        target.Clear();
-        foreach (HeroineBattleSkillExport item in source)
-        {
-            if (item == null || string.IsNullOrWhiteSpace(item.skillId))
+        List<BattleSkillSyncItem> normalized = BattleSkillSyncService.Normalize(
+            source.Select(item => item == null ? null : new BattleSkillSyncItem
             {
-                continue;
-            }
-
+                SkillId = item.skillId,
+                DisplayName = item.displayName,
+                EffectType = item.effectType,
+                Target = item.target,
+                Cost = item.cost,
+                Power = item.power,
+                AffectedStat = item.affectedStat,
+                StatusDurationTurns = item.statusDurationTurns,
+                UseChancePercent = item.useChancePercent,
+                Priority = item.priority,
+                MaxUsesPerBattle = item.maxUsesPerBattle
+            }));
+        target.Clear();
+        foreach (BattleSkillSyncItem item in normalized)
+        {
             target.Add(new HeroineBattleSkillData
             {
-                skillId = item.skillId,
-                displayName = item.displayName ?? string.Empty,
-                effectType = ParseEnumOrDefault(item.effectType, SkillEffectType.Damage),
-                target = ParseEnumOrDefault(item.target, HeroineSkillTarget.Enemy),
-                cost = Math.Max(0, item.cost),
-                power = item.power,
-                affectedStat = ParseEnumOrDefault(item.affectedStat, SkillBattleStat.Attack),
-                statusDurationTurns = Math.Max(1, item.statusDurationTurns),
-                useChancePercent = Mathf.Clamp(item.useChancePercent, 0, 100),
-                priority = item.priority,
-                maxUsesPerBattle = item.maxUsesPerBattle
+                skillId = item.SkillId,
+                displayName = item.DisplayName,
+                effectType = ParseEnumOrDefault(item.EffectType, SkillEffectType.Damage),
+                target = ParseEnumOrDefault(item.Target, HeroineSkillTarget.Enemy),
+                cost = Math.Max(0, item.Cost),
+                power = item.Power,
+                affectedStat = ParseEnumOrDefault(item.AffectedStat, SkillBattleStat.Attack),
+                statusDurationTurns = Math.Max(1, item.StatusDurationTurns),
+                useChancePercent = Mathf.Clamp(item.UseChancePercent, 0, 100),
+                priority = item.Priority,
+                maxUsesPerBattle = item.MaxUsesPerBattle
             });
         }
+    }
+
+    internal static void ApplyProfileJsonForTests(HeroineProfileData profile, string json)
+    {
+        ApplyProfile(profile, JsonUtility.FromJson<HeroineProfileExport>(json));
     }
 
     private static string ResolveProfileText(string exportedText, string currentText, string fallback)

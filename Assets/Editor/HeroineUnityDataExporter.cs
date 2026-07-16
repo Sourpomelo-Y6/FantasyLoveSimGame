@@ -123,7 +123,7 @@ public static class HeroineUnityDataExporter
         return AssetDatabase.LoadAssetAtPath<HeroineProfileData>(relativeAssetPath);
     }
 
-    private static void ExportProfile(
+    internal static void ExportProfile(
         HeroineProfileData profile,
         string outputFolder,
         HeroineUnityExportReport report)
@@ -161,36 +161,35 @@ public static class HeroineUnityDataExporter
 
     private static List<HeroineBattleSkillFromUnity> CreateHeroineBattleSkills(List<HeroineBattleSkillData> source)
     {
-        List<HeroineBattleSkillFromUnity> result = new List<HeroineBattleSkillFromUnity>();
-        if (source == null)
-        {
-            return result;
-        }
-
-        foreach (HeroineBattleSkillData item in source)
-        {
-            if (item == null)
+        return BattleSkillSyncService.Normalize((source ?? new List<HeroineBattleSkillData>())
+            .Select(item => item == null ? null : new BattleSkillSyncItem
             {
-                continue;
-            }
-
-            result.Add(new HeroineBattleSkillFromUnity
+                SkillId = item.skillId,
+                DisplayName = item.displayName,
+                EffectType = item.effectType.ToString(),
+                Target = item.target.ToString(),
+                Cost = item.cost,
+                Power = item.power,
+                AffectedStat = item.affectedStat.ToString(),
+                StatusDurationTurns = item.statusDurationTurns,
+                UseChancePercent = item.useChancePercent,
+                Priority = item.priority,
+                MaxUsesPerBattle = item.maxUsesPerBattle
+            }))
+            .Select(item => new HeroineBattleSkillFromUnity
             {
-                skillId = item.skillId,
-                displayName = item.displayName,
-                effectType = item.effectType.ToString(),
-                target = item.target.ToString(),
-                cost = item.cost,
-                power = item.power,
-                affectedStat = item.affectedStat.ToString(),
-                statusDurationTurns = item.statusDurationTurns,
-                useChancePercent = item.useChancePercent,
-                priority = item.priority,
-                maxUsesPerBattle = item.maxUsesPerBattle
-            });
-        }
-
-        return result;
+                skillId = item.SkillId,
+                displayName = item.DisplayName,
+                effectType = item.EffectType,
+                target = item.Target,
+                cost = item.Cost,
+                power = item.Power,
+                affectedStat = item.AffectedStat,
+                statusDurationTurns = item.StatusDurationTurns,
+                useChancePercent = item.UseChancePercent,
+                priority = item.Priority,
+                maxUsesPerBattle = item.MaxUsesPerBattle
+            }).ToList();
     }
 
     internal static void ExportTrainingDialogues(
