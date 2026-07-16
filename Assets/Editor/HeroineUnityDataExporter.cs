@@ -193,7 +193,7 @@ public static class HeroineUnityDataExporter
         return result;
     }
 
-    private static void ExportTrainingDialogues(
+    internal static void ExportTrainingDialogues(
         HeroineProfileData profile,
         string outputFolder,
         HeroineUnityExportReport report)
@@ -1774,7 +1774,7 @@ public static class HeroineUnityDataExporter
         public List<string> warnings;
     }
 
-    private sealed class HeroineUnityExportReport
+    internal sealed class HeroineUnityExportReport
     {
         public int actionCount;
         public int conversationCount;
