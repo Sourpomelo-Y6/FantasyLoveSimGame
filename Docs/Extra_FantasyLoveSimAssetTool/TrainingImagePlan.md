@@ -173,6 +173,44 @@ Training_EnduranceTraining_SimultaneousLpConsumed.png
 
 各 `*ImageAssetId` は `assets_export.json` 内の Accepted 画像を参照する。訓練別の値を優先し、空文字の場合だけ共通画像または現在画像へフォールバックする。
 
+## 訓練中のヒロインセリフ
+
+訓練画像の切り替えと同時に、現在の状況に対応したヒロインのセリフを表示する。
+セリフは訓練共通にせず、画像と同じ `trainingId + visualState` の組み合わせで管理する。
+
+初期3訓練では、それぞれ次の5状態を持つ。
+
+- `SelectedBeforeFirstStep`
+- `SelectedAfterFirstStep`
+- `PlayerLpConsumed`
+- `HeroineLpConsumed`
+- `SimultaneousLpConsumed`
+
+したがって標準15画像枠に対して、最低15種類のセリフを個別設定できるようにする。
+同じ状態へ複数の候補を登録できる構造とし、候補が複数ある場合は直前と同じセリフを避けて選択する。
+
+セリフデータは画像参照から分離し、ヒロイン単位の `HeroineTrainingDialogueData` として管理する。
+各エントリは最低限、次の情報を持つ。
+
+```text
+trainingId
+visualState
+messages[]
+```
+
+画像とセリフが別々に状態判定を行うと表示が食い違うため、訓練進行時に `TrainingVisualState` を一度だけ決定し、画像切り替えとセリフ選択の両方へ渡す。
+
+セリフの検索順は次のとおりとする。
+
+1. 現在のヒロイン、`trainingId`、`visualState` に一致する候補
+2. 現在のヒロインの同状態に対する共通候補
+3. `TrainingData` などに設定した共通セリフ
+4. 未設定ならセリフ欄を変更しない、または非表示
+
+`TrainingPanel` ではヒロイン名とセリフの表示欄を訓練結果ログから分離する。結果ログはHP、LP、報酬などの計算結果に限定し、ヒロインの発言でログが埋まらないようにする。
+
+将来は好感度、訓練熟練度、残りLP、経過ステップ数、初回、訓練完了、中断などを追加条件にできるようにする。ただし最初の実装では標準15枠との一対一対応を優先する。
+
 ## prompt JSON
 
 訓練画像の prompt 記録には次を追加する。
