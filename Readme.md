@@ -40,9 +40,11 @@ This project is licensed under the MIT License. See [LICENSE](LICENSE) for detai
 
 ## 動作環境
 
-- Unity `2021.3.45f1`
+- Unity `2021.3.45f2`
 - URP 2D
 - TextMeshPro 使用
+
+プロジェクトのEditorバージョンは`ProjectSettings/ProjectVersion.txt`を正とします。Unity Hubでも同じバージョンを指定して開いてください。
 
 ## 起動方法
 

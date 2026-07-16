@@ -85,9 +85,17 @@
 
 ## 使用環境
 
-- Unity `2021.3.45f1`
+- Unity `2021.3.45f2`
 - URP 2D
 - TextMeshPro
+
+### Unity Editorバージョン更新
+
+- 2026年7月17日にUnity Editorを`2021.3.45f1`から`2021.3.45f2`へ更新した
+- 正式なプロジェクトバージョンは`ProjectSettings/ProjectVersion.txt`の`2021.3.45f2 (88f88f591b2e)`とする
+- CloneまたはPull後はUnity Hubから同じEditorバージョンを指定して開く
+- Editorバージョンを変更した場合は、`ProjectSettings/ProjectVersion.txt`も関連変更としてGitへコミットする
+- バージョン更新後はスクリプトの再コンパイルとEditMode Testを確認する。直近のテスト構成は20件なので、`2021.3.45f2`で初回起動した環境でも全20件の成功を確認する
 
 ## 作業分担ルール
 
@@ -676,7 +684,7 @@ UI デザインは手作業で行っています。
 - `GameManager.heroineProfile` または `defaultHeroineProfileResourcePath` が正しく設定されているか
 - `DefaultHeroineProfile.asset` の `actionResourcePath` / `conversationResourcePath` / `gameEventResourcePath` / `endingResourcePath` が `Heroines/DefaultHeroine/...` を指しているか
 - `Assets/Scenes/MainScene.unity` を開いているか
-- Unity バージョンが `2021.3.45f1` か
+- Unity バージョンが `2021.3.45f2` か
 
 ## 備考
 
