@@ -37,3 +37,9 @@ MonoBehaviour:
     playerLpConsumedSprite: {fileID: 21300000, guid: 2e74c4816737de2448484138b82f9aa6, type: 3}
     heroineLpConsumedSprite: {fileID: 21300000, guid: a6c740a7df756274290427625e54d0a9, type: 3}
     simultaneousLpConsumedSprite: {fileID: 21300000, guid: b28f785285fea1549bbada4391a56fbc, type: 3}
+  - trainingId: CooperativeDrill
+    selectedBeforeFirstStepSprite: {fileID: 0}
+    selectedAfterFirstStepSprite: {fileID: 0}
+    playerLpConsumedSprite: {fileID: 0}
+    heroineLpConsumedSprite: {fileID: 0}
+    simultaneousLpConsumedSprite: {fileID: 0}
