@@ -516,14 +516,29 @@ public class TrainingPanel : MonoBehaviour
         button.gameObject.SetActive(true);
         trainingButtons.Add(button.gameObject);
 
+        bool isUnlocked = gameManager == null || gameManager.IsTrainingUnlocked(training);
+
         TMP_Text buttonText = button.GetComponentInChildren<TMP_Text>();
         if (buttonText != null)
         {
-            buttonText.text = FormatTrainingNameWithProficiency(training);
+            if (isUnlocked)
+            {
+                buttonText.text = FormatTrainingNameWithProficiency(training);
+            }
+            else
+            {
+                string requirement = gameManager.GetTrainingUnlockRequirementLabel(training);
+                buttonText.text = FormatTrainingNameWithProficiency(training) +
+                    "\n[未解放：" + requirement + "]";
+            }
         }
 
         button.onClick.RemoveAllListeners();
-        button.onClick.AddListener(() => SelectTraining(training));
+        button.interactable = isUnlocked;
+        if (isUnlocked)
+        {
+            button.onClick.AddListener(() => SelectTraining(training));
+        }
     }
 
     private void RefreshStatus()

@@ -10,20 +10,20 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 52205cafcff744758cf5fcfe24ba5b92, type: 3}
-  m_Name: EnduranceTraining
+  m_Name: CooperativeDrill
   m_EditorClassIdentifier:
-  trainingId: EnduranceTraining
-  trainingCategoryId: Endurance
-  displayName: "\u6301\u4E45\u8A13\u7DF4"
-  unlockedByDefault: 1
-  description: "\u9577\u304F\u7D9A\u3051\u308B\u3053\u3068\u3092\u76EE\u6307\u3059\u8A13\u7DF4\u3002LP\u304C\u591A\u304F\u3001\u7D99\u7D9A\u6642\u306EHP\u30FBLP\u63A8\u79FB\u3092\u898B\u3084\u3059\u3044\u3002"
-  playerHpCostPerStep: 10
-  heroineHpCostPerStep: 14
+  trainingId: CooperativeDrill
+  trainingCategoryId: Coordination
+  displayName: "連携演習"
+  unlockedByDefault: 0
+  description: "二人の呼吸を合わせて進める応用訓練。スキルツリーの訓練解放ノードを取得すると選択できる。"
+  playerHpCostPerStep: 12
+  heroineHpCostPerStep: 12
   initialPlayerLp: 2
   initialHeroineLp: 2
   maxSteps: 20
   affectionRewardPerStep: 1
-  affectionReward: 10
+  affectionReward: 12
   trainingProficiencyRewardPerStep: 1
   trainingProficiencyReward: 3
   playerSkillPointReward: 2

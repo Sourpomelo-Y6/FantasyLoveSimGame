@@ -73,6 +73,7 @@ public static class SkillTreeDataValidator
         Dictionary<string, HeroineProfileData> heroinesById =
             BuildHeroineMap(heroineProfiles, report);
         HashSet<string> trainingIds = BuildTrainingIds(trainings, report);
+        HashSet<string> defaultUnlockedTrainingIds = BuildDefaultUnlockedTrainingIds(trainings);
         HashSet<string> categoryIds = BuildTrainingCategoryIds(trainings);
         HashSet<string> enemyIds = BuildEnemyIds(enemies, report);
 
@@ -109,6 +110,7 @@ public static class SkillTreeDataValidator
                 skillsById,
                 heroinesById,
                 trainingIds,
+                defaultUnlockedTrainingIds,
                 categoryIds,
                 enemyIds,
                 report);
@@ -125,6 +127,7 @@ public static class SkillTreeDataValidator
         Dictionary<string, SkillData> skillsById,
         Dictionary<string, HeroineProfileData> heroinesById,
         HashSet<string> trainingIds,
+        HashSet<string> defaultUnlockedTrainingIds,
         HashSet<string> categoryIds,
         HashSet<string> enemyIds,
         SkillTreeValidationReport report)
@@ -137,16 +140,17 @@ public static class SkillTreeDataValidator
 
         if (node.owner == SkillTreeOwner.Player)
         {
-            if (node.skill == null)
+            if (node.skill == null && !HasTrainingUnlocks(node))
             {
-                report.Warn(label + " に主人公用 SkillData が設定されていません。");
+                report.Warn(label + " に主人公用 SkillData または訓練解放効果が設定されていません。");
             }
-            else if (string.IsNullOrWhiteSpace(node.skill.skillId) ||
-                !skillsById.ContainsKey(node.skill.skillId))
+            else if (node.skill != null &&
+                (string.IsNullOrWhiteSpace(node.skill.skillId) ||
+                    !skillsById.ContainsKey(node.skill.skillId)))
             {
                 report.Warn(
                     label + " の主人公スキルが Resources/Skills に存在しません: skillId=" +
-                    (node.skill != null ? node.skill.skillId : ""));
+                    node.skill.skillId);
             }
         }
         else
@@ -158,6 +162,11 @@ public static class SkillTreeDataValidator
             node,
             trainingIds,
             categoryIds,
+            report);
+        ValidateTrainingUnlocks(
+            node,
+            trainingIds,
+            defaultUnlockedTrainingIds,
             report);
         ValidatePrerequisites(node, nodeSet, report);
         ValidateConditions(node, trainingIds, categoryIds, enemyIds, report);
@@ -252,7 +261,10 @@ public static class SkillTreeDataValidator
 
         if (string.IsNullOrWhiteSpace(node.grantedHeroineSkillId))
         {
-            report.Warn(label + " の grantedHeroineSkillId が空です。");
+            if (!HasTrainingUnlocks(node))
+            {
+                report.Warn(label + " の grantedHeroineSkillId または訓練解放効果が空です。");
+            }
             return;
         }
 
@@ -286,6 +298,66 @@ public static class SkillTreeDataValidator
         }
 
         return false;
+    }
+
+    private static bool HasTrainingUnlocks(SkillTreeNodeData node)
+    {
+        if (node == null || node.unlockedTrainingIds == null) return false;
+        for (int i = 0; i < node.unlockedTrainingIds.Count; i++)
+        {
+            if (!string.IsNullOrWhiteSpace(node.unlockedTrainingIds[i])) return true;
+        }
+        return false;
+    }
+
+    private static void ValidateTrainingUnlocks(
+        SkillTreeNodeData node,
+        HashSet<string> trainingIds,
+        HashSet<string> defaultUnlockedTrainingIds,
+        SkillTreeValidationReport report)
+    {
+        if (node.unlockedTrainingIds == null) return;
+
+        string label = GetNodeLabel(node);
+        HashSet<string> seenIds = new HashSet<string>(StringComparer.Ordinal);
+        for (int i = 0; i < node.unlockedTrainingIds.Count; i++)
+        {
+            string trainingId = (node.unlockedTrainingIds[i] ?? string.Empty).Trim();
+            if (trainingId.Length == 0)
+            {
+                report.Warn(label + " の解放対象 trainingId が空です。");
+                continue;
+            }
+            if (!seenIds.Add(trainingId))
+            {
+                report.Warn(label + " の解放対象 trainingId が重複しています: " + trainingId);
+            }
+            if (!trainingIds.Contains(trainingId))
+            {
+                report.Warn(label + " の解放対象訓練が存在しません: " + trainingId);
+            }
+            if (defaultUnlockedTrainingIds.Contains(trainingId))
+            {
+                report.Warn(label + " は初期解放済みの訓練を解放対象にしています: " + trainingId);
+            }
+
+            if (node.unlockConditions == null) continue;
+            for (int conditionIndex = 0;
+                conditionIndex < node.unlockConditions.Count;
+                conditionIndex++)
+            {
+                SkillTreeUnlockCondition condition = node.unlockConditions[conditionIndex];
+                if (condition != null &&
+                    condition.requiredValue > 0 &&
+                    condition.scope == SkillTreeProgressScope.Training &&
+                    string.Equals(condition.targetId, trainingId, StringComparison.Ordinal))
+                {
+                    report.Warn(
+                        label + " は自身が解放する訓練の実績を取得条件にしているため到達不能です: " +
+                        trainingId);
+                }
+            }
+        }
     }
 
     private static void ValidatePrerequisites(
@@ -614,6 +686,22 @@ public static class SkillTreeDataValidator
             if (!result.Add(training.trainingId))
             {
                 report.Warn("TrainingData.trainingId が重複しています: " + training.trainingId);
+            }
+        }
+        return result;
+    }
+
+    private static HashSet<string> BuildDefaultUnlockedTrainingIds(TrainingData[] trainings)
+    {
+        HashSet<string> result = new HashSet<string>(StringComparer.Ordinal);
+        for (int i = 0; i < trainings.Length; i++)
+        {
+            TrainingData training = trainings[i];
+            if (training != null &&
+                training.unlockedByDefault &&
+                !string.IsNullOrWhiteSpace(training.trainingId))
+            {
+                result.Add(training.trainingId);
             }
         }
         return result;

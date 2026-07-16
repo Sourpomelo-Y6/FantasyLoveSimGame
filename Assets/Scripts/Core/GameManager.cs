@@ -2848,6 +2848,117 @@ public class GameManager : MonoBehaviour
         return !string.IsNullOrEmpty(nodeId) && GetSkillTreeNodeSet(owner).Contains(nodeId);
     }
 
+    public bool ShouldShowTraining(TrainingData training)
+    {
+        return training != null &&
+            (training.unlockedByDefault || GetTrainingUnlockNodes(training.trainingId).Count > 0);
+    }
+
+    public bool IsTrainingUnlocked(TrainingData training)
+    {
+        if (training == null)
+        {
+            return false;
+        }
+        if (training.unlockedByDefault)
+        {
+            return true;
+        }
+
+        List<SkillTreeNodeData> unlockNodes = GetTrainingUnlockNodes(training.trainingId);
+        for (int i = 0; i < unlockNodes.Count; i++)
+        {
+            SkillTreeNodeData node = unlockNodes[i];
+            if (IsSkillTreeNodeAcquired(node.nodeId, node.owner))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    public string GetTrainingUnlockRequirementLabel(TrainingData training)
+    {
+        if (training == null || training.unlockedByDefault)
+        {
+            return string.Empty;
+        }
+
+        List<SkillTreeNodeData> nodes = GetTrainingUnlockNodes(training.trainingId);
+        if (nodes.Count == 0)
+        {
+            return "解放手段なし";
+        }
+
+        List<string> names = new List<string>();
+        for (int i = 0; i < nodes.Count; i++)
+        {
+            string name = nodes[i].GetDisplayName();
+            if (!names.Contains(name))
+            {
+                names.Add(name);
+            }
+        }
+        return string.Join(" / ", names.ToArray());
+    }
+
+    public string GetTrainingDisplayName(string trainingId)
+    {
+        TrainingData[] trainings = GetTrainingDataList();
+        for (int i = 0; i < trainings.Length; i++)
+        {
+            TrainingData training = trainings[i];
+            if (training != null && string.Equals(
+                training.trainingId,
+                trainingId,
+                StringComparison.Ordinal))
+            {
+                return training.GetDisplayName();
+            }
+        }
+
+        return string.IsNullOrEmpty(trainingId) ? "訓練" : trainingId;
+    }
+
+    private List<SkillTreeNodeData> GetTrainingUnlockNodes(string trainingId)
+    {
+        List<SkillTreeNodeData> result = new List<SkillTreeNodeData>();
+        if (string.IsNullOrEmpty(trainingId))
+        {
+            return result;
+        }
+
+        SkillTreeNodeData[] nodes = GetSkillTreeNodeDataList();
+        for (int i = 0; i < nodes.Length; i++)
+        {
+            SkillTreeNodeData node = nodes[i];
+            if (node == null ||
+                (node.owner == SkillTreeOwner.Heroine && !IsSkillTreeNodeForCurrentHeroine(node)) ||
+                node.unlockedTrainingIds == null)
+            {
+                continue;
+            }
+
+            for (int trainingIndex = 0;
+                trainingIndex < node.unlockedTrainingIds.Count;
+                trainingIndex++)
+            {
+                if (string.Equals(
+                    node.unlockedTrainingIds[trainingIndex],
+                    trainingId,
+                    StringComparison.Ordinal))
+                {
+                    result.Add(node);
+                    break;
+                }
+            }
+        }
+
+        result.Sort((left, right) => left.sortOrder.CompareTo(right.sortOrder));
+        return result;
+    }
+
     public bool IsSkillTreeNodeForCurrentHeroine(SkillTreeNodeData node)
     {
         if (node == null || node.owner != SkillTreeOwner.Heroine)
@@ -3258,7 +3369,8 @@ public class GameManager : MonoBehaviour
         if (node.owner == SkillTreeOwner.Heroine &&
             (!IsSkillTreeNodeForCurrentHeroine(node) ||
                 (string.IsNullOrEmpty(node.grantedHeroineSkillId) &&
-                    !IsTrainingSkillData(node.skill))))
+                    !IsTrainingSkillData(node.skill) &&
+                    !HasTrainingUnlocks(node))))
         {
             return evaluation;
         }
@@ -3371,6 +3483,24 @@ public class GameManager : MonoBehaviour
             " / owner=" + node.owner +
             " / cost=" + evaluation.requiredSkillPoints);
         return true;
+    }
+
+    private static bool HasTrainingUnlocks(SkillTreeNodeData node)
+    {
+        if (node == null || node.unlockedTrainingIds == null)
+        {
+            return false;
+        }
+
+        for (int i = 0; i < node.unlockedTrainingIds.Count; i++)
+        {
+            if (!string.IsNullOrWhiteSpace(node.unlockedTrainingIds[i]))
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private int GetSkillTreeConditionValue(SkillTreeUnlockCondition condition)
@@ -8393,8 +8523,16 @@ public class GameManager : MonoBehaviour
         }
 
         EnsureCoreStatusReferences();
-        TrainingData[] trainings = GetTrainingDataList();
-        if (trainings == null || trainings.Length == 0)
+        TrainingData[] allTrainings = GetTrainingDataList();
+        List<TrainingData> trainings = new List<TrainingData>();
+        for (int i = 0; i < allTrainings.Length; i++)
+        {
+            if (ShouldShowTraining(allTrainings[i]))
+            {
+                trainings.Add(allTrainings[i]);
+            }
+        }
+        if (trainings.Count == 0)
         {
             ShowSystemMessage("選択できる訓練がありません。");
             return;
