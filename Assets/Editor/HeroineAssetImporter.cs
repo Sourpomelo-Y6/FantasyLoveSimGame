@@ -1465,7 +1465,7 @@ public static class HeroineAssetImporter
             : ConversationType.Simple;
     }
 
-    private static void ImportGameEvents(
+    internal static void ImportGameEvents(
         string exportFolder,
         string heroineId,
         HeroineImportReport report)
@@ -1577,10 +1577,9 @@ public static class HeroineAssetImporter
         gameEvent.minAffection = Math.Max(0, conditions.minAffection);
         gameEvent.maxAffection = Math.Max(0, conditions.maxAffection);
         EnsureGameEventLists(gameEvent);
-        if (conditions.requiredSkillIds != null)
-        {
-            ApplyStringList(gameEvent.requiredSkillIds, conditions.requiredSkillIds);
-        }
+        RequiredSkillIdSyncService.ApplyIfSpecified(
+            gameEvent.requiredSkillIds,
+            conditions.requiredSkillIds);
         ApplyStringList(gameEvent.requiredShownEventIds, conditions.requiredShownEventIds);
         ApplyStringList(gameEvent.blockedShownEventIds, conditions.blockedShownEventIds);
         ApplyStringList(gameEvent.requiredOutfitIds, conditions.requiredOutfitIds);

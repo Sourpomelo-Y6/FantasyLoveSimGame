@@ -421,7 +421,7 @@ public static class HeroineUnityDataExporter
         WriteJson(Path.Combine(outputFolder, "conversations_from_unity.json"), export);
     }
 
-    private static void ExportGameEvents(
+    internal static void ExportGameEvents(
         HeroineProfileData profile,
         string outputFolder,
         HeroineUnityExportReport report)
@@ -1005,7 +1005,7 @@ public static class HeroineUnityDataExporter
             blockedShownEventIds = CreateStringList(gameEvent.blockedShownEventIds),
             requiredOutfitIds = CreateOutfitIdList(gameEvent.requiredOutfitIds, gameEvent.requiredOutfits),
             blockedOutfitIds = CreateOutfitIdList(gameEvent.blockedOutfitIds, gameEvent.blockedOutfits),
-            requiredSkillIds = CreateStringList(gameEvent.requiredSkillIds)
+            requiredSkillIds = RequiredSkillIdSyncService.Normalize(gameEvent.requiredSkillIds)
         };
     }
 
