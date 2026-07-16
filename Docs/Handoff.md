@@ -54,6 +54,7 @@
 - タイトル画面にはキャラクター選択 UI を追加済み。`Resources.LoadAll<HeroineProfileData>("Heroines")` で候補を列挙し、選択中プロフィールの表示名と立ち絵をプレビューして、決定後に新規ゲーム用の選択ヒロインとして `GameStartSettings` へ渡す。ロード時はセーブデータ内のヒロイン ID を優先する
 - `HeroineProfileData` の共通セリフは Unity 側では編集、読み込み可能。`FantasyLoveSimAssetTool` 側の編集 UI と `heroine_profile_export.json` 出力対応は後回しの TODO
 - 差し替え確認用として `TestHeroineProfile.asset` と `Heroines/TestHeroine/...` の最小データを追加済み。`GameManager.heroineProfile` に割り当てると、ヒロイン別読み込みの手動確認に使える
+- devでのTestHeroine切り替えは、Scene上の`GameManager.heroineProfile`を書き換えず、`Tools > FantasyLoveSim > Development Heroine Override`を使用する。設定は端末ローカルのEditorPrefsへ保存され、Gitやmainブランチへ混入しない。新規ゲーム時だけ指定プロフィールを優先し、ロード時はセーブデータのヒロインを優先する
 - 別リポジトリまたは別フォルダで Stable Diffusion 向けキャラクター素材生成ツールを作る方針。仕様は `Docs/CharacterAssetGenerationToolSpec.md` に整理済み
 - Unity Editor で `MainScene` を直接開いて再生した場合は、`GameStartSettings.ShouldPlayGameStartEvent` の初期値が `false` のため開始イベントは発生しない
 - `GameEventData.showOnce` はセーブデータの `shownGameEventIds` で管理する

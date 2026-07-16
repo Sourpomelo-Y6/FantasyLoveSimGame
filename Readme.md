@@ -137,6 +137,7 @@ This project is licensed under the MIT License. See [LICENSE](LICENSE) for detai
 - `HeroineProfileData.defaultHeroineSprite` は通常衣装 `Normal` の立ち絵表示に使い、通常衣装以外は衣装側の `heroineSprite` を優先します
 - 差し替え確認用に `TestHeroineProfile` と最小データを追加しています。本番ヒロイン追加前の読み込み確認に使います
 - 追加の `TestHeroine` 画像は容量節約のためコミットせず、AssetTool の export サンプルやローカル import 結果として扱います
+- dev環境でTestHeroineを使う場合は、`Tools > FantasyLoveSim > Development Heroine Override`を開き、`Use TestHeroine`を押します。この設定はEditorPrefsだけに保存され、Sceneや本番Profileを変更しないため、devをmainへマージしてもキャラクター選択が持ち込まれません
 - 新ヒロイン追加時の必要データと素材は [`Docs/LoveSimDevelopmentPlan.md`](Docs/LoveSimDevelopmentPlan.md) と [`Docs/Handoff.md`](Docs/Handoff.md) のチェックリストにまとめています
 - よくある確認事項は [`Docs/FAQ.md`](Docs/FAQ.md) にまとめています
 - 行動には条件付き反応を持たせられるので、時間帯、天候、季節、好感度で結果を変えやすいです。反応ごとに `stillSprite` も持てます

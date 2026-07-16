@@ -1198,6 +1198,15 @@ public class GameManager : MonoBehaviour
 
     private HeroineProfileData ResolveHeroineProfile()
     {
+        HeroineProfileData developmentProfile = DevelopmentHeroineOverride.ResolveProfile(
+            Resources.LoadAll<HeroineProfileData>("Heroines"),
+            GameStartSettings.ShouldLoadOnStart);
+        if (developmentProfile != null)
+        {
+            Debug.Log("Development heroine override applied: " + developmentProfile.heroineId);
+            return developmentProfile;
+        }
+
         HeroineProfileData selectedProfile = ResolveSelectedHeroineProfile();
         if (selectedProfile != null)
         {
