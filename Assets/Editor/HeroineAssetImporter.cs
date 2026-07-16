@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using UnityEditor;
 using UnityEngine;
+using FantasyLoveSim.EditorTools;
 
 public static class HeroineAssetImporter
 {
@@ -561,10 +562,18 @@ public static class HeroineAssetImporter
             report.Warn("training_dialogues_export.json の読み込みに失敗しました: " + ex.Message);
             return;
         }
-        if (exported == null ||
-            (!string.IsNullOrWhiteSpace(exported.heroineId) && exported.heroineId != heroineId))
+        if (exported == null)
         {
-            report.Warn("training_dialogues_export.json のheroineIdが一致しないためスキップしました。");
+            report.Warn("training_dialogues_export.json を読み込めなかったためスキップしました。");
+            return;
+        }
+        if (!TrainingDialogueSyncService.ValidateImportHeader(
+            exported.schemaVersion,
+            1,
+            exported.heroineId,
+            heroineId,
+            report.Warn))
+        {
             return;
         }
 
@@ -585,49 +594,28 @@ public static class HeroineAssetImporter
                 .Where(training => training != null && !string.IsNullOrWhiteSpace(training.trainingId))
                 .Select(training => training.trainingId),
             StringComparer.Ordinal);
-        HashSet<string> keys = new HashSet<string>(StringComparer.Ordinal);
-        if (exported.items != null)
+        List<TrainingDialogueSyncItem> importedItems = TrainingDialogueSyncService.BuildImportItems(
+            (exported.items ?? Array.Empty<TrainingDialogueExportItem>()).Select(item =>
+                item == null ? null : new TrainingDialogueSyncItem
+                {
+                    TrainingId = item.trainingId,
+                    VisualState = item.visualState,
+                    Messages = (item.messages ?? Array.Empty<string>()).ToList()
+                }),
+            knownTrainingIds,
+            report.Warn);
+        foreach (TrainingDialogueSyncItem item in importedItems)
         {
-            foreach (TrainingDialogueExportItem item in exported.items)
+            if (!Enum.TryParse(item.VisualState, out TrainingVisualState state))
             {
-                if (item == null || string.IsNullOrWhiteSpace(item.visualState))
-                {
-                    report.Warn("visualStateが空の訓練セリフをスキップしました。");
-                    continue;
-                }
-                if (!string.IsNullOrWhiteSpace(item.trainingId) && !knownTrainingIds.Contains(item.trainingId))
-                {
-                    report.Warn("存在しないtrainingIdの訓練セリフをスキップしました: " + item.trainingId);
-                    continue;
-                }
-                if (!Enum.TryParse(item.visualState, out TrainingVisualState state))
-                {
-                    report.Warn("未知のvisualStateをスキップしました: " + item.visualState);
-                    continue;
-                }
-                string key = (item.trainingId ?? string.Empty) + "\n" + state;
-                if (!keys.Add(key))
-                {
-                    report.Warn("重複した訓練セリフをスキップしました: " + item.trainingId + " / " + state);
-                    continue;
-                }
-                List<string> messages = (item.messages ?? Array.Empty<string>())
-                    .Where(message => !string.IsNullOrWhiteSpace(message))
-                    .Select(message => message.Trim())
-                    .Distinct()
-                    .ToList();
-                if (messages.Count == 0)
-                {
-                    report.Warn("セリフ候補が空の項目をスキップしました: " + item.trainingId + " / " + state);
-                    continue;
-                }
-                data.entries.Add(new HeroineTrainingDialogueEntry
-                {
-                    trainingId = item.trainingId ?? string.Empty,
-                    visualState = state,
-                    messages = messages
-                });
+                continue;
             }
+            data.entries.Add(new HeroineTrainingDialogueEntry
+            {
+                trainingId = item.TrainingId,
+                visualState = state,
+                messages = item.Messages
+            });
         }
         report.trainingDialogueEntryCount = data.entries.Count;
         EditorUtility.SetDirty(data);

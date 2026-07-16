@@ -1,8 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using UnityEditor;
 using UnityEngine;
+using FantasyLoveSim.EditorTools;
 
 public static class HeroineUnityDataExporter
 {
@@ -223,61 +225,21 @@ public static class HeroineUnityDataExporter
         }
         else if (data.entries != null)
         {
-            Dictionary<string, TrainingDialogueFromUnityItem> itemsByKey =
-                new Dictionary<string, TrainingDialogueFromUnityItem>(StringComparer.Ordinal);
-            foreach (HeroineTrainingDialogueEntry entry in data.entries)
-            {
-                if (entry == null)
-                {
-                    continue;
-                }
-
-                string trainingId = (entry.trainingId ?? string.Empty).Trim();
-                string visualState = entry.visualState.ToString();
-                string key = trainingId + "\n" + visualState;
-                if (!itemsByKey.TryGetValue(key, out TrainingDialogueFromUnityItem item))
-                {
-                    item = new TrainingDialogueFromUnityItem
+            export.items = TrainingDialogueSyncService.BuildExportItems(
+                    data.entries.Select(entry => entry == null ? null : new TrainingDialogueSyncItem
                     {
-                        trainingId = trainingId,
-                        visualState = visualState,
-                        messages = new List<string>()
-                    };
-                    itemsByKey.Add(key, item);
-                    export.items.Add(item);
-                }
-                else
+                        TrainingId = entry.trainingId,
+                        VisualState = entry.visualState.ToString(),
+                        Messages = entry.messages
+                    }),
+                    report.Warn)
+                .Select(item => new TrainingDialogueFromUnityItem
                 {
-                    report.Warn("重複した訓練セリフ枠を統合しました: " + trainingId + " / " + visualState);
-                }
-
-                if (entry.messages == null)
-                {
-                    continue;
-                }
-
-                foreach (string sourceMessage in entry.messages)
-                {
-                    string message = (sourceMessage ?? string.Empty).Trim();
-                    if (message.Length > 0 && !item.messages.Contains(message))
-                    {
-                        item.messages.Add(message);
-                    }
-                }
-            }
-
-            export.items.RemoveAll(item =>
-            {
-                if (item.messages.Count > 0)
-                {
-                    return false;
-                }
-
-                report.Warn(
-                    "セリフ候補が空の訓練セリフ枠をスキップしました: " +
-                    item.trainingId + " / " + item.visualState);
-                return true;
-            });
+                    trainingId = item.TrainingId,
+                    visualState = item.VisualState,
+                    messages = item.Messages
+                })
+                .ToList();
         }
 
         report.trainingDialogueEntryCount = export.items.Count;
