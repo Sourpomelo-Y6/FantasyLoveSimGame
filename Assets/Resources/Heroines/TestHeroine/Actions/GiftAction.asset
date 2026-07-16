@@ -21,6 +21,8 @@ MonoBehaviour:
   stillId: 
   stillSprite: {fileID: 0}
   affectionChange: 50
+  playerHpChange: 0
+  heroineHpChange: 0
   advanceTime: 1
   reactions:
   - reactionId: Reaction_Gift_01
@@ -29,10 +31,12 @@ MonoBehaviour:
     stillId: 
     stillSprite: {fileID: 0}
     affectionChange: 0
+    playerHpChange: 0
+    heroineHpChange: 0
     advanceTime: 1
     priority: 0
     minAffection: 0
-    maxAffection: 9999
+    maxAffection: 100
     costumeId: 
     anyTimeSlot: 1
     allowedTimeSlots: 

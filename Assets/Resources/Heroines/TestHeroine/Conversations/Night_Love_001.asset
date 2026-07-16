@@ -26,8 +26,8 @@ MonoBehaviour:
   choices: []
   priority: 0
   showOnce: 0
-  minAffection: 200
-  maxAffection: 9999
+  minAffection: 20
+  maxAffection: 100
   costumeId: 
   anyTimeSlot: 0
   allowedTimeSlots: 03000000

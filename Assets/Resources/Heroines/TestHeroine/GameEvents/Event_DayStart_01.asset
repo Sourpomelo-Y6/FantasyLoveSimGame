@@ -20,7 +20,7 @@ MonoBehaviour:
   minDay: 0
   maxDay: 0
   minAffection: 0
-  maxAffection: 9999
+  maxAffection: 100
   requiredShownEventIds: []
   blockedShownEventIds: []
   requiredOutfitIds:
@@ -28,6 +28,7 @@ MonoBehaviour:
   blockedOutfitIds: []
   requiredOutfits: []
   blockedOutfits: []
+  requiredSkillIds: []
   anyWeather: 0
   allowedWeathers: 02000000
   pages:

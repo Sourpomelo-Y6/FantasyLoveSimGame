@@ -101,21 +101,15 @@ Training_<TrainingId>_SelectedBeforeFirstStep
 Training_<TrainingId>_SelectedAfterFirstStep
 ```
 
-LP消費画像:
-
-```text
-Training_Common_PlayerLpConsumed
-Training_Common_HeroineLpConsumed
-Training_Common_SimultaneousLpConsumed
-```
-
-訓練ごとの差分が必要になった場合は次を許可する。
+LP消費画像も訓練ごとに分ける:
 
 ```text
 Training_<TrainingId>_PlayerLpConsumed
 Training_<TrainingId>_HeroineLpConsumed
 Training_<TrainingId>_SimultaneousLpConsumed
 ```
+
+旧データの `Training_Common_PlayerLpConsumed`、`Training_Common_HeroineLpConsumed`、`Training_Common_SimultaneousLpConsumed` は互換用のフォールバックとして利用できるが、新しい標準枠では生成しない。
 
 ファイル名は原則として `assetId + ".png"` と一致させる。
 
@@ -132,15 +126,21 @@ Training_EnduranceTraining_SelectedBeforeFirstStep.png
 Training_EnduranceTraining_SelectedAfterFirstStep.png
 ```
 
-LP消費画像は最初は訓練共通の3枚にする。
+各訓練についてLP消費画像も3枚ずつ用意する。
 
 ```text
-Training_Common_PlayerLpConsumed.png
-Training_Common_HeroineLpConsumed.png
-Training_Common_SimultaneousLpConsumed.png
+Training_LightPractice_PlayerLpConsumed.png
+Training_LightPractice_HeroineLpConsumed.png
+Training_LightPractice_SimultaneousLpConsumed.png
+Training_SparringPractice_PlayerLpConsumed.png
+Training_SparringPractice_HeroineLpConsumed.png
+Training_SparringPractice_SimultaneousLpConsumed.png
+Training_EnduranceTraining_PlayerLpConsumed.png
+Training_EnduranceTraining_HeroineLpConsumed.png
+Training_EnduranceTraining_SimultaneousLpConsumed.png
 ```
 
-最小セットは合計9枚とする。これで表示ロジックを確認してから、必要な訓練だけLP画像を追加する。
+初期3訓練それぞれに、開始前、実行後、主人公LP消費、ヒロインLP消費、同時LP消費を用意するため、標準セットは合計15枚とする。
 
 ## training_images_export.json
 
@@ -153,25 +153,25 @@ Training_Common_SimultaneousLpConsumed.png
   "defaults": {
     "beforeFirstStepImageAssetId": "",
     "afterFirstStepImageAssetId": "",
-    "playerLpConsumedImageAssetId": "Training_Common_PlayerLpConsumed",
-    "heroineLpConsumedImageAssetId": "Training_Common_HeroineLpConsumed",
-    "simultaneousLpConsumedImageAssetId": "Training_Common_SimultaneousLpConsumed"
+    "playerLpConsumedImageAssetId": "",
+    "heroineLpConsumedImageAssetId": "",
+    "simultaneousLpConsumedImageAssetId": ""
   },
   "items": [
     {
       "trainingId": "LightPractice",
       "beforeFirstStepImageAssetId": "Training_LightPractice_SelectedBeforeFirstStep",
       "afterFirstStepImageAssetId": "Training_LightPractice_SelectedAfterFirstStep",
-      "playerLpConsumedImageAssetId": "",
-      "heroineLpConsumedImageAssetId": "",
-      "simultaneousLpConsumedImageAssetId": "",
+      "playerLpConsumedImageAssetId": "Training_LightPractice_PlayerLpConsumed",
+      "heroineLpConsumedImageAssetId": "Training_LightPractice_HeroineLpConsumed",
+      "simultaneousLpConsumedImageAssetId": "Training_LightPractice_SimultaneousLpConsumed",
       "memo": ""
     }
   ]
 }
 ```
 
-各 `*ImageAssetId` は `assets_export.json` 内の Accepted 画像を参照する。空文字は共通画像または現在画像へのフォールバックを意味する。
+各 `*ImageAssetId` は `assets_export.json` 内の Accepted 画像を参照する。訓練別の値を優先し、空文字の場合だけ共通画像または現在画像へフォールバックする。
 
 ## prompt JSON
 

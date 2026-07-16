@@ -15,7 +15,7 @@ MonoBehaviour:
   heroineId: TestHeroine
   displayName: "\u30C6\u30B9\u30C8\u30D2\u30ED\u30A4\u30F3\uFF08\u30C4\u30F3\u30C7\u30EC\uFF09"
   defaultHeroineSprite: {fileID: 21300000, guid: 75760bce93a9a794498a3ef81175bafb, type: 3}
-  heroineFirstPerson: "\u79C1"
+  heroineFirstPerson: "\u308F\u305F\u3057"
   playerSecondPerson: "\u3042\u3093\u305F"
   initialDialogueMessage: "\u4F55\u3092\u8A71\u3059\u306E\uFF1F\u6687\u306A\u3089\u5C11\u3057\u3060\u3051\u76F8\u624B\u3057\u3066\u3042\u3052\u308B\u3002"
   nextActionPrompt: "\u6B21\u306F\u3069\u3046\u3059\u308B\u306E\uFF1F\u65E9\u304F\u6C7A\u3081\u306A\u3055\u3044\u3088\u3002"
@@ -65,7 +65,7 @@ MonoBehaviour:
     message: "\u5225\u306E\u670D\u306B\u3059\u308B\u306E\uFF1F \u4ED5\u65B9\u306A\u3044\u308F\u306D\u3002\u5C11\u3057\u304F\u3089\u3044\u306A\u3089\u4ED8\u304D\u5408\u3063\u3066\u3042\u3052\u308B\u3002"
   battleSkills:
   - skillId: SharpThrust
-    displayName: 鋭い一撃
+    displayName: "\u92ED\u3044\u4E00\u6483"
     effectType: 1
     target: 0
     cost: 4
@@ -76,7 +76,7 @@ MonoBehaviour:
     priority: 0
     maxUsesPerBattle: 0
   - skillId: ReluctantAid
-    displayName: 仕方ない手当て
+    displayName: "\u4ED5\u65B9\u306A\u3044\u624B\u5F53\u3066"
     effectType: 2
     target: 3
     cost: 5
@@ -87,7 +87,7 @@ MonoBehaviour:
     priority: 3
     maxUsesPerBattle: 2
   - skillId: GuardedStance
-    displayName: 隙をなくす構え
+    displayName: "\u9699\u3092\u306A\u304F\u3059\u69CB\u3048"
     effectType: 4
     target: 2
     cost: 3

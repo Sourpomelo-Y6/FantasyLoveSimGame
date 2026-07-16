@@ -1,0 +1,39 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 731ad188c9e14de995c52ac27aa0c9bf, type: 3}
+  m_Name: HeroineTrainingImageData
+  m_EditorClassIdentifier: 
+  heroineId: TestHeroine
+  defaultBeforeFirstStepSprite: {fileID: 0}
+  defaultAfterFirstStepSprite: {fileID: 0}
+  defaultPlayerLpConsumedSprite: {fileID: 0}
+  defaultHeroineLpConsumedSprite: {fileID: 0}
+  defaultSimultaneousLpConsumedSprite: {fileID: 0}
+  entries:
+  - trainingId: LightPractice
+    selectedBeforeFirstStepSprite: {fileID: 21300000, guid: ccdd224a0951a004f9752ab902a1de5e, type: 3}
+    selectedAfterFirstStepSprite: {fileID: 21300000, guid: f81f5a11ab17b9048833868d2d97a94a, type: 3}
+    playerLpConsumedSprite: {fileID: 21300000, guid: b39edbedc79ba9545a71a51cc3e04607, type: 3}
+    heroineLpConsumedSprite: {fileID: 21300000, guid: 07e1f6fdc63d76d4ca888d949a7f3ad9, type: 3}
+    simultaneousLpConsumedSprite: {fileID: 21300000, guid: cf1131200f2a6794c9d99da8cbeec3e1, type: 3}
+  - trainingId: SparringPractice
+    selectedBeforeFirstStepSprite: {fileID: 21300000, guid: 2a143753a635d0149a3ca71d6a43cd95, type: 3}
+    selectedAfterFirstStepSprite: {fileID: 21300000, guid: c8fa1bbe9ddd9f6489fb51d24b532e4c, type: 3}
+    playerLpConsumedSprite: {fileID: 21300000, guid: c42a92d0c52533b4d9424cd401fd2360, type: 3}
+    heroineLpConsumedSprite: {fileID: 21300000, guid: 13fdd0ee8615b954cae00da935cebe02, type: 3}
+    simultaneousLpConsumedSprite: {fileID: 21300000, guid: 7cf9c7f22f924b649a2b6a6b353e3107, type: 3}
+  - trainingId: EnduranceTraining
+    selectedBeforeFirstStepSprite: {fileID: 21300000, guid: 8591015ed79e0a34fab5fbb07a09e39a, type: 3}
+    selectedAfterFirstStepSprite: {fileID: 21300000, guid: a1b0fac69b605bf4a89293c1cb811234, type: 3}
+    playerLpConsumedSprite: {fileID: 21300000, guid: 2e74c4816737de2448484138b82f9aa6, type: 3}
+    heroineLpConsumedSprite: {fileID: 21300000, guid: a6c740a7df756274290427625e54d0a9, type: 3}
+    simultaneousLpConsumedSprite: {fileID: 21300000, guid: b28f785285fea1549bbada4391a56fbc, type: 3}

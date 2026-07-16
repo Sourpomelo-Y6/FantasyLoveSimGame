@@ -21,6 +21,8 @@ MonoBehaviour:
   stillId: 
   stillSprite: {fileID: 0}
   affectionChange: 20
+  playerHpChange: 0
+  heroineHpChange: 0
   advanceTime: 1
   reactions:
   - reactionId: Reaction_Tea_01
@@ -29,10 +31,12 @@ MonoBehaviour:
     stillId: Tea_01
     stillSprite: {fileID: 21300000, guid: b775034d4cb9d61478c553a3b913378c, type: 3}
     affectionChange: 0
+    playerHpChange: 0
+    heroineHpChange: 0
     advanceTime: 1
     priority: 0
     minAffection: 0
-    maxAffection: 9999
+    maxAffection: 100
     costumeId: 
     anyTimeSlot: 1
     allowedTimeSlots: 

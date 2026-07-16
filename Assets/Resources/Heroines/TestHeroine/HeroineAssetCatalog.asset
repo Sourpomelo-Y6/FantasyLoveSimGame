@@ -11,7 +11,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: c75e851e41fd427f8e73a9a5aaf50d13, type: 3}
   m_Name: HeroineAssetCatalog
-  m_EditorClassIdentifier:
+  m_EditorClassIdentifier: 
   heroineId: TestHeroine
   assets:
   - assetId: Heroine_Normal
@@ -27,7 +27,7 @@ MonoBehaviour:
     usage: Sprites
     status: Accepted
     fileName: Heroine_Smile.png
-    memo:
+    memo: 
     sprite: {fileID: 21300000, guid: 796086eb101301f43b48f9690646de9f, type: 3}
     unityImagePath: Assets/Images/Heroines/TestHeroine/Sprites/Heroine_Smile.png
     exportPromptPath: Prompts/Heroine_Smile.prompt.json
@@ -35,7 +35,7 @@ MonoBehaviour:
     usage: Sprites
     status: Accepted
     fileName: Heroine_BaseBody.png
-    memo:
+    memo: 
     sprite: {fileID: 21300000, guid: c469d79811cb2b54392c983e706a690e, type: 3}
     unityImagePath: Assets/Images/Heroines/TestHeroine/Sprites/Heroine_BaseBody.png
     exportPromptPath: Prompts/Heroine_BaseBody.prompt.json
@@ -43,7 +43,7 @@ MonoBehaviour:
     usage: Sprites
     status: Accepted
     fileName: Costume_Default.png
-    memo:
+    memo: 
     sprite: {fileID: 21300000, guid: a132a23ad4b54ef42b0de72893febb47, type: 3}
     unityImagePath: Assets/Images/Heroines/TestHeroine/Sprites/Costume_Default.png
     exportPromptPath: Prompts/Costume_Default.prompt.json
@@ -51,7 +51,7 @@ MonoBehaviour:
     usage: Sprites
     status: Accepted
     fileName: Expression_Neutral.png
-    memo:
+    memo: 
     sprite: {fileID: 21300000, guid: cd4712765ee2493428b33dc87b8c292c, type: 3}
     unityImagePath: Assets/Images/Heroines/TestHeroine/Sprites/Expression_Neutral.png
     exportPromptPath: Prompts/Expression_Neutral.prompt.json
@@ -59,7 +59,7 @@ MonoBehaviour:
     usage: Sprites
     status: Accepted
     fileName: Expression_Smile.png
-    memo:
+    memo: 
     sprite: {fileID: 21300000, guid: 0e2520de4ead5f54da76df13a4e5b758, type: 3}
     unityImagePath: Assets/Images/Heroines/TestHeroine/Sprites/Expression_Smile.png
     exportPromptPath: Prompts/Expression_Smile.prompt.json
@@ -67,7 +67,7 @@ MonoBehaviour:
     usage: Sprites
     status: Accepted
     fileName: Costume_Summer.png
-    memo:
+    memo: 
     sprite: {fileID: 21300000, guid: c5307bfcdb24efd4e97de55c108748bd, type: 3}
     unityImagePath: Assets/Images/Heroines/TestHeroine/Sprites/Costume_Summer.png
     exportPromptPath: Prompts/Costume_Summer.prompt.json
@@ -75,7 +75,7 @@ MonoBehaviour:
     usage: Sprites
     status: Accepted
     fileName: Expression_Angry.png
-    memo:
+    memo: 
     sprite: {fileID: 21300000, guid: 487e1ba0acce18348adf0e4c418ef6e8, type: 3}
     unityImagePath: Assets/Images/Heroines/TestHeroine/Sprites/Expression_Angry.png
     exportPromptPath: Prompts/Expression_Angry.prompt.json
@@ -83,7 +83,7 @@ MonoBehaviour:
     usage: Sprites
     status: Accepted
     fileName: Expression_Sad.png
-    memo:
+    memo: 
     sprite: {fileID: 21300000, guid: 7ad40c910b4fe6a4b894426ebceffc06, type: 3}
     unityImagePath: Assets/Images/Heroines/TestHeroine/Sprites/Expression_Sad.png
     exportPromptPath: Prompts/Expression_Sad.prompt.json
@@ -91,7 +91,7 @@ MonoBehaviour:
     usage: Sprites
     status: Accepted
     fileName: Expression_Shy.png
-    memo:
+    memo: 
     sprite: {fileID: 21300000, guid: ddaf1369c068cb048a02e6b1c350c467, type: 3}
     unityImagePath: Assets/Images/Heroines/TestHeroine/Sprites/Expression_Shy.png
     exportPromptPath: Prompts/Expression_Shy.prompt.json
@@ -99,7 +99,7 @@ MonoBehaviour:
     usage: Sprites
     status: Accepted
     fileName: Expression_Surprised.png
-    memo:
+    memo: 
     sprite: {fileID: 21300000, guid: 2adee551913a5ed40bc1938efbe4245a, type: 3}
     unityImagePath: Assets/Images/Heroines/TestHeroine/Sprites/Expression_Surprised.png
     exportPromptPath: Prompts/Expression_Surprised.prompt.json
@@ -107,7 +107,7 @@ MonoBehaviour:
     usage: Sprites
     status: Accepted
     fileName: Costume_Spring.png
-    memo:
+    memo: 
     sprite: {fileID: 21300000, guid: 7ffb4d06791f0d44ab4a8b74dcac7015, type: 3}
     unityImagePath: Assets/Images/Heroines/TestHeroine/Sprites/Costume_Spring.png
     exportPromptPath: Prompts/Costume_Spring.prompt.json
@@ -115,7 +115,7 @@ MonoBehaviour:
     usage: Sprites
     status: Accepted
     fileName: Costume_Adventure.png
-    memo:
+    memo: 
     sprite: {fileID: 21300000, guid: 471319d1b11ab9a4f927efd83311d662, type: 3}
     unityImagePath: Assets/Images/Heroines/TestHeroine/Sprites/Costume_Adventure.png
     exportPromptPath: Prompts/Costume_Adventure.prompt.json
@@ -123,7 +123,7 @@ MonoBehaviour:
     usage: Sprites
     status: Accepted
     fileName: Costume_Winter.png
-    memo:
+    memo: 
     sprite: {fileID: 21300000, guid: efa2ded0920196b419dea4ce0d04d117, type: 3}
     unityImagePath: Assets/Images/Heroines/TestHeroine/Sprites/Costume_Winter.png
     exportPromptPath: Prompts/Costume_Winter.prompt.json
@@ -131,7 +131,7 @@ MonoBehaviour:
     usage: Sprites
     status: Accepted
     fileName: Costume_Autumn.png
-    memo:
+    memo: 
     sprite: {fileID: 21300000, guid: 66fa10407a56132488a3264531c90b59, type: 3}
     unityImagePath: Assets/Images/Heroines/TestHeroine/Sprites/Costume_Autumn.png
     exportPromptPath: Prompts/Costume_Autumn.prompt.json
@@ -139,7 +139,7 @@ MonoBehaviour:
     usage: Sprites
     status: Accepted
     fileName: Costume_Town.png
-    memo:
+    memo: 
     sprite: {fileID: 21300000, guid: 8c37d93a1e555ce439893db8029e38fc, type: 3}
     unityImagePath: Assets/Images/Heroines/TestHeroine/Sprites/Costume_Town.png
     exportPromptPath: Prompts/Costume_Town.prompt.json
@@ -147,7 +147,7 @@ MonoBehaviour:
     usage: Sprites
     status: Accepted
     fileName: Costume_Raincoat.png
-    memo:
+    memo: 
     sprite: {fileID: 21300000, guid: d8a5eb338dfb9ee41a0e200269670f1e, type: 3}
     unityImagePath: Assets/Images/Heroines/TestHeroine/Sprites/Costume_Raincoat.png
     exportPromptPath: Prompts/Costume_Raincoat.prompt.json
@@ -155,7 +155,7 @@ MonoBehaviour:
     usage: Sprites
     status: Accepted
     fileName: Costume_Room.png
-    memo:
+    memo: 
     sprite: {fileID: 21300000, guid: c2dc294195aaff3479f5c5e22e5537d3, type: 3}
     unityImagePath: Assets/Images/Heroines/TestHeroine/Sprites/Costume_Room.png
     exportPromptPath: Prompts/Costume_Room.prompt.json
@@ -163,7 +163,7 @@ MonoBehaviour:
     usage: Sprites
     status: Accepted
     fileName: Costume_Dress.png
-    memo:
+    memo: 
     sprite: {fileID: 21300000, guid: 616696386368db943ae5b06da4641b81, type: 3}
     unityImagePath: Assets/Images/Heroines/TestHeroine/Sprites/Costume_Dress.png
     exportPromptPath: Prompts/Costume_Dress.prompt.json
@@ -171,7 +171,7 @@ MonoBehaviour:
     usage: Event
     status: Accepted
     fileName: GameStartIntro_01.png
-    memo:
+    memo: 
     sprite: {fileID: 21300000, guid: 4be2626cfd96d3b4eb166d03c2d29a41, type: 3}
     unityImagePath: Assets/Images/Heroines/TestHeroine/Event/GameStartIntro_01.png
     exportPromptPath: Prompts/GameStartIntro_01.prompt.json
@@ -197,7 +197,7 @@ MonoBehaviour:
     usage: Ending
     status: Accepted
     fileName: NormalEnding_01.png
-    memo:
+    memo: 
     sprite: {fileID: 21300000, guid: 3a40146931911654aaaa036fd0ee6a02, type: 3}
     unityImagePath: Assets/Images/Heroines/TestHeroine/Ending/NormalEnding_01.png
     exportPromptPath: Prompts/NormalEnding_01.prompt.json
@@ -205,7 +205,7 @@ MonoBehaviour:
     usage: Ending
     status: Accepted
     fileName: BadEnding_01.png
-    memo:
+    memo: 
     sprite: {fileID: 21300000, guid: 8b4c61aff71538f46b27061ee799ea60, type: 3}
     unityImagePath: Assets/Images/Heroines/TestHeroine/Ending/BadEnding_01.png
     exportPromptPath: Prompts/BadEnding_01.prompt.json
@@ -213,7 +213,7 @@ MonoBehaviour:
     usage: Event
     status: Accepted
     fileName: WithForest_01.png
-    memo:
+    memo: 
     sprite: {fileID: 21300000, guid: b4020f7d0eb8d2e4eb588c4a527563c8, type: 3}
     unityImagePath: Assets/Images/Heroines/TestHeroine/Event/WithForest_01.png
     exportPromptPath: Prompts/WithForest_01.prompt.json
@@ -221,7 +221,7 @@ MonoBehaviour:
     usage: Event
     status: Accepted
     fileName: WithLake_01.png
-    memo:
+    memo: 
     sprite: {fileID: 21300000, guid: 3e84dcac498e02745a7cf0e22dccbfb1, type: 3}
     unityImagePath: Assets/Images/Heroines/TestHeroine/Event/WithLake_01.png
     exportPromptPath: Prompts/WithLake_01.prompt.json
@@ -229,7 +229,7 @@ MonoBehaviour:
     usage: Event
     status: Accepted
     fileName: WithCave_01.png
-    memo:
+    memo: 
     sprite: {fileID: 21300000, guid: d850547152329164586fe14f8e7e2311, type: 3}
     unityImagePath: Assets/Images/Heroines/TestHeroine/Event/WithCave_01.png
     exportPromptPath: Prompts/WithCave_01.prompt.json
@@ -237,7 +237,7 @@ MonoBehaviour:
     usage: Actions
     status: Accepted
     fileName: Rest_01.png
-    memo:
+    memo: 
     sprite: {fileID: 21300000, guid: 06d3c0e09c340d2438cd9c93faa3e7b3, type: 3}
     unityImagePath: Assets/Images/Heroines/TestHeroine/Actions/Rest_01.png
     exportPromptPath: Prompts/Rest_01.prompt.json
@@ -245,7 +245,7 @@ MonoBehaviour:
     usage: Actions
     status: Accepted
     fileName: Walk_01.png
-    memo:
+    memo: 
     sprite: {fileID: 21300000, guid: c4061e7108e077a489b8e2a1c3e1430a, type: 3}
     unityImagePath: Assets/Images/Heroines/TestHeroine/Actions/Walk_01.png
     exportPromptPath: Prompts/Walk_01.prompt.json
@@ -253,7 +253,7 @@ MonoBehaviour:
     usage: Event
     status: Accepted
     fileName: DayStart_Rainy_01.png
-    memo:
+    memo: 
     sprite: {fileID: 21300000, guid: 51b1f899a650fb043a04d94146132dbf, type: 3}
     unityImagePath: Assets/Images/Heroines/TestHeroine/Event/DayStart_Rainy_01.png
     exportPromptPath: Prompts/DayStart_Rainy_01.prompt.json
@@ -270,7 +270,7 @@ MonoBehaviour:
     usage: Battle
     status: Accepted
     fileName: Battle_Heroine_Idle.png
-    memo:
+    memo: 
     sprite: {fileID: 21300000, guid: 89a722daa164c9144a7efef3656e0adc, type: 3}
     unityImagePath: Assets/Images/Heroines/TestHeroine/Battle/Battle_Heroine_Idle.png
     exportPromptPath: Prompts/Battle_Heroine_Idle.prompt.json
@@ -278,7 +278,7 @@ MonoBehaviour:
     usage: Battle
     status: Accepted
     fileName: Battle_Heroine_Attack.png
-    memo:
+    memo: 
     sprite: {fileID: 21300000, guid: d0738fbc885d0ff41be401b108ecabe9, type: 3}
     unityImagePath: Assets/Images/Heroines/TestHeroine/Battle/Battle_Heroine_Attack.png
     exportPromptPath: Prompts/Battle_Heroine_Attack.prompt.json
@@ -286,7 +286,7 @@ MonoBehaviour:
     usage: Battle
     status: Accepted
     fileName: Battle_Heroine_Damage.png
-    memo:
+    memo: 
     sprite: {fileID: 21300000, guid: 028f4320abf516e4ca6fe9e5789af1a6, type: 3}
     unityImagePath: Assets/Images/Heroines/TestHeroine/Battle/Battle_Heroine_Damage.png
     exportPromptPath: Prompts/Battle_Heroine_Damage.prompt.json
@@ -294,7 +294,7 @@ MonoBehaviour:
     usage: Battle
     status: Accepted
     fileName: Battle_Heroine_Victory.png
-    memo:
+    memo: 
     sprite: {fileID: 21300000, guid: b86efd13b315e3241807b67065077779, type: 3}
     unityImagePath: Assets/Images/Heroines/TestHeroine/Battle/Battle_Heroine_Victory.png
     exportPromptPath: Prompts/Battle_Heroine_Victory.prompt.json
@@ -302,7 +302,127 @@ MonoBehaviour:
     usage: Battle
     status: Accepted
     fileName: Battle_Heroine_Defeat.png
-    memo:
+    memo: 
     sprite: {fileID: 21300000, guid: 09dfb0cc51a3707479674db876a7d4e0, type: 3}
     unityImagePath: Assets/Images/Heroines/TestHeroine/Battle/Battle_Heroine_Defeat.png
     exportPromptPath: Prompts/Battle_Heroine_Defeat.prompt.json
+  - assetId: Training_LightPractice_SelectedBeforeFirstStep
+    usage: Training
+    status: Accepted
+    fileName: Training_LightPractice_SelectedBeforeFirstStep.png
+    memo: "\u8A13\u7DF4\u753B\u50CF\u306E\u6A19\u6E96\u5019\u88DC"
+    sprite: {fileID: 21300000, guid: ccdd224a0951a004f9752ab902a1de5e, type: 3}
+    unityImagePath: Assets/Images/Heroines/TestHeroine/Training/Training_LightPractice_SelectedBeforeFirstStep.png
+    exportPromptPath: Prompts/Training_LightPractice_SelectedBeforeFirstStep.prompt.json
+  - assetId: Training_LightPractice_SelectedAfterFirstStep
+    usage: Training
+    status: Accepted
+    fileName: Training_LightPractice_SelectedAfterFirstStep.png
+    memo: "\u8A13\u7DF4\u753B\u50CF\u306E\u6A19\u6E96\u5019\u88DC"
+    sprite: {fileID: 21300000, guid: f81f5a11ab17b9048833868d2d97a94a, type: 3}
+    unityImagePath: Assets/Images/Heroines/TestHeroine/Training/Training_LightPractice_SelectedAfterFirstStep.png
+    exportPromptPath: Prompts/Training_LightPractice_SelectedAfterFirstStep.prompt.json
+  - assetId: Training_SparringPractice_SelectedBeforeFirstStep
+    usage: Training
+    status: Accepted
+    fileName: Training_SparringPractice_SelectedBeforeFirstStep.png
+    memo: "\u8A13\u7DF4\u753B\u50CF\u306E\u6A19\u6E96\u5019\u88DC"
+    sprite: {fileID: 21300000, guid: 2a143753a635d0149a3ca71d6a43cd95, type: 3}
+    unityImagePath: Assets/Images/Heroines/TestHeroine/Training/Training_SparringPractice_SelectedBeforeFirstStep.png
+    exportPromptPath: Prompts/Training_SparringPractice_SelectedBeforeFirstStep.prompt.json
+  - assetId: Training_SparringPractice_SelectedAfterFirstStep
+    usage: Training
+    status: Accepted
+    fileName: Training_SparringPractice_SelectedAfterFirstStep.png
+    memo: "\u8A13\u7DF4\u753B\u50CF\u306E\u6A19\u6E96\u5019\u88DC"
+    sprite: {fileID: 21300000, guid: c8fa1bbe9ddd9f6489fb51d24b532e4c, type: 3}
+    unityImagePath: Assets/Images/Heroines/TestHeroine/Training/Training_SparringPractice_SelectedAfterFirstStep.png
+    exportPromptPath: Prompts/Training_SparringPractice_SelectedAfterFirstStep.prompt.json
+  - assetId: Training_EnduranceTraining_SelectedBeforeFirstStep
+    usage: Training
+    status: Accepted
+    fileName: Training_EnduranceTraining_SelectedBeforeFirstStep.png
+    memo: "\u8A13\u7DF4\u753B\u50CF\u306E\u6A19\u6E96\u5019\u88DC"
+    sprite: {fileID: 21300000, guid: 8591015ed79e0a34fab5fbb07a09e39a, type: 3}
+    unityImagePath: Assets/Images/Heroines/TestHeroine/Training/Training_EnduranceTraining_SelectedBeforeFirstStep.png
+    exportPromptPath: Prompts/Training_EnduranceTraining_SelectedBeforeFirstStep.prompt.json
+  - assetId: Training_EnduranceTraining_SelectedAfterFirstStep
+    usage: Training
+    status: Accepted
+    fileName: Training_EnduranceTraining_SelectedAfterFirstStep.png
+    memo: "\u8A13\u7DF4\u753B\u50CF\u306E\u6A19\u6E96\u5019\u88DC"
+    sprite: {fileID: 21300000, guid: a1b0fac69b605bf4a89293c1cb811234, type: 3}
+    unityImagePath: Assets/Images/Heroines/TestHeroine/Training/Training_EnduranceTraining_SelectedAfterFirstStep.png
+    exportPromptPath: Prompts/Training_EnduranceTraining_SelectedAfterFirstStep.prompt.json
+  - assetId: Training_LightPractice_PlayerLpConsumed
+    usage: Training
+    status: Accepted
+    fileName: Training_LightPractice_PlayerLpConsumed.png
+    memo: "\u8A13\u7DF4\u753B\u50CF\u306E\u6A19\u6E96\u5019\u88DC"
+    sprite: {fileID: 21300000, guid: b39edbedc79ba9545a71a51cc3e04607, type: 3}
+    unityImagePath: Assets/Images/Heroines/TestHeroine/Training/Training_LightPractice_PlayerLpConsumed.png
+    exportPromptPath: Prompts/Training_LightPractice_PlayerLpConsumed.prompt.json
+  - assetId: Training_LightPractice_HeroineLpConsumed
+    usage: Training
+    status: Accepted
+    fileName: Training_LightPractice_HeroineLpConsumed.png
+    memo: "\u8A13\u7DF4\u753B\u50CF\u306E\u6A19\u6E96\u5019\u88DC"
+    sprite: {fileID: 21300000, guid: 07e1f6fdc63d76d4ca888d949a7f3ad9, type: 3}
+    unityImagePath: Assets/Images/Heroines/TestHeroine/Training/Training_LightPractice_HeroineLpConsumed.png
+    exportPromptPath: Prompts/Training_LightPractice_HeroineLpConsumed.prompt.json
+  - assetId: Training_LightPractice_SimultaneousLpConsumed
+    usage: Training
+    status: Accepted
+    fileName: Training_LightPractice_SimultaneousLpConsumed.png
+    memo: "\u8A13\u7DF4\u753B\u50CF\u306E\u6A19\u6E96\u5019\u88DC"
+    sprite: {fileID: 21300000, guid: cf1131200f2a6794c9d99da8cbeec3e1, type: 3}
+    unityImagePath: Assets/Images/Heroines/TestHeroine/Training/Training_LightPractice_SimultaneousLpConsumed.png
+    exportPromptPath: Prompts/Training_LightPractice_SimultaneousLpConsumed.prompt.json
+  - assetId: Training_SparringPractice_PlayerLpConsumed
+    usage: Training
+    status: Accepted
+    fileName: Training_SparringPractice_PlayerLpConsumed.png
+    memo: "\u8A13\u7DF4\u753B\u50CF\u306E\u6A19\u6E96\u5019\u88DC"
+    sprite: {fileID: 21300000, guid: c42a92d0c52533b4d9424cd401fd2360, type: 3}
+    unityImagePath: Assets/Images/Heroines/TestHeroine/Training/Training_SparringPractice_PlayerLpConsumed.png
+    exportPromptPath: Prompts/Training_SparringPractice_PlayerLpConsumed.prompt.json
+  - assetId: Training_SparringPractice_HeroineLpConsumed
+    usage: Training
+    status: Accepted
+    fileName: Training_SparringPractice_HeroineLpConsumed.png
+    memo: "\u8A13\u7DF4\u753B\u50CF\u306E\u6A19\u6E96\u5019\u88DC"
+    sprite: {fileID: 21300000, guid: 13fdd0ee8615b954cae00da935cebe02, type: 3}
+    unityImagePath: Assets/Images/Heroines/TestHeroine/Training/Training_SparringPractice_HeroineLpConsumed.png
+    exportPromptPath: Prompts/Training_SparringPractice_HeroineLpConsumed.prompt.json
+  - assetId: Training_SparringPractice_SimultaneousLpConsumed
+    usage: Training
+    status: Accepted
+    fileName: Training_SparringPractice_SimultaneousLpConsumed.png
+    memo: "\u8A13\u7DF4\u753B\u50CF\u306E\u6A19\u6E96\u5019\u88DC"
+    sprite: {fileID: 21300000, guid: 7cf9c7f22f924b649a2b6a6b353e3107, type: 3}
+    unityImagePath: Assets/Images/Heroines/TestHeroine/Training/Training_SparringPractice_SimultaneousLpConsumed.png
+    exportPromptPath: Prompts/Training_SparringPractice_SimultaneousLpConsumed.prompt.json
+  - assetId: Training_EnduranceTraining_PlayerLpConsumed
+    usage: Training
+    status: Accepted
+    fileName: Training_EnduranceTraining_PlayerLpConsumed.png
+    memo: "\u8A13\u7DF4\u753B\u50CF\u306E\u6A19\u6E96\u5019\u88DC"
+    sprite: {fileID: 21300000, guid: 2e74c4816737de2448484138b82f9aa6, type: 3}
+    unityImagePath: Assets/Images/Heroines/TestHeroine/Training/Training_EnduranceTraining_PlayerLpConsumed.png
+    exportPromptPath: Prompts/Training_EnduranceTraining_PlayerLpConsumed.prompt.json
+  - assetId: Training_EnduranceTraining_HeroineLpConsumed
+    usage: Training
+    status: Accepted
+    fileName: Training_EnduranceTraining_HeroineLpConsumed.png
+    memo: "\u8A13\u7DF4\u753B\u50CF\u306E\u6A19\u6E96\u5019\u88DC"
+    sprite: {fileID: 21300000, guid: a6c740a7df756274290427625e54d0a9, type: 3}
+    unityImagePath: Assets/Images/Heroines/TestHeroine/Training/Training_EnduranceTraining_HeroineLpConsumed.png
+    exportPromptPath: Prompts/Training_EnduranceTraining_HeroineLpConsumed.prompt.json
+  - assetId: Training_EnduranceTraining_SimultaneousLpConsumed
+    usage: Training
+    status: Accepted
+    fileName: Training_EnduranceTraining_SimultaneousLpConsumed.png
+    memo: "\u8A13\u7DF4\u753B\u50CF\u306E\u6A19\u6E96\u5019\u88DC"
+    sprite: {fileID: 21300000, guid: b28f785285fea1549bbada4391a56fbc, type: 3}
+    unityImagePath: Assets/Images/Heroines/TestHeroine/Training/Training_EnduranceTraining_SimultaneousLpConsumed.png
+    exportPromptPath: Prompts/Training_EnduranceTraining_SimultaneousLpConsumed.prompt.json
