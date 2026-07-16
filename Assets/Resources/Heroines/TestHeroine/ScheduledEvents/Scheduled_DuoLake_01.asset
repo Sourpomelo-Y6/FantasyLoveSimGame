@@ -13,14 +13,14 @@ MonoBehaviour:
   m_Name: "\u6E56\u3078\u306E\u540C\u884C\u5916\u51FA"
   m_EditorClassIdentifier: 
   scheduleType: 7
-  actionId: AutoDuoLake
+  actionId: DuoWalkLake
   triggerTimeSlot: 1
   allowOutfitChangeBeforeStart: 1
   outfitPromptMode: 1
   costumeId: 
   eventSpeakerType: 0
-  preparationMessage: "\u4ECA\u65E5\u306F\u663C\u306B\u4E8C\u4EBA\u3067\u6E56\u3078\u884C\u304F\u4E88\u5B9A\u3067\u3059\u3002\u6C34\u8FBA\u306B\u5408\u3046\u670D\u3092\u9078\u3076\u6642\u9593\u304C\u3042\u308A\u307E\u3059\u3002"
-  eventMessage: "\u4E8C\u4EBA\u3067\u6E56\u3092\u773A\u3081\u307E\u3057\u305F\u3002\u7A4F\u3084\u304B\u306A\u6C34\u97F3\u306E\u4E2D\u3067\u3001\u4F1A\u8A71\u3082\u81EA\u7136\u3068\u67D4\u3089\u304B\u304F\u306A\u308A\u307E\u3059\u3002"
+  preparationMessage: "\u4ECA\u65E5\u306F\u663C\u306B\u68EE\u3078\u51FA\u304B\u3051\u308B\u4E88\u5B9A\u3067\u3059\u3002"
+  eventMessage: "\u68EE\u3092\u6B69\u304D\u306A\u304C\u3089\u3001\u9759\u304B\u306A\u6642\u9593\u3092\u904E\u3054\u3057\u307E\u3057\u305F\u3002"
   stillId: WithLake_01
   stillSprite: {fileID: 21300000, guid: 3e84dcac498e02745a7cf0e22dccbfb1, type: 3}
-  affectionChange: 10
+  affectionChange: 1

@@ -15,6 +15,7 @@ MonoBehaviour:
   trainingId: EnduranceTraining
   trainingCategoryId: Endurance
   displayName: "\u6301\u4E45\u8A13\u7DF4"
+  unlockedByDefault: 1
   description: "\u9577\u304F\u7D9A\u3051\u308B\u3053\u3068\u3092\u76EE\u6307\u3059\u8A13\u7DF4\u3002LP\u304C\u591A\u304F\u3001\u7D99\u7D9A\u6642\u306EHP\u30FBLP\u63A8\u79FB\u3092\u898B\u3084\u3059\u3044\u3002"
   playerHpCostPerStep: 10
   heroineHpCostPerStep: 14

@@ -95,6 +95,8 @@ public class TrainingStepModifiers
 public class TrainingStepResult
 {
     public bool wasApplied;
+    public int playerLpConsumed;
+    public int heroineLpConsumed;
     public int basePlayerHpCost;
     public int playerHpCost;
     public int baseHeroineHpCost;
@@ -184,6 +186,8 @@ public class TrainingSessionState
 
         int playerLpConsumed = Math.Max(0, previousPlayerLp - playerLp);
         int heroineLpConsumed = Math.Max(0, previousHeroineLp - heroineLp);
+        stepResult.playerLpConsumed = playerLpConsumed;
+        stepResult.heroineLpConsumed = heroineLpConsumed;
         playerLpConsumedCount += playerLpConsumed;
         heroineLpConsumedCount += heroineLpConsumed;
         RecordProgress(

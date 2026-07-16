@@ -459,6 +459,20 @@ public class SkillTreePanel : MonoBehaviour
             builder.AppendLine("適用対象：" + GetTrainingApplicationLabel(node.skill));
         }
 
+        if (node.unlockedTrainingIds != null && node.unlockedTrainingIds.Count > 0)
+        {
+            builder.AppendLine();
+            builder.AppendLine("解放する訓練：");
+            for (int i = 0; i < node.unlockedTrainingIds.Count; i++)
+            {
+                string trainingId = node.unlockedTrainingIds[i];
+                if (!string.IsNullOrWhiteSpace(trainingId))
+                {
+                    builder.AppendLine("・" + gameManager.GetTrainingDisplayName(trainingId));
+                }
+            }
+        }
+
         if (node.skill != null && !string.IsNullOrEmpty(node.skill.description))
         {
             builder.AppendLine();

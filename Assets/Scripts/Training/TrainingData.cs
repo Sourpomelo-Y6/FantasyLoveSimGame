@@ -7,6 +7,8 @@ public class TrainingData : ScriptableObject
     public string trainingId = "Training";
     public string trainingCategoryId = "General";
     public string displayName = "訓練";
+    [Tooltip("スキルツリーノードを取得しなくても最初から選択できる訓練。")]
+    public bool unlockedByDefault = true;
 
     [TextArea(2, 5)]
     public string description;

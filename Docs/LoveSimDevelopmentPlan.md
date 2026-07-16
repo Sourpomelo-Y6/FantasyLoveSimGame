@@ -365,6 +365,7 @@ AssetTool の `sprite_layers_export.json` は importer で `HeroineLayeredSprite
 - `blockedOutfitIds`: 現在の衣装IDが指定一覧のどれかに一致した場合は発生しない
 - `requiredOutfits`: 指定した `OutfitData` アセットの衣装を着ている場合だけ発生する
 - `blockedOutfits`: 指定した `OutfitData` アセットの衣装を着ている場合は発生しない
+- `requiredSkillIds`: 指定した主人公スキルをすべて取得している場合だけ発生する
 
 条件判定は `GameManager.CanStartGameEvent(GameEventData gameEvent)` に集約し、`GetGameEventsForTrigger()` と `TryStartManualGameEvent()` の両方から使う。
 既存の `GameStartIntro` と `TestManualEvent` は条件未設定なら今まで通り発生するようにし、既存データの互換を壊さない。
@@ -373,6 +374,8 @@ AssetTool の `sprite_layers_export.json` は importer で `HeroineLayeredSprite
 衣装条件は現在の `OutfitManager.CurrentOutfit.outfitId` を見て判定する。
 文字列ID欄の `requiredOutfitIds` / `blockedOutfitIds` も残しているが、通常は Unity Inspector で `OutfitData` アセットを選べる `requiredOutfits` / `blockedOutfits` を使う。
 衣装の種類や属性ではなく、実際に着ている衣装を直接指定する方が、表示するスチルとの対応を崩しにくい。
+汎用スキルのイベント条件接続は実装済み。`requiredSkillIds` は取得済み主人公ノードから再構築されるスキル ID を参照し、条件のためだけのセーブ項目は追加しない。空または未取得の ID が含まれるイベントは開始不可として安全に扱う。`GameEventDataValidator` は存在しない ID と同一イベント内の重複・空 ID を検出し、`FantasyLoveSim > Validate Game Event Data` から全ヒロインのイベントを検証できる。Editor Play / Development Build の起動時にも全ヒロインのイベントを検証する。
+確認用として汎用スキル「気配り」と主人公ノード `Player_Consideration`、TestHeroine 専用手動イベント `Manual_Consideration_01` を追加する。訓練を1回完了して訓練回数と SP を獲得し、1 SP で「気配り」を取得すると、F7 からイベントを開始できる。取得前は同じ操作をしても開始しない。イベントは繰り返し確認できるよう `showOnce=false` とする。
 
 イベントスチル画像は `Assets/Images/Heroines/<HeroineId>/Event/` に置き、ファイル名はイベントIDに寄せる。
 例として、`GameStartIntro` で使う画像は `GameStartIntro_01.png` のようにする。
@@ -596,7 +599,11 @@ LP と訓練用 HP は訓練画面内の一時値から始める。
 訓練熟練度は `SaveData.trainingProficiencies` に `trainingId` ごとの値として保存する。有効な 1 ステップごとに `trainingProficiencyRewardPerStep` を加算し、初期訓練はすべて `1`。中断してもステップ分は保持し、完了かつ非中断の場合だけ従来の `trainingProficiencyReward` を倍率変更なしで完了ボーナスとして追加する。完了ボーナスは軽い稽古 `1`、実戦形式 `2`、持久訓練 `3`。訓練を途中で切り替えた場合は、各ステップで実際に選択していた `trainingId` へ熟練度を加算する。訓練ごとの熟練度上限は `999999`。熟練度と訓練実績はスキルを直接解放せず、スキルツリーノードの取得条件として評価する。
 `TrainingPanel` は訓練ボタンと選択中タイトルに現在の熟練度を表示する。
 訓練の最大ステップ数は実装済み。`TrainingData.maxSteps` をセッション開始時に `TrainingSessionState.maxSteps` へ固定し、`TrainingEndReason` で HP / LP 終了、最大ステップ到達、途中終了を区別する。初期3訓練はすべて最大20ステップ。`StepCountText` が配置されていれば専用欄へ、未配置なら訓練名欄へ現在値と上限を表示する。結果メッセージにも終了理由を表示し、最大ステップ到達は通常完了として完了報酬とスキルポイントを付与する。
-訓練メニューの段階変化と、シーン配置の細かい見た目調整は次段階で扱う。
+訓練画面の画像切替を将来追加する。訓練ボタンを押した時点で、現在の訓練画面を開いてから `elapsedSteps == 0` なら開始前画像、`elapsedSteps > 0` なら進行後画像を表示する。途中で訓練を切り替えてもステップ数はリセットしない。ステップ実行時に主人公だけ、ヒロインだけ、双方同時のいずれかで LP を消費した場合は、それぞれ別の画像へ切り替える。同時消費を個別消費より優先し、次の通常ステップでは進行後画像へ戻す。判定は累計実績ではなく、そのステップ直前・直後の LP 差分を使う。
+画像は共通 `TrainingData` に直接持たせず、ヒロイン別 `HeroineTrainingImageData` で `trainingId` と表示状態を Sprite に対応させ、既存の `TrainingPanel.heroineImage` を更新する。訓練別画像、状態別共通画像、現在画像の順にフォールバックし、未設定や参照切れでも訓練処理を停止しない。画像状態、最初に作る9枚、AssetToolの `usage = Training` と `training_images_export.json` は `Docs/Extra_FantasyLoveSimAssetTool/TrainingImagePlan.md` を正とする。これまでのUnity変更をToolへ同期する範囲と順序は `CurrentFeatureSyncPlan.md` にまとめる。この機能は現時点では未実装である。
+訓練メニューの追加解放は、熟練度や日数だけで自動的に段階変化させず、スキルツリーで取得する「訓練解放ノード」の効果として実装した。`TrainingData.unlockedByDefault` と `SkillTreeNodeData.unlockedTrainingIds` を使い、戦闘・訓練補正用の `SkillData` を持たない解放専用ノードも取得できる。解放状態は新しい保存リストを正本にせず、取得済み主人公・ヒロインノード ID から導出する。ヒロインノードは `targetHeroineId` と現在ヒロインを照合するため、そのヒロインだけに有効な解放を表現できる。
+`TrainingPanel` は初期解放訓練を常時選択可能にし、現在ヒロインに解放経路がある未解放訓練を解放ノード名付きの無効ボタンで表示する。スキルツリー詳細には解放する訓練名を表示する。`SkillTreeDataValidator` は存在しない・空・重複した訓練 ID、初期解放済み訓練の指定、解放対象自身の実績を要求する直接的な到達不能条件を検出する。確認用データはTestHeroineの「連携演習の心得」と `CooperativeDrill`（連携演習）。
+シーン配置の細かい見た目調整も後回しとする。
 
 限定対象の確認用スキルとして、主人公「実戦感覚」は `Combat` カテゴリーだけでステップ熟練度を1増加し、「集中訓練」の取得、実戦カテゴリーの訓練回数10回、2 SPを条件にする。ヒロイン「持久の支え」は `EnduranceTraining` だけでヒロインHP消費を1軽減し、「応援」の取得、持久訓練10回、2 SPを条件にして DefaultHeroine / TestHeroine の両ツリーへ追加する。
 訓練終了結果には、セッション全体で実際に軽減した主人公・ヒロインのHP消費、スキルによる好感度・熟練度の増減、効果を発揮したスキル名を表示する。途中で訓練を切り替えた場合も各ステップの実適用分だけを集計する。会話欄とメッセージログへ保存する結果本文は5行以内の共通要約とし、長い訓練名・発動スキル名は先頭部分と残件数へ省略して折り返しを抑える。`TrainingPanel` の結果ログは登録件数ではなく TextMesh Pro の折り返し後の実表示行数を測り、`maxLogLines` を超えた古い行を削除し、単一項目が上限を超える場合も `maxVisibleLines` と `Truncate` で領域外表示を防ぐ。

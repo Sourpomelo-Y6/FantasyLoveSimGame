@@ -19,14 +19,15 @@ MonoBehaviour:
   sortOrder: 70
   minDay: 0
   maxDay: 0
-  minAffection: 100
-  maxAffection: 9999
+  minAffection: 10
+  maxAffection: 100
   requiredShownEventIds: []
   blockedShownEventIds: []
   requiredOutfitIds: []
   blockedOutfitIds: []
   requiredOutfits: []
   blockedOutfits: []
+  requiredSkillIds: []
   anyWeather: 1
   allowedWeathers: 
   pages:

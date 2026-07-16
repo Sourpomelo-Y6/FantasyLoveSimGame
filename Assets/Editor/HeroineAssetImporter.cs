@@ -1,8 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using UnityEditor;
 using UnityEngine;
+using FantasyLoveSim.EditorTools;
 
 public static class HeroineAssetImporter
 {
@@ -10,6 +12,8 @@ public static class HeroineAssetImporter
     private const string ProfileJsonRelativePath = "Data/heroine_profile_export.json";
     private const string AssetsJsonRelativePath = "Data/assets_export.json";
     private const string SpriteLayersJsonRelativePath = "Data/sprite_layers_export.json";
+    private const string TrainingImagesJsonRelativePath = "Data/training_images_export.json";
+    private const string TrainingDialoguesJsonRelativePath = "Data/training_dialogues_export.json";
     private const string ConversationsJsonRelativePath = "Data/conversations_export.json";
     private const string GameEventsJsonRelativePath = "Data/game_events_export.json";
     private const string ScheduledEventsJsonRelativePath = "Data/scheduled_events_export.json";
@@ -73,6 +77,8 @@ public static class HeroineAssetImporter
         ApplyProfile(profile, profileExport);
         ImportImages(exportFolder, profileExport.heroineId, report);
         ApplyDefaultHeroineSprite(profile, report.defaultSpritePath, report);
+        ImportTrainingImages(exportFolder, profileExport.heroineId, report);
+        ImportTrainingDialogues(exportFolder, profileExport.heroineId, report);
         ImportSpriteLayers(exportFolder, profileExport.heroineId, report);
         ImportConversations(exportFolder, profileExport.heroineId, report);
         ImportGameEvents(exportFolder, profileExport.heroineId, report);
@@ -97,6 +103,14 @@ public static class HeroineAssetImporter
         profile.displayName = string.IsNullOrWhiteSpace(profileExport.displayName)
             ? profileExport.heroineId
             : profileExport.displayName;
+        if (profileExport.firstPerson != null)
+        {
+            profile.heroineFirstPerson = profileExport.firstPerson;
+        }
+        if (profileExport.secondPerson != null)
+        {
+            profile.playerSecondPerson = profileExport.secondPerson;
+        }
         profile.initialDialogueMessage = ResolveProfileText(
             profileExport.initialDialogueMessage,
             profile.initialDialogueMessage,
@@ -125,11 +139,75 @@ public static class HeroineAssetImporter
         ApplyOutfitReactionMessageOverrides(
             profile.outfitReactionMessageOverrides,
             profileExport.outfitReactionMessageOverrides);
-        profile.conversationResourcePath = $"Heroines/{profileExport.heroineId}/Conversations";
-        profile.gameEventResourcePath = $"Heroines/{profileExport.heroineId}/GameEvents";
-        profile.actionResourcePath = $"Heroines/{profileExport.heroineId}/Actions";
-        profile.scheduledEventResourcePath = $"Heroines/{profileExport.heroineId}/ScheduledEvents";
-        profile.endingResourcePath = $"Heroines/{profileExport.heroineId}/Endings";
+        ApplyBattleSkills(profile.battleSkills, profileExport.battleSkills);
+        profile.conversationResourcePath = ResolveResourcePath(profileExport.conversationResourcePath, profile.conversationResourcePath, profileExport.heroineId, "Conversations");
+        profile.gameEventResourcePath = ResolveResourcePath(profileExport.gameEventResourcePath, profile.gameEventResourcePath, profileExport.heroineId, "GameEvents");
+        profile.actionResourcePath = ResolveResourcePath(profileExport.actionResourcePath, profile.actionResourcePath, profileExport.heroineId, "Actions");
+        profile.scheduledEventResourcePath = ResolveResourcePath(profileExport.scheduledEventResourcePath, profile.scheduledEventResourcePath, profileExport.heroineId, "ScheduledEvents");
+        profile.battleResultEventResourcePath = ResolveResourcePath(profileExport.battleResultEventResourcePath, profile.battleResultEventResourcePath, profileExport.heroineId, "BattleResultEvents");
+        profile.battlePanelResultMessageResourcePath = ResolveResourcePath(profileExport.battlePanelResultMessageResourcePath, profile.battlePanelResultMessageResourcePath, profileExport.heroineId, "BattlePanelResultMessages");
+        profile.endingResourcePath = ResolveResourcePath(profileExport.endingResourcePath, profile.endingResourcePath, profileExport.heroineId, "Endings");
+    }
+
+    private static string ResolveResourcePath(string exportedPath, string currentPath, string heroineId, string defaultLeaf)
+    {
+        if (exportedPath != null)
+        {
+            return exportedPath;
+        }
+
+        string defaultPath = $"Heroines/{heroineId}/{defaultLeaf}";
+        return string.IsNullOrWhiteSpace(currentPath) || string.Equals(currentPath, defaultLeaf, StringComparison.Ordinal)
+            ? defaultPath
+            : currentPath;
+    }
+
+    private static void ApplyBattleSkills(List<HeroineBattleSkillData> target, HeroineBattleSkillExport[] source)
+    {
+        // null は古いJSONで項目が省略された状態。既存値を維持する。
+        if (target == null || source == null)
+        {
+            return;
+        }
+
+        List<BattleSkillSyncItem> normalized = BattleSkillSyncService.Normalize(
+            source.Select(item => item == null ? null : new BattleSkillSyncItem
+            {
+                SkillId = item.skillId,
+                DisplayName = item.displayName,
+                EffectType = item.effectType,
+                Target = item.target,
+                Cost = item.cost,
+                Power = item.power,
+                AffectedStat = item.affectedStat,
+                StatusDurationTurns = item.statusDurationTurns,
+                UseChancePercent = item.useChancePercent,
+                Priority = item.priority,
+                MaxUsesPerBattle = item.maxUsesPerBattle
+            }));
+        target.Clear();
+        foreach (BattleSkillSyncItem item in normalized)
+        {
+            target.Add(new HeroineBattleSkillData
+            {
+                skillId = item.SkillId,
+                displayName = item.DisplayName,
+                effectType = ParseEnumOrDefault(item.EffectType, SkillEffectType.Damage),
+                target = ParseEnumOrDefault(item.Target, HeroineSkillTarget.Enemy),
+                cost = Math.Max(0, item.Cost),
+                power = item.Power,
+                affectedStat = ParseEnumOrDefault(item.AffectedStat, SkillBattleStat.Attack),
+                statusDurationTurns = Math.Max(1, item.StatusDurationTurns),
+                useChancePercent = Mathf.Clamp(item.UseChancePercent, 0, 100),
+                priority = item.Priority,
+                maxUsesPerBattle = item.MaxUsesPerBattle
+            });
+        }
+    }
+
+    internal static void ApplyProfileJsonForTests(HeroineProfileData profile, string json)
+    {
+        ApplyProfile(profile, JsonUtility.FromJson<HeroineProfileExport>(json));
     }
 
     private static string ResolveProfileText(string exportedText, string currentText, string fallback)
@@ -326,6 +404,283 @@ public static class HeroineAssetImporter
         catalog = ScriptableObject.CreateInstance<HeroineAssetCatalog>();
         AssetDatabase.CreateAsset(catalog, assetPath);
         return catalog;
+    }
+
+    private static void ImportTrainingImages(
+        string exportFolder,
+        string heroineId,
+        HeroineImportReport report)
+    {
+        string jsonPath = Path.Combine(exportFolder, TrainingImagesJsonRelativePath);
+        if (!File.Exists(jsonPath))
+        {
+            Debug.Log(
+                "training_images_export.json が見つからないため、既存の訓練画像設定は変更しません: " +
+                jsonPath);
+            return;
+        }
+
+        TrainingImagesExport exported;
+        try
+        {
+            exported = JsonUtility.FromJson<TrainingImagesExport>(File.ReadAllText(jsonPath));
+        }
+        catch (Exception ex)
+        {
+            report.Warn("training_images_export.json の読み込みに失敗しました: " + ex.Message);
+            return;
+        }
+
+        if (exported == null)
+        {
+            report.Warn("training_images_export.json を読み込めませんでした。");
+            return;
+        }
+
+        if (!string.IsNullOrWhiteSpace(exported.heroineId) &&
+            !string.Equals(exported.heroineId, heroineId, StringComparison.Ordinal))
+        {
+            report.Warn(
+                "training_images_export.json の heroineId が profile と一致しないためスキップしました: " +
+                exported.heroineId + " / " + heroineId);
+            report.trainingImageSkippedCount++;
+            return;
+        }
+
+        HeroineAssetCatalog catalog = LoadOrCreateAssetCatalog(heroineId);
+        Dictionary<string, HeroineAssetEntry> assetsById =
+            CreateCatalogAssetEntryMap(catalog, report);
+        report.trainingImageCount = assetsById.Values.Count(
+            entry => entry != null &&
+                string.Equals(entry.usage, "Training", StringComparison.OrdinalIgnoreCase) &&
+                entry.sprite != null);
+
+        string resourceFolder = $"Assets/Resources/Heroines/{heroineId}/TrainingImages";
+        EnsureFolder(resourceFolder);
+        string assetPath = resourceFolder + "/HeroineTrainingImageData.asset";
+        HeroineTrainingImageData data =
+            AssetDatabase.LoadAssetAtPath<HeroineTrainingImageData>(assetPath);
+        if (data == null)
+        {
+            data = ScriptableObject.CreateInstance<HeroineTrainingImageData>();
+            AssetDatabase.CreateAsset(data, assetPath);
+        }
+
+        data.heroineId = heroineId;
+        ApplyTrainingImageDefaults(data, exported.defaults, assetsById, report);
+        if (data.entries == null)
+        {
+            data.entries = new List<HeroineTrainingImageEntry>();
+        }
+        data.entries.Clear();
+
+        HashSet<string> trainingIds = new HashSet<string>(StringComparer.Ordinal);
+        HashSet<string> knownTrainingIds = new HashSet<string>(StringComparer.Ordinal);
+        foreach (TrainingData training in Resources.LoadAll<TrainingData>("Training"))
+        {
+            if (training != null && !string.IsNullOrWhiteSpace(training.trainingId))
+            {
+                knownTrainingIds.Add(training.trainingId);
+            }
+        }
+        if (exported.items != null)
+        {
+            foreach (TrainingImageExportItem item in exported.items)
+            {
+                if (item == null || string.IsNullOrWhiteSpace(item.trainingId))
+                {
+                    report.Warn("trainingId が空の訓練画像設定をスキップしました。");
+                    report.trainingImageSkippedCount++;
+                    continue;
+                }
+                if (!trainingIds.Add(item.trainingId))
+                {
+                    report.Warn("trainingId が重複している訓練画像設定をスキップしました: " + item.trainingId);
+                    report.trainingImageSkippedCount++;
+                    continue;
+                }
+                if (!knownTrainingIds.Contains(item.trainingId))
+                {
+                    report.Warn("存在しないtrainingIdの訓練画像設定をスキップしました: " + item.trainingId);
+                    report.trainingImageSkippedCount++;
+                    continue;
+                }
+
+                data.entries.Add(new HeroineTrainingImageEntry
+                {
+                    trainingId = item.trainingId,
+                    selectedBeforeFirstStepSprite = ResolveTrainingSprite(
+                        item.beforeFirstStepImageAssetId, assetsById, report),
+                    selectedAfterFirstStepSprite = ResolveTrainingSprite(
+                        item.afterFirstStepImageAssetId, assetsById, report),
+                    playerLpConsumedSprite = ResolveTrainingSprite(
+                        item.playerLpConsumedImageAssetId, assetsById, report),
+                    heroineLpConsumedSprite = ResolveTrainingSprite(
+                        item.heroineLpConsumedImageAssetId, assetsById, report),
+                    simultaneousLpConsumedSprite = ResolveTrainingSprite(
+                        item.simultaneousLpConsumedImageAssetId, assetsById, report)
+                });
+            }
+        }
+
+        report.trainingImageEntryCount = data.entries.Count;
+        report.trainingImageSettingsUpdated = true;
+        EditorUtility.SetDirty(data);
+    }
+
+    private static Dictionary<string, HeroineAssetEntry> CreateCatalogAssetEntryMap(
+        HeroineAssetCatalog catalog,
+        HeroineImportReport report)
+    {
+        Dictionary<string, HeroineAssetEntry> result =
+            new Dictionary<string, HeroineAssetEntry>(StringComparer.Ordinal);
+        if (catalog == null || catalog.assets == null)
+        {
+            return result;
+        }
+
+        foreach (HeroineAssetEntry entry in catalog.assets)
+        {
+            if (entry == null || string.IsNullOrWhiteSpace(entry.assetId))
+            {
+                continue;
+            }
+            if (result.ContainsKey(entry.assetId))
+            {
+                report.Warn("HeroineAssetCatalog の assetId が重複しています: " + entry.assetId);
+                continue;
+            }
+            result.Add(entry.assetId, entry);
+        }
+        return result;
+    }
+
+    internal static void ImportTrainingDialogues(
+        string exportFolder,
+        string heroineId,
+        HeroineImportReport report)
+    {
+        string jsonPath = Path.Combine(exportFolder, TrainingDialoguesJsonRelativePath);
+        if (!File.Exists(jsonPath))
+        {
+            Debug.Log("training_dialogues_export.json がないため、既存の訓練セリフは変更しません: " + jsonPath);
+            return;
+        }
+
+        TrainingDialoguesExport exported;
+        try
+        {
+            exported = JsonUtility.FromJson<TrainingDialoguesExport>(File.ReadAllText(jsonPath));
+        }
+        catch (Exception ex)
+        {
+            report.Warn("training_dialogues_export.json の読み込みに失敗しました: " + ex.Message);
+            return;
+        }
+        if (exported == null)
+        {
+            report.Warn("training_dialogues_export.json を読み込めなかったためスキップしました。");
+            return;
+        }
+        if (!TrainingDialogueSyncService.ValidateImportHeader(
+            exported.schemaVersion,
+            1,
+            exported.heroineId,
+            heroineId,
+            report.Warn))
+        {
+            return;
+        }
+
+        string resourceFolder = $"Assets/Resources/Heroines/{heroineId}/TrainingDialogues";
+        EnsureFolder(resourceFolder);
+        string assetPath = resourceFolder + "/HeroineTrainingDialogueData.asset";
+        HeroineTrainingDialogueData data = AssetDatabase.LoadAssetAtPath<HeroineTrainingDialogueData>(assetPath);
+        if (data == null)
+        {
+            data = ScriptableObject.CreateInstance<HeroineTrainingDialogueData>();
+            AssetDatabase.CreateAsset(data, assetPath);
+        }
+        data.heroineId = heroineId;
+        data.entries = new List<HeroineTrainingDialogueEntry>();
+
+        HashSet<string> knownTrainingIds = new HashSet<string>(
+            Resources.LoadAll<TrainingData>("Training")
+                .Where(training => training != null && !string.IsNullOrWhiteSpace(training.trainingId))
+                .Select(training => training.trainingId),
+            StringComparer.Ordinal);
+        List<TrainingDialogueSyncItem> importedItems = TrainingDialogueSyncService.BuildImportItems(
+            (exported.items ?? Array.Empty<TrainingDialogueExportItem>()).Select(item =>
+                item == null ? null : new TrainingDialogueSyncItem
+                {
+                    TrainingId = item.trainingId,
+                    VisualState = item.visualState,
+                    Messages = (item.messages ?? Array.Empty<string>()).ToList()
+                }),
+            knownTrainingIds,
+            report.Warn);
+        foreach (TrainingDialogueSyncItem item in importedItems)
+        {
+            if (!Enum.TryParse(item.VisualState, out TrainingVisualState state))
+            {
+                continue;
+            }
+            data.entries.Add(new HeroineTrainingDialogueEntry
+            {
+                trainingId = item.TrainingId,
+                visualState = state,
+                messages = item.Messages
+            });
+        }
+        report.trainingDialogueEntryCount = data.entries.Count;
+        EditorUtility.SetDirty(data);
+    }
+
+    private static void ApplyTrainingImageDefaults(
+        HeroineTrainingImageData data,
+        TrainingImageExportDefaults defaults,
+        Dictionary<string, HeroineAssetEntry> assetsById,
+        HeroineImportReport report)
+    {
+        defaults = defaults ?? new TrainingImageExportDefaults();
+        data.defaultBeforeFirstStepSprite = ResolveTrainingSprite(
+            defaults.beforeFirstStepImageAssetId, assetsById, report);
+        data.defaultAfterFirstStepSprite = ResolveTrainingSprite(
+            defaults.afterFirstStepImageAssetId, assetsById, report);
+        data.defaultPlayerLpConsumedSprite = ResolveTrainingSprite(
+            defaults.playerLpConsumedImageAssetId, assetsById, report);
+        data.defaultHeroineLpConsumedSprite = ResolveTrainingSprite(
+            defaults.heroineLpConsumedImageAssetId, assetsById, report);
+        data.defaultSimultaneousLpConsumedSprite = ResolveTrainingSprite(
+            defaults.simultaneousLpConsumedImageAssetId, assetsById, report);
+    }
+
+    private static Sprite ResolveTrainingSprite(
+        string assetId,
+        Dictionary<string, HeroineAssetEntry> assetsById,
+        HeroineImportReport report)
+    {
+        if (string.IsNullOrWhiteSpace(assetId))
+        {
+            return null;
+        }
+        if (!assetsById.TryGetValue(assetId, out HeroineAssetEntry entry) || entry == null)
+        {
+            report.Warn("訓練画像のAssetIdをカタログから解決できませんでした: " + assetId);
+            report.trainingImageUnresolvedCount++;
+            return null;
+        }
+        if (!string.Equals(entry.usage, "Training", StringComparison.OrdinalIgnoreCase))
+        {
+            report.Warn("訓練画像のUsageがTrainingではありません: " + assetId + " / " + entry.usage);
+        }
+        if (entry.sprite == null)
+        {
+            report.Warn("訓練画像のSpriteが未設定です: " + assetId);
+            report.trainingImageUnresolvedCount++;
+            return null;
+        }
+        return entry.sprite;
     }
 
     private static bool CanImportCatalogAsset(
@@ -1125,7 +1480,7 @@ public static class HeroineAssetImporter
             : ConversationType.Simple;
     }
 
-    private static void ImportGameEvents(
+    internal static void ImportGameEvents(
         string exportFolder,
         string heroineId,
         HeroineImportReport report)
@@ -1237,6 +1592,9 @@ public static class HeroineAssetImporter
         gameEvent.minAffection = Math.Max(0, conditions.minAffection);
         gameEvent.maxAffection = Math.Max(0, conditions.maxAffection);
         EnsureGameEventLists(gameEvent);
+        RequiredSkillIdSyncService.ApplyIfSpecified(
+            gameEvent.requiredSkillIds,
+            conditions.requiredSkillIds);
         ApplyStringList(gameEvent.requiredShownEventIds, conditions.requiredShownEventIds);
         ApplyStringList(gameEvent.blockedShownEventIds, conditions.blockedShownEventIds);
         ApplyStringList(gameEvent.requiredOutfitIds, conditions.requiredOutfitIds);
@@ -1254,6 +1612,11 @@ public static class HeroineAssetImporter
 
     private static void EnsureGameEventLists(GameEventData gameEvent)
     {
+        if (gameEvent.requiredSkillIds == null)
+        {
+            gameEvent.requiredSkillIds = new List<string>();
+        }
+
         if (gameEvent.requiredShownEventIds == null)
         {
             gameEvent.requiredShownEventIds = new List<string>();
@@ -2232,6 +2595,30 @@ public static class HeroineAssetImporter
         public string endingPolicy;
         public string[] likes;
         public string[] dislikes;
+        public HeroineBattleSkillExport[] battleSkills;
+        public string conversationResourcePath;
+        public string gameEventResourcePath;
+        public string actionResourcePath;
+        public string scheduledEventResourcePath;
+        public string battleResultEventResourcePath;
+        public string battlePanelResultMessageResourcePath;
+        public string endingResourcePath;
+    }
+
+    [Serializable]
+    private sealed class HeroineBattleSkillExport
+    {
+        public string skillId;
+        public string displayName;
+        public string effectType;
+        public string target;
+        public int cost;
+        public int power;
+        public string affectedStat;
+        public int statusDurationTurns;
+        public int useChancePercent;
+        public int priority;
+        public int maxUsesPerBattle;
     }
 
     [Serializable]
@@ -2256,6 +2643,53 @@ public static class HeroineAssetImporter
         public string heroineId;
         public string unityImageRoot;
         public HeroineAssetExport[] assets;
+    }
+
+    [Serializable]
+    private sealed class TrainingImagesExport
+    {
+        public int schemaVersion;
+        public string heroineId;
+        public TrainingImageExportDefaults defaults;
+        public TrainingImageExportItem[] items;
+    }
+
+    [Serializable]
+    private sealed class TrainingImageExportDefaults
+    {
+        public string beforeFirstStepImageAssetId;
+        public string afterFirstStepImageAssetId;
+        public string playerLpConsumedImageAssetId;
+        public string heroineLpConsumedImageAssetId;
+        public string simultaneousLpConsumedImageAssetId;
+    }
+
+    [Serializable]
+    private sealed class TrainingImageExportItem
+    {
+        public string trainingId;
+        public string beforeFirstStepImageAssetId;
+        public string afterFirstStepImageAssetId;
+        public string playerLpConsumedImageAssetId;
+        public string heroineLpConsumedImageAssetId;
+        public string simultaneousLpConsumedImageAssetId;
+        public string memo;
+    }
+
+    [Serializable]
+    private sealed class TrainingDialoguesExport
+    {
+        public int schemaVersion;
+        public string heroineId;
+        public TrainingDialogueExportItem[] items;
+    }
+
+    [Serializable]
+    private sealed class TrainingDialogueExportItem
+    {
+        public string trainingId;
+        public string visualState;
+        public string[] messages;
     }
 
     [Serializable]
@@ -2378,6 +2812,7 @@ public static class HeroineAssetImporter
         public string[] blockedShownEventIds;
         public string[] requiredOutfitIds;
         public string[] blockedOutfitIds;
+        public string[] requiredSkillIds;
     }
 
     [Serializable]
@@ -2490,7 +2925,7 @@ public static class HeroineAssetImporter
         public string unityImagePath;
     }
 
-    private sealed class HeroineImportReport
+    internal sealed class HeroineImportReport
     {
         public int copiedImageCount;
         public int catalogAssetCount;
@@ -2500,6 +2935,12 @@ public static class HeroineAssetImporter
         public int scheduledEventCount;
         public int actionReactionCount;
         public int endingCount;
+        public int trainingImageCount;
+        public int trainingImageEntryCount;
+        public int trainingImageUnresolvedCount;
+        public int trainingImageSkippedCount;
+        public int trainingDialogueEntryCount;
+        public bool trainingImageSettingsUpdated;
         public string defaultSpritePath;
         public readonly List<string> warnings = new List<string>();
 
@@ -2512,7 +2953,7 @@ public static class HeroineAssetImporter
         public void LogSummary(string assetPath)
         {
             Debug.Log(
-                $"Heroine export を import しました: {assetPath}, copied images: {copiedImageCount}, catalog assets: {catalogAssetCount}, layers: {layerCount}, conversations: {conversationCount}, game events: {gameEventCount}, scheduled events: {scheduledEventCount}, action reactions: {actionReactionCount}, endings: {endingCount}, warnings: {warnings.Count}");
+                $"Heroine export を import しました: {assetPath}, copied images: {copiedImageCount}, catalog assets: {catalogAssetCount}, training images: {trainingImageCount}, training entries: {trainingImageEntryCount}, training dialogues: {trainingDialogueEntryCount}, training unresolved: {trainingImageUnresolvedCount}, training skipped: {trainingImageSkippedCount}, layers: {layerCount}, conversations: {conversationCount}, game events: {gameEventCount}, scheduled events: {scheduledEventCount}, action reactions: {actionReactionCount}, endings: {endingCount}, warnings: {warnings.Count}");
         }
 
         public string CreateDialogMessage(string assetPath)
@@ -2522,6 +2963,12 @@ public static class HeroineAssetImporter
                 "Profile: " + assetPath + "\n" +
                 "Copied images: " + copiedImageCount + "\n" +
                 "Catalog assets: " + catalogAssetCount + "\n" +
+                "Training images: " + trainingImageCount + "\n" +
+                "Training settings updated: " + (trainingImageSettingsUpdated ? "Yes" : "No") + "\n" +
+                "Training entries: " + trainingImageEntryCount + "\n" +
+                "Training dialogues: " + trainingDialogueEntryCount + "\n" +
+                "Training unresolved: " + trainingImageUnresolvedCount + "\n" +
+                "Training skipped: " + trainingImageSkippedCount + "\n" +
                 "Layers: " + layerCount + "\n" +
                 "Conversations: " + conversationCount + "\n" +
                 "Game events: " + gameEventCount + "\n" +

@@ -37,6 +37,8 @@ public class GameEventData : ScriptableObject
     public List<string> blockedOutfitIds = new List<string>();
     public List<OutfitData> requiredOutfits = new List<OutfitData>();
     public List<OutfitData> blockedOutfits = new List<OutfitData>();
+    [Tooltip("イベント開始に必要な取得済み主人公スキル ID。すべて取得している場合だけ開始できます。")]
+    public List<string> requiredSkillIds = new List<string>();
 
     [Header("Weather Condition")]
     public bool anyWeather = true;

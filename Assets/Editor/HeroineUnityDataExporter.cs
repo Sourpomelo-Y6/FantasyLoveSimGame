@@ -1,8 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using UnityEditor;
 using UnityEngine;
+using FantasyLoveSim.EditorTools;
 
 public static class HeroineUnityDataExporter
 {
@@ -63,6 +65,8 @@ public static class HeroineUnityDataExporter
         ExportGameEvents(profile, outputFolder, report);
         ExportScheduledEvents(profile, outputFolder, report);
         ExportEndings(profile, outputFolder, report);
+        ExportTrainingCatalog(profile, outputFolder, report);
+        ExportTrainingDialogues(profile, outputFolder, report);
         WriteReport(profile, outputFolder, report);
 
         Debug.Log(
@@ -78,6 +82,10 @@ public static class HeroineUnityDataExporter
             report.scheduledEventCount +
             " / endings: " +
             report.endingCount +
+            " / training dialogues: " +
+            report.trainingDialogueEntryCount +
+            " / trainings: " +
+            report.trainingCatalogCount +
             " / warnings: " +
             report.warnings.Count);
         EditorUtility.DisplayDialog(
@@ -115,7 +123,7 @@ public static class HeroineUnityDataExporter
         return AssetDatabase.LoadAssetAtPath<HeroineProfileData>(relativeAssetPath);
     }
 
-    private static void ExportProfile(
+    internal static void ExportProfile(
         HeroineProfileData profile,
         string outputFolder,
         HeroineUnityExportReport report)
@@ -126,6 +134,8 @@ public static class HeroineUnityDataExporter
             heroineId = profile.heroineId,
             source = "Unity",
             displayName = profile.displayName,
+            heroineFirstPerson = profile.heroineFirstPerson,
+            playerSecondPerson = profile.playerSecondPerson,
             initialDialogueMessage = profile.initialDialogueMessage,
             nextActionPrompt = profile.nextActionPrompt,
             morningGreeting = profile.morningGreeting,
@@ -134,11 +144,183 @@ public static class HeroineUnityDataExporter
             gameStartFollowUpMessage = profile.gameStartFollowUpMessage,
             outfitMessageOverrides = CreateOutfitMessageOverrides(profile.outfitMessageOverrides),
             outfitReactionMessageOverrides =
-                CreateOutfitReactionMessageOverrides(profile.outfitReactionMessageOverrides)
+                CreateOutfitReactionMessageOverrides(profile.outfitReactionMessageOverrides),
+            battleSkills = CreateHeroineBattleSkills(profile.battleSkills),
+            conversationResourcePath = profile.conversationResourcePath,
+            gameEventResourcePath = profile.gameEventResourcePath,
+            actionResourcePath = profile.actionResourcePath,
+            scheduledEventResourcePath = profile.scheduledEventResourcePath,
+            battleResultEventResourcePath = profile.battleResultEventResourcePath,
+            battlePanelResultMessageResourcePath = profile.battlePanelResultMessageResourcePath,
+            endingResourcePath = profile.endingResourcePath
         };
 
         WriteJson(Path.Combine(outputFolder, "heroine_profile_from_unity.json"), export);
         report.profileExported = true;
+    }
+
+    private static List<HeroineBattleSkillFromUnity> CreateHeroineBattleSkills(List<HeroineBattleSkillData> source)
+    {
+        return BattleSkillSyncService.Normalize((source ?? new List<HeroineBattleSkillData>())
+            .Select(item => item == null ? null : new BattleSkillSyncItem
+            {
+                SkillId = item.skillId,
+                DisplayName = item.displayName,
+                EffectType = item.effectType.ToString(),
+                Target = item.target.ToString(),
+                Cost = item.cost,
+                Power = item.power,
+                AffectedStat = item.affectedStat.ToString(),
+                StatusDurationTurns = item.statusDurationTurns,
+                UseChancePercent = item.useChancePercent,
+                Priority = item.priority,
+                MaxUsesPerBattle = item.maxUsesPerBattle
+            }))
+            .Select(item => new HeroineBattleSkillFromUnity
+            {
+                skillId = item.SkillId,
+                displayName = item.DisplayName,
+                effectType = item.EffectType,
+                target = item.Target,
+                cost = item.Cost,
+                power = item.Power,
+                affectedStat = item.AffectedStat,
+                statusDurationTurns = item.StatusDurationTurns,
+                useChancePercent = item.UseChancePercent,
+                priority = item.Priority,
+                maxUsesPerBattle = item.MaxUsesPerBattle
+            }).ToList();
+    }
+
+    internal static void ExportTrainingDialogues(
+        HeroineProfileData profile,
+        string outputFolder,
+        HeroineUnityExportReport report)
+    {
+        string heroineId = string.IsNullOrWhiteSpace(profile.heroineId)
+            ? profile.name
+            : profile.heroineId;
+        string resourcePath =
+            "Heroines/" + heroineId + "/TrainingDialogues/HeroineTrainingDialogueData";
+        HeroineTrainingDialogueData data = Resources.Load<HeroineTrainingDialogueData>(resourcePath);
+        TrainingDialoguesFromUnityExport export = new TrainingDialoguesFromUnityExport
+        {
+            schemaVersion = SchemaVersion,
+            heroineId = heroineId,
+            source = "Unity",
+            items = new List<TrainingDialogueFromUnityItem>()
+        };
+
+        if (data == null)
+        {
+            report.Warn("訓練セリフデータが見つかりません: Resources/" + resourcePath);
+        }
+        else if (!string.IsNullOrWhiteSpace(data.heroineId) &&
+            !string.Equals(data.heroineId, heroineId, StringComparison.Ordinal))
+        {
+            report.Warn(
+                "訓練セリフデータのheroineIdが一致しません: " +
+                data.heroineId + " / " + heroineId);
+        }
+        else if (data.entries != null)
+        {
+            export.items = TrainingDialogueSyncService.BuildExportItems(
+                    data.entries.Select(entry => entry == null ? null : new TrainingDialogueSyncItem
+                    {
+                        TrainingId = entry.trainingId,
+                        VisualState = entry.visualState.ToString(),
+                        Messages = entry.messages
+                    }),
+                    report.Warn)
+                .Select(item => new TrainingDialogueFromUnityItem
+                {
+                    trainingId = item.TrainingId,
+                    visualState = item.VisualState,
+                    messages = item.Messages
+                })
+                .ToList();
+        }
+
+        report.trainingDialogueEntryCount = export.items.Count;
+        WriteJson(Path.Combine(outputFolder, "training_dialogues_from_unity.json"), export);
+    }
+
+    private static void ExportTrainingCatalog(
+        HeroineProfileData profile,
+        string outputFolder,
+        HeroineUnityExportReport report)
+    {
+        string heroineId = string.IsNullOrWhiteSpace(profile.heroineId)
+            ? profile.name
+            : profile.heroineId;
+        TrainingData[] trainings = Resources.LoadAll<TrainingData>("Training");
+        SkillTreeNodeData[] nodes = Resources.LoadAll<SkillTreeNodeData>("SkillTreeNodes");
+        Array.Sort(trainings, (left, right) => string.Compare(
+            left != null ? left.trainingId : string.Empty,
+            right != null ? right.trainingId : string.Empty,
+            StringComparison.Ordinal));
+
+        TrainingCatalogFromUnityExport export = new TrainingCatalogFromUnityExport
+        {
+            schemaVersion = SchemaVersion,
+            heroineId = heroineId,
+            source = "Unity",
+            items = new List<TrainingCatalogFromUnityItem>()
+        };
+        HashSet<string> seenIds = new HashSet<string>(StringComparer.Ordinal);
+        for (int i = 0; i < trainings.Length; i++)
+        {
+            TrainingData training = trainings[i];
+            if (training == null || string.IsNullOrWhiteSpace(training.trainingId))
+            {
+                continue;
+            }
+            if (!seenIds.Add(training.trainingId))
+            {
+                report.Warn("訓練カタログのtrainingIdが重複しています: " + training.trainingId);
+                continue;
+            }
+
+            List<string> unlockNodeIds = new List<string>();
+            List<string> unlockNodeNames = new List<string>();
+            for (int nodeIndex = 0; nodeIndex < nodes.Length; nodeIndex++)
+            {
+                SkillTreeNodeData node = nodes[nodeIndex];
+                if (node == null ||
+                    (node.owner == SkillTreeOwner.Heroine &&
+                        !string.IsNullOrWhiteSpace(node.targetHeroineId) &&
+                        !string.Equals(node.targetHeroineId, heroineId, StringComparison.Ordinal)) ||
+                    node.unlockedTrainingIds == null ||
+                    !node.unlockedTrainingIds.Contains(training.trainingId))
+                {
+                    continue;
+                }
+
+                if (!unlockNodeIds.Contains(node.nodeId))
+                {
+                    unlockNodeIds.Add(node.nodeId);
+                    unlockNodeNames.Add(node.GetDisplayName());
+                }
+            }
+
+            if (!training.unlockedByDefault && unlockNodeIds.Count == 0)
+            {
+                continue;
+            }
+
+            export.items.Add(new TrainingCatalogFromUnityItem
+            {
+                trainingId = training.trainingId,
+                displayName = training.GetDisplayName(),
+                trainingCategoryId = training.trainingCategoryId,
+                unlockedByDefault = training.unlockedByDefault,
+                unlockNodeIds = unlockNodeIds,
+                unlockNodeNames = unlockNodeNames
+            });
+        }
+
+        report.trainingCatalogCount = export.items.Count;
+        WriteJson(Path.Combine(outputFolder, "training_catalog_from_unity.json"), export);
     }
 
     private static void ExportActions(
@@ -238,7 +420,7 @@ public static class HeroineUnityDataExporter
         WriteJson(Path.Combine(outputFolder, "conversations_from_unity.json"), export);
     }
 
-    private static void ExportGameEvents(
+    internal static void ExportGameEvents(
         HeroineProfileData profile,
         string outputFolder,
         HeroineUnityExportReport report)
@@ -821,7 +1003,8 @@ public static class HeroineUnityDataExporter
             requiredShownEventIds = CreateStringList(gameEvent.requiredShownEventIds),
             blockedShownEventIds = CreateStringList(gameEvent.blockedShownEventIds),
             requiredOutfitIds = CreateOutfitIdList(gameEvent.requiredOutfitIds, gameEvent.requiredOutfits),
-            blockedOutfitIds = CreateOutfitIdList(gameEvent.blockedOutfitIds, gameEvent.blockedOutfits)
+            blockedOutfitIds = CreateOutfitIdList(gameEvent.blockedOutfitIds, gameEvent.blockedOutfits),
+            requiredSkillIds = RequiredSkillIdSyncService.Normalize(gameEvent.requiredSkillIds)
         };
     }
 
@@ -1204,6 +1387,8 @@ public static class HeroineUnityDataExporter
             gameEventCount = report.gameEventCount,
             scheduledEventCount = report.scheduledEventCount,
             endingCount = report.endingCount,
+            trainingDialogueEntryCount = report.trainingDialogueEntryCount,
+            trainingCatalogCount = report.trainingCatalogCount,
             warnings = report.warnings
         };
 
@@ -1223,6 +1408,8 @@ public static class HeroineUnityDataExporter
         public string heroineId;
         public string source;
         public string displayName;
+        public string heroineFirstPerson;
+        public string playerSecondPerson;
         public string initialDialogueMessage;
         public string nextActionPrompt;
         public string morningGreeting;
@@ -1231,6 +1418,67 @@ public static class HeroineUnityDataExporter
         public string gameStartFollowUpMessage;
         public List<OutfitMessageOverrideFromUnity> outfitMessageOverrides;
         public List<OutfitReactionMessageOverrideFromUnity> outfitReactionMessageOverrides;
+        public List<HeroineBattleSkillFromUnity> battleSkills;
+        public string conversationResourcePath;
+        public string gameEventResourcePath;
+        public string actionResourcePath;
+        public string scheduledEventResourcePath;
+        public string battleResultEventResourcePath;
+        public string battlePanelResultMessageResourcePath;
+        public string endingResourcePath;
+    }
+
+    [Serializable]
+    private sealed class HeroineBattleSkillFromUnity
+    {
+        public string skillId;
+        public string displayName;
+        public string effectType;
+        public string target;
+        public int cost;
+        public int power;
+        public string affectedStat;
+        public int statusDurationTurns;
+        public int useChancePercent;
+        public int priority;
+        public int maxUsesPerBattle;
+    }
+
+    [Serializable]
+    private sealed class TrainingDialoguesFromUnityExport
+    {
+        public int schemaVersion;
+        public string heroineId;
+        public string source;
+        public List<TrainingDialogueFromUnityItem> items;
+    }
+
+    [Serializable]
+    private sealed class TrainingCatalogFromUnityExport
+    {
+        public int schemaVersion;
+        public string heroineId;
+        public string source;
+        public List<TrainingCatalogFromUnityItem> items;
+    }
+
+    [Serializable]
+    private sealed class TrainingCatalogFromUnityItem
+    {
+        public string trainingId;
+        public string displayName;
+        public string trainingCategoryId;
+        public bool unlockedByDefault;
+        public List<string> unlockNodeIds;
+        public List<string> unlockNodeNames;
+    }
+
+    [Serializable]
+    private sealed class TrainingDialogueFromUnityItem
+    {
+        public string trainingId;
+        public string visualState;
+        public List<string> messages;
     }
 
     [Serializable]
@@ -1450,6 +1698,7 @@ public static class HeroineUnityDataExporter
         public List<string> blockedShownEventIds;
         public List<string> requiredOutfitIds;
         public List<string> blockedOutfitIds;
+        public List<string> requiredSkillIds;
     }
 
     [Serializable]
@@ -1519,16 +1768,20 @@ public static class HeroineUnityDataExporter
         public int gameEventCount;
         public int scheduledEventCount;
         public int endingCount;
+        public int trainingDialogueEntryCount;
+        public int trainingCatalogCount;
         public List<string> warnings;
     }
 
-    private sealed class HeroineUnityExportReport
+    internal sealed class HeroineUnityExportReport
     {
         public int actionCount;
         public int conversationCount;
         public int gameEventCount;
         public int scheduledEventCount;
         public int endingCount;
+        public int trainingDialogueEntryCount;
+        public int trainingCatalogCount;
         public bool profileExported;
         public readonly List<string> warnings = new List<string>();
 
@@ -1548,6 +1801,8 @@ public static class HeroineUnityDataExporter
                 "Game events: " + gameEventCount + "\n" +
                 "Scheduled events: " + scheduledEventCount + "\n" +
                 "Endings: " + endingCount + "\n" +
+                "Training dialogue entries: " + trainingDialogueEntryCount + "\n" +
+                "Trainings: " + trainingCatalogCount + "\n" +
                 "Warnings: " + warnings.Count;
         }
     }
