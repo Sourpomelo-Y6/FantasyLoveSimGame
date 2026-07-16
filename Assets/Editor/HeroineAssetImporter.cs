@@ -540,7 +540,7 @@ public static class HeroineAssetImporter
         return result;
     }
 
-    private static void ImportTrainingDialogues(
+    internal static void ImportTrainingDialogues(
         string exportFolder,
         string heroineId,
         HeroineImportReport report)
@@ -2911,7 +2911,7 @@ public static class HeroineAssetImporter
         public string unityImagePath;
     }
 
-    private sealed class HeroineImportReport
+    internal sealed class HeroineImportReport
     {
         public int copiedImageCount;
         public int catalogAssetCount;
