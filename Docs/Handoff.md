@@ -54,6 +54,7 @@
 - タイトル画面にはキャラクター選択 UI を追加済み。`Resources.LoadAll<HeroineProfileData>("Heroines")` で候補を列挙し、選択中プロフィールの表示名と立ち絵をプレビューして、決定後に新規ゲーム用の選択ヒロインとして `GameStartSettings` へ渡す。ロード時はセーブデータ内のヒロイン ID を優先する
 - `HeroineProfileData` の共通セリフ、衣装メッセージ、Resources path、ヒロイン戦闘スキルは `FantasyLoveSimAssetTool` のプロフィール画面で編集でき、`heroine_profile_export.json` と Unity の `heroine_profile_from_unity.json` の往復同期に対応済み。旧JSONで省略された戦闘スキルは既存値を維持し、明示された空配列だけを削除として扱う
 - ヒロイン固有の訓練スキルとスキルツリーノードはAssetToolのプロフィール画面で編集し、`heroine_skills_export.json` / `heroine_skills_from_unity.json` で往復できる。Unity Importerはヒロイン別フォルダだけを更新し、主人公ノード、他ヒロイン、共通 `TrainingData` を変更しない。前提ノード、解放訓練、実績条件、ツリー座標も同期対象
+- ヒロイン別の戦闘後イベントと戦闘パネル結果メッセージはAssetToolの「戦闘メッセージ」タブで編集し、`battle_result_events_export.json` / `battle_panel_result_messages_export.json` と対応するFromUnity JSONで往復できる。結果種別、`battleContextId`、本文、`stillId`、好感度、解放衣装を保持し、Unity Importerはプロフィールで指定されたヒロイン別Resources pathだけを更新する
 - 差し替え確認用として `TestHeroineProfile.asset` と `Heroines/TestHeroine/...` の最小データを追加済み。`GameManager.heroineProfile` に割り当てると、ヒロイン別読み込みの手動確認に使える
 - devでのTestHeroine切り替えは、Scene上の`GameManager.heroineProfile`を書き換えず、`Tools > FantasyLoveSim > Development Heroine Override`を使用する。設定は端末ローカルのEditorPrefsへ保存され、Gitやmainブランチへ混入しない。新規ゲーム時だけ指定プロフィールを優先し、ロード時はセーブデータのヒロインを優先する
 - 別リポジトリまたは別フォルダで Stable Diffusion 向けキャラクター素材生成ツールを作る方針。仕様は `Docs/CharacterAssetGenerationToolSpec.md` に整理済み

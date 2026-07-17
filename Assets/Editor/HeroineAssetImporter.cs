@@ -80,6 +80,7 @@ public static class HeroineAssetImporter
         ImportTrainingImages(exportFolder, profileExport.heroineId, report);
         ImportTrainingDialogues(exportFolder, profileExport.heroineId, report);
         HeroineSkillTreeAssetSync.Import(exportFolder, profileExport.heroineId);
+        HeroineBattleMessageAssetSync.Import(exportFolder, profile);
         ImportSpriteLayers(exportFolder, profileExport.heroineId, report);
         ImportConversations(exportFolder, profileExport.heroineId, report);
         ImportGameEvents(exportFolder, profileExport.heroineId, report);

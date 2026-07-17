@@ -68,6 +68,7 @@ public static class HeroineUnityDataExporter
         ExportTrainingCatalog(profile, outputFolder, report);
         ExportTrainingDialogues(profile, outputFolder, report);
         HeroineSkillTreeAssetSync.Export(profile.heroineId, outputFolder);
+        HeroineBattleMessageAssetSync.Export(profile, outputFolder);
         WriteReport(profile, outputFolder, report);
 
         Debug.Log(

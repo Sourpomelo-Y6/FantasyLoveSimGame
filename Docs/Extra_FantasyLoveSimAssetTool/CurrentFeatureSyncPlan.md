@@ -86,7 +86,7 @@ Unityからは `heroine_skills_from_unity.json` を出力し、Toolで
 `heroine_profile_from_unity.json` を読み込む際に同じフォルダから併せて取り込む。
 配列が省略された旧JSONでは既存値を維持し、明示された空配列だけを削除として扱う。
 
-### 優先度5: 戦闘・訓練・結果文章
+### 優先度5: 戦闘・訓練・結果文章（戦闘結果・訓練文章は実装済み）
 
 既存の会話系データに加えて、次をToolで編集・同期する候補とする。
 
@@ -95,6 +95,13 @@ Unityからは `heroine_skills_from_unity.json` を出力し、Toolで
 - 訓練開始、切替、LP消費、終了時のヒロイン別文章
 
 訓練文章の専用データ型がUnity側で確定するまでは、Toolへ先行して不安定なJSONを追加せず、`training_images_export.json` と画像生成を優先する。
+
+訓練文章は `training_dialogues_export.json` で同期済み。戦闘結果文章は
+`battle_result_events_export.json` と `battle_panel_result_messages_export.json` をToolから出力し、
+Unityからは対応する `*_from_unity.json` を出力する。Toolの戦闘メッセージタブでは、
+勝敗・逃走種別、`battleContextId`、本文、`stillId`、好感度変化、解放衣装を編集できる。
+Unity Importerは `HeroineProfileData` のヒロイン別Resources pathだけを更新し、共通フォールバックデータは変更しない。
+現在のUnityデータ型には表情IDがないため、表情指定はデータ型と実行時表示の拡張後に追加する。
 
 ## Toolで扱わない範囲
 
