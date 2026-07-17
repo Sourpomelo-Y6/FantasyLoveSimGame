@@ -52,7 +52,7 @@
 - タイトルから新規ゲームを開始した直後は、`GameEventData` の `GameStart` イベントを再生してからメイン画面を始める。`GameEventData` はヒロイン別 Resources パスに置き、ページ単位で話者・メッセージ・スチルを持てる
 - ヒロイン差し替えは `HeroineProfileData` で管理する。画像、会話、イベント、行動反応、エンディング、朝夜の挨拶などの共通セリフをヒロイン単位で束ね、`Images/Background` は共通背景として扱う。現在は `DefaultHeroineProfile.asset` で `Heroines/DefaultHeroine/Actions` / `Conversations` / `GameEvents` / `Endings` を参照している
 - タイトル画面にはキャラクター選択 UI を追加済み。`Resources.LoadAll<HeroineProfileData>("Heroines")` で候補を列挙し、選択中プロフィールの表示名と立ち絵をプレビューして、決定後に新規ゲーム用の選択ヒロインとして `GameStartSettings` へ渡す。ロード時はセーブデータ内のヒロイン ID を優先する
-- `HeroineProfileData` の共通セリフは Unity 側では編集、読み込み可能。`FantasyLoveSimAssetTool` 側の編集 UI と `heroine_profile_export.json` 出力対応は後回しの TODO
+- `HeroineProfileData` の共通セリフ、衣装メッセージ、Resources path、ヒロイン戦闘スキルは `FantasyLoveSimAssetTool` のプロフィール画面で編集でき、`heroine_profile_export.json` と Unity の `heroine_profile_from_unity.json` の往復同期に対応済み。旧JSONで省略された戦闘スキルは既存値を維持し、明示された空配列だけを削除として扱う
 - 差し替え確認用として `TestHeroineProfile.asset` と `Heroines/TestHeroine/...` の最小データを追加済み。`GameManager.heroineProfile` に割り当てると、ヒロイン別読み込みの手動確認に使える
 - devでのTestHeroine切り替えは、Scene上の`GameManager.heroineProfile`を書き換えず、`Tools > FantasyLoveSim > Development Heroine Override`を使用する。設定は端末ローカルのEditorPrefsへ保存され、Gitやmainブランチへ混入しない。新規ゲーム時だけ指定プロフィールを優先し、ロード時はセーブデータのヒロインを優先する
 - 別リポジトリまたは別フォルダで Stable Diffusion 向けキャラクター素材生成ツールを作る方針。仕様は `Docs/CharacterAssetGenerationToolSpec.md` に整理済み
