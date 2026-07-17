@@ -79,6 +79,7 @@ public static class HeroineAssetImporter
         ApplyDefaultHeroineSprite(profile, report.defaultSpritePath, report);
         ImportTrainingImages(exportFolder, profileExport.heroineId, report);
         ImportTrainingDialogues(exportFolder, profileExport.heroineId, report);
+        HeroineSkillTreeAssetSync.Import(exportFolder, profileExport.heroineId);
         ImportSpriteLayers(exportFolder, profileExport.heroineId, report);
         ImportConversations(exportFolder, profileExport.heroineId, report);
         ImportGameEvents(exportFolder, profileExport.heroineId, report);
