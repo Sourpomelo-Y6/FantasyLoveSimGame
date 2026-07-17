@@ -59,7 +59,7 @@
 - 戦闘後イベントは話者種別、任意話者名、表情IDを持ち、既存の話者・表情付きメッセージキューで表示する。話者名が空なら種別に応じた既定名を使い、表情IDが空なら現在の表情を維持する。AssetToolでは話者と登録済み表情を候補選択でき、JSON往復にも対応する
 - 戦闘後イベントの表示方式は `Auto / StillOnly / StillWithPortrait / PortraitOnly`。`Auto` はカタログから専用スチルを解決できれば立ち絵を隠し、解決できなければ探索画像の上へ半透明の黒い暗幕と立ち絵を表示する。暗幕は参照未設定時に立ち絵の背面へ実行時生成される。TestHeroineの同行勝利は探索画像を残す `StillWithPortrait` を使用する
 - AssetToolの `Unity Profile読込` は、同じフォルダにある戦闘結果・戦闘パネル文JSONの追加、更新、削除、維持件数と、話者・表情・表示方式の変更件数を戦闘メッセージタブへ表示する。画面下の `戦闘メッセージへ` で直接移動できる
-- AssetToolの `制作状況` タブは、現在選択中のヒロインについて基本情報、戦闘メッセージ、訓練画像を既存データから `○ / △ / ×` で都度集計する。基本項目、必須勝敗メッセージ、各訓練の5画像状態を個別行で確認でき、カテゴリまたは詳細行をクリックすると対応する編集タブへ移動する。未完成のみ表示と再集計に対応する
+- AssetToolの `制作状況` タブは、現在選択中のヒロインについて基本情報、戦闘メッセージ、訓練画像、会話、表情、衣装を既存データから `○ / △ / ×` で都度集計する。会話のID・本文、Neutral／Default定義、各レイヤーのAccepted画像、会話・戦闘からの表情／衣装参照も個別行で確認でき、クリックすると対応する編集タブへ移動する。未完成のみ表示と再集計に対応する
 - 差し替え確認用として `TestHeroineProfile.asset` と `Heroines/TestHeroine/...` の最小データを追加済み。`GameManager.heroineProfile` に割り当てると、ヒロイン別読み込みの手動確認に使える
 - devでのTestHeroine切り替えは、Scene上の`GameManager.heroineProfile`を書き換えず、`Tools > FantasyLoveSim > Development Heroine Override`を使用する。設定は端末ローカルのEditorPrefsへ保存され、Gitやmainブランチへ混入しない。新規ゲーム時だけ指定プロフィールを優先し、ロード時はセーブデータのヒロインを優先する
 - 別リポジトリまたは別フォルダで Stable Diffusion 向けキャラクター素材生成ツールを作る方針。仕様は `Docs/CharacterAssetGenerationToolSpec.md` に整理済み
