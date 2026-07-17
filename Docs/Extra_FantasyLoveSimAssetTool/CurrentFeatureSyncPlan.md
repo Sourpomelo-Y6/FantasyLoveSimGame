@@ -101,11 +101,15 @@ Unityからは `heroine_skills_from_unity.json` を出力し、Toolで
 Unityからは対応する `*_from_unity.json` を出力する。Toolの戦闘メッセージタブでは、
 勝敗・逃走種別、`battleContextId`、本文、`stillId`、好感度変化、解放衣装を編集できる。
 Unity Importerは `HeroineProfileData` のヒロイン別Resources pathだけを更新し、共通フォールバックデータは変更しない。
-現在のUnityデータ型には表情IDがないため、表情指定はデータ型と実行時表示の拡張後に追加する。
+戦闘後イベントは `speakerType`、任意の `speakerName`、`expressionId` を保持し、
+既存の話者・表情付きメッセージキューへ渡す。表情未指定時は現在表示を変更しない。
 Toolの結果種別はComboBoxから選び、`stillId` と解放衣装IDは登録済み候補を参照できる。
 Export時は空ID・空メッセージ・未知の結果種別・同一結果条件の重複をError、
 未登録のスチル／衣装参照をWarningとしてExport結果へ表示する。
 Unity Import完了時には戦闘メッセージの追加・更新・削除・スキップ件数を表示する。
+Toolでは話者種別と登録済み表情を候補から選択でき、未知の話者種別をError、
+未登録の表情IDをWarningとして検出する。新フィールドは省略可能で、旧JSONは
+`Heroine` 話者・話者名自動解決・表情維持として読み込む。
 
 ## Toolで扱わない範囲
 

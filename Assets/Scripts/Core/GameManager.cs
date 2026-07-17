@@ -6735,6 +6735,25 @@ public class GameManager : MonoBehaviour
 
     private void AddBattleResultEventFollowUpMessage(ScheduleType scheduleType, SimpleBattleResult result)
     {
+        BattleResultEventType eventType = ResolveBattleResultEventType(scheduleType, result);
+        string battleContextId = ResolveBattleContextId(scheduleType);
+        BattleResultEventData eventData = ResolveBattleResultEventData(eventType, battleContextId);
+        if (eventData != null && !string.IsNullOrEmpty(eventData.message))
+        {
+            DialogueSpeakerType speakerType = GetDialogueSpeakerType(eventData.speakerType);
+            string speakerName = string.IsNullOrWhiteSpace(eventData.speakerName)
+                ? GetGameEventDefaultSpeakerName(eventData.speakerType)
+                : eventData.speakerName;
+            pendingScheduledEventFollowUpMessages.Add(new DialogueMessage(
+                speakerType,
+                speakerName,
+                FormatMessageVariables(eventData.message),
+                eventData.stillId ?? "",
+                null,
+                eventData.expressionId ?? ""));
+            return;
+        }
+
         string message = BuildBattleResultEventMessage(scheduleType, result);
         if (string.IsNullOrEmpty(message))
         {
@@ -6833,21 +6852,29 @@ public class GameManager : MonoBehaviour
         BattleResultEventType eventType,
         string battleContextId)
     {
-        string primaryMessage = ResolveBattleResultEventDataMessageFromSource(
+        BattleResultEventData data = ResolveBattleResultEventData(eventType, battleContextId);
+        return data != null ? FormatMessageVariables(data.message) : "";
+    }
+
+    private BattleResultEventData ResolveBattleResultEventData(
+        BattleResultEventType eventType,
+        string battleContextId)
+    {
+        BattleResultEventData primary = ResolveBattleResultEventDataFromSource(
             GetPrimaryBattleResultEvents(),
             eventType,
             battleContextId);
-        if (!string.IsNullOrEmpty(primaryMessage))
+        if (primary != null)
         {
-            return primaryMessage;
+            return primary;
         }
 
         if (string.Equals(battleResultEventResourcePath, BattleResultEventResourcePath, StringComparison.Ordinal))
         {
-            return "";
+            return null;
         }
 
-        return ResolveBattleResultEventDataMessageFromSource(
+        return ResolveBattleResultEventDataFromSource(
             GetCommonBattleResultEvents(),
             eventType,
             battleContextId);
@@ -6881,12 +6908,21 @@ public class GameManager : MonoBehaviour
         BattleResultEventType eventType,
         string battleContextId)
     {
+        BattleResultEventData data = ResolveBattleResultEventDataFromSource(sourceEvents, eventType, battleContextId);
+        return data != null ? FormatMessageVariables(data.message) : "";
+    }
+
+    private static BattleResultEventData ResolveBattleResultEventDataFromSource(
+        BattleResultEventData[] sourceEvents,
+        BattleResultEventType eventType,
+        string battleContextId)
+    {
         if (sourceEvents == null || sourceEvents.Length == 0)
         {
-            return "";
+            return null;
         }
 
-        string fallbackMessage = "";
+        BattleResultEventData fallback = null;
         for (int i = 0; i < sourceEvents.Length; i++)
         {
             BattleResultEventData eventData = sourceEvents[i];
@@ -6901,19 +6937,19 @@ public class GameManager : MonoBehaviour
             {
                 if (string.Equals(eventData.battleContextId, battleContextId, StringComparison.OrdinalIgnoreCase))
                 {
-                    return FormatMessageVariables(eventData.message);
+                    return eventData;
                 }
 
                 continue;
             }
 
-            if (string.IsNullOrEmpty(fallbackMessage))
+            if (fallback == null)
             {
-                fallbackMessage = eventData.message;
+                fallback = eventData;
             }
         }
 
-        return FormatMessageVariables(fallbackMessage);
+        return fallback;
     }
 
     private string FormatMessageVariables(string message)
