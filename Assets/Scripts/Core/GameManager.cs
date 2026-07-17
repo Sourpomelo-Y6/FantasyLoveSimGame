@@ -47,6 +47,7 @@ public class GameManager : MonoBehaviour
         public readonly string StillId;
         public readonly Sprite StillSprite;
         public readonly string ExpressionId;
+        public readonly BattleResultVisualMode? BattleResultVisualMode;
 
         public DialogueMessage(DialogueSpeakerType speakerType, string speakerName, string message)
             : this(speakerType, speakerName, message, null)
@@ -78,7 +79,8 @@ public class GameManager : MonoBehaviour
             string message,
             string stillId,
             Sprite stillSprite,
-            string expressionId)
+            string expressionId,
+            BattleResultVisualMode? battleResultVisualMode = null)
         {
             SpeakerType = speakerType;
             SpeakerName = speakerName;
@@ -86,6 +88,7 @@ public class GameManager : MonoBehaviour
             StillId = stillId;
             StillSprite = stillSprite;
             ExpressionId = expressionId;
+            BattleResultVisualMode = battleResultVisualMode;
         }
     }
 
@@ -243,6 +246,7 @@ public class GameManager : MonoBehaviour
     private bool dialogueSequenceHasStillImageActiveOverride = false;
     private bool dialogueSequenceIsActive = false;
     private bool dialogueSequenceHidHeroineImage = false;
+    private bool dialogueSequenceShowedPortraitBackdrop = false;
     private bool dialogueSequenceHidSaveLoadButtons = false;
     private bool dialogueSequenceHasBackgroundZoomOverride = false;
     private Vector3 dialogueSequencePreviousBackgroundZoomScale;
@@ -523,14 +527,18 @@ public class GameManager : MonoBehaviour
         string message,
         string stillId,
         Sprite stillSprite,
-        string expressionId)
+        string expressionId,
+        BattleResultVisualMode? battleResultVisualMode = null)
     {
         if (!string.IsNullOrEmpty(expressionId))
         {
             ApplyHeroineExpression(expressionId);
         }
 
-        if (stillSprite != null)
+        bool useStill = stillSprite != null &&
+            (!battleResultVisualMode.HasValue ||
+                battleResultVisualMode.Value != BattleResultVisualMode.PortraitOnly);
+        if (useStill)
         {
             UnlockStill(stillId);
 
@@ -561,7 +569,10 @@ public class GameManager : MonoBehaviour
                 stillImage.preserveAspect = true;
             }
 
-            if (!dialogueSequenceHidHeroineImage &&
+            bool hidePortrait = !battleResultVisualMode.HasValue ||
+                battleResultVisualMode.Value == BattleResultVisualMode.Auto ||
+                battleResultVisualMode.Value == BattleResultVisualMode.StillOnly;
+            if (hidePortrait && !dialogueSequenceHidHeroineImage &&
                 outfitManager != null &&
                 outfitManager.IsHeroineImageVisible())
             {
@@ -581,6 +592,15 @@ public class GameManager : MonoBehaviour
 
                 backgroundZoom.ResetZoom();
             }
+        }
+
+        if (battleResultVisualMode.HasValue && outfitManager != null)
+        {
+            bool showPortraitBackdrop = !useStill ||
+                battleResultVisualMode.Value == BattleResultVisualMode.StillWithPortrait ||
+                battleResultVisualMode.Value == BattleResultVisualMode.PortraitOnly;
+            outfitManager.SetDialoguePortraitBackdropVisible(showPortraitBackdrop);
+            dialogueSequenceShowedPortraitBackdrop |= showPortraitBackdrop;
         }
 
         if (speakerNameText != null)
@@ -659,6 +679,13 @@ public class GameManager : MonoBehaviour
         }
 
         dialogueSequenceHidHeroineImage = false;
+
+        if (dialogueSequenceShowedPortraitBackdrop && outfitManager != null)
+        {
+            outfitManager.SetDialoguePortraitBackdropVisible(false);
+        }
+
+        dialogueSequenceShowedPortraitBackdrop = false;
 
         if (dialogueSequenceHidSaveLoadButtons)
         {
@@ -873,7 +900,8 @@ public class GameManager : MonoBehaviour
             messages[0].Message,
             messages[0].StillId,
             messages[0].StillSprite,
-            messages[0].ExpressionId);
+            messages[0].ExpressionId,
+            messages[0].BattleResultVisualMode);
 
         for (int i = 1; i < messages.Count; i++)
         {
@@ -897,7 +925,8 @@ public class GameManager : MonoBehaviour
             message.Message,
             message.StillId,
             message.StillSprite,
-            message.ExpressionId);
+            message.ExpressionId,
+            message.BattleResultVisualMode);
 
         if (queuedDialogueMessages.Count == 0 && flowState == ConversationFlowState.Idle)
         {
@@ -6744,13 +6773,19 @@ public class GameManager : MonoBehaviour
             string speakerName = string.IsNullOrWhiteSpace(eventData.speakerName)
                 ? GetGameEventDefaultSpeakerName(eventData.speakerType)
                 : eventData.speakerName;
+            Sprite stillSprite = null;
+            if (!string.IsNullOrWhiteSpace(eventData.stillId))
+            {
+                TryResolveHeroineCatalogSprite(eventData.stillId, out stillSprite);
+            }
             pendingScheduledEventFollowUpMessages.Add(new DialogueMessage(
                 speakerType,
                 speakerName,
                 FormatMessageVariables(eventData.message),
                 eventData.stillId ?? "",
-                null,
-                eventData.expressionId ?? ""));
+                stillSprite,
+                eventData.expressionId ?? "",
+                eventData.visualMode));
             return;
         }
 

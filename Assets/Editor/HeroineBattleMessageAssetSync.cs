@@ -42,6 +42,7 @@ public static class HeroineBattleMessageAssetSync
                     speakerName = x.speakerName,
                     message = x.message,
                     stillId = x.stillId,
+                    visualMode = x.visualMode.ToString(),
                     expressionId = x.expressionId,
                     affectionChange = x.affectionChange,
                     unlockedOutfitIds = x.unlockedOutfitIds ?? Array.Empty<string>()
@@ -86,6 +87,7 @@ public static class HeroineBattleMessageAssetSync
             asset.speakerName = item.speakerName ?? string.Empty;
             asset.message = item.message ?? string.Empty;
             asset.stillId = item.stillId ?? string.Empty;
+            asset.visualMode = Parse(item.visualMode, BattleResultVisualMode.Auto);
             asset.expressionId = item.expressionId ?? string.Empty;
             asset.affectionChange = item.affectionChange;
             asset.unlockedOutfitIds = CleanIds(item.unlockedOutfitIds).ToArray();
@@ -167,7 +169,7 @@ public static class HeroineBattleMessageAssetSync
     }
 
     [Serializable] private class ResultEventsFile { public int schemaVersion; public string heroineId; public ResultEventItem[] items; }
-    [Serializable] private class ResultEventItem { public string eventId; public string resultType; public string battleContextId; public string speakerType; public string speakerName; public string message; public string stillId; public string expressionId; public int affectionChange; public string[] unlockedOutfitIds; }
+    [Serializable] private class ResultEventItem { public string eventId; public string resultType; public string battleContextId; public string speakerType; public string speakerName; public string message; public string stillId; public string visualMode; public string expressionId; public int affectionChange; public string[] unlockedOutfitIds; }
     [Serializable] private class PanelMessagesFile { public int schemaVersion; public string heroineId; public PanelMessageItem[] items; }
     [Serializable] private class PanelMessageItem { public string messageId; public string resultType; public string message; }
 }

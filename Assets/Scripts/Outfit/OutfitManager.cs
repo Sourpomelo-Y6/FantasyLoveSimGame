@@ -18,6 +18,7 @@ public class OutfitManager : MonoBehaviour
 
     [Header("View")]
     [SerializeField] private Image heroineImage;
+    [SerializeField] private Image dialoguePortraitBackdrop;
     [SerializeField] private HeroineLayeredSpriteView layeredSpriteView;
 
     [Header("Outfit Data")]
@@ -909,6 +910,49 @@ public class OutfitManager : MonoBehaviour
 
         SetLayeredSpriteVisible(false);
         SetSingleHeroineImageVisible(true);
+    }
+
+    public void SetDialoguePortraitBackdropVisible(bool visible)
+    {
+        if (dialoguePortraitBackdrop == null && visible)
+        {
+            dialoguePortraitBackdrop = CreateDialoguePortraitBackdrop();
+        }
+
+        if (dialoguePortraitBackdrop != null)
+        {
+            dialoguePortraitBackdrop.gameObject.SetActive(visible);
+        }
+    }
+
+    private Image CreateDialoguePortraitBackdrop()
+    {
+        Transform portrait = heroineImage != null
+            ? heroineImage.transform
+            : layeredSpriteView != null ? layeredSpriteView.transform : null;
+        RectTransform parent = portrait != null ? portrait.parent as RectTransform : null;
+        if (parent == null)
+        {
+            return null;
+        }
+
+        GameObject backdropObject = new GameObject(
+            "DialoguePortraitBackdrop",
+            typeof(RectTransform),
+            typeof(CanvasRenderer),
+            typeof(Image));
+        RectTransform rect = backdropObject.GetComponent<RectTransform>();
+        rect.SetParent(parent, false);
+        rect.anchorMin = Vector2.zero;
+        rect.anchorMax = Vector2.one;
+        rect.offsetMin = Vector2.zero;
+        rect.offsetMax = Vector2.zero;
+        rect.SetSiblingIndex(portrait.GetSiblingIndex());
+
+        Image backdrop = backdropObject.GetComponent<Image>();
+        backdrop.color = new Color(0f, 0f, 0f, 0.42f);
+        backdrop.raycastTarget = false;
+        return backdrop;
     }
 
     public bool IsHeroineImageVisible()
