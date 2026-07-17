@@ -33,7 +33,7 @@ MonoBehaviour:
   allowedWeathers: 
   pages:
   - speakerType: 4
-    speakerName: Neutral
+    speakerName: 
     message: "\u3044\u3064\u3082\u3068\u69D8\u5B50\u304C\u9055\u3063\u305F\u304B\u3089\u3002\u8A71\u305B\u308B\u3053\u3068\u306A\u3089\u805E\u304B\u305B\u3066\u307B\u3057\u3044\u3002"
     expressionId: 
     stillId: 
