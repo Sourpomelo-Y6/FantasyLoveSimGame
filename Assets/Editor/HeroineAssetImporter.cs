@@ -80,7 +80,11 @@ public static class HeroineAssetImporter
         ImportTrainingImages(exportFolder, profileExport.heroineId, report);
         ImportTrainingDialogues(exportFolder, profileExport.heroineId, report);
         HeroineSkillTreeAssetSync.Import(exportFolder, profileExport.heroineId);
-        HeroineBattleMessageAssetSync.Import(exportFolder, profile);
+        BattleMessageImportSummary battleMessageSummary = HeroineBattleMessageAssetSync.Import(exportFolder, profile);
+        report.battleMessageAddedCount = battleMessageSummary.addedCount;
+        report.battleMessageUpdatedCount = battleMessageSummary.updatedCount;
+        report.battleMessageDeletedCount = battleMessageSummary.deletedCount;
+        report.battleMessageSkippedCount = battleMessageSummary.skippedCount;
         ImportSpriteLayers(exportFolder, profileExport.heroineId, report);
         ImportConversations(exportFolder, profileExport.heroineId, report);
         ImportGameEvents(exportFolder, profileExport.heroineId, report);
@@ -2942,6 +2946,10 @@ public static class HeroineAssetImporter
         public int trainingImageUnresolvedCount;
         public int trainingImageSkippedCount;
         public int trainingDialogueEntryCount;
+        public int battleMessageAddedCount;
+        public int battleMessageUpdatedCount;
+        public int battleMessageDeletedCount;
+        public int battleMessageSkippedCount;
         public bool trainingImageSettingsUpdated;
         public string defaultSpritePath;
         public readonly List<string> warnings = new List<string>();
@@ -2955,7 +2963,7 @@ public static class HeroineAssetImporter
         public void LogSummary(string assetPath)
         {
             Debug.Log(
-                $"Heroine export を import しました: {assetPath}, copied images: {copiedImageCount}, catalog assets: {catalogAssetCount}, training images: {trainingImageCount}, training entries: {trainingImageEntryCount}, training dialogues: {trainingDialogueEntryCount}, training unresolved: {trainingImageUnresolvedCount}, training skipped: {trainingImageSkippedCount}, layers: {layerCount}, conversations: {conversationCount}, game events: {gameEventCount}, scheduled events: {scheduledEventCount}, action reactions: {actionReactionCount}, endings: {endingCount}, warnings: {warnings.Count}");
+                $"Heroine export を import しました: {assetPath}, copied images: {copiedImageCount}, catalog assets: {catalogAssetCount}, training images: {trainingImageCount}, training entries: {trainingImageEntryCount}, training dialogues: {trainingDialogueEntryCount}, battle messages added/updated/deleted/skipped: {battleMessageAddedCount}/{battleMessageUpdatedCount}/{battleMessageDeletedCount}/{battleMessageSkippedCount}, training unresolved: {trainingImageUnresolvedCount}, training skipped: {trainingImageSkippedCount}, layers: {layerCount}, conversations: {conversationCount}, game events: {gameEventCount}, scheduled events: {scheduledEventCount}, action reactions: {actionReactionCount}, endings: {endingCount}, warnings: {warnings.Count}");
         }
 
         public string CreateDialogMessage(string assetPath)
@@ -2969,6 +2977,7 @@ public static class HeroineAssetImporter
                 "Training settings updated: " + (trainingImageSettingsUpdated ? "Yes" : "No") + "\n" +
                 "Training entries: " + trainingImageEntryCount + "\n" +
                 "Training dialogues: " + trainingDialogueEntryCount + "\n" +
+                "Battle messages added/updated/deleted/skipped: " + battleMessageAddedCount + "/" + battleMessageUpdatedCount + "/" + battleMessageDeletedCount + "/" + battleMessageSkippedCount + "\n" +
                 "Training unresolved: " + trainingImageUnresolvedCount + "\n" +
                 "Training skipped: " + trainingImageSkippedCount + "\n" +
                 "Layers: " + layerCount + "\n" +

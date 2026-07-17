@@ -13,12 +13,14 @@ public static class HeroineBattleMessageAssetSync
     private const string ResultExportName = "battle_result_events_from_unity.json";
     private const string PanelExportName = "battle_panel_result_messages_from_unity.json";
 
-    public static void Import(string exportFolder, HeroineProfileData profile)
+    public static BattleMessageImportSummary Import(string exportFolder, HeroineProfileData profile)
     {
-        if (profile == null) return;
-        ImportResultEvents(Path.Combine(exportFolder, ResultImportPath), profile);
-        ImportPanelMessages(Path.Combine(exportFolder, PanelImportPath), profile);
+        BattleMessageImportSummary summary = new BattleMessageImportSummary();
+        if (profile == null) return summary;
+        ImportResultEvents(Path.Combine(exportFolder, ResultImportPath), profile, summary);
+        ImportPanelMessages(Path.Combine(exportFolder, PanelImportPath), profile, summary);
         AssetDatabase.SaveAssets();
+        return summary;
     }
 
     public static void Export(HeroineProfileData profile, string outputFolder)
@@ -58,11 +60,11 @@ public static class HeroineBattleMessageAssetSync
         File.WriteAllText(Path.Combine(outputFolder, PanelExportName), JsonUtility.ToJson(panelFile, true));
     }
 
-    private static void ImportResultEvents(string jsonPath, HeroineProfileData profile)
+    private static void ImportResultEvents(string jsonPath, HeroineProfileData profile, BattleMessageImportSummary summary)
     {
         if (!File.Exists(jsonPath)) return;
         ResultEventsFile data = JsonUtility.FromJson<ResultEventsFile>(File.ReadAllText(jsonPath));
-        if (!CanImport(data?.schemaVersion ?? 0, data?.heroineId, profile.heroineId, Path.GetFileName(jsonPath))) return;
+        if (!CanImport(data?.schemaVersion ?? 0, data?.heroineId, profile.heroineId, Path.GetFileName(jsonPath))) { summary.skippedCount++; return; }
         if (data.items == null) return;
         string folder = ToHeroineAssetFolder(profile.battleResultEventResourcePath, profile.heroineId);
         if (folder == null) return;
@@ -70,10 +72,11 @@ public static class HeroineBattleMessageAssetSync
         HashSet<string> keep = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         foreach (ResultEventItem item in data.items)
         {
-            if (item == null || string.IsNullOrWhiteSpace(item.eventId)) continue;
+            if (item == null || string.IsNullOrWhiteSpace(item.eventId)) { summary.skippedCount++; continue; }
             string path = $"{folder}/{SafeFileName(item.eventId.Trim())}.asset";
             BattleResultEventData asset = AssetDatabase.LoadAssetAtPath<BattleResultEventData>(path);
-            if (asset == null) { asset = ScriptableObject.CreateInstance<BattleResultEventData>(); AssetDatabase.CreateAsset(asset, path); }
+            if (asset == null) { asset = ScriptableObject.CreateInstance<BattleResultEventData>(); AssetDatabase.CreateAsset(asset, path); summary.addedCount++; }
+            else summary.updatedCount++;
             asset.battleResultEventType = Parse(item.resultType, BattleResultEventType.SoloVictory);
             asset.battleContextId = item.battleContextId ?? string.Empty;
             asset.message = item.message ?? string.Empty;
@@ -83,14 +86,14 @@ public static class HeroineBattleMessageAssetSync
             EditorUtility.SetDirty(asset);
             keep.Add(path);
         }
-        DeleteMissing<BattleResultEventData>(folder, keep);
+        summary.deletedCount += DeleteMissing<BattleResultEventData>(folder, keep);
     }
 
-    private static void ImportPanelMessages(string jsonPath, HeroineProfileData profile)
+    private static void ImportPanelMessages(string jsonPath, HeroineProfileData profile, BattleMessageImportSummary summary)
     {
         if (!File.Exists(jsonPath)) return;
         PanelMessagesFile data = JsonUtility.FromJson<PanelMessagesFile>(File.ReadAllText(jsonPath));
-        if (!CanImport(data?.schemaVersion ?? 0, data?.heroineId, profile.heroineId, Path.GetFileName(jsonPath))) return;
+        if (!CanImport(data?.schemaVersion ?? 0, data?.heroineId, profile.heroineId, Path.GetFileName(jsonPath))) { summary.skippedCount++; return; }
         if (data.items == null) return;
         string folder = ToHeroineAssetFolder(profile.battlePanelResultMessageResourcePath, profile.heroineId);
         if (folder == null) return;
@@ -98,16 +101,17 @@ public static class HeroineBattleMessageAssetSync
         HashSet<string> keep = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         foreach (PanelMessageItem item in data.items)
         {
-            if (item == null || string.IsNullOrWhiteSpace(item.messageId)) continue;
+            if (item == null || string.IsNullOrWhiteSpace(item.messageId)) { summary.skippedCount++; continue; }
             string path = $"{folder}/{SafeFileName(item.messageId.Trim())}.asset";
             BattlePanelResultMessageData asset = AssetDatabase.LoadAssetAtPath<BattlePanelResultMessageData>(path);
-            if (asset == null) { asset = ScriptableObject.CreateInstance<BattlePanelResultMessageData>(); AssetDatabase.CreateAsset(asset, path); }
+            if (asset == null) { asset = ScriptableObject.CreateInstance<BattlePanelResultMessageData>(); AssetDatabase.CreateAsset(asset, path); summary.addedCount++; }
+            else summary.updatedCount++;
             asset.resultType = Parse(item.resultType, BattlePanelResultMessageType.Default);
             asset.message = item.message ?? string.Empty;
             EditorUtility.SetDirty(asset);
             keep.Add(path);
         }
-        DeleteMissing<BattlePanelResultMessageData>(folder, keep);
+        summary.deletedCount += DeleteMissing<BattlePanelResultMessageData>(folder, keep);
     }
 
     private static bool CanImport(int version, string jsonHeroineId, string expectedHeroineId, string fileName)
@@ -143,10 +147,12 @@ public static class HeroineBattleMessageAssetSync
     private static T Parse<T>(string value, T fallback) where T : struct => Enum.TryParse(value, true, out T parsed) ? parsed : fallback;
     private static List<string> CleanIds(IEnumerable<string> ids) => (ids ?? Enumerable.Empty<string>()).Where(x => !string.IsNullOrWhiteSpace(x)).Select(x => x.Trim()).Distinct(StringComparer.Ordinal).ToList();
     private static string SafeFileName(string value) => string.Concat(value.Select(c => Path.GetInvalidFileNameChars().Contains(c) ? '_' : c));
-    private static void DeleteMissing<T>(string folder, HashSet<string> keep) where T : UnityEngine.Object
+    private static int DeleteMissing<T>(string folder, HashSet<string> keep) where T : UnityEngine.Object
     {
+        int count = 0;
         foreach (string guid in AssetDatabase.FindAssets($"t:{typeof(T).Name}", new[] { folder }))
-        { string path = AssetDatabase.GUIDToAssetPath(guid); if (!keep.Contains(path)) AssetDatabase.DeleteAsset(path); }
+        { string path = AssetDatabase.GUIDToAssetPath(guid); if (!keep.Contains(path) && AssetDatabase.DeleteAsset(path)) count++; }
+        return count;
     }
     private static void EnsureFolder(string path)
     {
@@ -158,4 +164,12 @@ public static class HeroineBattleMessageAssetSync
     [Serializable] private class ResultEventItem { public string eventId; public string resultType; public string battleContextId; public string message; public string stillId; public int affectionChange; public string[] unlockedOutfitIds; }
     [Serializable] private class PanelMessagesFile { public int schemaVersion; public string heroineId; public PanelMessageItem[] items; }
     [Serializable] private class PanelMessageItem { public string messageId; public string resultType; public string message; }
+}
+
+public sealed class BattleMessageImportSummary
+{
+    public int addedCount;
+    public int updatedCount;
+    public int deletedCount;
+    public int skippedCount;
 }
