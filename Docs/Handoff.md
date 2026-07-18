@@ -29,9 +29,10 @@
 - 予定を翌日の具体イベントに変換する案2は、準備フェーズ付きで実装済み
 - 翌朝は今日の予定と着替え可能な準備メッセージを表示し、予定イベント本体は指定された時間帯に発動する
 - 予定イベント本体の直前は、衣装確認モードに応じて `このまま出発` / `着替える` を出し分ける
+- 予定画面は将来、今日・明日だけでなく7日／30日のカレンダー表示へ変更する。実行前キャンセルと、`Application.persistentDataPath` に保存する複数の名前付きテンプレートを追加し、テンプレートだけを別セーブスロットから共有する。詳細は `Docs/ScheduleUiExpansionPlan.md` を参照する
 - 衣装確認モードは `Always` / `Conditional` / `Hidden` を想定しており、`Conditional` のときは今の衣装が予定に対して問題ない場合に確認を省略する
 - 衣装確認モードはプレイヤー側の便利機能として扱い、可否と現在の使用モードは `GameManager.playerOutfitPromptAbilities` で制御する
-- プレイヤーとヒロインそれぞれに詳細ステータス画面を用意し、その中に能力項目と能力獲得画面への導線を置く方針
+- 以下の `StatusAbilityData` 関連項目は移行前の現行実装。今後は詳細ステータス画面を閲覧専用にし、能力取得導線を撤去する
 - 能力はステータス画面から確認し、必要に応じて獲得画面へ移動して解放する
 - 現状の能力は基本的に `取得` = `解放` として扱う。ただし衣装確認モードは、解放済みの `Conditional` / `Hidden` を「使用する」ことで現在モードに設定し、選択中のモードを「解除する」と `Always` に戻せる
 - 将来、任意でオンオフできる能力がさらに必要になった場合は `Locked` / `Unlocked` / `Active` のような状態分離を検討する
@@ -48,6 +49,7 @@
 - テスト用など効果を持たない能力は `StatusAbilityKind.TestJump` のような表示種別にし、`effectType` を `None`、`abilityId` を一意に設定すると汎用の取得済みIDとして保存される
 - `ConditionalOutfitPrompt` は初期状態で解放済みのため、何もしない能力のテストには使わない
 - 詳細ステータス画面は `StatusDetailPanel`、能力項目は `StatusAbilityKind`、画面の対象切り替えは `StatusDetailRole` で扱う
+- 状態画面の独自アビリティ取得は廃止し、衣装確認モードの解放を主人公スキルツリーへ統合する方針。状態画面は閲覧専用、`StatusProgressPanel` は実績集計専用として整理する。段階移行と削除対象は `Docs/StatusAndAchievementUiReorganizationPlan.md` を参照する
 - 詳細ステータス画面の入口として `StatusDetailAction` を用意し、行動一覧から開けるようにしている
 - タイトルから新規ゲームを開始した直後は、`GameEventData` の `GameStart` イベントを再生してからメイン画面を始める。`GameEventData` はヒロイン別 Resources パスに置き、ページ単位で話者・メッセージ・スチルを持てる
 - ヒロイン差し替えは `HeroineProfileData` で管理する。画像、会話、イベント、行動反応、エンディング、朝夜の挨拶などの共通セリフをヒロイン単位で束ね、`Images/Background` は共通背景として扱う。現在は `DefaultHeroineProfile.asset` で `Heroines/DefaultHeroine/Actions` / `Conversations` / `GameEvents` / `Endings` を参照している
