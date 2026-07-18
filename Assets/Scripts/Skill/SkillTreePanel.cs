@@ -48,6 +48,7 @@ public class SkillTreePanel : MonoBehaviour
     private bool buttonsHooked;
 
     private GameObject PanelRoot => panelRoot != null ? panelRoot : gameObject;
+    public bool IsOpen => PanelRoot != null && PanelRoot.activeInHierarchy;
 
     private void Awake()
     {
@@ -77,6 +78,10 @@ public class SkillTreePanel : MonoBehaviour
     public void Close()
     {
         PanelRoot.SetActive(false);
+        if (gameManager != null)
+        {
+            gameManager.TryStartPendingSkillTreeUnlockEvent();
+        }
     }
 
     private void ShowPlayerNodes()

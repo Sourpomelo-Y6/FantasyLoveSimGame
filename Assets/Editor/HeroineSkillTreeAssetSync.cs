@@ -124,6 +124,8 @@ public static class HeroineSkillTreeAssetSync
             node.sortOrder = item.sortOrder;
             node.skillPointCost = Math.Max(0, item.skillPointCost);
             node.unlockedTrainingIds = CleanIds(item.unlockedTrainingIds);
+            node.unlockEventHeroineId = heroineId;
+            node.unlockEventId = item.unlockEventId ?? string.Empty;
             node.unlockConditions = (item.unlockConditions ?? Array.Empty<ConditionItem>()).Where(x => x != null)
                 .Select(x => new SkillTreeUnlockCondition
                 {
@@ -170,6 +172,7 @@ public static class HeroineSkillTreeAssetSync
         skillPointCost = node.skillPointCost,
         prerequisiteNodeIds = (node.prerequisiteNodes ?? new List<SkillTreeNodeData>()).Where(x => x != null).Select(x => x.nodeId).ToArray(),
         unlockedTrainingIds = (node.unlockedTrainingIds ?? new List<string>()).ToArray(),
+        unlockEventId = node.unlockEventId,
         unlockConditions = (node.unlockConditions ?? new List<SkillTreeUnlockCondition>()).Where(x => x != null).Select(x => new ConditionItem
         { conditionType = x.conditionType.ToString(), scope = x.scope.ToString(), targetId = x.targetId, requiredValue = x.requiredValue }).ToArray(),
         treePositionX = node.treePosition.x, treePositionY = node.treePosition.y
@@ -194,6 +197,6 @@ public static class HeroineSkillTreeAssetSync
 
     [Serializable] private class HeroineSkillsFile { public int schemaVersion; public string heroineId; public TrainingSkillItem[] trainingSkills; public NodeItem[] nodes; }
     [Serializable] private class TrainingSkillItem { public string skillId; public string displayName; public string description; public int sortOrder; public bool isEnabled = true; public int playerHpCostReduction; public int heroineHpCostReduction; public int affectionRewardModifier; public int proficiencyRewardModifier; public string applicationScope; public string applicationTargetId; }
-    [Serializable] private class NodeItem { public string nodeId; public string displayName; public string trainingSkillId; public string grantedHeroineSkillId; public int sortOrder; public int skillPointCost; public string[] prerequisiteNodeIds; public string[] unlockedTrainingIds; public ConditionItem[] unlockConditions; public float treePositionX; public float treePositionY; }
+    [Serializable] private class NodeItem { public string nodeId; public string displayName; public string trainingSkillId; public string grantedHeroineSkillId; public int sortOrder; public int skillPointCost; public string[] prerequisiteNodeIds; public string[] unlockedTrainingIds; public string unlockEventId; public ConditionItem[] unlockConditions; public float treePositionX; public float treePositionY; }
     [Serializable] private class ConditionItem { public string conditionType; public string scope; public string targetId; public int requiredValue; }
 }

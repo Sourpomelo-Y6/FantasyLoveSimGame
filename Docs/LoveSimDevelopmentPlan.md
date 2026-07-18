@@ -375,7 +375,9 @@ AssetTool の `sprite_layers_export.json` は importer で `HeroineLayeredSprite
 文字列ID欄の `requiredOutfitIds` / `blockedOutfitIds` も残しているが、通常は Unity Inspector で `OutfitData` アセットを選べる `requiredOutfits` / `blockedOutfits` を使う。
 衣装の種類や属性ではなく、実際に着ている衣装を直接指定する方が、表示するスチルとの対応を崩しにくい。
 汎用スキルのイベント条件接続は実装済み。`requiredSkillIds` は取得済み主人公ノードから再構築されるスキル ID を参照し、条件のためだけのセーブ項目は追加しない。空または未取得の ID が含まれるイベントは開始不可として安全に扱う。`GameEventDataValidator` は存在しない ID と同一イベント内の重複・空 ID を検出し、`FantasyLoveSim > Validate Game Event Data` から全ヒロインのイベントを検証できる。Editor Play / Development Build の起動時にも全ヒロインのイベントを検証する。
-確認用として汎用スキル「気配り」と主人公ノード `Player_Consideration`、TestHeroine 専用手動イベント `Manual_Consideration_01` を追加する。訓練を1回完了して訓練回数と SP を獲得し、1 SP で「気配り」を取得すると、F7 からイベントを開始できる。取得前は同じ操作をしても開始しない。イベントは繰り返し確認できるよう `showOnce=false` とする。
+確認用として汎用スキル「気配り」と主人公ノード `Player_Consideration`、TestHeroine 専用イベント `Manual_Consideration_01` を追加する。訓練を1回完了して訓練回数と SP を獲得し、1 SP で「気配り」を取得してスキルツリーを閉じるとイベントを自動開始する。`SkillTreeNodeData.unlockEventId` に `Manual` イベントID、`unlockEventHeroineId` に対象ヒロインIDを設定する。取得済みノードかつ未表示イベントから待機状態を復元するため、専用のセーブ項目は不要で、ロード後も未表示ならメイン画面の安全なタイミングで開始する。イベントは `showOnce=true` とし、F7の手動確認経路も残す。
+
+取得時イベントは会話・戦闘・訓練などへ割り込ませず、`flowState` が待機中でメインの行動ボタンが表示され、スキルツリーが閉じている場合だけ開始する。イベントIDが未設定、対象ヒロインが不一致、ノード未取得、またはイベント表示済みの場合は開始しない。ヒロイン固有ノードについてはAssetToolの `取得時EventId` から `heroine_skills_export.json` を経由してUnityと往復できる。
 
 イベントスチル画像は `Assets/Images/Heroines/<HeroineId>/Event/` に置き、ファイル名はイベントIDに寄せる。
 例として、`GameStartIntro` で使う画像は `GameStartIntro_01.png` のようにする。

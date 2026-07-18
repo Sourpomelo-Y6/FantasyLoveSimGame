@@ -65,6 +65,12 @@ public class SkillTreeNodeData : ScriptableObject
     [Tooltip("取得時に利用可能にする TrainingData.trainingId。スキルを持たない解放専用ノードにも使用できます。")]
     public List<string> unlockedTrainingIds = new List<string>();
 
+    [Header("Acquisition Event")]
+    [Tooltip("空なら全ヒロイン共通。指定時は一致する HeroineProfileData.heroineId でのみ発生します。")]
+    public string unlockEventHeroineId;
+    [Tooltip("ノード取得後、メイン画面へ戻ったときに一度だけ開始する Manual GameEventData.eventId。")]
+    public string unlockEventId;
+
     [Header("Acquisition")]
     [Min(0)] public int skillPointCost = 1;
     public List<SkillTreeNodeData> prerequisiteNodes = new List<SkillTreeNodeData>();

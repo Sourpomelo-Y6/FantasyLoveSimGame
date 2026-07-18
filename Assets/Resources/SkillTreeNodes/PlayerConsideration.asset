@@ -19,6 +19,9 @@ MonoBehaviour:
   sortOrder: 130
   targetHeroineId:
   grantedHeroineSkillId:
+  unlockedTrainingIds: []
+  unlockEventHeroineId: TestHeroine
+  unlockEventId: Manual_Consideration_01
   skillPointCost: 1
   prerequisiteNodes: []
   unlockConditions:

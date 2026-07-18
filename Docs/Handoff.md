@@ -75,7 +75,7 @@
 - `GameEventData` には `minDay` / `maxDay` / `minAffection` / `maxAffection` / `requiredShownEventIds` / `blockedShownEventIds` を追加済み。発生可否は `GameManager.CanStartGameEvent(GameEventData gameEvent)` に集約し、日開始イベントと手動イベントの両方で同じ条件判定を使う
 - `GameEventData` は衣装条件も持てる。`requiredOutfitIds` / `blockedOutfitIds` の文字列ID指定に加えて、Unity Inspector で `OutfitData` アセットを選べる `requiredOutfits` / `blockedOutfits` を追加済み。判定は現在の `OutfitManager.CurrentOutfit.outfitId` に対して行う
 - `GameEventData.requiredSkillIds` に指定した主人公スキルをすべて取得済みの場合だけイベントを開始できる。取得状態は取得済み主人公ノードから再構築されるため、イベント用のセーブ項目は持たない。存在しない・重複・空のスキル ID は `FantasyLoveSim > Validate Game Event Data` で検出でき、Editor Play / Development Build の起動時にも全ヒロインのイベントを検証する
-- 確認用の汎用スキル「気配り」は、訓練を1回完了して訓練回数と SP を獲得した後、1 SPで主人公ノード `Player_Consideration` から取得する。TestHeroine 使用時は、取得前の F7 では開始せず、取得後の F7 で `Manual_Consideration_01` が開始する。`showOnce=false` のため繰り返し確認できる
+- 確認用の汎用スキル「気配り」は、訓練を1回完了して訓練回数と SP を獲得した後、1 SPで主人公ノード `Player_Consideration` から取得する。TestHeroine使用時はスキルツリーを閉じると `Manual_Consideration_01` が一度だけ自動開始する。`SkillTreeNodeData.unlockEventId` と `unlockEventHeroineId` で接続し、取得済み・未表示状態からロード後も発生待ちを復元する。F7のデバッグ起動も利用できる
 - イベントスチル画像は `Assets/Images/Heroines/<HeroineId>/Event/` に置き、`GameStartIntro_01.png` のようにイベントIDに寄せたファイル名にする
 - 将来は JSON から画像ファイルパスを取得し、イベントや回想で表示する画像を差し替えられる仕組みを追加する。画像パスは Unity の `Resources` / `StreamingAssets` / Addressables のどれで読むかを先に決め、JSON 側には `stillId` と画像パスの対応を持たせる。
 - 通常背景画像は `Assets/Images/Background/` に置く。ファイル名は `Background_Morning_Sunny.png`、`Background_Noon_Rainy.png`、`Background_Night_Snow.png` のように `Background_時間帯_天候` で統一する。

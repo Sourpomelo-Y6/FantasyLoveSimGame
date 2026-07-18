@@ -133,6 +133,18 @@ public static class SkillTreeDataValidator
         SkillTreeValidationReport report)
     {
         string label = GetNodeLabel(node);
+        if (!string.IsNullOrWhiteSpace(node.unlockEventHeroineId) &&
+            !heroinesById.ContainsKey(node.unlockEventHeroineId))
+        {
+            report.Warn(
+                label + " の unlockEventHeroineId に一致するプロフィールがありません: " +
+                node.unlockEventHeroineId);
+        }
+        if (!string.IsNullOrWhiteSpace(node.unlockEventHeroineId) &&
+            string.IsNullOrWhiteSpace(node.unlockEventId))
+        {
+            report.Warn(label + " に対象ヒロインはありますが unlockEventId が空です。");
+        }
         if (node.skillPointCost < 0)
         {
             report.Warn(label + " の skillPointCost が負数です: " + node.skillPointCost);

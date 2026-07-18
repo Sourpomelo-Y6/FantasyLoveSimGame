@@ -408,6 +408,8 @@ public class GameManager : MonoBehaviour
             }
         }
 
+        TryStartPendingSkillTreeUnlockEvent();
+
         if (Input.GetKeyDown(KeyCode.P))
         {
             OpenSchedulePanel();
@@ -3521,6 +3523,41 @@ public class GameManager : MonoBehaviour
             " / owner=" + node.owner +
             " / cost=" + evaluation.requiredSkillPoints);
         return true;
+    }
+
+    public bool TryStartPendingSkillTreeUnlockEvent()
+    {
+        if (!CanOpenSaveLoadPanel() ||
+            (skillTreePanel != null && skillTreePanel.IsOpen))
+        {
+            return false;
+        }
+
+        List<SkillTreeNodeData> nodes = GetSkillTreeNodes();
+        for (int i = 0; i < nodes.Count; i++)
+        {
+            SkillTreeNodeData node = nodes[i];
+            if (node == null ||
+                string.IsNullOrWhiteSpace(node.unlockEventId) ||
+                (!string.IsNullOrWhiteSpace(node.unlockEventHeroineId) &&
+                    !string.Equals(node.unlockEventHeroineId, currentHeroineId, StringComparison.Ordinal)) ||
+                !IsSkillTreeNodeAcquired(node.nodeId, node.owner) ||
+                (node.owner == SkillTreeOwner.Heroine && !IsSkillTreeNodeForCurrentHeroine(node)) ||
+                IsGameEventShown(node.unlockEventId))
+            {
+                continue;
+            }
+
+            if (TryStartManualGameEvent(node.unlockEventId))
+            {
+                Debug.Log(
+                    "[SkillTree] Started acquisition event node=" + node.nodeId +
+                    " / event=" + node.unlockEventId);
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private static bool HasTrainingUnlocks(SkillTreeNodeData node)
