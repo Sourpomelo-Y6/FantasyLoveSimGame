@@ -10,9 +10,9 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: c8d5a5be1d394c0d94d9bb0e0a81a0a6, type: 3}
-  m_Name: SupportiveRhythm
+  m_Name: TestHeroine_SupportiveRhythm
   m_EditorClassIdentifier: 
-  skillId: SupportiveRhythm
+  skillId: TestHeroine_SupportiveRhythm
   displayName: "\u547C\u5438\u5408\u308F\u305B"
   category: 2
   effectType: 4

@@ -378,6 +378,9 @@ AssetTool の `sprite_layers_export.json` は importer で `HeroineLayeredSprite
 確認用として汎用スキル「気配り」と主人公ノード `Player_Consideration`、TestHeroine 専用イベント `Manual_Consideration_01` を追加する。訓練を1回完了して訓練回数と SP を獲得し、1 SP で「気配り」を取得してスキルツリーを閉じるとイベントを自動開始する。`SkillTreeNodeData.unlockEventId` に `Manual` イベントID、`unlockEventHeroineId` に対象ヒロインIDを設定する。取得済みノードかつ未表示イベントから待機状態を復元するため、専用のセーブ項目は不要で、ロード後も未表示ならメイン画面の安全なタイミングで開始する。イベントは `showOnce=true` とし、F7の手動確認経路も残す。
 
 取得時イベントは会話・戦闘・訓練などへ割り込ませず、`flowState` が待機中でメインの行動ボタンが表示され、スキルツリーが閉じている場合だけ開始する。イベントIDが未設定、対象ヒロインが不一致、ノード未取得、またはイベント表示済みの場合は開始しない。ヒロイン固有ノードについてはAssetToolの `取得時EventId` から `heroine_skills_export.json` を経由してUnityと往復できる。
+`SkillTreeDataValidator` は取得時イベントについて、対象ヒロインの `gameEventResourcePath` にIDが存在すること、`triggerType=Manual`、`showOnce=true`、有効状態であることを確認する。イベントの `requiredSkillIds` は、対象ノード自身または取得必須の前提ノードから得られる主人公スキルで保証される必要がある。AssetToolの制作状況でも取得時イベントIDの存在とOnce設定を確認し、Unity側Validatorを最終的な参照検査とする。
+
+ヒロイン固有のスキルとノードは `Resources/Skills/Heroines/<HeroineId>/` と `Resources/SkillTreeNodes/Heroines/<HeroineId>/` を正規配置とする。`skillId` と `nodeId` はResources全体で一意にするため、`<HeroineId>_<用途>`を基本とする。TestHeroineの訓練スキルは `TestHeroine_SupportiveRhythm`、`TestHeroine_Encouragement`、`TestHeroine_EnduranceSupport` とする。AssetTool同期前の旧TestHeroineノードは正規配置と重複するため削除済みで、DefaultHeroineが使う共通スキルはルート配置に残す。
 
 イベントスチル画像は `Assets/Images/Heroines/<HeroineId>/Event/` に置き、ファイル名はイベントIDに寄せる。
 例として、`GameStartIntro` で使う画像は `GameStartIntro_01.png` のようにする。

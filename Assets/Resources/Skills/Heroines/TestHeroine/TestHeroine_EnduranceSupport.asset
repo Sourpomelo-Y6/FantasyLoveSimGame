@@ -10,26 +10,26 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: c8d5a5be1d394c0d94d9bb0e0a81a0a6, type: 3}
-  m_Name: Encouragement
+  m_Name: TestHeroine_EnduranceSupport
   m_EditorClassIdentifier: 
-  skillId: Encouragement
-  displayName: "\u5FDC\u63F4"
+  skillId: TestHeroine_EnduranceSupport
+  displayName: "\u6301\u4E45\u306E\u652F\u3048"
   category: 2
   effectType: 4
   targetType: 0
-  sortOrder: 130
+  sortOrder: 150
   isEnabled: 1
-  description: "\u4E3B\u4EBA\u516C\u3092\u52B1\u307E\u3057\u3066\u8A13\u7DF4\u306E\u4EA4\u6D41\u3092\u6DF1\u3081\u308B\u30D2\u30ED\u30A4\u30F3\u7528\u8A13\u7DF4\u30B9\u30AD\u30EB\u30021\u30B9\u30C6\u30C3\u30D7\u3054\u3068\u306E\u597D\u611F\u5EA6\u30921\u5897\u52A0\u3059\u308B\u3002"
+  description: "\u9577\u3044\u8A13\u7DF4\u3092\u652F\u3048\u5408\u3063\u3066\u4E57\u308A\u5207\u308B\u30D2\u30ED\u30A4\u30F3\u7528\u8A13\u7DF4\u30B9\u30AD\u30EB\u3002\u6301\u4E45\u8A13\u7DF4\u3067\u306F1\u30B9\u30C6\u30C3\u30D7\u3054\u3068\u306E\u30D2\u30ED\u30A4\u30F3HP\u6D88\u8CBB\u30921\u8EFD\u6E1B\u3059\u308B\u3002"
   cost: 0
   power: 0
   affectedStat: 0
   statusDurationTurns: 2
   trainingPlayerHpCostReduction: 0
-  trainingHeroineHpCostReduction: 0
-  trainingAffectionRewardModifier: 1
+  trainingHeroineHpCostReduction: 1
+  trainingAffectionRewardModifier: 0
   trainingProficiencyRewardModifier: 0
-  trainingApplicationScope: 0
-  trainingApplicationTargetId: 
+  trainingApplicationScope: 2
+  trainingApplicationTargetId: EnduranceTraining
   requiredAffection: 0
   requiredDay: 1
   requiredTrainingId: 

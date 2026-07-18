@@ -44,12 +44,16 @@ public static class SkillTreeDataValidator
 {
     public static SkillTreeValidationReport ValidateResources()
     {
-        return Validate(
-            Resources.LoadAll<SkillTreeNodeData>("SkillTreeNodes"),
+        SkillTreeNodeData[] nodes = Resources.LoadAll<SkillTreeNodeData>("SkillTreeNodes");
+        HeroineProfileData[] profiles = Resources.LoadAll<HeroineProfileData>("Heroines");
+        SkillTreeValidationReport report = Validate(
+            nodes,
             Resources.LoadAll<SkillData>("Skills"),
-            Resources.LoadAll<HeroineProfileData>("Heroines"),
+            profiles,
             Resources.LoadAll<TrainingData>("Training"),
             Resources.LoadAll<EnemyData>("Enemies"));
+        ValidateAcquisitionEvents(nodes, profiles, report);
+        return report;
     }
 
     public static SkillTreeValidationReport Validate(
@@ -119,6 +123,98 @@ public static class SkillTreeDataValidator
         ValidateCycles(nodes, nodeSet, report);
         ValidateTreePositions(nodes, report);
         return report;
+    }
+
+    private static void ValidateAcquisitionEvents(
+        SkillTreeNodeData[] nodes,
+        HeroineProfileData[] profiles,
+        SkillTreeValidationReport report)
+    {
+        Dictionary<string, HeroineProfileData> profilesById = new Dictionary<string, HeroineProfileData>(StringComparer.Ordinal);
+        foreach (HeroineProfileData profile in profiles ?? new HeroineProfileData[0])
+        {
+            if (profile != null && !string.IsNullOrWhiteSpace(profile.heroineId) && !profilesById.ContainsKey(profile.heroineId))
+            {
+                profilesById.Add(profile.heroineId, profile);
+            }
+        }
+
+        foreach (SkillTreeNodeData node in nodes ?? new SkillTreeNodeData[0])
+        {
+            if (node == null || string.IsNullOrWhiteSpace(node.unlockEventId))
+            {
+                continue;
+            }
+
+            string label = GetNodeLabel(node);
+            if (string.IsNullOrWhiteSpace(node.unlockEventHeroineId))
+            {
+                report.Warn(label + " の取得時イベントには unlockEventHeroineId を指定してください。");
+                continue;
+            }
+
+            if (!profilesById.TryGetValue(node.unlockEventHeroineId, out HeroineProfileData profile))
+            {
+                continue;
+            }
+
+            GameEventData[] events = Resources.LoadAll<GameEventData>(profile.gameEventResourcePath);
+            GameEventData target = Array.Find(events, gameEvent =>
+                gameEvent != null && string.Equals(gameEvent.eventId, node.unlockEventId, StringComparison.Ordinal));
+            if (target == null)
+            {
+                report.Warn(
+                    label + " の取得時イベントが対象ヒロインのイベントパスに存在しません: " +
+                    profile.gameEventResourcePath + " / eventId=" + node.unlockEventId);
+                continue;
+            }
+
+            if (target.triggerType != GameEventTriggerType.Manual)
+            {
+                report.Warn(label + " の取得時イベントは triggerType=Manual ではありません: " + node.unlockEventId);
+            }
+            if (!target.showOnce)
+            {
+                report.Warn(label + " の取得時イベントは showOnce=true にしてください: " + node.unlockEventId);
+            }
+            if (!target.isEnabled)
+            {
+                report.Warn(label + " の取得時イベントが無効です: " + node.unlockEventId);
+            }
+
+            HashSet<string> guaranteedSkillIds = new HashSet<string>(StringComparer.Ordinal);
+            CollectGuaranteedPlayerSkillIds(node, guaranteedSkillIds, new HashSet<SkillTreeNodeData>());
+            foreach (string requiredSkillId in target.requiredSkillIds ?? new List<string>())
+            {
+                if (!string.IsNullOrWhiteSpace(requiredSkillId) && !guaranteedSkillIds.Contains(requiredSkillId))
+                {
+                    report.Warn(
+                        label + " の取得だけではイベント必須スキルを保証できません: eventId=" +
+                        node.unlockEventId + " / skillId=" + requiredSkillId);
+                }
+            }
+        }
+    }
+
+    private static void CollectGuaranteedPlayerSkillIds(
+        SkillTreeNodeData node,
+        HashSet<string> skillIds,
+        HashSet<SkillTreeNodeData> visited)
+    {
+        if (node == null || !visited.Add(node))
+        {
+            return;
+        }
+
+        if (node.owner == SkillTreeOwner.Player && node.skill != null && !string.IsNullOrWhiteSpace(node.skill.skillId))
+        {
+            skillIds.Add(node.skill.skillId);
+        }
+
+        foreach (SkillTreeNodeData prerequisite in node.prerequisiteNodes ?? new List<SkillTreeNodeData>())
+        {
+            CollectGuaranteedPlayerSkillIds(prerequisite, skillIds, visited);
+        }
     }
 
     private static void ValidateNode(
