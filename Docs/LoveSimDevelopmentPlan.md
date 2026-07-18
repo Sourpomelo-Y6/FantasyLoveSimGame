@@ -381,6 +381,7 @@ AssetTool の `sprite_layers_export.json` は importer で `HeroineLayeredSprite
 `SkillTreeDataValidator` は取得時イベントについて、対象ヒロインの `gameEventResourcePath` にIDが存在すること、`triggerType=Manual`、`showOnce=true`、有効状態であることを確認する。イベントの `requiredSkillIds` は、対象ノード自身または取得必須の前提ノードから得られる主人公スキルで保証される必要がある。AssetToolの制作状況でも取得時イベントIDの存在とOnce設定を確認し、Unity側Validatorを最終的な参照検査とする。
 
 ヒロイン固有のスキルとノードは `Resources/Skills/Heroines/<HeroineId>/` と `Resources/SkillTreeNodes/Heroines/<HeroineId>/` を正規配置とする。`skillId` と `nodeId` はResources全体で一意にするため、`<HeroineId>_<用途>`を基本とする。TestHeroineの訓練スキルは `TestHeroine_SupportiveRhythm`、`TestHeroine_Encouragement`、`TestHeroine_EnduranceSupport` とする。AssetTool同期前の旧TestHeroineノードは正規配置と重複するため削除済みで、DefaultHeroineが使う共通スキルはルート配置に残す。
+AssetToolは制作状況とExport前検査で、ヒロイン固有の訓練SkillIdとNodeIdが `<HeroineId>_` で始まることを必須確認する。Unityの `HeroineSkillTreeAssetSync` もImport前に同じ命名規則、入力内重複、Resources内の既存IDとアセットパスを検査する。衝突時は対象ID・既存パス・Import予定パスをConsoleへ出してImport全体を中止し、既存アセットの上書きや自動改名は行わない。
 
 イベントスチル画像は `Assets/Images/Heroines/<HeroineId>/Event/` に置き、ファイル名はイベントIDに寄せる。
 例として、`GameStartIntro` で使う画像は `GameStartIntro_01.png` のようにする。

@@ -33,11 +33,85 @@ public static class HeroineSkillTreeAssetSync
 
         string skillFolder = $"Assets/Resources/Skills/Heroines/{heroineId}";
         string nodeFolder = $"Assets/Resources/SkillTreeNodes/Heroines/{heroineId}";
+        if (!ValidateImportIds(data, heroineId, skillFolder, nodeFolder))
+        {
+            Debug.LogError("ヒロイン固有スキル／ノードのID衝突があるためImportを中止しました。");
+            return;
+        }
         EnsureFolder(skillFolder);
         EnsureFolder(nodeFolder);
         Dictionary<string, SkillData> skills = ImportSkills(data.trainingSkills, skillFolder);
         ImportNodes(data.nodes, heroineId, nodeFolder, skills);
         AssetDatabase.SaveAssets();
+    }
+
+    private static bool ValidateImportIds(
+        HeroineSkillsFile data,
+        string heroineId,
+        string skillFolder,
+        string nodeFolder)
+    {
+        bool valid = true;
+        string prefix = heroineId + "_";
+        HashSet<string> sourceSkillIds = new HashSet<string>(StringComparer.Ordinal);
+        foreach (TrainingSkillItem item in data.trainingSkills ?? Array.Empty<TrainingSkillItem>())
+        {
+            string id = item != null ? item.skillId?.Trim() : string.Empty;
+            if (string.IsNullOrEmpty(id) || !id.StartsWith(prefix, StringComparison.Ordinal))
+            {
+                Debug.LogError("ヒロイン固有skillIdは " + prefix + " で始めてください: " + id);
+                valid = false;
+                continue;
+            }
+            if (!sourceSkillIds.Add(id))
+            {
+                Debug.LogError("Importデータ内でskillIdが重複しています: " + id);
+                valid = false;
+            }
+            string expectedPath = skillFolder + "/" + SafeFileName(id) + ".asset";
+            valid &= ValidateExistingIdPath<SkillData>("Skills", id, expectedPath, asset => asset.skillId);
+        }
+
+        HashSet<string> sourceNodeIds = new HashSet<string>(StringComparer.Ordinal);
+        foreach (NodeItem item in data.nodes ?? Array.Empty<NodeItem>())
+        {
+            string id = item != null ? item.nodeId?.Trim() : string.Empty;
+            if (string.IsNullOrEmpty(id) || !id.StartsWith(prefix, StringComparison.Ordinal))
+            {
+                Debug.LogError("ヒロイン固有nodeIdは " + prefix + " で始めてください: " + id);
+                valid = false;
+                continue;
+            }
+            if (!sourceNodeIds.Add(id))
+            {
+                Debug.LogError("Importデータ内でnodeIdが重複しています: " + id);
+                valid = false;
+            }
+            string expectedPath = nodeFolder + "/" + SafeFileName(id) + ".asset";
+            valid &= ValidateExistingIdPath<SkillTreeNodeData>("SkillTreeNodes", id, expectedPath, asset => asset.nodeId);
+        }
+        return valid;
+    }
+
+    private static bool ValidateExistingIdPath<T>(
+        string resourcePath,
+        string id,
+        string expectedPath,
+        Func<T, string> getId) where T : UnityEngine.Object
+    {
+        bool valid = true;
+        foreach (T asset in Resources.LoadAll<T>(resourcePath))
+        {
+            if (asset == null || !string.Equals(getId(asset), id, StringComparison.Ordinal)) continue;
+            string existingPath = AssetDatabase.GetAssetPath(asset);
+            if (!string.Equals(existingPath, expectedPath, StringComparison.OrdinalIgnoreCase))
+            {
+                Debug.LogError("IDが別アセットと衝突しています: id=" + id +
+                    " / existing=" + existingPath + " / import=" + expectedPath);
+                valid = false;
+            }
+        }
+        return valid;
     }
 
     public static void Export(string heroineId, string outputFolder)

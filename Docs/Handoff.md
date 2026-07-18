@@ -78,6 +78,7 @@
 - 確認用の汎用スキル「気配り」は、訓練を1回完了して訓練回数と SP を獲得した後、1 SPで主人公ノード `Player_Consideration` から取得する。TestHeroine使用時はスキルツリーを閉じると `Manual_Consideration_01` が一度だけ自動開始する。`SkillTreeNodeData.unlockEventId` と `unlockEventHeroineId` で接続し、取得済み・未表示状態からロード後も発生待ちを復元する。F7のデバッグ起動も利用できる
 - `FantasyLoveSim > Validate Skill Tree Data` は取得時イベントが対象ヒロインのイベントパスに存在し、Manual・Once・有効状態であることを確認する。イベント必須スキルが対象ノードまたは前提ノードの取得で保証されない場合も警告する。AssetToolの制作状況では取得時イベントIDとOnceを事前確認できる
 - ヒロイン固有スキル／ノードの正規配置は `Resources/Skills/Heroines/<HeroineId>/` と `Resources/SkillTreeNodes/Heroines/<HeroineId>/`。IDはResources全体で一意になるよう `<HeroineId>_<用途>` とし、TestHeroineの訓練スキル3件は名前空間付きIDへ移行済み。旧ルート配置のTestHeroineノード7件は削除し、DefaultHeroine参照中の共通スキルは残している
+- AssetToolの制作状況・Export前検査とUnityの `HeroineSkillTreeAssetSync` は、ヒロイン固有SkillId／NodeIdの `<HeroineId>_` 接頭辞を検査する。Unity Import前にはResources全体の同一IDとアセットパスも確認し、別アセットとの衝突時はパスをConsoleへ出して処理を中止する。自動改名や既存アセット上書きはしない
 - イベントスチル画像は `Assets/Images/Heroines/<HeroineId>/Event/` に置き、`GameStartIntro_01.png` のようにイベントIDに寄せたファイル名にする
 - 将来は JSON から画像ファイルパスを取得し、イベントや回想で表示する画像を差し替えられる仕組みを追加する。画像パスは Unity の `Resources` / `StreamingAssets` / Addressables のどれで読むかを先に決め、JSON 側には `stillId` と画像パスの対応を持たせる。
 - 通常背景画像は `Assets/Images/Background/` に置く。ファイル名は `Background_Morning_Sunny.png`、`Background_Noon_Rainy.png`、`Background_Night_Snow.png` のように `Background_時間帯_天候` で統一する。
