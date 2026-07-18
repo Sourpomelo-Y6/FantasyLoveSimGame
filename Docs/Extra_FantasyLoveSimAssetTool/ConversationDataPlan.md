@@ -2,6 +2,8 @@
 
 このドキュメントは、`FantasyLoveSimAssetTool` で会話、イベント、行動反応、エンディング本文を作成し、Unity 側へ渡すための設計案をまとめる。
 
+通常会話のcategory、ID、priority、条件、フォールバックの確定ルールは `Docs/ConversationClassificationRules.md` を正本とする。
+
 現時点では WPF ツールは画像素材と prompt 記録の管理を主目的にしている。
 会話データは次の段階で追加する。
 
@@ -127,7 +129,7 @@ Unity 側で実際の ID を変更した場合は、この一覧、WPF 側の候
     {
       "id": "Talk_Forest_Friendship01",
       "title": "森での雑談 1",
-      "category": "LocationTalk",
+      "category": "Daily",
       "conditions": {
         "locationId": "Forest",
         "minAffection": 10,
