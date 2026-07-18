@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   eventId: Manual_Consideration_01
   triggerType: 2
-  showOnce: 0
+  showOnce: 1
   isEnabled: 1
   sortOrder: 110
   minDay: 0
