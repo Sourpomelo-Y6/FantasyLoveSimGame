@@ -954,7 +954,14 @@ public static class HeroineUnityDataExporter
             timeSlots = CreateEnumList(reaction.anyTimeSlot, reaction.allowedTimeSlots),
             weathers = CreateEnumList(reaction.anyWeather, reaction.allowedWeathers),
             seasons = CreateEnumList(reaction.anySeason, reaction.allowedSeasons),
-            costumeId = reaction.costumeId ?? string.Empty
+            costumeId = reaction.costumeId ?? string.Empty,
+            once = reaction.showOnce,
+            requiredFlagIds = reaction.requiredShownEventIds == null
+                ? new List<string>()
+                : new List<string>(reaction.requiredShownEventIds),
+            requiredSkillIds = reaction.requiredSkillIds == null
+                ? new List<string>()
+                : new List<string>(reaction.requiredSkillIds)
         };
     }
 
@@ -1756,6 +1763,9 @@ public static class HeroineUnityDataExporter
         public List<string> weathers;
         public List<string> seasons;
         public string costumeId;
+        public bool once;
+        public List<string> requiredFlagIds;
+        public List<string> requiredSkillIds;
     }
 
     [Serializable]

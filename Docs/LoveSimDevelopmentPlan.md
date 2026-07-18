@@ -424,12 +424,18 @@ public class ActionData : ScriptableObject
 - 天候ごとの反応
 - 季節ごとの反応
 - 好感度帯ごとの反応
+- 表示済みイベントや取得済みスキルを条件にした反応
+- セーブデータごとに一度だけ表示する反応
 
 今の実装では、`ActionData.reactions` から条件一致する候補を集め、`priority` が高いものを優先して選ぶ。
 同じ `priority` が複数ある場合はランダムに 1 件を選ぶ。
-条件欄は `minAffection` / `maxAffection`、`anyTimeSlot` / `allowedTimeSlots`、`anyWeather` / `allowedWeathers`、`anySeason` / `allowedSeasons` で構成する。
+条件欄は `minAffection` / `maxAffection`、`anyTimeSlot` / `allowedTimeSlots`、`anyWeather` / `allowedWeathers`、`anySeason` / `allowedSeasons`、`costumeId`、`requiredShownEventIds`、`requiredSkillIds` で構成する。
+`showOnce` を有効にした反応は `reactionId` を表示履歴へ記録し、同じセーブデータでは再表示しない。保存形式を増やさないため、通常会話と共通の表示済みID集合を使うので、`Reaction_<ActionId>_<連番>` のように会話IDと重複しない命名を維持する。
 `stillId` / `stillSprite` を持たせると、反応専用のスチルも差し替えられる。
-当面は衣装や予定種別まで条件に入れず、まずは時間帯・天候・季節・好感度で反応の厚みを増やす。
+
+優先度付きの条件反応を追加する場合も、各主要行動には `priority = 0`、`showOnce = false`、好感度 `0～9999`、その他条件なしのフォールバックを1件残す。条件反応は `priority` を1以上にして、条件成立時だけフォールバックより優先させる。一度限りの反応を表示済みにした後も、フォールバックが選ばれるため行動結果が空にならない。
+
+AssetToolの行動反応条件では `once`、`requiredFlagIds`、`requiredSkillIds` を編集・JSON出力できる。Unity Importerはそれぞれ `showOnce`、`requiredShownEventIds`、`requiredSkillIds` へ変換する。Unityからの `actions_from_unity.json` も複数の `reactions` とこれらの条件を保持してAssetToolへ戻す。
 
 ## 買い物・探索・戦闘の拡張予定
 

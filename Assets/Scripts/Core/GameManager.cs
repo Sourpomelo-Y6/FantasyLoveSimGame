@@ -5756,6 +5756,12 @@ public class GameManager : MonoBehaviour
 
         if (reaction != null)
         {
+            if (reaction.showOnce && !string.IsNullOrEmpty(reaction.reactionId))
+            {
+                // 会話IDと同じ表示履歴を利用し、既存セーブ形式のまま一度限りを永続化する。
+                shownConversationIds.Add(reaction.reactionId);
+            }
+
             string reactionSpeakerName = reaction.useHeroineNameAsSpeaker
                 ? heroineStatus.HeroineName
                 : SystemSpeakerName;
@@ -5837,6 +5843,19 @@ public class GameManager : MonoBehaviour
     private bool IsActionReactionAvailable(ActionReactionData reaction)
     {
         if (reaction == null)
+        {
+            return false;
+        }
+
+        if (reaction.showOnce &&
+            !string.IsNullOrEmpty(reaction.reactionId) &&
+            shownConversationIds.Contains(reaction.reactionId))
+        {
+            return false;
+        }
+
+        if (!AreRequiredIdsSatisfied(reaction.requiredShownEventIds, shownGameEventIds.Contains) ||
+            !AreRequiredIdsSatisfied(reaction.requiredSkillIds, IsSkillUnlocked))
         {
             return false;
         }
@@ -6179,6 +6198,24 @@ public class GameManager : MonoBehaviour
         }
 
         StartScheduledEvent(scheduledEvent);
+        return true;
+    }
+
+    private static bool AreRequiredIdsSatisfied(List<string> requiredIds, Predicate<string> isSatisfied)
+    {
+        if (requiredIds == null || requiredIds.Count == 0)
+        {
+            return true;
+        }
+
+        foreach (string requiredId in requiredIds)
+        {
+            if (!string.IsNullOrEmpty(requiredId) && !isSatisfied(requiredId))
+            {
+                return false;
+            }
+        }
+
         return true;
     }
 

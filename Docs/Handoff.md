@@ -19,7 +19,7 @@
 - `Simple` は `Next` を押すと好感度が増加して会話が終了する
 - `Choice` は `Next` で選択肢表示に進み、3 つまでの選択肢から 1 つを選ぶ
 - 行動は ScriptableObject ベースで、時間帯・天候・季節・好感度に応じて反応を切り替えられる
-- 行動反応は `ActionData.reactions` に入れ、`priority` が高い候補を優先して 1 件選ぶ。条件は好感度・時間帯・天候・季節で切り替えられ、反応専用の `stillSprite` も持てる
+- 行動反応は `ActionData.reactions` に入れ、`priority` が高い候補を優先して 1 件選ぶ。条件は好感度・時間帯・天候・季節・衣装・表示済みイベント・取得済みスキルで切り替えられ、`showOnce` と反応専用の `stillSprite` も持てる。主要行動には priority 0 の無条件フォールバックを残す
 - 通常行動と行動反応は `playerHpChange` / `heroineHpChange` を持ち、実行時に HP を増減できる。現在の `休む` はプレイヤーとヒロインの HP を 20 回復する
 - 衣装には着用後の反応を付けられ、`褒める` / `嫌う` / `退屈` / `着替える` の選択肢で評価を更新できる
 - 衣装評価の履歴はセーブデータに保存される
@@ -268,6 +268,9 @@ EditorWindowのScene・Prefab一括適用はローカル確認専用。適用後
 - `stillId` / `stillSprite` を反応ごとに持たせられる
 - `playerHpChange` / `heroineHpChange` でプレイヤーとヒロインの HP 増減を指定できる。実際に増減した値は行動結果メッセージに追記される
 - 同じ `priority` の候補が複数ある場合はランダムで 1 件を選ぶ
+- `requiredShownEventIds` は表示済みイベント、`requiredSkillIds` は取得済みスキルをすべて満たす場合だけ候補になる
+- `showOnce` は `reactionId` を通常会話と共通の表示履歴へ保存するため、会話IDと重複しないIDを使う
+- 条件反応を増やしても、priority 0・一度限りOFF・好感度0～9999・その他条件なしの反応をフォールバックとして残す
 
 ### 7. 時間経過
 

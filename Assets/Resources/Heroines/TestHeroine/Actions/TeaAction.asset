@@ -25,6 +25,30 @@ MonoBehaviour:
   heroineHpChange: 0
   advanceTime: 1
   reactions:
+  - reactionId: Reaction_Tea_Consideration_01
+    resultMessage: "\u524D\u3088\u308A\u6C17\u304C\u5229\u304F\u3088\u3046\u306B\u306A\u3063\u305F\u3058\u3083\u306A\u3044\u3002\u2026\u2026\u307E\u3042\u3001\u60AA\u304F\u306A\u3044\u308F\u3002"
+    useHeroineNameAsSpeaker: 1
+    stillId:
+    stillSprite: {fileID: 0}
+    affectionChange: 1
+    playerHpChange: 0
+    heroineHpChange: 0
+    advanceTime: 1
+    priority: 10
+    showOnce: 1
+    minAffection: 0
+    maxAffection: 9999
+    costumeId:
+    requiredShownEventIds:
+    - Manual_Consideration_01
+    requiredSkillIds:
+    - Consideration
+    anyTimeSlot: 1
+    allowedTimeSlots:
+    anyWeather: 1
+    allowedWeathers:
+    anySeason: 1
+    allowedSeasons:
   - reactionId: Reaction_Tea_01
     resultMessage: "\u30D2\u30ED\u30A4\u30F3\u3068\u4E00\u7DD2\u306B\u304A\u8336\u3092\u98F2\u307F\u307E\u3057\u305F\u3002\u3086\u3063\u304F\u308A\u8A71\u305B\u305F\u6C17\u304C\u3057\u307E\u3059\u3002"
     useHeroineNameAsSpeaker: 1
@@ -35,9 +59,12 @@ MonoBehaviour:
     heroineHpChange: 0
     advanceTime: 1
     priority: 0
+    showOnce: 0
     minAffection: 0
-    maxAffection: 100
+    maxAffection: 9999
     costumeId: 
+    requiredShownEventIds: []
+    requiredSkillIds: []
     anyTimeSlot: 1
     allowedTimeSlots: 
     anyWeather: 1

@@ -2204,9 +2204,12 @@ public static class HeroineAssetImporter
             affectionChange = conditions.affectionChange,
             advanceTime = conditions.advanceTime,
             priority = item.priority,
+            showOnce = conditions.once,
             minAffection = Math.Max(0, conditions.minAffection),
             maxAffection = conditions.maxAffection > 0 ? conditions.maxAffection : 9999,
-            costumeId = conditions.costumeId ?? string.Empty
+            costumeId = conditions.costumeId ?? string.Empty,
+            requiredShownEventIds = CreateStringList(conditions.requiredFlagIds),
+            requiredSkillIds = CreateStringList(conditions.requiredSkillIds)
         };
 
         ApplySingleEnumCondition(
@@ -2381,6 +2384,13 @@ public static class HeroineAssetImporter
                 target.Add(value);
             }
         }
+    }
+
+    private static List<string> CreateStringList(string[] source)
+    {
+        List<string> values = new List<string>();
+        ApplyStringList(values, source);
+        return values;
     }
 
     private static void AddStringIfNotExists(List<string> target, string value)
@@ -2878,6 +2888,9 @@ public static class HeroineAssetImporter
         public string costumeId;
         public int affectionChange;
         public bool advanceTime = true;
+        public bool once;
+        public string[] requiredFlagIds;
+        public string[] requiredSkillIds;
     }
 
     [Serializable]

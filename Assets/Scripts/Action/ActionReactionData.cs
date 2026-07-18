@@ -25,6 +25,8 @@ public class ActionReactionData
 
     [Header("Display Rule")]
     public int priority = 0;
+    [Tooltip("有効時は、この reactionId の反応をセーブデータごとに一度だけ表示します。")]
+    public bool showOnce = false;
 
     [Header("Affection Condition")]
     public int minAffection = 0;
@@ -32,6 +34,12 @@ public class ActionReactionData
 
     [Header("Costume Condition")]
     public string costumeId;
+
+    [Header("Progress Condition")]
+    [Tooltip("すべて表示済みである必要がある GameEventData.eventId。")]
+    public List<string> requiredShownEventIds = new List<string>();
+    [Tooltip("すべて取得済みである必要があるスキルID。")]
+    public List<string> requiredSkillIds = new List<string>();
 
     [Header("Time Slot Condition")]
     public bool anyTimeSlot = true;
