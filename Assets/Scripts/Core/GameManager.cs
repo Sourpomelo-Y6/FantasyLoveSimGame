@@ -5371,6 +5371,19 @@ public class GameManager : MonoBehaviour
         return outfitManager.CurrentOutfit.outfitId;
     }
 
+    public string GetCurrentOutfitDisplayName()
+    {
+        if (outfitManager == null || outfitManager.CurrentOutfit == null)
+        {
+            return "なし";
+        }
+
+        OutfitData outfit = outfitManager.CurrentOutfit;
+        return !string.IsNullOrEmpty(outfit.displayName)
+            ? outfit.displayName
+            : !string.IsNullOrEmpty(outfit.outfitId) ? outfit.outfitId : "なし";
+    }
+
     private bool IsCostumeConditionMatch(string costumeId)
     {
         if (string.IsNullOrWhiteSpace(costumeId))

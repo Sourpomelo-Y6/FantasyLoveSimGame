@@ -151,7 +151,7 @@ unlockedOutfitPromptModes:
 - 移行確認期間中はSaveData version 16以前の解放フラグを対応ノードへ移行し、確認完了後に旧移行コードを削除
 
 旧 `StatusAbilityData`、関連Resourcesアセット、汎用取得済みID、ヒロイン側の旧能力保存は削除済み。
-状態画面の旧一覧・取得パネルは実行時に非表示にしており、Scene上のGameObjectを手動削除した後は `StatusDetailPanel` の互換用参照も削除できる。
+状態画面の旧一覧・取得パネルと `StatusDetailPanel` の互換用参照は削除済み。
 
 画像追加はこの整理の必須条件にしない。
 既存UI部品の再配置とテキスト表示を先に完成させる。

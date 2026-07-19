@@ -24,12 +24,6 @@ public class StatusDetailPanel : MonoBehaviour
     [SerializeField] private TextMeshProUGUI titleText;
     [SerializeField] private TextMeshProUGUI statusSummaryText;
 
-    [Header("Legacy UI Cleanup")]
-    [Tooltip("旧アビリティ一覧のルートです。Sceneから削除するまで非表示にします。")]
-    [SerializeField] private Transform abilityListParent;
-    [Tooltip("旧アビリティ取得パネルです。Sceneから削除するまで非表示にします。")]
-    [SerializeField] private GameObject abilityAcquirePanel;
-
     [Header("Labels")]
     [SerializeField] private string playerTitle = "プレイヤー詳細ステータス";
     [SerializeField] private string heroineTitle = "ヒロイン詳細ステータス";
@@ -56,13 +50,11 @@ public class StatusDetailPanel : MonoBehaviour
             progressButton.onClick.AddListener(OpenProgressPanel);
         }
 
-        HideLegacyAbilityUi();
     }
 
     private void OnEnable()
     {
         EnsureUiReferences();
-        HideLegacyAbilityUi();
         Refresh();
     }
 
@@ -160,10 +152,14 @@ public class StatusDetailPanel : MonoBehaviour
 
         return playerSummaryTitle +
             "\nHP：" + GetCurrentHp(status) + "/" + GetMaxHp(status) +
+            "\nMP：" + GetCurrentMp(status) + "/" + GetMaxMp(status) +
             "\n攻撃：" + GetAttack(status) +
             "\n防御：" + GetDefense(status) +
             "\n素早さ：" + GetSpeed(status) +
             "\n所持金：" + (playerStatus != null ? playerStatus.Money : 0) +
+            "\n装備中の戦闘スキル：" + BuildPlayerBattleSkillSummary() +
+            "\n有効な訓練スキル：" + BuildSkillSummary(
+                gameManager != null ? gameManager.GetActivePlayerTrainingSkills() : null) +
             "\n購入済み：" + BuildPurchasedItemSummary() +
             "\n解放衣装：" + BuildUnlockedOutfitSummary() +
             "\n条件表示：" + (conditionalUnlocked ? unlockedLabel : lockedLabel) +
@@ -178,9 +174,75 @@ public class StatusDetailPanel : MonoBehaviour
     {
         return heroineSummaryTitle +
             "\nHP：" + GetCurrentHp(status) + "/" + GetMaxHp(status) +
+            "\nMP：" + GetCurrentMp(status) + "/" + GetMaxMp(status) +
             "\n攻撃：" + GetAttack(status) +
             "\n防御：" + GetDefense(status) +
-            "\n素早さ：" + GetSpeed(status);
+            "\n素早さ：" + GetSpeed(status) +
+            "\n好感度：" + (heroineStatus != null
+                ? heroineStatus.Affection + "/" + heroineStatus.MaxAffection
+                : "0/0") +
+            "\n現在の衣装：" + (gameManager != null
+                ? gameManager.GetCurrentOutfitDisplayName()
+                : "なし") +
+            "\n編成中の戦闘スキル：" + BuildHeroineBattleSkillSummary() +
+            "\n有効な訓練スキル：" + BuildSkillSummary(
+                gameManager != null ? gameManager.GetActiveHeroineTrainingSkills() : null);
+    }
+
+    private string BuildPlayerBattleSkillSummary()
+    {
+        return BuildSkillSummary(
+            gameManager != null ? gameManager.GetEquippedPlayerBattleSkills() : null);
+    }
+
+    private string BuildHeroineBattleSkillSummary()
+    {
+        if (gameManager == null)
+        {
+            return "なし";
+        }
+
+        List<string> skillIds = gameManager.GetEquippedHeroineBattleSkillIds();
+        if (skillIds == null || skillIds.Count == 0)
+        {
+            return "なし";
+        }
+
+        List<string> displayNames = new List<string>();
+        for (int i = 0; i < skillIds.Count; i++)
+        {
+            string skillId = skillIds[i];
+            if (!string.IsNullOrEmpty(skillId))
+            {
+                displayNames.Add(gameManager.GetHeroineBattleSkillDisplayName(skillId));
+            }
+        }
+
+        return displayNames.Count > 0
+            ? string.Join(", ", displayNames.ToArray())
+            : "なし";
+    }
+
+    private static string BuildSkillSummary(List<SkillData> skills)
+    {
+        if (skills == null || skills.Count == 0)
+        {
+            return "なし";
+        }
+
+        List<string> displayNames = new List<string>();
+        for (int i = 0; i < skills.Count; i++)
+        {
+            SkillData skill = skills[i];
+            if (skill != null)
+            {
+                displayNames.Add(skill.GetDisplayName());
+            }
+        }
+
+        return displayNames.Count > 0
+            ? string.Join(", ", displayNames.ToArray())
+            : "なし";
     }
 
     private string BuildPurchasedItemSummary()
@@ -219,22 +281,11 @@ public class StatusDetailPanel : MonoBehaviour
 
     private static int GetCurrentHp(BattleStatusData status) => status != null ? status.currentHp : 0;
     private static int GetMaxHp(BattleStatusData status) => status != null ? status.maxHp : 0;
+    private static int GetCurrentMp(BattleStatusData status) => status != null ? status.currentMp : 0;
+    private static int GetMaxMp(BattleStatusData status) => status != null ? status.maxMp : 0;
     private static int GetAttack(BattleStatusData status) => status != null ? status.attack : 0;
     private static int GetDefense(BattleStatusData status) => status != null ? status.defense : 0;
     private static int GetSpeed(BattleStatusData status) => status != null ? status.speed : 0;
-
-    private void HideLegacyAbilityUi()
-    {
-        if (abilityListParent != null)
-        {
-            abilityListParent.gameObject.SetActive(false);
-        }
-
-        if (abilityAcquirePanel != null)
-        {
-            abilityAcquirePanel.SetActive(false);
-        }
-    }
 
     private void InitializeProgressPanel()
     {

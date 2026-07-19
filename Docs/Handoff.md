@@ -37,7 +37,7 @@
 - 詳細ステータス画面は `StatusDetailPanel`、画面の対象切り替えは `StatusDetailRole` で扱う
 - 状態画面の独自アビリティ取得は廃止し、衣装確認モードの解放を主人公スキルツリーへ統合する方針。状態画面は閲覧専用、`StatusProgressPanel` は実績集計専用として整理する。段階移行と削除対象は `Docs/StatusAndAchievementUiReorganizationPlan.md` を参照する
 - 衣装確認モードのスキルツリー統合は実装済み。主人公ノード `Player_ConditionalOutfitPrompt` / `Player_HiddenOutfitPrompt` で解放し、取得済みノードのボタンから使用／解除する。旧解放フラグの移行確認は完了し、旧移行コードは完全削除工程で撤去した
-- 旧 `StatusAbilityData`、関連Resourcesアセット、`unlockedStatusAbilityIds`、ヒロイン側の旧能力保存は削除済み。`SaveData` はversion 18。状態画面は読み取り専用で、旧UIルートはSceneから手動削除するまで互換参照で非表示にする
+- 旧 `StatusAbilityData`、関連Resourcesアセット、`unlockedStatusAbilityIds`、ヒロイン側の旧能力保存、Scene上の旧取得UIは削除済み。`SaveData` はversion 18で、状態画面は読み取り専用
 - 詳細ステータス画面の入口として `StatusDetailAction` を用意し、行動一覧から開けるようにしている
 - タイトルから新規ゲームを開始した直後は、`GameEventData` の `GameStart` イベントを再生してからメイン画面を始める。`GameEventData` はヒロイン別 Resources パスに置き、ページ単位で話者・メッセージ・スチルを持てる
 - ヒロイン差し替えは `HeroineProfileData` で管理する。画像、会話、イベント、行動反応、エンディング、朝夜の挨拶などの共通セリフをヒロイン単位で束ね、`Images/Background` は共通背景として扱う。現在は `DefaultHeroineProfile.asset` で `Heroines/DefaultHeroine/Actions` / `Conversations` / `GameEvents` / `Endings` を参照している
@@ -556,7 +556,7 @@ AssetTool側は `usage = Training`、`Images/Training/`、`training_images_expor
 通常メニューのスキル導線は `SkillTreePanel` を開く。取得済みの主人公戦闘ノードを選ぶと既存の取得ボタンが「装備する」または「外す」に変わり、詳細欄とノード表示にも装備状態と使用中枠数を表示する。ヒロインノードでは同じボタンを「編成する」または「外す」として使い、現在ヒロインの3枠を編集する。取得時は空きがあれば自動編成する。旧セーブのバージョン14以前は取得済みスキルを最大3件まで補完し、バージョン15以降は空編成も維持する。ロード時は存在しない・未取得・重複・4件目以降のヒロインスキルを除去する。戦闘中は専用の `BattleSkillPanel` を優先して開き、装備中の最大4スキルだけを表示する。未配置の場合だけ従来の `SkillPanel` をフォールバックとして使う。`PowerStrike`（Damage）、`GuardStance`（Guard）、`FirstAid`（Heal）、`BattleFocus`（プレイヤー攻撃 Buff）、`ArmorBreak`（敵防御 Debuff）を実行できる。MP は戦闘開始時に最大値まで回復し、各スキルの `cost` を消費する。Buff / Debuff は `statusDurationTurns` の対象ターン数だけ `affectedStat` を変化させ、期限が切れると戦闘ログへ解除を出す。敵 Speed がプレイヤー Speed より 4 以上高い場合は 30% で追加行動する。ヒロイン用スキルは `HeroineProfileData.battleSkills` でヒロイン別に定義する。MP、確率、優先度、最大使用回数を持ち、編成中の候補から自動選択され、使用可能な候補がなければ通常攻撃する。初期設定は DefaultHeroine / TestHeroine ともに攻撃、HP が減った味方への回復、主人公への防御 Buff の 3 種類である。`BattlePanel` は主人公・ヒロイン・敵の HP と MP を常時表示し、`StatusButton` から `BattleStatusEffectPanel` を開く。状態パネルでは対象ごとに攻撃/防御/素早さの増減値と残りターンを一覧表示し、Buff と Debuff を色分けする。主人公・ヒロインの編成操作に追加の Scene UI は不要。カテゴリタブと MP 回復アイテムは後回しにする。
 基礎ステータスは実装済み。共通の `BattleStatusData`、プレイヤー用の `PlayerStatus`、ヒロイン側の `HeroineStatus.BattleStatus` を使う。
 所持金は案Aとして `PlayerStatus` だけが持つ。`SaveData` は `playerBattleStatus`、`playerMoney`、`heroineBattleStatus` を保存し、ロード時に復元する。
-`StatusDetailPanel` はプレイヤー詳細に HP、攻撃、防御、素早さ、所持金を表示し、ヒロイン詳細に HP、攻撃、防御、素早さを表示する。
+`StatusDetailPanel` はプレイヤー詳細にHP、MP、攻撃、防御、素早さ、所持金、装備中戦闘スキル、有効な訓練スキル、購入済み商品、解放衣装、衣装確認設定を表示する。ヒロイン詳細にはHP、MP、攻撃、防御、素早さ、好感度、現在衣装、編成中戦闘スキル、有効な訓練スキルを表示する。スキルはIDではなく表示名を使い、空欄は「なし」とする。
 所持金を増減するテスト処理は実装済み。`GameManager.debugAddMoneyKey` は F8、`debugSpendMoneyKey` は F9、`debugMoneyAmount` は 100 がデフォルト。
 `DuoShopping` 予定からの簡易買い物イベントも実装済み。`DuoShopping` 実行時に専用 `ShopPanel` を開き、`GameManager.duoShoppingShopCatalog` の商品を一覧表示する。
 商品を選ぶとその商品の価格を所持金から消費し、結果を予定イベント本文に追記する。`ShopPanel` を閉じた場合は予定を消費しない。
