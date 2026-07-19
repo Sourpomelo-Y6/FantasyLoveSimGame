@@ -32,6 +32,7 @@ public class SchedulePanel : MonoBehaviour
     [Header("View Mode")]
     [SerializeField] private Button weeklyViewButton;
     [SerializeField] private Button monthlyViewButton;
+    [SerializeField] private Button openTemplateButton;
     [SerializeField] private GameObject weeklyGridRoot;
     [SerializeField] private GameObject monthlyGridRoot;
     [Tooltip("MonthlyGridRoot の子に置いた非アクティブな ScheduleDayCell を設定します。")]
@@ -61,6 +62,7 @@ public class SchedulePanel : MonoBehaviour
     private bool buttonsHooked;
     private CalendarView currentView = CalendarView.Week;
     private readonly List<ScheduleDayCell> monthlyDayCells = new List<ScheduleDayCell>();
+    private ScheduleTemplatePanelController templatePanelController;
 
     private bool HasWeeklyUi
     {
@@ -161,6 +163,10 @@ public class SchedulePanel : MonoBehaviour
         if (monthlyViewButton == null)
         {
             monthlyViewButton = FindDescendantComponent<Button>("MonthlyViewButton");
+        }
+        if (openTemplateButton == null)
+        {
+            openTemplateButton = FindDescendantComponent<Button>("OpenTemplateButton");
         }
         if (weeklyGridRoot == null)
         {
@@ -293,7 +299,33 @@ public class SchedulePanel : MonoBehaviour
         if (cancelButton != null) cancelButton.onClick.AddListener(CancelSelectedSchedule);
         if (weeklyViewButton != null) weeklyViewButton.onClick.AddListener(ShowWeeklyView);
         if (monthlyViewButton != null) monthlyViewButton.onClick.AddListener(ShowMonthlyView);
+        if (openTemplateButton != null) openTemplateButton.onClick.AddListener(OpenTemplatePanel);
         buttonsHooked = true;
+    }
+
+    private void OpenTemplatePanel()
+    {
+        if (templatePanelController == null)
+        {
+            ScheduleTemplateManager[] managers = transform.root.GetComponentsInChildren<ScheduleTemplateManager>(true);
+            if (managers.Length > 0 && managers[0] != null)
+            {
+                templatePanelController = managers[0].GetComponent<ScheduleTemplatePanelController>();
+                if (templatePanelController == null)
+                {
+                    templatePanelController = managers[0].gameObject.AddComponent<ScheduleTemplatePanelController>();
+                }
+            }
+        }
+
+        if (templatePanelController == null)
+        {
+            RefreshMessage("ScheduleTemplatePanel が設定されていません。");
+            return;
+        }
+
+        templatePanelController.Initialize(this, scheduleManager);
+        templatePanelController.Open(selectedDay);
     }
 
     private void SelectDay(int index)
@@ -673,5 +705,11 @@ public class SchedulePanel : MonoBehaviour
     public void Close()
     {
         gameObject.SetActive(false);
+    }
+
+    public void RefreshAfterTemplateChange()
+    {
+        RefreshDisplay();
+        RefreshGameUi();
     }
 }
