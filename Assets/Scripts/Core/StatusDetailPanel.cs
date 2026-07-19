@@ -1,3 +1,4 @@
+using System.Collections;
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
@@ -23,6 +24,8 @@ public class StatusDetailPanel : MonoBehaviour
     [Header("Detail View")]
     [SerializeField] private TextMeshProUGUI titleText;
     [SerializeField] private TextMeshProUGUI statusSummaryText;
+    [SerializeField] private ScrollRect statusScrollRect;
+    [SerializeField] private RectTransform statusContent;
 
     [Header("Labels")]
     [SerializeField] private string playerTitle = "プレイヤー詳細ステータス";
@@ -34,6 +37,7 @@ public class StatusDetailPanel : MonoBehaviour
 
     private StatusDetailRole currentRole = StatusDetailRole.Player;
     private bool hasWarnedMissingReferences;
+    private Coroutine pendingLayoutRefresh;
 
     private GameObject PanelRoot => panelRoot != null ? panelRoot : gameObject;
 
@@ -55,7 +59,16 @@ public class StatusDetailPanel : MonoBehaviour
     private void OnEnable()
     {
         EnsureUiReferences();
-        Refresh();
+        Refresh(true);
+    }
+
+    private void OnDisable()
+    {
+        if (pendingLayoutRefresh != null)
+        {
+            StopCoroutine(pendingLayoutRefresh);
+            pendingLayoutRefresh = null;
+        }
     }
 
     public void Initialize(GameManager manager, HeroineStatus heroine)
@@ -76,14 +89,14 @@ public class StatusDetailPanel : MonoBehaviour
     {
         currentRole = StatusDetailRole.Player;
         PanelRoot.SetActive(true);
-        Refresh();
+        Refresh(true);
     }
 
     public void OpenHeroineDetail()
     {
         currentRole = StatusDetailRole.Heroine;
         PanelRoot.SetActive(true);
-        Refresh();
+        Refresh(true);
     }
 
     public void Close()
@@ -98,7 +111,7 @@ public class StatusDetailPanel : MonoBehaviour
 
     public void RefreshStatusDisplay()
     {
-        Refresh();
+        Refresh(false);
         if (progressPanel != null)
         {
             progressPanel.RefreshDisplay();
@@ -117,7 +130,7 @@ public class StatusDetailPanel : MonoBehaviour
         progressPanel.Open();
     }
 
-    private void Refresh()
+    private void Refresh(bool resetScrollPosition)
     {
         if (!PanelRoot.activeSelf)
         {
@@ -134,6 +147,92 @@ public class StatusDetailPanel : MonoBehaviour
             statusSummaryText.text = currentRole == StatusDetailRole.Player
                 ? BuildPlayerStatusSummary(playerStatus != null ? playerStatus.BattleStatus : null)
                 : BuildHeroineStatusSummary(heroineStatus != null ? heroineStatus.BattleStatus : null);
+        }
+
+        ScheduleStatusLayoutRefresh(resetScrollPosition);
+    }
+
+    private void ScheduleStatusLayoutRefresh(bool resetScrollPosition)
+    {
+        RefreshStatusLayout(resetScrollPosition);
+        if (!isActiveAndEnabled)
+        {
+            return;
+        }
+
+        if (pendingLayoutRefresh != null)
+        {
+            StopCoroutine(pendingLayoutRefresh);
+        }
+        pendingLayoutRefresh = StartCoroutine(
+            RefreshStatusLayoutNextFrame(resetScrollPosition));
+    }
+
+    private IEnumerator RefreshStatusLayoutNextFrame(bool resetScrollPosition)
+    {
+        yield return null;
+        RefreshStatusLayout(resetScrollPosition);
+        pendingLayoutRefresh = null;
+    }
+
+    private void RefreshStatusLayout(bool resetScrollPosition)
+    {
+        ResolveScrollReferences();
+        if (statusSummaryText == null || statusContent == null)
+        {
+            return;
+        }
+
+        RectTransform textRect = statusSummaryText.rectTransform;
+        RectTransform viewport = statusScrollRect != null
+            ? statusScrollRect.viewport
+            : statusContent.parent as RectTransform;
+        float viewportHeight = viewport != null ? viewport.rect.height : 0f;
+        Vector2 previousContentPosition = statusContent.anchoredPosition;
+
+        statusContent.anchorMin = new Vector2(0f, 1f);
+        statusContent.anchorMax = new Vector2(1f, 1f);
+        statusContent.pivot = new Vector2(0f, 1f);
+
+        textRect.anchorMin = new Vector2(0f, 1f);
+        textRect.anchorMax = new Vector2(1f, 1f);
+        textRect.pivot = new Vector2(0f, 1f);
+        textRect.anchoredPosition = Vector2.zero;
+
+        Canvas.ForceUpdateCanvases();
+        statusSummaryText.ForceMeshUpdate();
+        float preferredHeight = Mathf.Ceil(Mathf.Max(1f, statusSummaryText.preferredHeight));
+        float contentHeight = Mathf.Max(viewportHeight, preferredHeight);
+        statusContent.SetSizeWithCurrentAnchors(
+            RectTransform.Axis.Vertical,
+            contentHeight);
+        textRect.SetSizeWithCurrentAnchors(
+            RectTransform.Axis.Vertical,
+            preferredHeight);
+
+        LayoutRebuilder.ForceRebuildLayoutImmediate(statusContent);
+        Canvas.ForceUpdateCanvases();
+        if (resetScrollPosition && statusScrollRect != null)
+        {
+            statusScrollRect.StopMovement();
+            statusScrollRect.verticalNormalizedPosition = 1f;
+        }
+        else
+        {
+            statusContent.anchoredPosition = previousContentPosition;
+        }
+    }
+
+    private void ResolveScrollReferences()
+    {
+        if (statusContent == null && statusSummaryText != null)
+        {
+            statusContent = statusSummaryText.rectTransform.parent as RectTransform;
+        }
+
+        if (statusScrollRect == null && statusContent != null)
+        {
+            statusScrollRect = statusContent.GetComponentInParent<ScrollRect>();
         }
     }
 

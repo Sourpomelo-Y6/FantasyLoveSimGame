@@ -557,6 +557,7 @@ AssetTool側は `usage = Training`、`Images/Training/`、`training_images_expor
 基礎ステータスは実装済み。共通の `BattleStatusData`、プレイヤー用の `PlayerStatus`、ヒロイン側の `HeroineStatus.BattleStatus` を使う。
 所持金は案Aとして `PlayerStatus` だけが持つ。`SaveData` は `playerBattleStatus`、`playerMoney`、`heroineBattleStatus` を保存し、ロード時に復元する。
 `StatusDetailPanel` はプレイヤー詳細にHP、MP、攻撃、防御、素早さ、所持金、装備中戦闘スキル、有効な訓練スキル、購入済み商品、解放衣装、衣装確認設定を表示する。ヒロイン詳細にはHP、MP、攻撃、防御、素早さ、好感度、現在衣装、編成中戦闘スキル、有効な訓練スキルを表示する。スキルはIDではなく表示名を使い、空欄は「なし」とする。
+状態詳細の本文は `Scroll View > Viewport > Content > StatusDetailSummaryText` に配置する。`StatusDetailPanel` がTMPの `preferredHeight` に合わせて本文とContentの高さを更新し、画面を開いたときと対象切り替え時は先頭へ戻す。通常のステータス更新では現在のスクロール位置を維持する。
 所持金を増減するテスト処理は実装済み。`GameManager.debugAddMoneyKey` は F8、`debugSpendMoneyKey` は F9、`debugMoneyAmount` は 100 がデフォルト。
 `DuoShopping` 予定からの簡易買い物イベントも実装済み。`DuoShopping` 実行時に専用 `ShopPanel` を開き、`GameManager.duoShoppingShopCatalog` の商品を一覧表示する。
 商品を選ぶとその商品の価格を所持金から消費し、結果を予定イベント本文に追記する。`ShopPanel` を閉じた場合は予定を消費しない。
