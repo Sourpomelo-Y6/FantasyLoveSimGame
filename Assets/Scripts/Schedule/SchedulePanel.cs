@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -5,6 +6,13 @@ using UnityEngine.UI;
 public class SchedulePanel : MonoBehaviour
 {
     private const int DaysPerWeek = 7;
+    private const int DaysPerMonthView = 30;
+
+    private enum CalendarView
+    {
+        Week,
+        Month
+    }
 
     [Header("References")]
     [SerializeField] private ScheduleManager scheduleManager;
@@ -19,6 +27,14 @@ public class SchedulePanel : MonoBehaviour
     [SerializeField] private Button previousWeekButton;
     [SerializeField] private Button nextWeekButton;
     [SerializeField] private Button currentWeekButton;
+
+    [Header("View Mode")]
+    [SerializeField] private Button weeklyViewButton;
+    [SerializeField] private Button monthlyViewButton;
+    [SerializeField] private GameObject weeklyGridRoot;
+    [SerializeField] private GameObject monthlyGridRoot;
+    [Tooltip("MonthlyGridRoot の子に置いた非アクティブな ScheduleDayCell を設定します。")]
+    [SerializeField] private ScheduleDayCell monthlyDayCellTemplate;
 
     [Header("Selected Day")]
     [SerializeField] private TextMeshProUGUI selectedDayText;
@@ -39,6 +55,8 @@ public class SchedulePanel : MonoBehaviour
     private int weekStartDay;
     private int selectedDay;
     private bool buttonsHooked;
+    private CalendarView currentView = CalendarView.Week;
+    private readonly List<ScheduleDayCell> monthlyDayCells = new List<ScheduleDayCell>();
 
     private bool HasWeeklyUi
     {
@@ -51,6 +69,16 @@ public class SchedulePanel : MonoBehaviour
             }
             return true;
         }
+    }
+
+    private bool HasMonthlyUi
+    {
+        get { return monthlyGridRoot != null && monthlyDayCellTemplate != null; }
+    }
+
+    private bool HasActiveCalendarUi
+    {
+        get { return currentView == CalendarView.Month ? HasMonthlyUi : HasWeeklyUi; }
     }
 
     private void Awake()
@@ -66,7 +94,7 @@ public class SchedulePanel : MonoBehaviour
         ResetToCurrentWeek();
     }
 
-    [ContextMenu("Auto Assign Weekly UI References")]
+    [ContextMenu("Auto Assign Calendar UI References")]
     public void ResolveWeeklyUiReferences()
     {
         EnsureWeeklyArrays();
@@ -107,6 +135,29 @@ public class SchedulePanel : MonoBehaviour
         {
             cancelButton = FindDescendantComponent<Button>("CancelButton");
         }
+        if (weeklyViewButton == null)
+        {
+            weeklyViewButton = FindDescendantComponent<Button>("WeeklyViewButton");
+        }
+        if (monthlyViewButton == null)
+        {
+            monthlyViewButton = FindDescendantComponent<Button>("MonthlyViewButton");
+        }
+        if (weeklyGridRoot == null)
+        {
+            Transform weeklyGrid = FindDescendantTransform("WeekGrid");
+            if (weeklyGrid != null) weeklyGridRoot = weeklyGrid.gameObject;
+        }
+        if (monthlyGridRoot == null)
+        {
+            Transform monthlyGrid = FindDescendantTransform("MonthGrid");
+            if (monthlyGrid != null) monthlyGridRoot = monthlyGrid.gameObject;
+        }
+        if (monthlyDayCellTemplate == null && monthlyGridRoot != null)
+        {
+            ScheduleDayCell[] cells = monthlyGridRoot.GetComponentsInChildren<ScheduleDayCell>(true);
+            if (cells.Length > 0) monthlyDayCellTemplate = cells[0];
+        }
     }
 
     public void SelectNone() { SelectSchedule(ScheduleType.None); }
@@ -123,7 +174,7 @@ public class SchedulePanel : MonoBehaviour
     public void ShowPreviousWeek()
     {
         if (scheduleManager == null) return;
-        weekStartDay = Mathf.Max(1, weekStartDay - DaysPerWeek);
+        weekStartDay = Mathf.Max(1, weekStartDay - GetVisibleDayCount());
         selectedDay = weekStartDay;
         RefreshDisplay();
     }
@@ -131,8 +182,8 @@ public class SchedulePanel : MonoBehaviour
     public void ShowNextWeek()
     {
         if (scheduleManager == null) return;
-        int maximumStartDay = GetMaximumWeekStartDay();
-        weekStartDay = Mathf.Min(maximumStartDay, weekStartDay + DaysPerWeek);
+        int maximumStartDay = GetMaximumPeriodStartDay();
+        weekStartDay = Mathf.Min(maximumStartDay, weekStartDay + GetVisibleDayCount());
         selectedDay = weekStartDay;
         RefreshDisplay();
     }
@@ -146,10 +197,25 @@ public class SchedulePanel : MonoBehaviour
         }
 
         weekStartDay = scheduleManager.CurrentDayNumber;
-        selectedDay = HasWeeklyUi
+        selectedDay = HasActiveCalendarUi
             ? scheduleManager.CurrentDayNumber
             : scheduleManager.CurrentDayNumber + 1;
         RefreshDisplay();
+    }
+
+    public void ShowWeeklyView()
+    {
+        SwitchView(CalendarView.Week);
+    }
+
+    public void ShowMonthlyView()
+    {
+        if (!HasMonthlyUi)
+        {
+            RefreshMessage("月間表示用のMonthGridとDayCellTemplateが設定されていません。");
+            return;
+        }
+        SwitchView(CalendarView.Month);
     }
 
     public void CancelSelectedSchedule()
@@ -172,7 +238,7 @@ public class SchedulePanel : MonoBehaviour
 
         string message;
         bool succeeded = scheduleManager.TrySetScheduleForDay(
-            HasWeeklyUi ? selectedDay : scheduleManager.CurrentDayNumber + 1,
+            HasActiveCalendarUi ? selectedDay : scheduleManager.CurrentDayNumber + 1,
             scheduleType,
             out message);
         if (!succeeded)
@@ -206,6 +272,8 @@ public class SchedulePanel : MonoBehaviour
         if (nextWeekButton != null) nextWeekButton.onClick.AddListener(ShowNextWeek);
         if (currentWeekButton != null) currentWeekButton.onClick.AddListener(ResetToCurrentWeek);
         if (cancelButton != null) cancelButton.onClick.AddListener(CancelSelectedSchedule);
+        if (weeklyViewButton != null) weeklyViewButton.onClick.AddListener(ShowWeeklyView);
+        if (monthlyViewButton != null) monthlyViewButton.onClick.AddListener(ShowMonthlyView);
         buttonsHooked = true;
     }
 
@@ -220,9 +288,24 @@ public class SchedulePanel : MonoBehaviour
     {
         if (scheduleManager == null) return;
 
-        RefreshWeekButtons();
+        RefreshCalendarVisibility();
+        if (currentView == CalendarView.Month)
+        {
+            RefreshMonthCells();
+        }
+        else
+        {
+            RefreshWeekButtons();
+        }
         RefreshSelectedDay();
         RefreshNavigation();
+        RefreshViewButtons();
+    }
+
+    private void RefreshCalendarVisibility()
+    {
+        if (weeklyGridRoot != null) weeklyGridRoot.SetActive(currentView == CalendarView.Week);
+        if (monthlyGridRoot != null) monthlyGridRoot.SetActive(currentView == CalendarView.Month);
     }
 
     private void RefreshWeekButtons()
@@ -264,6 +347,37 @@ public class SchedulePanel : MonoBehaviour
         if (weekRangeText != null)
         {
             weekRangeText.text = "Day " + weekStartDay + " ～ Day " + (weekStartDay + DaysPerWeek - 1);
+        }
+    }
+
+    private void RefreshMonthCells()
+    {
+        if (!HasMonthlyUi) return;
+        EnsureMonthlyDayCells();
+        for (int i = 0; i < monthlyDayCells.Count; i++)
+        {
+            int day = weekStartDay + i;
+            ScheduleEntry entry;
+            bool hasEntry = scheduleManager.TryGetScheduleEntry(day, out entry);
+            string weekday = ScheduleManager.GetWeekdayDisplayName(
+                scheduleManager.GetWeekdayForDay(day));
+            string scheduleName = hasEntry
+                ? ScheduleManager.GetScheduleDisplayName(entry.scheduleType)
+                : "予定なし";
+            string state = hasEntry ? GetCompactStateMarker(entry.state) : string.Empty;
+            string label = (day == selectedDay ? "▶ " : string.Empty) +
+                "Day " + day + "（" + weekday + "）\n" + scheduleName +
+                (string.IsNullOrEmpty(state) ? string.Empty : " " + state);
+            Color color = day == selectedDay
+                ? selectedColor
+                : GetStateColor(hasEntry ? entry.state : (ScheduleEntryState?)null);
+            monthlyDayCells[i].SetDisplay(day, label, color, true);
+        }
+
+        if (weekRangeText != null)
+        {
+            weekRangeText.text = "Day " + weekStartDay + " ～ Day " +
+                (weekStartDay + DaysPerMonthView - 1) + "（30日表示）";
         }
     }
 
@@ -312,17 +426,61 @@ public class SchedulePanel : MonoBehaviour
         if (previousWeekButton != null) previousWeekButton.interactable = weekStartDay > 1;
         if (nextWeekButton != null)
         {
-            nextWeekButton.interactable = weekStartDay < GetMaximumWeekStartDay();
+            nextWeekButton.interactable = weekStartDay < GetMaximumPeriodStartDay();
         }
     }
 
-    private int GetMaximumWeekStartDay()
+    private int GetMaximumPeriodStartDay()
     {
+        if (currentView == CalendarView.Month)
+        {
+            return scheduleManager.CurrentDayNumber;
+        }
         return Mathf.Max(
             scheduleManager.CurrentDayNumber,
             scheduleManager.CurrentDayNumber +
                 ScheduleManager.MaximumEditableDayOffset -
                 (DaysPerWeek - 1));
+    }
+
+    private int GetVisibleDayCount()
+    {
+        return currentView == CalendarView.Month ? DaysPerMonthView : DaysPerWeek;
+    }
+
+    private void SwitchView(CalendarView view)
+    {
+        currentView = view;
+        int maximumStartDay = GetMaximumPeriodStartDay();
+        weekStartDay = Mathf.Clamp(selectedDay, 1, maximumStartDay);
+        RefreshDisplay();
+    }
+
+    private void RefreshViewButtons()
+    {
+        if (weeklyViewButton != null) weeklyViewButton.interactable = currentView != CalendarView.Week;
+        if (monthlyViewButton != null) monthlyViewButton.interactable = currentView != CalendarView.Month;
+    }
+
+    private void EnsureMonthlyDayCells()
+    {
+        if (!HasMonthlyUi || monthlyDayCells.Count == DaysPerMonthView) return;
+        monthlyDayCells.Clear();
+        monthlyDayCellTemplate.gameObject.SetActive(false);
+        for (int i = 0; i < DaysPerMonthView; i++)
+        {
+            ScheduleDayCell cell = Instantiate(monthlyDayCellTemplate, monthlyGridRoot.transform);
+            cell.name = "MonthDayCell" + i;
+            cell.Initialize(SelectSpecificDay);
+            cell.gameObject.SetActive(true);
+            monthlyDayCells.Add(cell);
+        }
+    }
+
+    private void SelectSpecificDay(int day)
+    {
+        selectedDay = day;
+        RefreshDisplay();
     }
 
     private void RefreshMessage(string message)
@@ -379,6 +537,17 @@ public class SchedulePanel : MonoBehaviour
         }
     }
 
+    private static string GetCompactStateMarker(ScheduleEntryState state)
+    {
+        switch (state)
+        {
+            case ScheduleEntryState.Planned: return "○";
+            case ScheduleEntryState.Executed: return "済";
+            case ScheduleEntryState.Cancelled: return "×";
+            default: return "?";
+        }
+    }
+
     private static string GetCancelReasonDisplayName(string reason)
     {
         return reason == "Player" ? "プレイヤー操作" : reason;
@@ -432,6 +601,17 @@ public class SchedulePanel : MonoBehaviour
             {
                 return component;
             }
+        }
+        return null;
+    }
+
+    private Transform FindDescendantTransform(string objectName)
+    {
+        Transform[] transforms = GetComponentsInChildren<Transform>(true);
+        for (int i = 0; i < transforms.Length; i++)
+        {
+            Transform child = transforms[i];
+            if (child != null && child.name == objectName) return child;
         }
         return null;
     }
