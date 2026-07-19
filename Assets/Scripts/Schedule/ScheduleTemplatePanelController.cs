@@ -37,7 +37,8 @@ public class ScheduleTemplatePanelController : MonoBehaviour
 
     private readonly List<Button> generatedRows = new List<Button>();
     private string selectedTemplateId;
-    private int selectedStartDay = 1;
+    private int sourceStartDay = 1;
+    private int applicationStartDay = 1;
     private bool buttonsHooked;
     private Action pendingConfirmation;
 
@@ -56,9 +57,10 @@ public class ScheduleTemplatePanelController : MonoBehaviour
         HookButtons();
     }
 
-    public void Open(int startDay)
+    public void Open(int templateSourceStartDay, int templateApplicationStartDay)
     {
-        selectedStartDay = Mathf.Max(1, startDay);
+        sourceStartDay = Mathf.Max(1, templateSourceStartDay);
+        applicationStartDay = Mathf.Max(1, templateApplicationStartDay);
         ResolveReferences();
         HookButtons();
         if (templateManager != null) templateManager.Reload();
@@ -100,7 +102,7 @@ public class ScheduleTemplatePanelController : MonoBehaviour
         string message;
         bool succeeded = templateManager.TrySaveTemplate(
             templateNameInput != null ? templateNameInput.text : string.Empty,
-            selectedStartDay,
+            sourceStartDay,
             GetSelectedDayCount(),
             scheduleManager,
             overwriteTemplateId,
@@ -124,7 +126,7 @@ public class ScheduleTemplatePanelController : MonoBehaviour
         string previewMessage;
         if (!templateManager.TryPreviewTemplateApplication(
             selected.templateId,
-            selectedStartDay,
+            applicationStartDay,
             overwriteExisting,
             scheduleManager,
             out preview,
@@ -135,7 +137,7 @@ public class ScheduleTemplatePanelController : MonoBehaviour
         }
 
         string confirmation = "テンプレート「" + selected.displayName + "」をDay " +
-            selectedStartDay + "から適用します。\n" + preview.CreatePreviewSummary() +
+            applicationStartDay + "から適用します。\n" + preview.CreatePreviewSummary() +
             "\n既存予定を上書き：" + (overwriteExisting ? "する" : "しない");
         if (overwriteExisting)
         {
@@ -151,7 +153,7 @@ public class ScheduleTemplatePanelController : MonoBehaviour
         string message;
         templateManager.TryApplyTemplate(
             templateId,
-            selectedStartDay,
+            applicationStartDay,
             overwriteExisting,
             scheduleManager,
             out result,
@@ -235,7 +237,7 @@ public class ScheduleTemplatePanelController : MonoBehaviour
         }
         if (applyStartDayText != null)
         {
-            applyStartDayText.text = "適用開始日：Day " + selectedStartDay;
+            applyStartDayText.text = "適用開始日：Day " + applicationStartDay;
         }
         if (overwriteButton != null) overwriteButton.interactable = hasSelection;
         if (applyButton != null) applyButton.interactable = hasSelection;

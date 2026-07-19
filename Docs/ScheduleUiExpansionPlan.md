@@ -190,7 +190,7 @@ Day 13の予定をキャンセルしました。
 
 テンプレートのデータ基盤は `ScheduleTemplateManager` に実装する。テンプレートは7日または30日の相対日数と `ScheduleType` だけを保持し、`Executed` / `Cancelled` などセーブ固有の状態は保持しない。保存先は `Application.persistentDataPath/schedule_templates.json` とし、通常の `SaveData` から分離するため、同じ端末内なら別のセーブスロットからも利用できる。JSONは一時ファイルを経由して保存し、読み込み不能なファイルがあっても空の一覧へフォールバックする。
 
-`GetTemplates()` は編集されないようコピーを返す。`TrySaveTemplate(...)` は指定した開始日から7日または30日を新規保存し、既存の `templateId` を渡した場合は上書きする。`TryDeleteTemplate(...)` はID指定で削除する。適用前は `TryPreviewTemplateApplication(...)` で適用予定・競合・範囲外などのスキップ件数を確認し、確認後に同じ条件で `TryApplyTemplate(...)` を呼ぶ。適用は必ず `ScheduleManager.CanEditScheduleForDay(...)` と `TrySetScheduleForDay(...)` を通すため、過去、30日を超える未来、実行済みの日は変更されない。既存予定を上書きしない設定では、その日を競合として残す。空の予定もテンプレートに含まれ、上書きを許可した場合は適用先の既存予定を削除できる。
+`GetTemplates()` は編集されないようコピーを返す。`TrySaveTemplate(...)` は指定した開始日から7日または30日を新規保存し、既存の `templateId` を渡した場合は上書きする。`TryDeleteTemplate(...)` はID指定で削除する。適用前は `TryPreviewTemplateApplication(...)` で適用予定・競合・範囲外などのスキップ件数を確認し、確認後に同じ条件で `TryApplyTemplate(...)` を呼ぶ。適用は必ず `ScheduleManager.CanEditScheduleForDay(...)` と `TrySetScheduleForDay(...)` を通すため、過去、30日を超える未来、実行済みの日は変更されない。既存予定を上書きしない設定では、その日を競合として残す。空の予定もテンプレートの1枠として適用件数へ含める。適用先に既存予定がある空枠は、上書きを許可した場合だけ既存予定を削除する。
 
 ### UIの推奨構成
 
@@ -216,7 +216,7 @@ ScheduleTemplatePanel
 └─ CloseButton                   「閉じる」
 ```
 
-通常のスケジュール画面には `OpenTemplateButton`（「テンプレート」）を1個追加し、押したときだけ `ScheduleTemplatePanel` を開く。テンプレート一覧は行を選択してから上書き・適用・削除する方式とし、誤操作を避けるため未選択時は3ボタンを無効にする。保存元と適用先の開始日は、カレンダーで現在選択している `selectedDay` を使う。期間Dropdownの値は0を7日、1を30日に対応させる。
+通常のスケジュール画面には `OpenTemplateButton`（「テンプレート」）を1個追加し、押したときだけ `ScheduleTemplatePanel` を開く。テンプレート一覧は行を選択してから上書き・適用・削除する方式とし、誤操作を避けるため未選択時は3ボタンを無効にする。保存元の開始日は現在表示中の週間・月間範囲の先頭日 `weekStartDay` とし、7日分を順番に入力して最後の日が選択された状態でも表示範囲全体を保存する。適用先の開始日にはカレンダーで現在選択している `selectedDay` を使う。期間Dropdownの値は0を7日、1を30日に対応させる。
 
 適用ボタンでは、まずプレビュー結果を次のような確認ダイアログへ表示する。
 
@@ -228,4 +228,4 @@ ScheduleTemplatePanel
 
 確認後だけ実適用し、完了後はカレンダーと `ResultText` を更新する。上書きToggleが有効な場合は、空枠による既存予定の削除も起こることを確認文へ明記する。削除にもテンプレート名を含む確認ダイアログを出す。`ScheduleTemplateManager` は専用の空GameObject `ScheduleTemplateManager` へ追加してもよいが、`SchedulePanel` と同じGameObjectへ追加すると参照設定が分かりやすい。JSONは実行時に生成されるユーザーデータなのでGitには追加しない。
 
-`ScheduleTemplatePanelController` にUI制御を実装済み。配置済みUIはオブジェクト名から自動検出し、`SchedulePanel` は `OpenTemplateButton` から現在の選択日を渡して開く。Scene上にControllerを手動追加していない場合も、`ScheduleTemplateManager` と同じGameObjectへ実行時に追加する。一覧行の生成、選択内容の入力欄への反映、新規保存、確認付き上書き・削除、適用前プレビュー、確認後の一括適用、結果表示、適用後のカレンダー更新まで接続する。`PeriodDropdown` はValue 0を7日、Value 1を30日として扱い、表示文言には依存しない。
+`ScheduleTemplatePanelController` にUI制御を実装済み。配置済みUIはオブジェクト名から自動検出し、`SchedulePanel` は `OpenTemplateButton` から表示期間の先頭日と現在の選択日を別々に渡して開く。Scene上にControllerを手動追加していない場合も、`ScheduleTemplateManager` と同じGameObjectへ実行時に追加する。一覧行の生成、選択内容の入力欄への反映、新規保存、確認付き上書き・削除、適用前プレビュー、確認後の一括適用、結果表示、適用後のカレンダー更新まで接続する。`PeriodDropdown` はValue 0を7日、Value 1を30日として扱い、表示文言には依存しない。

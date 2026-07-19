@@ -225,12 +225,6 @@ public class ScheduleTemplateManager : MonoBehaviour
                 continue;
             }
 
-            if (!hasExisting && scheduleType == ScheduleType.None)
-            {
-                result.skippedCount++;
-                continue;
-            }
-
             if (!applyChanges)
             {
                 result.appliedCount++;

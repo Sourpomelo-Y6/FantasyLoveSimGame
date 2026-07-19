@@ -325,7 +325,7 @@ public class SchedulePanel : MonoBehaviour
         }
 
         templatePanelController.Initialize(this, scheduleManager);
-        templatePanelController.Open(selectedDay);
+        templatePanelController.Open(weekStartDay, selectedDay);
     }
 
     private void SelectDay(int index)
