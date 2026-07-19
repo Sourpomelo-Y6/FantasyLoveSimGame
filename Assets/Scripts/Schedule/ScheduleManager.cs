@@ -42,6 +42,11 @@ public class ScheduleManager : MonoBehaviour
         }
     }
 
+    public int CurrentDayNumber
+    {
+        get { return CurrentDay; }
+    }
+
     private void Awake()
     {
         if ((scheduleEntries == null || scheduleEntries.Count == 0) &&
@@ -156,6 +161,26 @@ public class ScheduleManager : MonoBehaviour
 
     public bool TryCancelSchedule(int day, string reason, out string message)
     {
+        if (!CanCancelScheduleForDay(day, out message))
+        {
+            return false;
+        }
+
+        ScheduleEntry entry = FindEntry(day);
+        entry.state = ScheduleEntryState.Cancelled;
+        entry.cancelReason = string.IsNullOrWhiteSpace(reason) ? "Player" : reason.Trim();
+        SynchronizeLegacyState();
+        message = "Day " + day + "の予定をキャンセルしました。";
+        return true;
+    }
+
+    public bool CanEditScheduleForDay(int day, out string message)
+    {
+        return CanEditDay(day, out message);
+    }
+
+    public bool CanCancelScheduleForDay(int day, out string message)
+    {
         if (day < CurrentDay)
         {
             message = "過去の予定はキャンセルできません。";
@@ -181,11 +206,32 @@ public class ScheduleManager : MonoBehaviour
             return false;
         }
 
-        entry.state = ScheduleEntryState.Cancelled;
-        entry.cancelReason = string.IsNullOrWhiteSpace(reason) ? "Player" : reason.Trim();
-        SynchronizeLegacyState();
-        message = "Day " + day + "の予定をキャンセルしました。";
+        message = string.Empty;
         return true;
+    }
+
+    public Weekday GetWeekdayForDay(int day)
+    {
+        int currentWeekday = timeManager != null ? (int)timeManager.CurrentWeekday : (int)Weekday.Monday;
+        int offset = day - CurrentDay;
+        int weekdayCount = Enum.GetValues(typeof(Weekday)).Length;
+        int weekday = ((currentWeekday + offset) % weekdayCount + weekdayCount) % weekdayCount;
+        return (Weekday)weekday;
+    }
+
+    public static string GetWeekdayDisplayName(Weekday weekday)
+    {
+        switch (weekday)
+        {
+            case Weekday.Sunday: return "日";
+            case Weekday.Monday: return "月";
+            case Weekday.Tuesday: return "火";
+            case Weekday.Wednesday: return "水";
+            case Weekday.Thursday: return "木";
+            case Weekday.Friday: return "金";
+            case Weekday.Saturday: return "土";
+            default: return "?";
+        }
     }
 
     public void SetTomorrowSchedule(ScheduleType scheduleType)
