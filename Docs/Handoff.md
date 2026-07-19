@@ -31,26 +31,13 @@
 - 予定イベント本体の直前は、衣装確認モードに応じて `このまま出発` / `着替える` を出し分ける
 - 予定画面は将来、今日・明日だけでなく7日／30日のカレンダー表示へ変更する。実行前キャンセルと、`Application.persistentDataPath` に保存する複数の名前付きテンプレートを追加し、テンプレートだけを別セーブスロットから共有する。詳細は `Docs/ScheduleUiExpansionPlan.md` を参照する
 - 衣装確認モードは `Always` / `Conditional` / `Hidden` を想定しており、`Conditional` のときは今の衣装が予定に対して問題ない場合に確認を省略する
-- 衣装確認モードはプレイヤー側の便利機能として扱い、可否と現在の使用モードは `GameManager.playerOutfitPromptAbilities` で制御する
-- 以下の `StatusAbilityData` 関連項目は移行前の現行実装。今後は詳細ステータス画面を閲覧専用にし、能力取得導線を撤去する
-- 能力はステータス画面から確認し、必要に応じて獲得画面へ移動して解放する
-- 現状の能力は基本的に `取得` = `解放` として扱う。ただし衣装確認モードは、解放済みの `Conditional` / `Hidden` を「使用する」ことで現在モードに設定し、選択中のモードを「解除する」と `Always` に戻せる
-- 将来、任意でオンオフできる能力がさらに必要になった場合は `Locked` / `Unlocked` / `Active` のような状態分離を検討する
-- 現在の能力項目は衣装確認モード向けが中心
-- 能力表示は `StatusAbilityData` の ScriptableObject で管理する
-- `Assets/Resources/StatusAbilities/` に能力アセットを置くと、`StatusDetailPanel` が読み込んで `targetRole` ごとに表示する
-- `StatusDetailPanel` の `playerAbilities` / `heroineAbilities` を Inspector で設定した場合は、その配列を優先して表示する
-- `StatusAbilityData.requiredAffection` と `requiredDay` で解放条件を設定でき、条件未達の場合は解放ボタンを押せない
-- 解放条件の現在値表示や詳細な不足理由表示は、現時点では必要性が低いため後回しにする
+- 衣装確認モードの利用可否は取得済み主人公スキルツリーノードから導出し、現在モードだけを `GameManager.playerOutfitPromptAbilities` に保持する
 - タイトルから新規ゲームを開始した直後に、メイン画面へ入る前のゲーム開始イベントを挟み、スチル表示もここで行う方針
 - タイトル画面とゲーム開始イベント中は `SaveLoadPanel` を閉じた状態に保ち、`Save` / `Load` ボタンを表示しない
-- `StatusAbilityData.effectType` が実際の効果を決める。`UseAbilityKind` は旧来互換として `abilityKind` から効果を推測し、`None` は効果なし能力として汎用の取得済みIDだけを保存する
-- 初期データとしてプレイヤー用・ヒロイン用の衣装確認能力をそれぞれ用意している
-- テスト用など効果を持たない能力は `StatusAbilityKind.TestJump` のような表示種別にし、`effectType` を `None`、`abilityId` を一意に設定すると汎用の取得済みIDとして保存される
-- `ConditionalOutfitPrompt` は初期状態で解放済みのため、何もしない能力のテストには使わない
-- 詳細ステータス画面は `StatusDetailPanel`、能力項目は `StatusAbilityKind`、画面の対象切り替えは `StatusDetailRole` で扱う
+- 詳細ステータス画面は `StatusDetailPanel`、画面の対象切り替えは `StatusDetailRole` で扱う
 - 状態画面の独自アビリティ取得は廃止し、衣装確認モードの解放を主人公スキルツリーへ統合する方針。状態画面は閲覧専用、`StatusProgressPanel` は実績集計専用として整理する。段階移行と削除対象は `Docs/StatusAndAchievementUiReorganizationPlan.md` を参照する
-- 衣装確認モードのスキルツリー統合は実装済み。主人公ノード `Player_ConditionalOutfitPrompt` / `Player_HiddenOutfitPrompt` で解放し、取得済みノードのボタンから使用／解除する。状態画面の旧取得UIは非表示で、SaveData version 16以前の解放フラグはロード時に対応ノードへ移行する
+- 衣装確認モードのスキルツリー統合は実装済み。主人公ノード `Player_ConditionalOutfitPrompt` / `Player_HiddenOutfitPrompt` で解放し、取得済みノードのボタンから使用／解除する。旧解放フラグの移行確認は完了し、旧移行コードは完全削除工程で撤去した
+- 旧 `StatusAbilityData`、関連Resourcesアセット、`unlockedStatusAbilityIds`、ヒロイン側の旧能力保存は削除済み。`SaveData` はversion 18。状態画面は読み取り専用で、旧UIルートはSceneから手動削除するまで互換参照で非表示にする
 - 詳細ステータス画面の入口として `StatusDetailAction` を用意し、行動一覧から開けるようにしている
 - タイトルから新規ゲームを開始した直後は、`GameEventData` の `GameStart` イベントを再生してからメイン画面を始める。`GameEventData` はヒロイン別 Resources パスに置き、ページ単位で話者・メッセージ・スチルを持てる
 - ヒロイン差し替えは `HeroineProfileData` で管理する。画像、会話、イベント、行動反応、エンディング、朝夜の挨拶などの共通セリフをヒロイン単位で束ね、`Images/Background` は共通背景として扱う。現在は `DefaultHeroineProfile.asset` で `Heroines/DefaultHeroine/Actions` / `Conversations` / `GameEvents` / `Endings` を参照している
@@ -563,7 +550,7 @@ AssetTool側は `usage = Training`、`Images/Training/`、`training_images_expor
 `SkillTreePanel` は各ノードの `treePosition` を使って二次元配置し、前提ノード間の接続線を実行時に生成する。Content の表示サイズを座標範囲から自動計算し、必要な方向だけスクロールを有効にする。ノード状態は灰色・黄色・緑・青、接続線は接続先ノードの状態に合わせて色分けし、選択中ボタンへ白い Outline を付ける。詳細欄には取得可否、不足理由、取得結果を表示する。訓練・カテゴリー・敵の条件対象 ID は表示名へ解決し、ヒロインタブでは現在ヒロイン名と所持ポイントを表示する。接続線用 Prefab を含む追加の Scene UI 部品は不要。
 `SkillTreeDataValidator` はノード ID、前提関係、循環参照、所有者・対象ヒロイン、主人公・ヒロインスキル、条件対象 ID、条件重複、座標重複を検証する。Unity Editor の `FantasyLoveSim > Validate Skill Tree Data` で全ノードを検証でき、Editor Play と Development Build の開始時にも一度実行する。警告は `[SkillTreeValidation]` で始まるため Console で絞り込み可能。通常リリースビルドでは起動時検証を呼ばない。
 好感度尺度は整数 `0〜9999`。既存の値・増減・条件は10倍へ移行し、従来の100相当は1000、ランク境界は200、400、600、800、1000とする。`HeroineStatus.maxAffection = 9999` と `endingUnlockAffection = 1000` を分離済み。旧 `maxAffection = 100` は通常コンテンツの終端でもあったため、移行後の会話・行動の既定上限は9999にして1000以降も利用可能にする。1000以降は単純な累積値として扱える。現在の `SaveData.saveVersion` は16で、旧好感度・熟練度尺度とのセーブ互換性は保証しない。
-スキルシステムは `StatusAbilityData` とは分け、`SkillData` 系 ScriptableObject として拡張する。スキルは汎用スキル、戦闘用スキル、訓練用スキルに分類する。汎用スキルは探索、会話、買い物、イベント条件、ステータス補正などに使い、戦闘用スキルは攻撃、防御、回復、バフ、デバフなど `BattlePanel` のコマンドに使う。訓練用スキルは模擬戦闘や稽古、熟練度上げに使う。
+スキルシステムは `SkillData` 系ScriptableObjectと `SkillTreeNodeData` で管理する。スキルは汎用スキル、戦闘用スキル、訓練用スキルに分類する。汎用スキルは探索、会話、買い物、イベント条件、ステータス補正などに使い、戦闘用スキルは攻撃、防御、回復、バフ、デバフなど `BattlePanel` のコマンドに使う。訓練用スキルは模擬戦闘や稽古、熟練度上げに使う。
 `SkillData`、`SkillCategory`、`SkillEffectType`、`SkillTargetType` は追加済み。スキルデータには `skillId`、表示名、カテゴリ、説明、消費コスト、対象、効果種別、威力または回復量、解放条件、使用可能な戦闘種別を持たせる。使用可能スキル ID は `SaveData.unlockedSkillIds` に派生情報として保存するが、取得済み主人公ノードを正本として起動・ロード時に再構築する。参照には `GameManager.IsSkillUnlocked(...)` / `GetUnlockedSkillIds()` を使い、外部から直接解放しない。主人公の装備中戦闘スキルは順序付きの `SaveData.equippedPlayerBattleSkillIds` に最大4件保存する。ヒロインの編成中戦闘スキルは `SaveData.heroineBattleSkillLoadouts` にヒロイン ID ごとの順序付きリストとして最大3件保存する。敵側は `EnemyData.battleSkills` の `EnemyBattleSkillData` を使い、敵ごとのスキル、MP コスト、対象、使用確率、優先度、戦闘中の最大使用回数を設定する。敵 MP も戦闘開始時に全回復し、MP が足りる候補から priority の高いスキルを確率で選ぶ。将来必要になったら `skillProficiencies` のような保存領域を追加する。
 初期確認用のスキルデータは `Assets/Resources/Skills` に `PowerStrike`、`GuardStance`、`FirstAid` として追加済み。熟練度尺度の10倍化後の解放条件は順に `LightPractice` 30、`EnduranceTraining` 30、`SparringPractice` 50。`BattleFocus` は `LightPractice` 50、`ArmorBreak` は `EnduranceTraining` 50とする。
 通常メニューのスキル導線は `SkillTreePanel` を開く。取得済みの主人公戦闘ノードを選ぶと既存の取得ボタンが「装備する」または「外す」に変わり、詳細欄とノード表示にも装備状態と使用中枠数を表示する。ヒロインノードでは同じボタンを「編成する」または「外す」として使い、現在ヒロインの3枠を編集する。取得時は空きがあれば自動編成する。旧セーブのバージョン14以前は取得済みスキルを最大3件まで補完し、バージョン15以降は空編成も維持する。ロード時は存在しない・未取得・重複・4件目以降のヒロインスキルを除去する。戦闘中は専用の `BattleSkillPanel` を優先して開き、装備中の最大4スキルだけを表示する。未配置の場合だけ従来の `SkillPanel` をフォールバックとして使う。`PowerStrike`（Damage）、`GuardStance`（Guard）、`FirstAid`（Heal）、`BattleFocus`（プレイヤー攻撃 Buff）、`ArmorBreak`（敵防御 Debuff）を実行できる。MP は戦闘開始時に最大値まで回復し、各スキルの `cost` を消費する。Buff / Debuff は `statusDurationTurns` の対象ターン数だけ `affectedStat` を変化させ、期限が切れると戦闘ログへ解除を出す。敵 Speed がプレイヤー Speed より 4 以上高い場合は 30% で追加行動する。ヒロイン用スキルは `HeroineProfileData.battleSkills` でヒロイン別に定義する。MP、確率、優先度、最大使用回数を持ち、編成中の候補から自動選択され、使用可能な候補がなければ通常攻撃する。初期設定は DefaultHeroine / TestHeroine ともに攻撃、HP が減った味方への回復、主人公への防御 Buff の 3 種類である。`BattlePanel` は主人公・ヒロイン・敵の HP と MP を常時表示し、`StatusButton` から `BattleStatusEffectPanel` を開く。状態パネルでは対象ごとに攻撃/防御/素早さの増減値と残りターンを一覧表示し、Buff と Debuff を色分けする。主人公・ヒロインの編成操作に追加の Scene UI は不要。カテゴリタブと MP 回復アイテムは後回しにする。

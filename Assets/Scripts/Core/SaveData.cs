@@ -4,7 +4,7 @@ using System.Collections.Generic;
 [Serializable]
 public class SaveData
 {
-    public int saveVersion = 17;
+    public int saveVersion = 18;
     public int saveSlotIndex;
     public string savedAt;
     public string heroineId;
@@ -33,8 +33,6 @@ public class SaveData
 
     public List<OutfitPreference> outfitPreferences = new List<OutfitPreference>();
     public OutfitPromptAbilitySet playerOutfitPromptAbilities = new OutfitPromptAbilitySet();
-    public OutfitPromptAbilitySet heroineOutfitPromptAbilities = new OutfitPromptAbilitySet();
-    public List<string> unlockedStatusAbilityIds = new List<string>();
     public List<string> unlockedSkillIds = new List<string>();
     public List<string> equippedPlayerBattleSkillIds = new List<string>();
     public List<HeroineBattleSkillLoadoutEntry> heroineBattleSkillLoadouts =

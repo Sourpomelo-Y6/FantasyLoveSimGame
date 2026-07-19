@@ -1,15 +1,18 @@
-using TMPro;
 using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
+/// <summary>
+/// 主人公・ヒロインの現在状態を表示する読み取り専用パネルです。
+/// スキルの取得と使用設定は SkillTreePanel が担当します。
+/// </summary>
 public class StatusDetailPanel : MonoBehaviour
 {
     [Header("Managers")]
     [SerializeField] private GameManager gameManager;
     [SerializeField] private PlayerStatus playerStatus;
     [SerializeField] private HeroineStatus heroineStatus;
-    [SerializeField] private TimeManager timeManager;
 
     [Header("Panel")]
     [SerializeField] private GameObject panelRoot;
@@ -20,53 +23,29 @@ public class StatusDetailPanel : MonoBehaviour
     [Header("Detail View")]
     [SerializeField] private TextMeshProUGUI titleText;
     [SerializeField] private TextMeshProUGUI statusSummaryText;
+
+    [Header("Legacy UI Cleanup")]
+    [Tooltip("旧アビリティ一覧のルートです。Sceneから削除するまで非表示にします。")]
     [SerializeField] private Transform abilityListParent;
-    [SerializeField] private Button abilityButtonPrefab;
-
-    [Header("Acquire View")]
+    [Tooltip("旧アビリティ取得パネルです。Sceneから削除するまで非表示にします。")]
     [SerializeField] private GameObject abilityAcquirePanel;
-    [SerializeField] private TextMeshProUGUI abilityAcquireTitleText;
-    [SerializeField] private TextMeshProUGUI abilityAcquireDescriptionText;
-    [SerializeField] private Button abilityAcquireButton;
-    [SerializeField] private Button abilityAcquireBackButton;
-
-    [Header("Ability Lists")]
-    [SerializeField] private string statusAbilityResourcePath = "StatusAbilities";
-    [SerializeField] private StatusAbilityData[] playerAbilities;
-    [SerializeField] private StatusAbilityData[] heroineAbilities;
 
     [Header("Labels")]
     [SerializeField] private string playerTitle = "プレイヤー詳細ステータス";
     [SerializeField] private string heroineTitle = "ヒロイン詳細ステータス";
     [SerializeField] private string playerSummaryTitle = "プレイヤー能力";
     [SerializeField] private string heroineSummaryTitle = "ヒロイン能力";
-    [SerializeField] private string conditionalAbilityName = "衣装確認モード: 条件表示";
-    [SerializeField] private string hiddenAbilityName = "衣装確認モード: 非表示";
-    [SerializeField] private string conditionalAbilityDescription = "衣装が予定に対して問題ない場合は、出発前の確認を省略できるようにします。";
-    [SerializeField] private string hiddenAbilityDescription = "衣装確認そのものを省略し、予定開始時にそのまま進めるようにします。";
     [SerializeField] private string unlockedLabel = "解放済み";
     [SerializeField] private string lockedLabel = "未解放";
-    [SerializeField] private string acquireButtonLabel = "解放する";
-    [SerializeField] private string useButtonLabel = "使用する";
-    [SerializeField] private string disableButtonLabel = "解除する";
-    [SerializeField] private string activeLabel = "使用中";
-    [SerializeField] private string acquiredMessage = "解放しました。";
 
     private StatusDetailRole currentRole = StatusDetailRole.Player;
-    private StatusAbilityData selectedAbility;
-    private StatusAbilityKind selectedAbilityKind = StatusAbilityKind.ConditionalOutfitPrompt;
-    private bool hasWarnedMissingReferences = false;
-    private List<StatusAbilityData> loadedAbilities = new List<StatusAbilityData>();
+    private bool hasWarnedMissingReferences;
 
-    private GameObject PanelRoot
-    {
-        get { return panelRoot != null ? panelRoot : gameObject; }
-    }
+    private GameObject PanelRoot => panelRoot != null ? panelRoot : gameObject;
 
     private void Awake()
     {
         EnsureUiReferences();
-
         if (closeButton != null)
         {
             closeButton.onClick.AddListener(Close);
@@ -77,13 +56,13 @@ public class StatusDetailPanel : MonoBehaviour
             progressButton.onClick.AddListener(OpenProgressPanel);
         }
 
-        DisableLegacyAbilityUi();
-        HideAllViews();
+        HideLegacyAbilityUi();
     }
 
     private void OnEnable()
     {
         EnsureUiReferences();
+        HideLegacyAbilityUi();
         Refresh();
     }
 
@@ -98,28 +77,21 @@ public class StatusDetailPanel : MonoBehaviour
 
     public void Initialize(GameManager manager, HeroineStatus heroine, TimeManager time)
     {
-        gameManager = manager;
-        heroineStatus = heroine;
-        timeManager = time;
-        playerStatus = manager != null ? manager.PlayerStatus : playerStatus;
-        InitializeProgressPanel();
-        EnsureUiReferences();
+        Initialize(manager, heroine);
     }
 
     public void OpenPlayerDetail()
     {
-        EnsureUiReferences();
         currentRole = StatusDetailRole.Player;
         PanelRoot.SetActive(true);
-        ShowDetailView();
+        Refresh();
     }
 
     public void OpenHeroineDetail()
     {
-        EnsureUiReferences();
         currentRole = StatusDetailRole.Heroine;
         PanelRoot.SetActive(true);
-        ShowDetailView();
+        Refresh();
     }
 
     public void Close()
@@ -128,6 +100,7 @@ public class StatusDetailPanel : MonoBehaviour
         {
             progressPanel.Close();
         }
+
         PanelRoot.SetActive(false);
     }
 
@@ -152,81 +125,8 @@ public class StatusDetailPanel : MonoBehaviour
         progressPanel.Open();
     }
 
-    public void ShowAbilityAcquirePanelForConditional()
-    {
-        EnsureUiReferences();
-        ShowAbilityAcquireView(StatusAbilityKind.ConditionalOutfitPrompt, null);
-    }
-
-    public void ShowAbilityAcquirePanelForHidden()
-    {
-        EnsureUiReferences();
-        ShowAbilityAcquireView(StatusAbilityKind.HiddenOutfitPrompt, null);
-    }
-
-    private void ShowDetailView()
-    {
-        EnsureUiReferences();
-
-        if (abilityAcquirePanel != null)
-        {
-            abilityAcquirePanel.SetActive(false);
-        }
-
-        Refresh();
-    }
-
-    private void ShowAbilityAcquireView(StatusAbilityKind abilityKind, StatusAbilityData ability)
-    {
-        EnsureUiReferences();
-        selectedAbility = ability;
-        selectedAbilityKind = abilityKind;
-
-        if (abilityAcquirePanel != null)
-        {
-            abilityAcquirePanel.SetActive(true);
-        }
-
-        if (abilityAcquireTitleText != null)
-        {
-            abilityAcquireTitleText.text = GetAbilityName(abilityKind, ability) + " の解放";
-        }
-
-        if (abilityAcquireDescriptionText != null)
-        {
-            abilityAcquireDescriptionText.text = BuildAbilityAcquireDescription(abilityKind, ability);
-        }
-
-        if (abilityAcquireButton != null)
-        {
-            bool canUnlock = CanUnlockAbility(abilityKind, ability);
-            bool isUnlocked = IsAbilityUnlocked(abilityKind, ability);
-            bool canSelectMode = currentRole == StatusDetailRole.Player &&
-                IsOutfitPromptAbility(abilityKind, ability) &&
-                isUnlocked;
-            abilityAcquireButton.interactable = canSelectMode || (!isUnlocked && canUnlock);
-
-            TextMeshProUGUI buttonLabel = abilityAcquireButton.GetComponentInChildren<TextMeshProUGUI>();
-            if (buttonLabel != null)
-            {
-                if (canSelectMode)
-                {
-                    buttonLabel.text = IsSelectedOutfitPromptMode(abilityKind, ability)
-                        ? disableButtonLabel
-                        : useButtonLabel;
-                }
-                else
-                {
-                    buttonLabel.text = isUnlocked ? unlockedLabel : acquireButtonLabel;
-                }
-            }
-        }
-    }
-
     private void Refresh()
     {
-        EnsureUiReferences();
-
         if (!PanelRoot.activeSelf)
         {
             return;
@@ -239,145 +139,25 @@ public class StatusDetailPanel : MonoBehaviour
 
         if (statusSummaryText != null)
         {
-            statusSummaryText.text = BuildStatusSummary();
-        }
-
-        DisableLegacyAbilityUi();
-    }
-
-    private void RefreshAbilityList()
-    {
-        if (abilityListParent == null || abilityButtonPrefab == null)
-        {
-            return;
-        }
-
-        ClearAbilityList();
-
-        StatusAbilityData[] abilities = GetCurrentAbilitiesForList();
-        if (abilities == null)
-        {
-            return;
-        }
-
-        foreach (StatusAbilityData ability in abilities)
-        {
-            if (ability == null || !ability.isEnabled || ability.targetRole != currentRole)
-            {
-                continue;
-            }
-
-            if (currentRole != StatusDetailRole.Player && IsOutfitPromptAbility(ability.abilityKind, ability))
-            {
-                continue;
-            }
-
-            CreateAbilityButton(ability);
+            statusSummaryText.text = currentRole == StatusDetailRole.Player
+                ? BuildPlayerStatusSummary(playerStatus != null ? playerStatus.BattleStatus : null)
+                : BuildHeroineStatusSummary(heroineStatus != null ? heroineStatus.BattleStatus : null);
         }
     }
 
-    private void CreateAbilityButton(StatusAbilityData ability)
+    private string BuildPlayerStatusSummary(BattleStatusData status)
     {
-        Button button = Instantiate(abilityButtonPrefab, abilityListParent);
-        button.gameObject.SetActive(true);
-
-        TextMeshProUGUI buttonText = button.GetComponentInChildren<TextMeshProUGUI>();
-        if (buttonText != null)
-        {
-            buttonText.text = BuildAbilityButtonLabel(ability);
-        }
-
-        button.onClick.AddListener(() => ShowAbilityAcquireView(ability.abilityKind, ability));
-    }
-
-    private void ClearAbilityList()
-    {
-        for (int i = abilityListParent.childCount - 1; i >= 0; i--)
-        {
-            Destroy(abilityListParent.GetChild(i).gameObject);
-        }
-    }
-
-    private StatusAbilityData[] GetCurrentAbilitiesForList()
-    {
-        StatusAbilityData[] configuredAbilities = currentRole == StatusDetailRole.Player
-            ? playerAbilities
-            : heroineAbilities;
-
-        if (configuredAbilities != null && configuredAbilities.Length > 0)
-        {
-            return configuredAbilities;
-        }
-
-        LoadStatusAbilitiesFromResources();
-
-        List<StatusAbilityData> roleAbilities = new List<StatusAbilityData>();
-        foreach (StatusAbilityData ability in loadedAbilities)
-        {
-            if (ability != null && ability.targetRole == currentRole)
-            {
-                roleAbilities.Add(ability);
-            }
-        }
-
-        return roleAbilities.ToArray();
-    }
-
-    private void LoadStatusAbilitiesFromResources()
-    {
-        if (loadedAbilities.Count > 0)
-        {
-            return;
-        }
-
-        StatusAbilityData[] abilities = Resources.LoadAll<StatusAbilityData>(statusAbilityResourcePath);
-        loadedAbilities = new List<StatusAbilityData>(abilities);
-        loadedAbilities.Sort((a, b) => a.sortOrder.CompareTo(b.sortOrder));
-    }
-
-    private string BuildStatusSummary()
-    {
-        if (currentRole == StatusDetailRole.Player)
-        {
-            BattleStatusData playerBattleStatus = playerStatus != null ? playerStatus.BattleStatus : null;
-            bool conditionalUnlocked = gameManager != null && gameManager.CanUseScheduledEventOutfitPromptMode(
+        bool conditionalUnlocked = gameManager != null &&
+            gameManager.CanUseScheduledEventOutfitPromptMode(
                 ScheduledEventOutfitPromptMode.Conditional);
-            bool hiddenUnlocked = gameManager != null && gameManager.CanUseScheduledEventOutfitPromptMode(
+        bool hiddenUnlocked = gameManager != null &&
+            gameManager.CanUseScheduledEventOutfitPromptMode(
                 ScheduledEventOutfitPromptMode.Hidden);
-            ScheduledEventOutfitPromptMode selectedMode = gameManager != null &&
-                gameManager.PlayerOutfitPromptAbilities != null
-                    ? gameManager.PlayerOutfitPromptAbilities.selectedMode
-                    : ScheduledEventOutfitPromptMode.Always;
-            return BuildPlayerStatusSummary(
-                playerBattleStatus,
-                conditionalUnlocked ? unlockedLabel : lockedLabel,
-                hiddenUnlocked ? unlockedLabel : lockedLabel,
-                selectedMode);
-        }
+        ScheduledEventOutfitPromptMode selectedMode = gameManager != null &&
+            gameManager.PlayerOutfitPromptAbilities != null
+                ? gameManager.PlayerOutfitPromptAbilities.selectedMode
+                : ScheduledEventOutfitPromptMode.Always;
 
-        BattleStatusData heroineBattleStatus = heroineStatus != null ? heroineStatus.BattleStatus : null;
-        return BuildHeroineStatusSummary(heroineBattleStatus);
-    }
-
-    private void DisableLegacyAbilityUi()
-    {
-        if (abilityAcquirePanel != null)
-        {
-            abilityAcquirePanel.SetActive(false);
-        }
-
-        if (abilityListParent != null)
-        {
-            abilityListParent.gameObject.SetActive(false);
-        }
-    }
-
-    private string BuildPlayerStatusSummary(
-        BattleStatusData status,
-        string conditionalLabel,
-        string hiddenLabel,
-        ScheduledEventOutfitPromptMode selectedMode)
-    {
         return playerSummaryTitle +
             "\nHP：" + GetCurrentHp(status) + "/" + GetMaxHp(status) +
             "\n攻撃：" + GetAttack(status) +
@@ -386,9 +166,12 @@ public class StatusDetailPanel : MonoBehaviour
             "\n所持金：" + (playerStatus != null ? playerStatus.Money : 0) +
             "\n購入済み：" + BuildPurchasedItemSummary() +
             "\n解放衣装：" + BuildUnlockedOutfitSummary() +
-            "\n衣装確認モード：" + conditionalLabel +
-            "\nHidden解放：" + hiddenLabel +
-            "\n現在の衣装確認設定：" + GetOutfitPromptModeLabel(selectedMode);
+            "\n条件表示：" + (conditionalUnlocked ? unlockedLabel : lockedLabel) +
+            "\n非表示：" + (hiddenUnlocked ? unlockedLabel : lockedLabel) +
+            "\n現在の衣装確認設定：" +
+            (gameManager != null
+                ? gameManager.GetScheduledEventOutfitPromptModeLabel(selectedMode)
+                : "毎回表示");
     }
 
     private string BuildHeroineStatusSummary(BattleStatusData status)
@@ -400,31 +183,6 @@ public class StatusDetailPanel : MonoBehaviour
             "\n素早さ：" + GetSpeed(status);
     }
 
-    private static int GetCurrentHp(BattleStatusData status)
-    {
-        return status != null ? status.currentHp : 0;
-    }
-
-    private static int GetMaxHp(BattleStatusData status)
-    {
-        return status != null ? status.maxHp : 0;
-    }
-
-    private static int GetAttack(BattleStatusData status)
-    {
-        return status != null ? status.attack : 0;
-    }
-
-    private static int GetDefense(BattleStatusData status)
-    {
-        return status != null ? status.defense : 0;
-    }
-
-    private static int GetSpeed(BattleStatusData status)
-    {
-        return status != null ? status.speed : 0;
-    }
-
     private string BuildPurchasedItemSummary()
     {
         if (gameManager == null)
@@ -432,14 +190,14 @@ public class StatusDetailPanel : MonoBehaviour
             return "なし";
         }
 
-        List<string> purchasedItems = gameManager.GetPurchasedItemIds();
-        if (purchasedItems == null || purchasedItems.Count == 0)
+        List<string> itemIds = gameManager.GetPurchasedItemIds();
+        if (itemIds == null || itemIds.Count == 0)
         {
             return "なし";
         }
 
-        purchasedItems.Sort();
-        return string.Join(", ", purchasedItems.ToArray());
+        itemIds.Sort();
+        return string.Join(", ", itemIds.ToArray());
     }
 
     private string BuildUnlockedOutfitSummary()
@@ -449,390 +207,33 @@ public class StatusDetailPanel : MonoBehaviour
             return "なし";
         }
 
-        List<string> unlockedOutfits = gameManager.GetUnlockedOutfitIds();
-        if (unlockedOutfits == null || unlockedOutfits.Count == 0)
+        List<string> outfitIds = gameManager.GetUnlockedOutfitIds();
+        if (outfitIds == null || outfitIds.Count == 0)
         {
             return "なし";
         }
 
-        unlockedOutfits.Sort();
-        return string.Join(", ", unlockedOutfits.ToArray());
+        outfitIds.Sort();
+        return string.Join(", ", outfitIds.ToArray());
     }
 
-    private string BuildAbilityButtonLabel(StatusAbilityData ability)
+    private static int GetCurrentHp(BattleStatusData status) => status != null ? status.currentHp : 0;
+    private static int GetMaxHp(BattleStatusData status) => status != null ? status.maxHp : 0;
+    private static int GetAttack(BattleStatusData status) => status != null ? status.attack : 0;
+    private static int GetDefense(BattleStatusData status) => status != null ? status.defense : 0;
+    private static int GetSpeed(BattleStatusData status) => status != null ? status.speed : 0;
+
+    private void HideLegacyAbilityUi()
     {
-        return GetAbilityName(ability.abilityKind, ability) + " / " + GetAbilityStateText(ability);
-    }
-
-    private string GetAbilityStateText(StatusAbilityData ability)
-    {
-        if (!IsAbilityUnlocked(ability.abilityKind, ability))
+        if (abilityListParent != null)
         {
-            return lockedLabel;
+            abilityListParent.gameObject.SetActive(false);
         }
 
-        if (currentRole == StatusDetailRole.Player && IsSelectedOutfitPromptMode(ability.abilityKind, ability))
-        {
-            return activeLabel;
-        }
-
-        return unlockedLabel;
-    }
-
-    private string GetAbilityName(StatusAbilityKind abilityKind, StatusAbilityData ability)
-    {
-        if (ability != null && !string.IsNullOrEmpty(ability.displayName))
-        {
-            return ability.displayName;
-        }
-
-        switch (abilityKind)
-        {
-            case StatusAbilityKind.HiddenOutfitPrompt:
-                return hiddenAbilityName;
-            default:
-                return conditionalAbilityName;
-        }
-    }
-
-    private string GetAbilityDescription(StatusAbilityKind abilityKind, StatusAbilityData ability)
-    {
-        if (ability != null && !string.IsNullOrEmpty(ability.description))
-        {
-            return ability.description;
-        }
-
-        switch (abilityKind)
-        {
-            case StatusAbilityKind.HiddenOutfitPrompt:
-                return hiddenAbilityDescription;
-            default:
-                return conditionalAbilityDescription;
-        }
-    }
-
-    private string BuildAbilityAcquireDescription(StatusAbilityKind abilityKind, StatusAbilityData ability)
-    {
-        string description = GetAbilityDescription(abilityKind, ability);
-        string missingCondition = BuildMissingUnlockConditionText(ability);
-
-        if (string.IsNullOrEmpty(missingCondition))
-        {
-            return description;
-        }
-
-        return description + "\n" + missingCondition;
-    }
-
-    private bool IsAbilityUnlocked(StatusAbilityKind abilityKind, StatusAbilityData ability)
-    {
-        OutfitPromptAbilitySet abilities = GetCurrentAbilities();
-        if (abilities == null)
-        {
-            return false;
-        }
-
-        switch (GetAbilityEffectType(abilityKind, ability))
-        {
-            case StatusAbilityEffectType.OutfitPromptConditional:
-                return abilities.canUseConditionalMode;
-            case StatusAbilityEffectType.OutfitPromptHidden:
-                return abilities.canUseHiddenMode;
-            case StatusAbilityEffectType.None:
-            default:
-                return gameManager != null && gameManager.IsStatusAbilityUnlocked(GetStatusAbilitySaveKey(ability));
-        }
-    }
-
-    private void UnlockSelectedAbility()
-    {
-        OutfitPromptAbilitySet abilities = GetCurrentAbilities();
-        if (abilities == null)
-        {
-            return;
-        }
-
-        if (currentRole == StatusDetailRole.Player &&
-            IsOutfitPromptAbility(selectedAbilityKind, selectedAbility) &&
-            IsAbilityUnlocked(selectedAbilityKind, selectedAbility))
-        {
-            ToggleSelectedOutfitPromptMode(selectedAbilityKind, selectedAbility);
-            RefreshAbilityAcquireView();
-            return;
-        }
-
-        if (!CanUnlockAbility(selectedAbilityKind, selectedAbility))
-        {
-            if (abilityAcquireDescriptionText != null)
-            {
-                abilityAcquireDescriptionText.text = BuildAbilityAcquireDescription(selectedAbilityKind, selectedAbility);
-            }
-
-            return;
-        }
-
-        switch (GetAbilityEffectType(selectedAbilityKind, selectedAbility))
-        {
-            case StatusAbilityEffectType.OutfitPromptConditional:
-                abilities.canUseConditionalMode = true;
-                abilities.selectedMode = ScheduledEventOutfitPromptMode.Conditional;
-                break;
-            case StatusAbilityEffectType.OutfitPromptHidden:
-                abilities.canUseHiddenMode = true;
-                abilities.selectedMode = ScheduledEventOutfitPromptMode.Hidden;
-                break;
-            case StatusAbilityEffectType.None:
-            default:
-                if (gameManager != null)
-                {
-                    gameManager.UnlockStatusAbility(GetStatusAbilitySaveKey(selectedAbility));
-                }
-                break;
-        }
-
-        Refresh();
-
-        if (abilityAcquireDescriptionText != null)
-        {
-            abilityAcquireDescriptionText.text = GetAbilityDescription(selectedAbilityKind, selectedAbility) + "\n" + acquiredMessage;
-        }
-
-        if (abilityAcquireButton != null)
-        {
-            RefreshAbilityAcquireButton();
-        }
-    }
-
-    private void RefreshAbilityAcquireView()
-    {
-        Refresh();
-
-        if (abilityAcquireDescriptionText != null)
-        {
-            abilityAcquireDescriptionText.text = BuildAbilityAcquireDescription(selectedAbilityKind, selectedAbility);
-        }
-
-        RefreshAbilityAcquireButton();
-    }
-
-    private void RefreshAbilityAcquireButton()
-    {
-        if (abilityAcquireButton == null)
-        {
-            return;
-        }
-
-        bool canUnlock = CanUnlockAbility(selectedAbilityKind, selectedAbility);
-        bool isUnlocked = IsAbilityUnlocked(selectedAbilityKind, selectedAbility);
-        bool canSelectMode = currentRole == StatusDetailRole.Player &&
-            IsOutfitPromptAbility(selectedAbilityKind, selectedAbility) &&
-            isUnlocked;
-
-        abilityAcquireButton.interactable = canSelectMode || (!isUnlocked && canUnlock);
-
-        TextMeshProUGUI buttonLabel = abilityAcquireButton.GetComponentInChildren<TextMeshProUGUI>();
-        if (buttonLabel == null)
-        {
-            return;
-        }
-
-        if (canSelectMode)
-        {
-            buttonLabel.text = IsSelectedOutfitPromptMode(selectedAbilityKind, selectedAbility)
-                ? disableButtonLabel
-                : useButtonLabel;
-            return;
-        }
-
-        buttonLabel.text = isUnlocked ? unlockedLabel : acquireButtonLabel;
-    }
-
-    private OutfitPromptAbilitySet GetCurrentAbilities()
-    {
-        if (currentRole == StatusDetailRole.Player)
-        {
-            return gameManager != null ? gameManager.PlayerOutfitPromptAbilities : null;
-        }
-
-        return heroineStatus != null ? heroineStatus.OutfitPromptAbilities : null;
-    }
-
-    private StatusAbilityEffectType GetAbilityEffectType(StatusAbilityKind abilityKind, StatusAbilityData ability)
-    {
-        if (ability != null && ability.effectType != StatusAbilityEffectType.UseAbilityKind)
-        {
-            return ability.effectType;
-        }
-
-        switch (abilityKind)
-        {
-            case StatusAbilityKind.ConditionalOutfitPrompt:
-                return StatusAbilityEffectType.OutfitPromptConditional;
-            case StatusAbilityKind.HiddenOutfitPrompt:
-                return StatusAbilityEffectType.OutfitPromptHidden;
-            default:
-                return StatusAbilityEffectType.None;
-        }
-    }
-
-    private bool IsOutfitPromptAbility(StatusAbilityKind abilityKind, StatusAbilityData ability)
-    {
-        StatusAbilityEffectType effectType = GetAbilityEffectType(abilityKind, ability);
-        return effectType == StatusAbilityEffectType.OutfitPromptConditional ||
-               effectType == StatusAbilityEffectType.OutfitPromptHidden;
-    }
-
-    private bool IsSelectedOutfitPromptMode(StatusAbilityKind abilityKind, StatusAbilityData ability)
-    {
-        OutfitPromptAbilitySet abilities = GetCurrentAbilities();
-        if (abilities == null)
-        {
-            return false;
-        }
-
-        switch (GetAbilityEffectType(abilityKind, ability))
-        {
-            case StatusAbilityEffectType.OutfitPromptConditional:
-                return abilities.selectedMode == ScheduledEventOutfitPromptMode.Conditional;
-            case StatusAbilityEffectType.OutfitPromptHidden:
-                return abilities.selectedMode == ScheduledEventOutfitPromptMode.Hidden;
-            default:
-                return false;
-        }
-    }
-
-    private void ToggleSelectedOutfitPromptMode(StatusAbilityKind abilityKind, StatusAbilityData ability)
-    {
-        OutfitPromptAbilitySet abilities = GetCurrentAbilities();
-        if (abilities == null)
-        {
-            return;
-        }
-
-        if (IsSelectedOutfitPromptMode(abilityKind, ability))
-        {
-            abilities.selectedMode = ScheduledEventOutfitPromptMode.Always;
-            return;
-        }
-
-        switch (GetAbilityEffectType(abilityKind, ability))
-        {
-            case StatusAbilityEffectType.OutfitPromptConditional:
-                abilities.selectedMode = ScheduledEventOutfitPromptMode.Conditional;
-                break;
-            case StatusAbilityEffectType.OutfitPromptHidden:
-                abilities.selectedMode = ScheduledEventOutfitPromptMode.Hidden;
-                break;
-        }
-    }
-
-    private string GetOutfitPromptModeLabel(ScheduledEventOutfitPromptMode mode)
-    {
-        switch (mode)
-        {
-            case ScheduledEventOutfitPromptMode.Conditional:
-                return "条件表示";
-            case ScheduledEventOutfitPromptMode.Hidden:
-                return "非表示";
-            default:
-                return "常に確認";
-        }
-    }
-
-    private bool CanUnlockAbility(StatusAbilityKind abilityKind, StatusAbilityData ability)
-    {
-        if (IsAbilityUnlocked(abilityKind, ability))
-        {
-            return false;
-        }
-
-        return MeetsUnlockCondition(ability);
-    }
-
-    private string GetStatusAbilitySaveKey(StatusAbilityData ability)
-    {
-        if (ability != null && !string.IsNullOrEmpty(ability.abilityId))
-        {
-            return ability.targetRole + ":" + ability.abilityId;
-        }
-
-        return currentRole + ":" + selectedAbilityKind;
-    }
-
-    private bool MeetsUnlockCondition(StatusAbilityData ability)
-    {
-        if (ability == null)
-        {
-            return true;
-        }
-
-        if (heroineStatus != null && heroineStatus.Affection < ability.requiredAffection)
-        {
-            return false;
-        }
-
-        if (timeManager != null && timeManager.Day < ability.requiredDay)
-        {
-            return false;
-        }
-
-        return true;
-    }
-
-    private string BuildMissingUnlockConditionText(StatusAbilityData ability)
-    {
-        if (ability == null)
-        {
-            return "";
-        }
-
-        string message = "";
-
-        if (heroineStatus != null && heroineStatus.Affection < ability.requiredAffection)
-        {
-            message += "必要好感度: " + ability.requiredAffection;
-        }
-
-        if (timeManager != null && timeManager.Day < ability.requiredDay)
-        {
-            if (!string.IsNullOrEmpty(message))
-            {
-                message += "\n";
-            }
-
-            message += "必要日数: Day " + ability.requiredDay;
-        }
-
-        if (string.IsNullOrEmpty(message))
-        {
-            return "";
-        }
-
-        return "解放条件未達\n" + message;
-    }
-
-    private void HideAllViews()
-    {
         if (abilityAcquirePanel != null)
         {
             abilityAcquirePanel.SetActive(false);
         }
-    }
-
-    private void EnsureUiReferences()
-    {
-        if (playerStatus == null && gameManager != null)
-        {
-            playerStatus = gameManager.PlayerStatus;
-        }
-
-        if (HasRequiredReferences() || hasWarnedMissingReferences)
-        {
-            return;
-        }
-
-        Debug.LogWarning("StatusDetailPanel の UI 参照が不足しています。Hierarchy 上に UI を配置し、Inspector で参照を割り当ててください。");
-        hasWarnedMissingReferences = true;
     }
 
     private void InitializeProgressPanel()
@@ -848,10 +249,21 @@ public class StatusDetailPanel : MonoBehaviour
         }
     }
 
-    private bool HasRequiredReferences()
+    private void EnsureUiReferences()
     {
-        return titleText != null &&
-            statusSummaryText != null &&
-            closeButton != null;
+        if (playerStatus == null && gameManager != null)
+        {
+            playerStatus = gameManager.PlayerStatus;
+        }
+
+        if ((titleText != null && statusSummaryText != null && closeButton != null) ||
+            hasWarnedMissingReferences)
+        {
+            return;
+        }
+
+        Debug.LogWarning(
+            "StatusDetailPanel の UI 参照が不足しています。Hierarchy 上の参照を確認してください。");
+        hasWarnedMissingReferences = true;
     }
 }

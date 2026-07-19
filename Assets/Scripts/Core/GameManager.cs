@@ -271,7 +271,6 @@ public class GameManager : MonoBehaviour
 
     private readonly HashSet<string> shownConversationIds = new HashSet<string>();
     private readonly HashSet<string> shownGameEventIds = new HashSet<string>();
-    private readonly HashSet<string> unlockedStatusAbilityIds = new HashSet<string>();
     private readonly HashSet<string> unlockedSkillIds = new HashSet<string>();
     private readonly List<string> equippedPlayerBattleSkillIds = new List<string>();
     private readonly Dictionary<string, List<string>> heroineBattleSkillLoadouts =
@@ -2346,18 +2345,11 @@ public class GameManager : MonoBehaviour
         }
 
         saveData.outfitPreferences = outfitPreferenceManager.CreateSaveData();
+        if (playerOutfitPromptAbilities == null)
+        {
+            playerOutfitPromptAbilities = new OutfitPromptAbilitySet();
+        }
         saveData.playerOutfitPromptAbilities = playerOutfitPromptAbilities.Clone();
-        saveData.playerOutfitPromptAbilities.canUseConditionalMode =
-            CanUseScheduledEventOutfitPromptMode(
-                ScheduledEventOutfitPromptMode.Conditional);
-        saveData.playerOutfitPromptAbilities.canUseHiddenMode =
-            CanUseScheduledEventOutfitPromptMode(
-                ScheduledEventOutfitPromptMode.Hidden);
-        saveData.heroineOutfitPromptAbilities =
-            heroineStatus != null
-                ? heroineStatus.OutfitPromptAbilities.Clone()
-                : new OutfitPromptAbilitySet();
-        saveData.unlockedStatusAbilityIds = new List<string>(unlockedStatusAbilityIds);
         saveData.unlockedSkillIds = new List<string>(unlockedSkillIds);
         NormalizeEquippedPlayerBattleSkills(false);
         saveData.equippedPlayerBattleSkillIds =
@@ -2479,22 +2471,11 @@ public class GameManager : MonoBehaviour
             heroineStatus.SetBattleStatus(saveData.heroineBattleStatus);
         }
 
+        if (playerOutfitPromptAbilities == null)
+        {
+            playerOutfitPromptAbilities = new OutfitPromptAbilitySet();
+        }
         playerOutfitPromptAbilities.CopyFrom(saveData.playerOutfitPromptAbilities);
-        if (heroineStatus != null)
-        {
-            heroineStatus.SetOutfitPromptAbilities(saveData.heroineOutfitPromptAbilities);
-        }
-        unlockedStatusAbilityIds.Clear();
-        if (saveData.unlockedStatusAbilityIds != null)
-        {
-            foreach (string abilityId in saveData.unlockedStatusAbilityIds)
-            {
-                if (!string.IsNullOrEmpty(abilityId))
-                {
-                    unlockedStatusAbilityIds.Add(abilityId);
-                }
-            }
-        }
         unlockedSkillIds.Clear();
         if (saveData.unlockedSkillIds != null)
         {
@@ -2552,10 +2533,6 @@ public class GameManager : MonoBehaviour
         LoadSkillTreeNodeIds(
             acquiredHeroineSkillTreeNodeIds,
             saveData.acquiredHeroineSkillTreeNodeIds);
-        if (saveData.saveVersion < 17)
-        {
-            MigrateLegacyOutfitPromptAbilities(saveData.playerOutfitPromptAbilities);
-        }
         NormalizeSelectedOutfitPromptMode();
         equippedPlayerBattleSkillIds.Clear();
         if (saveData.equippedPlayerBattleSkillIds != null)
@@ -2648,21 +2625,6 @@ public class GameManager : MonoBehaviour
     public bool HasSaveDataInSlot(int slotIndex)
     {
         return saveManager != null && saveManager.HasSaveData(slotIndex);
-    }
-
-    public bool IsStatusAbilityUnlocked(string abilityId)
-    {
-        return !string.IsNullOrEmpty(abilityId) && unlockedStatusAbilityIds.Contains(abilityId);
-    }
-
-    public void UnlockStatusAbility(string abilityId)
-    {
-        if (string.IsNullOrEmpty(abilityId))
-        {
-            return;
-        }
-
-        unlockedStatusAbilityIds.Add(abilityId);
     }
 
     public bool IsSkillUnlocked(string skillId)
@@ -3776,45 +3738,6 @@ public class GameManager : MonoBehaviour
             if (!string.IsNullOrEmpty(source[i]))
             {
                 target.Add(source[i]);
-            }
-        }
-    }
-
-    private void MigrateLegacyOutfitPromptAbilities(OutfitPromptAbilitySet legacyAbilities)
-    {
-        if (legacyAbilities == null)
-        {
-            return;
-        }
-
-        if (legacyAbilities.canUseConditionalMode)
-        {
-            AcquireOutfitPromptModeNodeForMigration(
-                ScheduledEventOutfitPromptMode.Conditional);
-        }
-
-        if (legacyAbilities.canUseHiddenMode)
-        {
-            AcquireOutfitPromptModeNodeForMigration(
-                ScheduledEventOutfitPromptMode.Hidden);
-        }
-    }
-
-    private void AcquireOutfitPromptModeNodeForMigration(
-        ScheduledEventOutfitPromptMode outfitPromptMode)
-    {
-        SkillTreeNodeData[] nodes = GetSkillTreeNodeDataList();
-        for (int i = 0; i < nodes.Length; i++)
-        {
-            SkillTreeNodeData node = nodes[i];
-            if (node != null &&
-                node.owner == SkillTreeOwner.Player &&
-                node.unlocksOutfitPromptMode &&
-                node.unlockedOutfitPromptMode == outfitPromptMode &&
-                !string.IsNullOrEmpty(node.nodeId))
-            {
-                acquiredPlayerSkillTreeNodeIds.Add(node.nodeId);
-                return;
             }
         }
     }

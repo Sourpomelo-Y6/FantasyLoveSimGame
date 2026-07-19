@@ -20,9 +20,6 @@ public class HeroineStatus : MonoBehaviour
         speed = 6
     };
 
-    [Header("Outfit Prompt Ability")]
-    [SerializeField] private OutfitPromptAbilitySet outfitPromptAbilities = new OutfitPromptAbilitySet();
-
     public string HeroineName => heroineName;
     public int Affection => affection;
     public int MaxAffection => maxAffection;
@@ -30,7 +27,6 @@ public class HeroineStatus : MonoBehaviour
     public BattleStatusData BattleStatus => battleStatus;
     public int CurrentHp => battleStatus != null ? battleStatus.currentHp : 0;
     public int MaxHp => battleStatus != null ? battleStatus.maxHp : 0;
-    public OutfitPromptAbilitySet OutfitPromptAbilities => outfitPromptAbilities;
 
     private void Awake()
     {
@@ -43,11 +39,6 @@ public class HeroineStatus : MonoBehaviour
         {
             heroineName = value;
         }
-    }
-
-    public void SetOutfitPromptAbilities(OutfitPromptAbilitySet source)
-    {
-        outfitPromptAbilities.CopyFrom(source);
     }
 
     public void SetBattleStatus(BattleStatusData source)

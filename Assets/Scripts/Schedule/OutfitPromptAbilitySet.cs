@@ -3,16 +3,12 @@ using System;
 [Serializable]
 public class OutfitPromptAbilitySet
 {
-    public bool canUseConditionalMode = true;
-    public bool canUseHiddenMode = false;
     public ScheduledEventOutfitPromptMode selectedMode = ScheduledEventOutfitPromptMode.Always;
 
     public OutfitPromptAbilitySet Clone()
     {
         return new OutfitPromptAbilitySet
         {
-            canUseConditionalMode = canUseConditionalMode,
-            canUseHiddenMode = canUseHiddenMode,
             selectedMode = selectedMode
         };
     }
@@ -24,8 +20,6 @@ public class OutfitPromptAbilitySet
             return;
         }
 
-        canUseConditionalMode = source.canUseConditionalMode;
-        canUseHiddenMode = source.canUseHiddenMode;
         selectedMode = source.selectedMode;
     }
 }
