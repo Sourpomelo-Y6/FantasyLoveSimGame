@@ -37,6 +37,9 @@ public class SchedulePanel : MonoBehaviour
     [SerializeField] private ScheduleDayCell monthlyDayCellTemplate;
 
     [Header("Selected Day")]
+    [SerializeField] private RectTransform selectedDayArea;
+    [SerializeField] private RectTransform weeklySelectedDayAnchor;
+    [SerializeField] private RectTransform monthlySelectedDayAnchor;
     [SerializeField] private TextMeshProUGUI selectedDayText;
     [SerializeField] private Button cancelButton;
     [Tooltip("既存の予定選択ボタンをすべて設定すると、過去日や実行済みの日に無効化します。")]
@@ -130,6 +133,21 @@ public class SchedulePanel : MonoBehaviour
         if (selectedDayText == null)
         {
             selectedDayText = FindDescendantComponent<TextMeshProUGUI>("SelectedDayText");
+        }
+        if (selectedDayArea == null)
+        {
+            Transform area = FindDescendantTransform("SelectedDayArea");
+            if (area != null) selectedDayArea = area as RectTransform;
+        }
+        if (weeklySelectedDayAnchor == null)
+        {
+            Transform anchor = FindDescendantTransform("WeeklySelectedDayAnchor");
+            if (anchor != null) weeklySelectedDayAnchor = anchor as RectTransform;
+        }
+        if (monthlySelectedDayAnchor == null)
+        {
+            Transform anchor = FindDescendantTransform("MonthlySelectedDayAnchor");
+            if (anchor != null) monthlySelectedDayAnchor = anchor as RectTransform;
         }
         if (cancelButton == null)
         {
@@ -297,6 +315,7 @@ public class SchedulePanel : MonoBehaviour
         {
             RefreshWeekButtons();
         }
+        RefreshSelectedDayLayout();
         RefreshSelectedDay();
         RefreshNavigation();
         RefreshViewButtons();
@@ -418,6 +437,21 @@ public class SchedulePanel : MonoBehaviour
         {
             cancelButton.interactable = scheduleManager.CanCancelScheduleForDay(selectedDay, out unusedMessage);
         }
+    }
+
+    private void RefreshSelectedDayLayout()
+    {
+        if (selectedDayArea == null) return;
+        RectTransform source = currentView == CalendarView.Month
+            ? monthlySelectedDayAnchor
+            : weeklySelectedDayAnchor;
+        if (source == null) return;
+
+        selectedDayArea.anchorMin = source.anchorMin;
+        selectedDayArea.anchorMax = source.anchorMax;
+        selectedDayArea.pivot = source.pivot;
+        selectedDayArea.anchoredPosition = source.anchoredPosition;
+        selectedDayArea.sizeDelta = source.sizeDelta;
     }
 
     private void RefreshNavigation()
