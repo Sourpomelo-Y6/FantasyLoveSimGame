@@ -2379,6 +2379,7 @@ public class GameManager : MonoBehaviour
         saveData.todaySchedule = scheduleManager.TodaySchedule;
         saveData.tomorrowSchedule = scheduleManager.TomorrowSchedule;
         saveData.todayScheduleEventExecuted = scheduleManager.TodayScheduleEventExecuted;
+        saveData.scheduleEntries = scheduleManager.CreateScheduleEntrySaveData();
 
         saveManager.Save(saveData, GameStartSettings.SelectedSaveSlotIndex);
 
@@ -2589,7 +2590,9 @@ public class GameManager : MonoBehaviour
             }
         }
 
-        scheduleManager.SetScheduleState(
+        scheduleManager.LoadScheduleState(
+            saveData.scheduleEntries,
+            saveData.saveVersion,
             saveData.todaySchedule,
             saveData.tomorrowSchedule,
             saveData.todayScheduleEventExecuted
