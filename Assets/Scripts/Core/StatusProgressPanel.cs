@@ -78,11 +78,6 @@ public class StatusProgressPanel : MonoBehaviour
             return;
         }
 
-        if (titleText != null)
-        {
-            titleText.text = titleLabel;
-        }
-
         if (contentText == null)
         {
             return;
@@ -91,20 +86,33 @@ public class StatusProgressPanel : MonoBehaviour
         SkillProgressStats stats = gameManager != null
             ? gameManager.GetSkillProgressStats()
             : new SkillProgressStats();
+        int displayedCount;
+        string viewLabel;
         switch (currentView)
         {
             case ProgressView.Category:
-                contentText.text = BuildCategoryText(stats);
+                viewLabel = "カテゴリー別";
+                contentText.text = BuildCategoryText(stats, out displayedCount);
                 break;
             case ProgressView.Training:
-                contentText.text = BuildTrainingText(stats);
+                viewLabel = "訓練別";
+                contentText.text = BuildTrainingText(stats, out displayedCount);
                 break;
             case ProgressView.Enemy:
-                contentText.text = BuildEnemyText(stats);
+                viewLabel = "敵別";
+                contentText.text = BuildEnemyText(stats, out displayedCount);
                 break;
             default:
+                viewLabel = "全体";
                 contentText.text = BuildSummaryText(stats);
+                displayedCount = 1;
                 break;
+        }
+
+        if (titleText != null)
+        {
+            titleText.text = titleLabel + " / " + viewLabel +
+                (currentView == ProgressView.Summary ? "" : "（" + displayedCount + "件）");
         }
 
         RefreshContentLayout();
@@ -120,8 +128,9 @@ public class StatusProgressPanel : MonoBehaviour
             return;
         }
 
+        Canvas.ForceUpdateCanvases();
         contentText.ForceMeshUpdate();
-        float preferredHeight = Mathf.Max(1f, contentText.preferredHeight);
+        float preferredHeight = Mathf.Max(1f, Mathf.Ceil(contentText.preferredHeight));
         RectTransform viewportRect = contentRect.parent as RectTransform;
         float viewportHeight = viewportRect != null ? viewportRect.rect.height : 0f;
         float contentHeight = Mathf.Max(preferredHeight, viewportHeight);
@@ -189,19 +198,27 @@ public class StatusProgressPanel : MonoBehaviour
 
     private string BuildSummaryText(SkillProgressStats stats)
     {
-        return "累計訓練回数：" + Math.Max(0, stats.totalTrainingCount) +
+        return "【訓練実績】" +
+            "\n累計訓練回数：" + Math.Max(0, stats.totalTrainingCount) +
+                BuildTotalConditionMarker(SkillTreeConditionType.TrainingCount) +
             "\n主人公 LP 消費回数：" + Math.Max(0, stats.playerLpConsumedCount) +
+                BuildTotalConditionMarker(SkillTreeConditionType.PlayerLpConsumedCount) +
             "\n相手 LP 消費回数：" + Math.Max(0, stats.opponentLpConsumedCount) +
+                BuildTotalConditionMarker(SkillTreeConditionType.OpponentLpConsumedCount) +
+            "\n\n【戦闘実績】" +
             "\nモンスター撃破数：" + Math.Max(0, stats.totalMonsterDefeatCount) +
-            "\n主人公スキルポイント：" +
-                (gameManager != null ? gameManager.PlayerSkillPoints : 0) +
-            "\nヒロインスキルポイント：" +
-                (gameManager != null ? gameManager.HeroineSkillPoints : 0);
+                BuildTotalConditionMarker(SkillTreeConditionType.MonsterDefeatCount) +
+            "\n\n【スキルポイント】" +
+            "\n主人公：" + (gameManager != null ? gameManager.PlayerSkillPoints : 0) +
+            "\nヒロイン：" + (gameManager != null ? gameManager.HeroineSkillPoints : 0);
     }
 
-    private string BuildCategoryText(SkillProgressStats stats)
+    private string BuildCategoryText(SkillProgressStats stats, out int displayedCount)
     {
-        List<TrainingCategoryProgressStatEntry> entries = stats.trainingCategoryStats;
+        displayedCount = 0;
+        List<TrainingCategoryProgressStatEntry> entries = stats.trainingCategoryStats != null
+            ? new List<TrainingCategoryProgressStatEntry>(stats.trainingCategoryStats)
+            : new List<TrainingCategoryProgressStatEntry>();
         if (entries == null || entries.Count == 0)
         {
             return emptyLabel;
@@ -216,19 +233,30 @@ public class StatusProgressPanel : MonoBehaviour
         {
             TrainingCategoryProgressStatEntry entry = entries[i];
             if (entry == null || string.IsNullOrEmpty(entry.trainingCategoryId)) continue;
+            if (!HasTrainingProgress(
+                entry.trainingCount,
+                entry.playerLpConsumedCount,
+                entry.opponentLpConsumedCount)) continue;
             AppendProgressBlock(
                 builder,
                 ResolveCategoryName(entry.trainingCategoryId),
                 entry.trainingCount,
                 entry.playerLpConsumedCount,
-                entry.opponentLpConsumedCount);
+                entry.opponentLpConsumedCount,
+                IsUnlockConditionTarget(
+                    SkillTreeProgressScope.TrainingCategory,
+                    entry.trainingCategoryId));
+            displayedCount++;
         }
         return builder.Length > 0 ? builder.ToString() : emptyLabel;
     }
 
-    private string BuildTrainingText(SkillProgressStats stats)
+    private string BuildTrainingText(SkillProgressStats stats, out int displayedCount)
     {
-        List<TrainingProgressStatEntry> entries = stats.trainingStats;
+        displayedCount = 0;
+        List<TrainingProgressStatEntry> entries = stats.trainingStats != null
+            ? new List<TrainingProgressStatEntry>(stats.trainingStats)
+            : new List<TrainingProgressStatEntry>();
         if (entries == null || entries.Count == 0)
         {
             return emptyLabel;
@@ -244,19 +272,34 @@ public class StatusProgressPanel : MonoBehaviour
         {
             TrainingProgressStatEntry entry = entries[i];
             if (entry == null || string.IsNullOrEmpty(entry.trainingId)) continue;
+            int proficiency = gameManager != null
+                ? gameManager.GetTrainingProficiency(entry.trainingId)
+                : 0;
+            if (!HasTrainingProgress(
+                entry.trainingCount,
+                entry.playerLpConsumedCount,
+                entry.opponentLpConsumedCount) && proficiency <= 0) continue;
             AppendProgressBlock(
                 builder,
                 ResolveName(names, entry.trainingId),
                 entry.trainingCount,
                 entry.playerLpConsumedCount,
-                entry.opponentLpConsumedCount);
+                entry.opponentLpConsumedCount,
+                IsUnlockConditionTarget(
+                    SkillTreeProgressScope.Training,
+                    entry.trainingId),
+                proficiency);
+            displayedCount++;
         }
         return builder.Length > 0 ? builder.ToString() : emptyLabel;
     }
 
-    private string BuildEnemyText(SkillProgressStats stats)
+    private string BuildEnemyText(SkillProgressStats stats, out int displayedCount)
     {
-        List<EnemyDefeatStatEntry> entries = stats.enemyDefeatStats;
+        displayedCount = 0;
+        List<EnemyDefeatStatEntry> entries = stats.enemyDefeatStats != null
+            ? new List<EnemyDefeatStatEntry>(stats.enemyDefeatStats)
+            : new List<EnemyDefeatStatEntry>();
         if (entries == null || entries.Count == 0)
         {
             return emptyLabel;
@@ -272,10 +315,18 @@ public class StatusProgressPanel : MonoBehaviour
         {
             EnemyDefeatStatEntry entry = entries[i];
             if (entry == null || string.IsNullOrEmpty(entry.enemyId)) continue;
+            if (entry.defeatCount <= 0) continue;
             if (builder.Length > 0) builder.Append('\n');
+            builder.Append("【");
             builder.Append(ResolveName(names, entry.enemyId));
+            builder.Append("】");
             builder.Append("\n撃破数：");
             builder.Append(Math.Max(0, entry.defeatCount));
+            if (IsUnlockConditionTarget(SkillTreeProgressScope.Enemy, entry.enemyId))
+            {
+                builder.Append("\nスキル解放条件：あり");
+            }
+            displayedCount++;
         }
         return builder.Length > 0 ? builder.ToString() : emptyLabel;
     }
@@ -285,16 +336,85 @@ public class StatusProgressPanel : MonoBehaviour
         string name,
         int trainingCount,
         int playerLpConsumedCount,
-        int opponentLpConsumedCount)
+        int opponentLpConsumedCount,
+        bool isUnlockConditionTarget,
+        int proficiency = -1)
     {
         if (builder.Length > 0) builder.Append('\n');
+        builder.Append("【");
         builder.Append(name);
+        builder.Append("】");
+        if (proficiency >= 0)
+        {
+            builder.Append("\n熟練度：");
+            builder.Append(Math.Max(0, proficiency));
+        }
         builder.Append("\n訓練回数：");
         builder.Append(Math.Max(0, trainingCount));
-        builder.Append(" / 主人公 LP：");
+        builder.Append("\n主人公 LP 消費回数：");
         builder.Append(Math.Max(0, playerLpConsumedCount));
-        builder.Append(" / 相手 LP：");
+        builder.Append("\n相手 LP 消費回数：");
         builder.Append(Math.Max(0, opponentLpConsumedCount));
+        if (isUnlockConditionTarget)
+        {
+            builder.Append("\nスキル解放条件：あり");
+        }
+    }
+
+    private static bool HasTrainingProgress(
+        int trainingCount,
+        int playerLpConsumedCount,
+        int opponentLpConsumedCount)
+    {
+        return trainingCount > 0 ||
+            playerLpConsumedCount > 0 ||
+            opponentLpConsumedCount > 0;
+    }
+
+    private string BuildTotalConditionMarker(SkillTreeConditionType conditionType)
+    {
+        return HasUnlockCondition(SkillTreeProgressScope.Total, conditionType, string.Empty)
+            ? "（スキル解放条件）"
+            : string.Empty;
+    }
+
+    private bool IsUnlockConditionTarget(SkillTreeProgressScope scope, string targetId)
+    {
+        return HasUnlockCondition(scope, null, targetId);
+    }
+
+    private bool HasUnlockCondition(
+        SkillTreeProgressScope scope,
+        SkillTreeConditionType? conditionType,
+        string targetId)
+    {
+        if (gameManager == null)
+        {
+            return false;
+        }
+
+        List<SkillTreeNodeData> nodes = gameManager.GetSkillTreeNodes();
+        for (int nodeIndex = 0; nodeIndex < nodes.Count; nodeIndex++)
+        {
+            SkillTreeNodeData node = nodes[nodeIndex];
+            if (node == null ||
+                (node.owner == SkillTreeOwner.Heroine &&
+                    !gameManager.IsSkillTreeNodeForCurrentHeroine(node)) ||
+                node.unlockConditions == null) continue;
+            for (int conditionIndex = 0;
+                conditionIndex < node.unlockConditions.Count;
+                conditionIndex++)
+            {
+                SkillTreeUnlockCondition condition = node.unlockConditions[conditionIndex];
+                if (condition == null || condition.scope != scope) continue;
+                if (conditionType.HasValue && condition.conditionType != conditionType.Value) continue;
+                if (scope != SkillTreeProgressScope.Total &&
+                    !string.Equals(condition.targetId, targetId, StringComparison.Ordinal)) continue;
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private static Dictionary<string, string> LoadTrainingNames()
@@ -344,6 +464,10 @@ public class StatusProgressPanel : MonoBehaviour
                 return "実戦";
             case "Endurance":
                 return "持久";
+            case "Coordination":
+                return "連携";
+            case "General":
+                return "一般";
             default:
                 return categoryId;
         }
