@@ -7,6 +7,7 @@ public class SchedulePanel : MonoBehaviour
 {
     private const int DaysPerWeek = 7;
     private const int DaysPerMonthView = 30;
+    private const int MaximumMonthCellCount = DaysPerMonthView + DaysPerWeek - 1;
 
     private enum CalendarView
     {
@@ -373,9 +374,17 @@ public class SchedulePanel : MonoBehaviour
     {
         if (!HasMonthlyUi) return;
         EnsureMonthlyDayCells();
+        int leadingBlankCount = GetSundayBasedWeekdayIndex(weekStartDay);
         for (int i = 0; i < monthlyDayCells.Count; i++)
         {
-            int day = weekStartDay + i;
+            int dayOffset = i - leadingBlankCount;
+            if (dayOffset < 0 || dayOffset >= DaysPerMonthView)
+            {
+                monthlyDayCells[i].SetDisplay(0, string.Empty, emptyColor, false);
+                continue;
+            }
+
+            int day = weekStartDay + dayOffset;
             ScheduleEntry entry;
             bool hasEntry = scheduleManager.TryGetScheduleEntry(day, out entry);
             string weekday = ScheduleManager.GetWeekdayDisplayName(
@@ -482,6 +491,11 @@ public class SchedulePanel : MonoBehaviour
         return currentView == CalendarView.Month ? DaysPerMonthView : DaysPerWeek;
     }
 
+    private int GetSundayBasedWeekdayIndex(int day)
+    {
+        return (int)scheduleManager.GetWeekdayForDay(day);
+    }
+
     private void SwitchView(CalendarView view)
     {
         currentView = view;
@@ -498,10 +512,10 @@ public class SchedulePanel : MonoBehaviour
 
     private void EnsureMonthlyDayCells()
     {
-        if (!HasMonthlyUi || monthlyDayCells.Count == DaysPerMonthView) return;
+        if (!HasMonthlyUi || monthlyDayCells.Count == MaximumMonthCellCount) return;
         monthlyDayCells.Clear();
         monthlyDayCellTemplate.gameObject.SetActive(false);
-        for (int i = 0; i < DaysPerMonthView; i++)
+        for (int i = 0; i < MaximumMonthCellCount; i++)
         {
             ScheduleDayCell cell = Instantiate(monthlyDayCellTemplate, monthlyGridRoot.transform);
             cell.name = "MonthDayCell" + i;
