@@ -248,9 +248,11 @@ public static class SkillTreeDataValidator
 
         if (node.owner == SkillTreeOwner.Player)
         {
-            if (node.skill == null && !HasTrainingUnlocks(node))
+            if (node.skill == null &&
+                !HasTrainingUnlocks(node) &&
+                !HasOutfitPromptUnlock(node))
             {
-                report.Warn(label + " に主人公用 SkillData または訓練解放効果が設定されていません。");
+                report.Warn(label + " に主人公用 SkillData、訓練解放効果、衣装確認モード解放効果のいずれも設定されていません。");
             }
             else if (node.skill != null &&
                 (string.IsNullOrWhiteSpace(node.skill.skillId) ||
@@ -263,7 +265,17 @@ public static class SkillTreeDataValidator
         }
         else
         {
+            if (node.unlocksOutfitPromptMode)
+            {
+                report.Warn(label + " の衣装確認モード解放効果は主人公ノードにだけ設定できます。");
+            }
             ValidateHeroineSkill(node, skillsById, heroinesById, report);
+        }
+
+        if (node.unlocksOutfitPromptMode &&
+            node.unlockedOutfitPromptMode == ScheduledEventOutfitPromptMode.Always)
+        {
+            report.Warn(label + " の衣装確認モード解放効果に Always は指定できません。");
         }
 
         ValidateTrainingSkillApplication(
@@ -416,6 +428,14 @@ public static class SkillTreeDataValidator
             if (!string.IsNullOrWhiteSpace(node.unlockedTrainingIds[i])) return true;
         }
         return false;
+    }
+
+    private static bool HasOutfitPromptUnlock(SkillTreeNodeData node)
+    {
+        return node != null &&
+            node.owner == SkillTreeOwner.Player &&
+            node.unlocksOutfitPromptMode &&
+            node.unlockedOutfitPromptMode != ScheduledEventOutfitPromptMode.Always;
     }
 
     private static void ValidateTrainingUnlocks(

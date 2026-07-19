@@ -65,6 +65,12 @@ public class SkillTreeNodeData : ScriptableObject
     [Tooltip("取得時に利用可能にする TrainingData.trainingId。スキルを持たない解放専用ノードにも使用できます。")]
     public List<string> unlockedTrainingIds = new List<string>();
 
+    [Header("Outfit Prompt Unlock")]
+    [Tooltip("取得時に予定開始前の衣装確認モードを解放します。主人公ノードでのみ使用します。")]
+    public bool unlocksOutfitPromptMode;
+    public ScheduledEventOutfitPromptMode unlockedOutfitPromptMode =
+        ScheduledEventOutfitPromptMode.Always;
+
     [Header("Acquisition Event")]
     [Tooltip("空なら全ヒロイン共通。指定時は一致する HeroineProfileData.heroineId でのみ発生します。")]
     public string unlockEventHeroineId;

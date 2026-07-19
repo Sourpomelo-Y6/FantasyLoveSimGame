@@ -77,16 +77,7 @@ public class StatusDetailPanel : MonoBehaviour
             progressButton.onClick.AddListener(OpenProgressPanel);
         }
 
-        if (abilityAcquireButton != null)
-        {
-            abilityAcquireButton.onClick.AddListener(UnlockSelectedAbility);
-        }
-
-        if (abilityAcquireBackButton != null)
-        {
-            abilityAcquireBackButton.onClick.AddListener(ShowDetailView);
-        }
-
+        DisableLegacyAbilityUi();
         HideAllViews();
     }
 
@@ -251,7 +242,7 @@ public class StatusDetailPanel : MonoBehaviour
             statusSummaryText.text = BuildStatusSummary();
         }
 
-        RefreshAbilityList();
+        DisableLegacyAbilityUi();
     }
 
     private void RefreshAbilityList()
@@ -346,23 +337,39 @@ public class StatusDetailPanel : MonoBehaviour
 
     private string BuildStatusSummary()
     {
-        OutfitPromptAbilitySet abilities = GetCurrentAbilities();
-        if (abilities == null)
-        {
-            return "能力情報が設定されていません。";
-        }
-
-        string conditionalLabel = abilities.canUseConditionalMode ? unlockedLabel : lockedLabel;
-        string hiddenLabel = abilities.canUseHiddenMode ? unlockedLabel : lockedLabel;
-
         if (currentRole == StatusDetailRole.Player)
         {
             BattleStatusData playerBattleStatus = playerStatus != null ? playerStatus.BattleStatus : null;
-            return BuildPlayerStatusSummary(playerBattleStatus, conditionalLabel, hiddenLabel, abilities.selectedMode);
+            bool conditionalUnlocked = gameManager != null && gameManager.CanUseScheduledEventOutfitPromptMode(
+                ScheduledEventOutfitPromptMode.Conditional);
+            bool hiddenUnlocked = gameManager != null && gameManager.CanUseScheduledEventOutfitPromptMode(
+                ScheduledEventOutfitPromptMode.Hidden);
+            ScheduledEventOutfitPromptMode selectedMode = gameManager != null &&
+                gameManager.PlayerOutfitPromptAbilities != null
+                    ? gameManager.PlayerOutfitPromptAbilities.selectedMode
+                    : ScheduledEventOutfitPromptMode.Always;
+            return BuildPlayerStatusSummary(
+                playerBattleStatus,
+                conditionalUnlocked ? unlockedLabel : lockedLabel,
+                hiddenUnlocked ? unlockedLabel : lockedLabel,
+                selectedMode);
         }
 
         BattleStatusData heroineBattleStatus = heroineStatus != null ? heroineStatus.BattleStatus : null;
         return BuildHeroineStatusSummary(heroineBattleStatus);
+    }
+
+    private void DisableLegacyAbilityUi()
+    {
+        if (abilityAcquirePanel != null)
+        {
+            abilityAcquirePanel.SetActive(false);
+        }
+
+        if (abilityListParent != null)
+        {
+            abilityListParent.gameObject.SetActive(false);
+        }
     }
 
     private string BuildPlayerStatusSummary(
@@ -845,12 +852,6 @@ public class StatusDetailPanel : MonoBehaviour
     {
         return titleText != null &&
             statusSummaryText != null &&
-            abilityListParent != null &&
-            abilityButtonPrefab != null &&
-            abilityAcquirePanel != null &&
-            abilityAcquireTitleText != null &&
-            abilityAcquireDescriptionText != null &&
-            abilityAcquireButton != null &&
-            abilityAcquireBackButton != null;
+            closeButton != null;
     }
 }

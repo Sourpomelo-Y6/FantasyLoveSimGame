@@ -2347,6 +2347,12 @@ public class GameManager : MonoBehaviour
 
         saveData.outfitPreferences = outfitPreferenceManager.CreateSaveData();
         saveData.playerOutfitPromptAbilities = playerOutfitPromptAbilities.Clone();
+        saveData.playerOutfitPromptAbilities.canUseConditionalMode =
+            CanUseScheduledEventOutfitPromptMode(
+                ScheduledEventOutfitPromptMode.Conditional);
+        saveData.playerOutfitPromptAbilities.canUseHiddenMode =
+            CanUseScheduledEventOutfitPromptMode(
+                ScheduledEventOutfitPromptMode.Hidden);
         saveData.heroineOutfitPromptAbilities =
             heroineStatus != null
                 ? heroineStatus.OutfitPromptAbilities.Clone()
@@ -2546,6 +2552,11 @@ public class GameManager : MonoBehaviour
         LoadSkillTreeNodeIds(
             acquiredHeroineSkillTreeNodeIds,
             saveData.acquiredHeroineSkillTreeNodeIds);
+        if (saveData.saveVersion < 17)
+        {
+            MigrateLegacyOutfitPromptAbilities(saveData.playerOutfitPromptAbilities);
+        }
+        NormalizeSelectedOutfitPromptMode();
         equippedPlayerBattleSkillIds.Clear();
         if (saveData.equippedPlayerBattleSkillIds != null)
         {
@@ -2672,6 +2683,75 @@ public class GameManager : MonoBehaviour
     public List<string> GetUnlockedSkillIds()
     {
         return new List<string>(unlockedSkillIds);
+    }
+
+    public bool CanUseScheduledEventOutfitPromptMode(
+        ScheduledEventOutfitPromptMode outfitPromptMode)
+    {
+        if (outfitPromptMode == ScheduledEventOutfitPromptMode.Always)
+        {
+            return true;
+        }
+
+        SkillTreeNodeData[] nodes = GetSkillTreeNodeDataList();
+        for (int i = 0; i < nodes.Length; i++)
+        {
+            SkillTreeNodeData node = nodes[i];
+            if (node != null &&
+                node.owner == SkillTreeOwner.Player &&
+                node.unlocksOutfitPromptMode &&
+                node.unlockedOutfitPromptMode == outfitPromptMode &&
+                IsSkillTreeNodeAcquired(node.nodeId, SkillTreeOwner.Player))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    public bool IsScheduledEventOutfitPromptModeSelected(
+        ScheduledEventOutfitPromptMode outfitPromptMode)
+    {
+        return playerOutfitPromptAbilities != null &&
+            playerOutfitPromptAbilities.selectedMode == outfitPromptMode;
+    }
+
+    public bool TrySelectScheduledEventOutfitPromptMode(
+        ScheduledEventOutfitPromptMode outfitPromptMode,
+        out string message)
+    {
+        if (!CanUseScheduledEventOutfitPromptMode(outfitPromptMode))
+        {
+            message = "この衣装確認モードはまだ解放されていません。";
+            return false;
+        }
+
+        if (playerOutfitPromptAbilities == null)
+        {
+            playerOutfitPromptAbilities = new OutfitPromptAbilitySet();
+        }
+
+        playerOutfitPromptAbilities.selectedMode = outfitPromptMode;
+        message = "衣装確認モードを「" +
+            GetScheduledEventOutfitPromptModeLabel(outfitPromptMode) +
+            "」に変更しました。";
+        RefreshStatusDetailPanel();
+        return true;
+    }
+
+    public string GetScheduledEventOutfitPromptModeLabel(
+        ScheduledEventOutfitPromptMode outfitPromptMode)
+    {
+        switch (outfitPromptMode)
+        {
+            case ScheduledEventOutfitPromptMode.Conditional:
+                return "条件表示";
+            case ScheduledEventOutfitPromptMode.Hidden:
+                return "非表示";
+            default:
+                return "毎回表示";
+        }
     }
 
     public int PlayerBattleSkillSlotCount => DefaultPlayerBattleSkillSlotCount;
@@ -3697,6 +3777,58 @@ public class GameManager : MonoBehaviour
             {
                 target.Add(source[i]);
             }
+        }
+    }
+
+    private void MigrateLegacyOutfitPromptAbilities(OutfitPromptAbilitySet legacyAbilities)
+    {
+        if (legacyAbilities == null)
+        {
+            return;
+        }
+
+        if (legacyAbilities.canUseConditionalMode)
+        {
+            AcquireOutfitPromptModeNodeForMigration(
+                ScheduledEventOutfitPromptMode.Conditional);
+        }
+
+        if (legacyAbilities.canUseHiddenMode)
+        {
+            AcquireOutfitPromptModeNodeForMigration(
+                ScheduledEventOutfitPromptMode.Hidden);
+        }
+    }
+
+    private void AcquireOutfitPromptModeNodeForMigration(
+        ScheduledEventOutfitPromptMode outfitPromptMode)
+    {
+        SkillTreeNodeData[] nodes = GetSkillTreeNodeDataList();
+        for (int i = 0; i < nodes.Length; i++)
+        {
+            SkillTreeNodeData node = nodes[i];
+            if (node != null &&
+                node.owner == SkillTreeOwner.Player &&
+                node.unlocksOutfitPromptMode &&
+                node.unlockedOutfitPromptMode == outfitPromptMode &&
+                !string.IsNullOrEmpty(node.nodeId))
+            {
+                acquiredPlayerSkillTreeNodeIds.Add(node.nodeId);
+                return;
+            }
+        }
+    }
+
+    private void NormalizeSelectedOutfitPromptMode()
+    {
+        if (playerOutfitPromptAbilities == null)
+        {
+            playerOutfitPromptAbilities = new OutfitPromptAbilitySet();
+        }
+
+        if (!CanUseScheduledEventOutfitPromptMode(playerOutfitPromptAbilities.selectedMode))
+        {
+            playerOutfitPromptAbilities.selectedMode = ScheduledEventOutfitPromptMode.Always;
         }
     }
 
@@ -6366,28 +6498,6 @@ public class GameManager : MonoBehaviour
         }
 
         return ScheduledEventOutfitPromptMode.Always;
-    }
-
-    private bool CanUseScheduledEventOutfitPromptMode(ScheduledEventOutfitPromptMode outfitPromptMode)
-    {
-        if (outfitPromptMode == ScheduledEventOutfitPromptMode.Always)
-        {
-            return true;
-        }
-
-        if (outfitPromptMode == ScheduledEventOutfitPromptMode.Conditional)
-        {
-            return playerOutfitPromptAbilities != null &&
-                   playerOutfitPromptAbilities.canUseConditionalMode;
-        }
-
-        if (outfitPromptMode == ScheduledEventOutfitPromptMode.Hidden)
-        {
-            return playerOutfitPromptAbilities != null &&
-                   playerOutfitPromptAbilities.canUseHiddenMode;
-        }
-
-        return false;
     }
 
     private void ShowScheduledEventOutfitPrompt(ScheduledEventDefinition scheduledEvent)

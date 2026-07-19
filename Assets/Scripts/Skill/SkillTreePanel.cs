@@ -431,7 +431,13 @@ public class SkillTreePanel : MonoBehaviour
 
         if (evaluation.state == SkillTreeNodeState.Acquired && IsNodeLoadoutConfigurable(node))
         {
-            if (IsTrainingSkillNode(node))
+            if (IsOutfitPromptModeNode(node))
+            {
+                builder.AppendLine(
+                    "使用状態：" +
+                    (IsNodeInLoadout(node) ? "使用中" : "未使用"));
+            }
+            else if (IsTrainingSkillNode(node))
             {
                 int activeCount = node.owner == SkillTreeOwner.Player
                     ? gameManager.GetActivePlayerTrainingSkillIds().Count
@@ -476,6 +482,15 @@ public class SkillTreePanel : MonoBehaviour
                     builder.AppendLine("・" + gameManager.GetTrainingDisplayName(trainingId));
                 }
             }
+        }
+
+        if (IsOutfitPromptModeNode(node))
+        {
+            builder.AppendLine();
+            builder.AppendLine(
+                "解放する衣装確認モード：" +
+                gameManager.GetScheduledEventOutfitPromptModeLabel(
+                    node.unlockedOutfitPromptMode));
         }
 
         if (node.skill != null && !string.IsNullOrEmpty(node.skill.description))
@@ -532,7 +547,18 @@ public class SkillTreePanel : MonoBehaviour
             IsNodeLoadoutConfigurable(selectedNode))
         {
             string equipmentMessage;
-            if (IsTrainingSkillNode(selectedNode))
+            if (IsOutfitPromptModeNode(selectedNode))
+            {
+                ScheduledEventOutfitPromptMode targetMode =
+                    gameManager.IsScheduledEventOutfitPromptModeSelected(
+                        selectedNode.unlockedOutfitPromptMode)
+                        ? ScheduledEventOutfitPromptMode.Always
+                        : selectedNode.unlockedOutfitPromptMode;
+                gameManager.TrySelectScheduledEventOutfitPromptMode(
+                    targetMode,
+                    out equipmentMessage);
+            }
+            else if (IsTrainingSkillNode(selectedNode))
             {
                 if (selectedNode.owner == SkillTreeOwner.Player)
                 {
@@ -578,6 +604,7 @@ public class SkillTreePanel : MonoBehaviour
     private static bool IsNodeLoadoutConfigurable(SkillTreeNodeData node)
     {
         if (node == null) return false;
+        if (IsOutfitPromptModeNode(node)) return true;
         if (IsTrainingSkillNode(node)) return true;
         if (node.owner == SkillTreeOwner.Heroine)
         {
@@ -593,6 +620,11 @@ public class SkillTreePanel : MonoBehaviour
     private bool IsNodeInLoadout(SkillTreeNodeData node)
     {
         if (node == null || gameManager == null) return false;
+        if (IsOutfitPromptModeNode(node))
+        {
+            return gameManager.IsScheduledEventOutfitPromptModeSelected(
+                node.unlockedOutfitPromptMode);
+        }
         if (IsTrainingSkillNode(node))
         {
             return node.owner == SkillTreeOwner.Player
@@ -614,14 +646,27 @@ public class SkillTreePanel : MonoBehaviour
             node.skill.canUseInTraining;
     }
 
+    private static bool IsOutfitPromptModeNode(SkillTreeNodeData node)
+    {
+        return node != null &&
+            node.owner == SkillTreeOwner.Player &&
+            node.unlocksOutfitPromptMode &&
+            node.unlockedOutfitPromptMode != ScheduledEventOutfitPromptMode.Always;
+    }
+
     private static string GetActiveNodeLabel(SkillTreeNodeData node)
     {
+        if (IsOutfitPromptModeNode(node)) return " / 使用中";
         if (IsTrainingSkillNode(node)) return " / 有効";
         return node.owner == SkillTreeOwner.Player ? " / 装備中" : " / 編成中";
     }
 
     private static string GetToggleButtonLabel(SkillTreeNodeData node, bool isActive)
     {
+        if (IsOutfitPromptModeNode(node))
+        {
+            return isActive ? "解除する" : "使用する";
+        }
         if (IsTrainingSkillNode(node))
         {
             return isActive ? "無効にする" : "有効にする";

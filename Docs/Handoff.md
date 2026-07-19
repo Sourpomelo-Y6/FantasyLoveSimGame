@@ -50,6 +50,7 @@
 - `ConditionalOutfitPrompt` は初期状態で解放済みのため、何もしない能力のテストには使わない
 - 詳細ステータス画面は `StatusDetailPanel`、能力項目は `StatusAbilityKind`、画面の対象切り替えは `StatusDetailRole` で扱う
 - 状態画面の独自アビリティ取得は廃止し、衣装確認モードの解放を主人公スキルツリーへ統合する方針。状態画面は閲覧専用、`StatusProgressPanel` は実績集計専用として整理する。段階移行と削除対象は `Docs/StatusAndAchievementUiReorganizationPlan.md` を参照する
+- 衣装確認モードのスキルツリー統合は実装済み。主人公ノード `Player_ConditionalOutfitPrompt` / `Player_HiddenOutfitPrompt` で解放し、取得済みノードのボタンから使用／解除する。状態画面の旧取得UIは非表示で、SaveData version 16以前の解放フラグはロード時に対応ノードへ移行する
 - 詳細ステータス画面の入口として `StatusDetailAction` を用意し、行動一覧から開けるようにしている
 - タイトルから新規ゲームを開始した直後は、`GameEventData` の `GameStart` イベントを再生してからメイン画面を始める。`GameEventData` はヒロイン別 Resources パスに置き、ページ単位で話者・メッセージ・スチルを持てる
 - ヒロイン差し替えは `HeroineProfileData` で管理する。画像、会話、イベント、行動反応、エンディング、朝夜の挨拶などの共通セリフをヒロイン単位で束ね、`Images/Background` は共通背景として扱う。現在は `DefaultHeroineProfile.asset` で `Heroines/DefaultHeroine/Actions` / `Conversations` / `GameEvents` / `Endings` を参照している
