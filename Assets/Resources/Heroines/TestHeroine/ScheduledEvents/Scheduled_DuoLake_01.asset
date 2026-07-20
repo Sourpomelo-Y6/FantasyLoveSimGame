@@ -23,4 +23,4 @@ MonoBehaviour:
   eventMessage: "\u68EE\u3092\u6B69\u304D\u306A\u304C\u3089\u3001\u9759\u304B\u306A\u6642\u9593\u3092\u904E\u3054\u3057\u307E\u3057\u305F\u3002"
   stillId: WithLake_01
   stillSprite: {fileID: 21300000, guid: 3e84dcac498e02745a7cf0e22dccbfb1, type: 3}
-  affectionChange: 1
+  affectionChange: 10

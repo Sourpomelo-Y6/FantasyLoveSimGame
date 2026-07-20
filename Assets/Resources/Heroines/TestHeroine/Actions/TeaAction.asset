@@ -30,7 +30,7 @@ MonoBehaviour:
     useHeroineNameAsSpeaker: 1
     stillId:
     stillSprite: {fileID: 0}
-    affectionChange: 1
+    affectionChange: 10
     playerHpChange: 0
     heroineHpChange: 0
     advanceTime: 1

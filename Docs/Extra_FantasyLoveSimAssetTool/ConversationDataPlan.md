@@ -132,8 +132,8 @@ Unity 側で実際の ID を変更した場合は、この一覧、WPF 側の候
       "category": "Daily",
       "conditions": {
         "locationId": "Forest",
-        "minAffection": 10,
-        "maxAffection": 100,
+        "minAffection": 100,
+        "maxAffection": 9999,
         "weather": "",
         "season": "",
         "timeOfDay": "",
@@ -155,6 +155,11 @@ Unity 側で実際の ID を変更した場合は、この一覧、WPF 側の候
 ```
 
 Unity 側の対応先は `ConversationData` を想定する。
+
+好感度は Unity 側と同じ `0〜9999` の整数尺度を使用する。旧データの
+`minAffection`、`maxAffection`、`affectionChange` は10倍へ移行し、通常コンテンツの
+上限には旧上限の `100` ではなく `9999` を指定する。旧尺度の export を再利用すると、
+好感度101以上で会話などが候補から外れるため、そのまま再importしてはならない。
 
 ## game_events_export.json
 
@@ -219,7 +224,7 @@ Unity 側の対応先は `GameEventData` を想定する。
         "costumeId": "",
         "outfitPromptMode": "Conditional",
         "eventSpeakerType": "Heroine",
-        "affectionChange": 1
+        "affectionChange": 10
       },
       "preparationMessage": "今日は昼に森へ出かける予定です。",
       "eventMessage": "森を歩きながら、静かな時間を過ごしました。",
@@ -254,7 +259,7 @@ Unity 側の対応先は `GameEventData` を想定する。
       "category": "Tea",
       "conditions": {
         "actionId": "Tea",
-        "minAffection": 10,
+        "minAffection": 100,
         "costumeId": "",
         "requiredItemId": ""
       },
@@ -295,7 +300,7 @@ Good、Normal、Bad などの結果条件と、対応するエンディングス
       "title": "Good Ending",
       "category": "Good",
       "conditions": {
-        "minAffection": 80,
+        "minAffection": 800,
         "costumeId": "",
         "requiredFlagIds": []
       },

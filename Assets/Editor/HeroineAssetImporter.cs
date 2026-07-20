@@ -63,6 +63,17 @@ public static class HeroineAssetImporter
             return;
         }
 
+        string legacyAffectionWarning;
+        if (TryGetLegacyAffectionScaleWarning(exportFolder, out legacyAffectionWarning))
+        {
+            Debug.LogError(legacyAffectionWarning);
+            EditorUtility.DisplayDialog(
+                "Heroine Export Import",
+                legacyAffectionWarning,
+                "OK");
+            return;
+        }
+
         EnsureFolder("Assets/Resources");
         EnsureFolder("Assets/Resources/Heroines");
 
@@ -101,6 +112,67 @@ public static class HeroineAssetImporter
             "Heroine Export Import",
             report.CreateDialogMessage(assetPath),
             "OK");
+    }
+
+    private static bool TryGetLegacyAffectionScaleWarning(
+        string exportFolder,
+        out string warning)
+    {
+        warning = string.Empty;
+        string conversationsJsonPath = Path.Combine(exportFolder, ConversationsJsonRelativePath);
+        if (!File.Exists(conversationsJsonPath))
+        {
+            return false;
+        }
+
+        try
+        {
+            if (IsLikelyLegacyAffectionScale(File.ReadAllText(conversationsJsonPath)))
+            {
+                warning =
+                    "旧好感度尺度（上限100）の conversations_export.json を検出したため、" +
+                    "インポートを中止しました。\n\n" +
+                    "AssetTool側の好感度条件と増減値を新尺度へ移行してください。" +
+                    "通常コンテンツの maxAffection は9999、旧条件値・増減値は10倍が基準です。";
+                return true;
+            }
+        }
+        catch (Exception ex)
+        {
+            Debug.LogWarning(
+                "好感度尺度の事前確認に失敗しました。通常のimport検証を続行します: " +
+                ex.Message);
+        }
+
+        return false;
+    }
+
+    internal static bool IsLikelyLegacyAffectionScale(string conversationsJson)
+    {
+        ConversationsExport exported = JsonUtility.FromJson<ConversationsExport>(conversationsJson);
+        if (exported == null || exported.items == null || exported.items.Length < 3)
+        {
+            return false;
+        }
+
+        int conditionedItemCount = 0;
+        int legacyMaximumCount = 0;
+        foreach (ConversationExportItem item in exported.items)
+        {
+            if (item == null || item.conditions == null)
+            {
+                continue;
+            }
+
+            conditionedItemCount++;
+            if (item.conditions.maxAffection == 100)
+            {
+                legacyMaximumCount++;
+            }
+        }
+
+        // 旧仕様では全会話の上限が100だった。全件一致するexportだけを旧尺度と判定する。
+        return conditionedItemCount >= 3 && legacyMaximumCount == conditionedItemCount;
     }
 
     private static void ApplyProfile(HeroineProfileData profile, HeroineProfileExport profileExport)
