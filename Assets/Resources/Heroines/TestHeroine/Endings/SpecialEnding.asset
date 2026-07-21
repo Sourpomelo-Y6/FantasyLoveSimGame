@@ -1,0 +1,22 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7f81d1c884c946c0a4f51576f05c122a, type: 3}
+  m_Name: SpecialEnding
+  m_EditorClassIdentifier:
+  endingId: SpecialEnding
+  displayName: Adventure Promise Ending
+  message: "あの日の森で決めたの。どんな道でも、あんたと一緒なら進んでいけるって。だから次の冒険も、私を連れていきなさい。"
+  stillSprite: {fileID: 0}
+  requiredAffection: 1200
+  costumeId: Adventure
+  requiredShownEventIds:
+  - Event_Location_Forest_01

@@ -99,7 +99,7 @@
 - 正式なプロジェクトバージョンは`ProjectSettings/ProjectVersion.txt`の`2021.3.45f2 (88f88f591b2e)`とする
 - CloneまたはPull後はUnity Hubから同じEditorバージョンを指定して開く
 - Editorバージョンを変更した場合は、`ProjectSettings/ProjectVersion.txt`も関連変更としてGitへコミットする
-- バージョン更新後はスクリプトの再コンパイルとEditMode Testを確認する。直近のテスト構成は20件なので、`2021.3.45f2`で初回起動した環境でも全20件の成功を確認する
+- バージョン更新後はスクリプトの再コンパイルとEditMode Testを確認する。直近のテスト構成は49件なので、`2021.3.45f2`で初回起動した環境でも全49件の成功を確認する
 
 ## 作業分担ルール
 
@@ -607,6 +607,15 @@ AssetTool側は `usage = Training`、`Images/Training/`、`training_images_expor
 `GameManager` は `HeroineProfileData.endingResourcePath` を読み込み、条件一致する `EndingData` を選んで `EndingScene` に渡します。
 条件に一致する `EndingData` がない場合は `defaultEndingId` を使います。
 現状の優先順位は `requiredAffection` が高いものを優先する方式です。
+同じ `requiredAffection` と同じ `costumeId` のエンディングは、要求イベントが異なっていても同時成立する可能性があります。選択順を不定にしないため、必要好感度を分けます。
+
+`FantasyLoveSim > Validation > Ending Data` では、ID・本文・好感度範囲、衣装とイベントの参照、フォールバック不足、同時成立時の選択曖昧さを全ヒロイン分検証できます。画像が未完成の場合は `stillSprite` を空のまま運用できます。
+
+TestHeroineには動作確認用として次の3パターンを用意しています。
+
+- `NormalEnding`: 衣装・イベント条件なしのフォールバック
+- `GoodEnding`: 好感度1000以上かつ `Manual_Consideration_01` 表示済み
+- `SpecialEnding`: 好感度1200以上、衣装 `Adventure`、`Event_Location_Forest_01` 表示済み
 
 条件分岐を増やすなら、好感度だけでなく以下も判定対象にできます。
 
