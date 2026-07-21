@@ -2,7 +2,7 @@ using UnityEditor;
 
 public static class ConversationDataValidatorEditor
 {
-    private const string MenuPath = "FantasyLoveSim/Validation/Conversation Data";
+    private const string MenuPath = "FantasyLoveSim/Validation/Data/Conversation Data";
 
     [MenuItem(MenuPath)]
     public static void ValidateConversationData()

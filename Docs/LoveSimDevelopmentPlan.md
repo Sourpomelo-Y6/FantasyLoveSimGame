@@ -59,7 +59,7 @@
 4. セーブ/ロード回帰確認とUI補強（正規化、保存データ検証、主要状態のJSON往復テストを実装済み）
 5. 訓練、戦闘、ショップのデータ追加と調整
 
-訓練・敵・ショップのデータ追加前には、Unity Editorの `FantasyLoveSim > Validation > Training Data / Enemy Data / Shop Data` を実行する。ID、数値範囲、訓練セリフ・画像・スキルツリー、探索先の敵、商品カタログ・前提商品・解放衣装の参照をまとめて確認できる。未カタログ商品はテスト用・将来用データとして許容する。
+訓練・敵・ショップのデータ追加前には、Unity Editorの `FantasyLoveSim > Validation > Data > Training Data / Enemy Data / Shop Data` を実行する。ID、数値範囲、訓練セリフ・画像・スキルツリー、探索先の敵、商品カタログ・前提商品・解放衣装の参照をまとめて確認できる。未カタログ商品はテスト用・将来用データとして許容する。通常の全データ確認には `FantasyLoveSim > Validation > Run All Validations` を使い、10種類の検証結果と合計警告数を一度に確認する。個別検証は `Validation > Data` 配下にまとめる。Balance Report群は調整用であり、一括検証の合否には含めない。
 
 着せ替えと衣装評価は、いまの実装で導線と保存が入っているため、今後は評価の種類追加や UI の整理を中心に詰めるとよいです。
 衣装変更・衣装評価メッセージの表情差分は実装済み。ヒロイン別プロフィールの override を優先し、共通衣装側の表情IDをフォールバックとして使う。空IDは現在表情を維持するため、旧データとの互換性を保つ。
@@ -365,7 +365,7 @@ AssetTool の `sprite_layers_export.json` は importer で `HeroineLayeredSprite
 衣装条件は現在の `OutfitManager.CurrentOutfit.outfitId` を見て判定する。
 文字列ID欄の `requiredOutfitIds` / `blockedOutfitIds` も残しているが、通常は Unity Inspector で `OutfitData` アセットを選べる `requiredOutfits` / `blockedOutfits` を使う。
 衣装の種類や属性ではなく、実際に着ている衣装を直接指定する方が、表示するスチルとの対応を崩しにくい。
-汎用スキルのイベント条件接続は実装済み。`requiredSkillIds` は取得済み主人公ノードから再構築されるスキル ID を参照し、条件のためだけのセーブ項目は追加しない。空または未取得の ID が含まれるイベントは開始不可として安全に扱う。`GameEventDataValidator` は存在しない ID と同一イベント内の重複・空 ID を検出し、`FantasyLoveSim > Validation > Game Event Data` から全ヒロインのイベントを検証できる。Editor Play / Development Build の起動時にも全ヒロインのイベントを検証する。
+汎用スキルのイベント条件接続は実装済み。`requiredSkillIds` は取得済み主人公ノードから再構築されるスキル ID を参照し、条件のためだけのセーブ項目は追加しない。空または未取得の ID が含まれるイベントは開始不可として安全に扱う。`GameEventDataValidator` は存在しない ID と同一イベント内の重複・空 ID を検出し、`FantasyLoveSim > Validation > Data > Game Event Data` から全ヒロインのイベントを検証できる。Editor Play / Development Build の起動時にも全ヒロインのイベントを検証する。
 確認用として汎用スキル「気配り」と主人公ノード `Player_Consideration`、TestHeroine 専用イベント `Manual_Consideration_01` を追加する。訓練を1回完了して訓練回数と SP を獲得し、1 SP で「気配り」を取得してスキルツリーを閉じるとイベントを自動開始する。`SkillTreeNodeData.unlockEventId` に `Manual` イベントID、`unlockEventHeroineId` に対象ヒロインIDを設定する。取得済みノードかつ未表示イベントから待機状態を復元するため、専用のセーブ項目は不要で、ロード後も未表示ならメイン画面の安全なタイミングで開始する。イベントは `showOnce=true` とし、F7の手動確認経路も残す。
 
 取得時イベントは会話・戦闘・訓練などへ割り込ませず、`flowState` が待機中でメインの行動ボタンが表示され、スキルツリーが閉じている場合だけ開始する。イベントIDが未設定、対象ヒロインが不一致、ノード未取得、またはイベント表示済みの場合は開始しない。ヒロイン固有ノードについてはAssetToolの `取得時EventId` から `heroine_skills_export.json` を経由してUnityと往復できる。
@@ -439,7 +439,7 @@ public class ActionData : ScriptableObject
 AssetToolの行動反応条件では `once`、`requiredFlagIds`、`requiredSkillIds` を編集・JSON出力できる。Unity Importerはそれぞれ `showOnce`、`requiredShownEventIds`、`requiredSkillIds` へ変換する。Unityからの `actions_from_unity.json` も複数の `reactions` とこれらの条件を保持してAssetToolへ戻す。
 行動反応の `lines[0].expression` は Unity の `ActionReactionData.expressionId` と相互変換する。
 
-Unity Editor の `FantasyLoveSim > Validation > Action Reaction Data` では、行動・反応IDの形式と重複、同一条件・優先度の衝突、存在しないイベント・スキル参照、通常会話IDとの履歴衝突、無条件フォールバックの欠落、SimpleAction以外に設定された未使用反応を検出する。
+Unity Editor の `FantasyLoveSim > Validation > Data > Action Reaction Data` では、行動・反応IDの形式と重複、同一条件・優先度の衝突、存在しないイベント・スキル参照、通常会話IDとの履歴衝突、無条件フォールバックの欠落、SimpleAction以外に設定された未使用反応を検出する。
 
 ## 買い物・探索・戦闘の拡張予定
 
@@ -637,7 +637,7 @@ LP と訓練用 HP は訓練画面内の一時値から始める。
 `GameManager.GetSkillTreeNodes()` は `Assets/Resources/SkillTreeNodes` からノードを読み、`EvaluateSkillTreeNode(...)` は `Locked` / `Available` / `InsufficientPoints` / `Acquired` と、条件ごとの現在値・必要値、未取得の前提ノード ID を返す。`TryAcquireSkillTreeNode(...)` は取得直前に再評価し、所有者側のポイントを安全に消費して取得済みノード ID を保存する。主人公ノードは対応する既存スキル ID も解放するが、ヒロインノードは主人公用 `unlockedSkillIds` へ混入させない。取得済みノードは `SaveData.acquiredPlayerSkillTreeNodeIds` / `acquiredHeroineSkillTreeNodeIds` に分けて保存する。起動時とロード時には取得済み主人公ノードから使用可能スキルを再構築する。
 初期主人公ノードは `PowerStrike`、`GuardStance`、`FirstAid` が各 1 ポイント、`BattleFocus` と `ArmorBreak` が各 2 ポイント。`PowerStrike` から `BattleFocus`、`GuardStance` から `FirstAid` と `ArmorBreak` へ分岐する。上位条件には訓練熟練度だけでなく、総モンスター撃破数、実戦カテゴリーで相手の LP を減らした回数、主人公の LP 消費回数を使用する。`SkillTreePanel` は主人公・ヒロインの切替、所持ポイント、ノード状態、前提ノード、条件進捗、取得操作に対応済み。通常メニューのスキル導線はこの画面を開き、既存 `SkillPanel` は戦闘選択のフォールバックとして残す。取得済み主人公ノードを使用可能スキルの正本とし、従来の自動解放は廃止済み。ヒロイン側は現在の `HeroineProfileData.heroineId` と一致するノードだけを表示・取得でき、取得済みノードの `grantedHeroineSkillId` と一致する `HeroineBattleSkillData` だけを戦闘の自動行動候補にする。未取得時は通常攻撃へフォールバックする。DefaultHeroine は `RadiantSlash` から `GentlePrayer` / `ProtectionBlessing`、TestHeroine は `SharpThrust` から `ReluctantAid` / `GuardedStance` へ分岐する。
 `SkillTreePanel` は `SkillTreeNodeData.treePosition` に従ってノードを二次元配置し、表示中ノード同士の前提関係を接続線で描画する。表示範囲はノード座標から自動計算し、必要な場合だけ縦横スクロールを有効にする。ノードは未解放を灰色、ポイント不足を黄色、取得可能を緑、取得済みを青で表示し、接続線も接続先の状態に合わせる。選択中ノードには白い Outline を付け、詳細欄には取得可否と不足理由、取得結果を表示する。条件対象の訓練 ID、カテゴリー ID、敵 ID は可能な限り表示名へ解決し、ヒロインタブのポイント表示には現在ヒロイン名を併記する。接続線は実行時に生成するため、専用 Prefab や追加の Scene UI 部品は不要。
-スキルツリーデータ検証は `SkillTreeDataValidator` に集約する。空または重複したノード ID、前提ノードの Missing・重複・自己参照・循環参照、所有者や対象ヒロインをまたぐ前提関係、存在しない主人公・ヒロインスキル、訓練 ID・カテゴリー ID・敵 ID、重複条件、同一ツリー内の座標重複を検出する。Unity Editor の `FantasyLoveSim > Validation > Skill Tree Data` から任意に実行でき、Editor Play または Development Build の起動時にも一度検証する。結果は `[SkillTreeValidation]` ログへノード ID とともに出力し、通常リリースビルドでは起動時検証を省略する。
+スキルツリーデータ検証は `SkillTreeDataValidator` に集約する。空または重複したノード ID、前提ノードの Missing・重複・自己参照・循環参照、所有者や対象ヒロインをまたぐ前提関係、存在しない主人公・ヒロインスキル、訓練 ID・カテゴリー ID・敵 ID、重複条件、同一ツリー内の座標重複を検出する。Unity Editor の `FantasyLoveSim > Validation > Data > Skill Tree Data` から任意に実行でき、Editor Play または Development Build の起動時にも一度検証する。結果は `[SkillTreeValidation]` ログへノード ID とともに出力し、通常リリースビルドでは起動時検証を省略する。
 好感度は小数型を使わず整数で管理し、上限を `9999` とする。従来の好感度、増減値、条件値はすべて10倍へ移行し、従来の100相当を1000とする。ランク境界は200、400、600、800、1000。`HeroineStatus.endingUnlockAffection` は1000とし、`maxAffection` から分離する。従来の `maxAffection = 100` は当時の全体上限を表していたため、通常会話や行動が1000以降で消えないよう新しい既定値は9999とする。1000以降は新しい解放条件を必須とせず、好感度の累積値として9999まで増加できる。現在のセーブバージョンは19とし、旧尺度の好感度・熟練度セーブとの互換性は保証しない。
 
 スキルシステムは `SkillData` 系ScriptableObjectと `SkillTreeNodeData` で拡張する。

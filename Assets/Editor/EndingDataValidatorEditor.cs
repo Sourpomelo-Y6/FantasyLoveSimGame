@@ -2,7 +2,7 @@ using UnityEditor;
 
 public static class EndingDataValidatorEditor
 {
-    private const string MenuPath = "FantasyLoveSim/Validation/Ending Data";
+    private const string MenuPath = "FantasyLoveSim/Validation/Data/Ending Data";
 
     [MenuItem(MenuPath)]
     public static void ValidateEndingData()

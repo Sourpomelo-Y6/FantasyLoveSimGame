@@ -2,7 +2,7 @@ using UnityEditor;
 
 public static class ActionReactionDataValidatorEditor
 {
-    private const string MenuPath = "FantasyLoveSim/Validation/Action Reaction Data";
+    private const string MenuPath = "FantasyLoveSim/Validation/Data/Action Reaction Data";
 
     [MenuItem(MenuPath)]
     public static void ValidateActionReactionData()

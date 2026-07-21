@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: "\u6D1E\u7A9F\u3078\u306E\u540C\u884C\u5916\u51FA"
   m_EditorClassIdentifier: 
   scheduleType: 6
-  actionId: DuoWalkLake
+  actionId: AutoDuoCave
   triggerTimeSlot: 1
   allowOutfitChangeBeforeStart: 1
   outfitPromptMode: 1

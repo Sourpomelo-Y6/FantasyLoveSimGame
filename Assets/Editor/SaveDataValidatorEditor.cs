@@ -2,7 +2,7 @@ using UnityEditor;
 
 public static class SaveDataValidatorEditor
 {
-    private const string MenuPath = "FantasyLoveSim/Validation/Save Data";
+    private const string MenuPath = "FantasyLoveSim/Validation/Data/Save Data";
 
     [MenuItem(MenuPath)]
     public static void ValidateSaveData()

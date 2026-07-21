@@ -85,7 +85,7 @@ Conv_<Genre>_<Context>_<NN>
 - 同ジャンル・条件・priorityの重複を確認する。
 - 通常会話で未接続条件を設定した場合は、Unityの選択条件として使われないことを案内する。
 
-Unity側では `FantasyLoveSim > Validation > Conversation Data` を実行し、全ヒロインの
+Unity側では `FantasyLoveSim > Validation > Data > Conversation Data` を実行し、全ヒロインの
 空・不正・重複ID、ファイル名との不一致、配置先ヒロインと `heroineId` の不一致、
 会話種別と選択肢の不整合、同一条件・priority、ジャンル別フォールバック不足を確認する。
 既存IDは検証結果を直す目的だけで自動変更しない。

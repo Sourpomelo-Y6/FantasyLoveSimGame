@@ -2,19 +2,19 @@ using UnityEditor;
 
 public static class GameplayDataValidatorEditor
 {
-    [MenuItem("FantasyLoveSim/Validation/Training Data")]
+    [MenuItem("FantasyLoveSim/Validation/Data/Training Data")]
     public static void ValidateTrainingData()
     {
         Show("Training Data Validation", GameplayDataValidator.ValidateTrainingProjectAssets());
     }
 
-    [MenuItem("FantasyLoveSim/Validation/Enemy Data")]
+    [MenuItem("FantasyLoveSim/Validation/Data/Enemy Data")]
     public static void ValidateEnemyData()
     {
         Show("Enemy Data Validation", GameplayDataValidator.ValidateEnemyProjectAssets());
     }
 
-    [MenuItem("FantasyLoveSim/Validation/Shop Data")]
+    [MenuItem("FantasyLoveSim/Validation/Data/Shop Data")]
     public static void ValidateShopData()
     {
         Show("Shop Data Validation", GameplayDataValidator.ValidateShopProjectAssets());

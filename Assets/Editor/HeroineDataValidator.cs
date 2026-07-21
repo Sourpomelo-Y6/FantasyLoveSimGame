@@ -7,7 +7,7 @@ using UnityEngine;
 
 public static class HeroineDataValidator
 {
-    private const string MenuPath = "FantasyLoveSim/Validation/Heroine Data";
+    private const string MenuPath = "FantasyLoveSim/Validation/Data/Heroine Data";
 
     [MenuItem(MenuPath)]
     public static void ValidateSelectedHeroineData()
@@ -19,6 +19,38 @@ public static class HeroineDataValidator
             return;
         }
 
+        ValidationReport report = Validate(profile);
+
+        report.Log();
+        EditorUtility.DisplayDialog("Heroine Data Validation", report.CreateDialogMessage(), "OK");
+    }
+
+    public static HeroineProjectValidationReport ValidateProjectAssets()
+    {
+        HeroineProjectValidationReport report = new HeroineProjectValidationReport();
+        string[] guids = AssetDatabase.FindAssets(
+            "t:HeroineProfileData",
+            new[] { "Assets/Resources/Heroines" });
+        foreach (string guid in guids.OrderBy(value => value, StringComparer.Ordinal))
+        {
+            HeroineProfileData profile = AssetDatabase.LoadAssetAtPath<HeroineProfileData>(
+                AssetDatabase.GUIDToAssetPath(guid));
+            if (profile != null)
+            {
+                report.Add(Validate(profile));
+            }
+        }
+
+        return report;
+    }
+
+    public static ValidationReport Validate(HeroineProfileData profile)
+    {
+        if (profile == null)
+        {
+            throw new ArgumentNullException(nameof(profile));
+        }
+
         ValidationReport report = new ValidationReport(profile);
         ValidateProfile(profile, report);
         ValidateActions(profile, report);
@@ -28,9 +60,7 @@ public static class HeroineDataValidator
         ValidateEndings(profile, report);
         ValidateLayeredSpriteData(profile, report);
         ValidateAssetCatalog(profile, report);
-
-        report.Log();
-        EditorUtility.DisplayDialog("Heroine Data Validation", report.CreateDialogMessage(), "OK");
+        return report;
     }
 
     private static HeroineProfileData ResolveProfile()
@@ -686,7 +716,7 @@ public static class HeroineDataValidator
         return string.IsNullOrWhiteSpace(value) ? fallback : value;
     }
 
-    private sealed class ValidationReport
+    public sealed class ValidationReport
     {
         private readonly List<string> infos = new List<string>();
         private readonly List<string> warnings = new List<string>();
@@ -704,6 +734,10 @@ public static class HeroineDataValidator
         public int gameEventCount;
         public int scheduledEventCount;
         public int endingCount;
+        public int AssetCount =>
+            1 + actionCount + conversationCount + gameEventCount + scheduledEventCount + endingCount;
+        public int WarningCount => warnings.Count;
+        public bool IsValid => WarningCount == 0;
 
         public void Info(string message)
         {
