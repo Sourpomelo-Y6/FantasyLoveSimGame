@@ -41,6 +41,8 @@ public class SaveManager : MonoBehaviour
     {
         slotIndex = NormalizeSlotIndex(slotIndex);
 
+        SaveDataNormalizer.Normalize(saveData);
+
         string json = JsonUtility.ToJson(saveData, true);
         string savePath = GetSavePath(slotIndex);
 
@@ -69,7 +71,16 @@ public class SaveManager : MonoBehaviour
         }
 
         string json = File.ReadAllText(savePath);
-        SaveData saveData = JsonUtility.FromJson<SaveData>(json);
+        SaveData saveData;
+        try
+        {
+            saveData = SaveDataNormalizer.Normalize(JsonUtility.FromJson<SaveData>(json));
+        }
+        catch (System.Exception exception)
+        {
+            Debug.LogWarning("Save data could not be loaded: " + savePath + " / " + exception.Message);
+            return null;
+        }
 
         currentSlotIndex = slotIndex;
 
@@ -90,7 +101,15 @@ public class SaveManager : MonoBehaviour
         }
 
         string json = File.ReadAllText(savePath);
-        return JsonUtility.FromJson<SaveData>(json);
+        try
+        {
+            return SaveDataNormalizer.Normalize(JsonUtility.FromJson<SaveData>(json));
+        }
+        catch (System.Exception exception)
+        {
+            Debug.LogWarning("Save preview could not be loaded: " + savePath + " / " + exception.Message);
+            return null;
+        }
     }
 
     public bool HasSaveData()

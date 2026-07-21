@@ -2381,6 +2381,8 @@ public class GameManager : MonoBehaviour
         saveData.todayScheduleEventExecuted = scheduleManager.TodayScheduleEventExecuted;
         saveData.scheduleEntries = scheduleManager.CreateScheduleEntrySaveData();
 
+        SaveDataNormalizer.Normalize(saveData);
+
         saveManager.Save(saveData, GameStartSettings.SelectedSaveSlotIndex);
 
         ShowSystemDialogue("セーブしました。");
