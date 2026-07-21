@@ -28,13 +28,14 @@ MonoBehaviour:
   - reactionId: Reaction_Tea_Consideration_01
     resultMessage: "\u524D\u3088\u308A\u6C17\u304C\u5229\u304F\u3088\u3046\u306B\u306A\u3063\u305F\u3058\u3083\u306A\u3044\u3002\u2026\u2026\u307E\u3042\u3001\u60AA\u304F\u306A\u3044\u308F\u3002"
     useHeroineNameAsSpeaker: 1
+    expressionId: Smile
     stillId:
     stillSprite: {fileID: 0}
     affectionChange: 10
     playerHpChange: 0
     heroineHpChange: 0
     advanceTime: 1
-    priority: 10
+    priority: 300
     showOnce: 1
     minAffection: 0
     maxAffection: 9999
@@ -49,12 +50,59 @@ MonoBehaviour:
     allowedWeathers:
     anySeason: 1
     allowedSeasons:
+  - reactionId: Reaction_Tea_Trust_01
+    resultMessage: "こうしてあんたとお茶を飲んでいると、不思議と落ち着くの。……もう少しだけ、このままでいましょう。"
+    useHeroineNameAsSpeaker: 1
+    expressionId: Shy
+    stillId:
+    stillSprite: {fileID: 0}
+    affectionChange: 40
+    playerHpChange: 0
+    heroineHpChange: 0
+    advanceTime: 1
+    priority: 200
+    showOnce: 0
+    minAffection: 600
+    maxAffection: 9999
+    costumeId:
+    requiredShownEventIds: []
+    requiredSkillIds: []
+    anyTimeSlot: 1
+    allowedTimeSlots: []
+    anyWeather: 1
+    allowedWeathers: []
+    anySeason: 1
+    allowedSeasons: []
+  - reactionId: Reaction_Tea_Friendly_01
+    resultMessage: "あんたが淹れるお茶も、前よりは悪くなくなったわね。次も同じくらいには頑張りなさい。"
+    useHeroineNameAsSpeaker: 1
+    expressionId: Smile
+    stillId:
+    stillSprite: {fileID: 0}
+    affectionChange: 30
+    playerHpChange: 0
+    heroineHpChange: 0
+    advanceTime: 1
+    priority: 100
+    showOnce: 0
+    minAffection: 200
+    maxAffection: 9999
+    costumeId:
+    requiredShownEventIds: []
+    requiredSkillIds: []
+    anyTimeSlot: 1
+    allowedTimeSlots: []
+    anyWeather: 1
+    allowedWeathers: []
+    anySeason: 1
+    allowedSeasons: []
   - reactionId: Reaction_Tea_01
     resultMessage: "\u30D2\u30ED\u30A4\u30F3\u3068\u4E00\u7DD2\u306B\u304A\u8336\u3092\u98F2\u307F\u307E\u3057\u305F\u3002\u3086\u3063\u304F\u308A\u8A71\u305B\u305F\u6C17\u304C\u3057\u307E\u3059\u3002"
     useHeroineNameAsSpeaker: 1
+    expressionId: Neutral
     stillId: Tea_01
     stillSprite: {fileID: 21300000, guid: b775034d4cb9d61478c553a3b913378c, type: 3}
-    affectionChange: 0
+    affectionChange: 20
     playerHpChange: 0
     heroineHpChange: 0
     advanceTime: 1

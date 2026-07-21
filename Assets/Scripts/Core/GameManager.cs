@@ -4770,7 +4770,8 @@ public class GameManager : MonoBehaviour
         bool advanceTime,
         string actionId,
         string stillId = "",
-        Sprite stillSprite = null)
+        Sprite stillSprite = null,
+        string expressionId = "")
     {
         actionButtonArea.SetActive(false);
         genreButtonArea.SetActive(false);
@@ -4782,7 +4783,16 @@ public class GameManager : MonoBehaviour
         int appliedHeroineHpChange = ApplyHeroineHpChange(heroineHpChange);
         string resultMessage = AppendActionHpChangeMessage(message, appliedPlayerHpChange, appliedHeroineHpChange);
 
-        ShowDialogue(GetSpeakerTypeForName(speakerName), speakerName, resultMessage, stillId, stillSprite);
+        ResetDialogueSequenceState();
+        queuedDialogueMessages.Clear();
+        dialogueSequenceIsActive = false;
+        SetDialogueText(
+            GetSpeakerTypeForName(speakerName),
+            speakerName,
+            resultMessage,
+            stillId,
+            stillSprite,
+            expressionId);
 
         heroineStatus.AddAffection(affectionChange);
 
@@ -5886,7 +5896,8 @@ public class GameManager : MonoBehaviour
                 reaction.advanceTime,
                 action.actionId,
                 string.IsNullOrEmpty(reaction.stillId) ? action.stillId : reaction.stillId,
-                reaction.stillSprite != null ? reaction.stillSprite : action.stillSprite
+                reaction.stillSprite != null ? reaction.stillSprite : action.stillSprite,
+                reaction.expressionId
             );
 
             return;

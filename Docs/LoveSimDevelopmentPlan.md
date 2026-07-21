@@ -420,16 +420,23 @@ public class ActionData : ScriptableObject
 - 好感度帯ごとの反応
 - 表示済みイベントや取得済みスキルを条件にした反応
 - セーブデータごとに一度だけ表示する反応
+- ヒロイン発話時の表情差分
 
 今の実装では、`ActionData.reactions` から条件一致する候補を集め、`priority` が高いものを優先して選ぶ。
 同じ `priority` が複数ある場合はランダムに 1 件を選ぶ。
 条件欄は `minAffection` / `maxAffection`、`anyTimeSlot` / `allowedTimeSlots`、`anyWeather` / `allowedWeathers`、`anySeason` / `allowedSeasons`、`costumeId`、`requiredShownEventIds`、`requiredSkillIds` で構成する。
 `showOnce` を有効にした反応は `reactionId` を表示履歴へ記録し、同じセーブデータでは再表示しない。保存形式を増やさないため、通常会話と共通の表示済みID集合を使うので、`Reaction_<ActionId>_<連番>` のように会話IDと重複しない命名を維持する。
 `stillId` / `stillSprite` を持たせると、反応専用のスチルも差し替えられる。
+`expressionId` を持たせると、反応表示時に `HeroineLayeredSpriteView` の表情を切り替えられる。空の場合は現在の表情を変更しない。
+
+`ActionData.reactions` を評価するのは `executionType = SimpleAction` の行動だけとする。会話、衣装変更、衣装反応など専用パネルへ移る行動は、それぞれの専用データと処理で結果を管理し、使用されない `reactions` は持たせない。
 
 優先度付きの条件反応を追加する場合も、各主要行動には `priority = 0`、`showOnce = false`、好感度 `0～9999`、その他条件なしのフォールバックを1件残す。条件反応は `priority` を1以上にして、条件成立時だけフォールバックより優先させる。一度限りの反応を表示済みにした後も、フォールバックが選ばれるため行動結果が空にならない。
 
 AssetToolの行動反応条件では `once`、`requiredFlagIds`、`requiredSkillIds` を編集・JSON出力できる。Unity Importerはそれぞれ `showOnce`、`requiredShownEventIds`、`requiredSkillIds` へ変換する。Unityからの `actions_from_unity.json` も複数の `reactions` とこれらの条件を保持してAssetToolへ戻す。
+行動反応の `lines[0].expression` は Unity の `ActionReactionData.expressionId` と相互変換する。
+
+Unity Editor の `FantasyLoveSim > Validation > Action Reaction Data` では、行動・反応IDの形式と重複、同一条件・優先度の衝突、存在しないイベント・スキル参照、通常会話IDとの履歴衝突、無条件フォールバックの欠落、SimpleAction以外に設定された未使用反応を検出する。
 
 ## 買い物・探索・戦闘の拡張予定
 

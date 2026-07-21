@@ -24,26 +24,7 @@ MonoBehaviour:
   playerHpChange: 0
   heroineHpChange: 0
   advanceTime: 0
-  reactions:
-  - reactionId: Reaction_DressUp_01
-    resultMessage: "\u7740\u66FF\u3048\u308B\u8863\u88C5\u3092\u9078\u3093\u3067\u304F\u3060\u3055\u3044\u3002"
-    useHeroineNameAsSpeaker: 0
-    stillId: 
-    stillSprite: {fileID: 0}
-    affectionChange: 0
-    playerHpChange: 0
-    heroineHpChange: 0
-    advanceTime: 1
-    priority: 0
-    minAffection: 0
-    maxAffection: 9999
-    costumeId: 
-    anyTimeSlot: 1
-    allowedTimeSlots: 
-    anyWeather: 1
-    allowedWeathers: 
-    anySeason: 1
-    allowedSeasons: 
+  reactions: []
   displayColumn: 3
   sortOrder: 60
   isEnabled: 1

@@ -283,7 +283,10 @@ Unity 側の対応先は `GameEventData` を想定する。
 Unity 側の対応先は `ActionData.reactions` 内の `ActionReactionData` とする。
 `conditions.actionId` に一致する `ActionData` を探し、その action の reactions を JSON 由来で置き換える。
 既存 action がない場合は最小の `ActionData` を作成する。
-`lines[0]` を `resultMessage`、`imageAssetIds[0]` を `stillId` / `stillSprite` に変換する。
+`lines[0]` を `resultMessage`、`lines[0].expression` を `expressionId`、`imageAssetIds[0]` を `stillId` / `stillSprite` に変換する。
+UnityからAssetToolへ戻す際も `ActionReactionData.expressionId` を `lines[0].expression` として出力する。
+
+Unity側で `ActionData.reactions` が実行されるのは `SimpleAction` だけである。会話、衣装変更、衣装反応など専用画面を開く行動は専用データを編集対象とし、行動反応データを作成しない。UnityへImportした後は `FantasyLoveSim > Validation > Action Reaction Data` で、ID重複、条件衝突、参照切れ、フォールバック不足を確認する。
 
 ## endings_export.json
 

@@ -11,23 +11,70 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1f41d3cf9d66ee149ad7663c5cd19c24, type: 3}
   m_Name: RestAction
-  m_EditorClassIdentifier: 
+  m_EditorClassIdentifier:
   actionId: Rest
   displayName: "\u4F11\u3080"
   executionType: 0
   resultMessage: "\u5C11\u3057\u4F11\u307F\u307E\u3057\u305F\u3002\u4F53\u3068\u5FC3\u304C\u843D\u3061\u7740\u3044\u305F\u6C17\u304C\u3057\u307E\u3059\u3002"
   unavailableMessage: "\u4ECA\u306F\u3053\u306E\u884C\u52D5\u306F\u3067\u304D\u307E\u305B\u3093\u3002"
   useHeroineNameAsSpeaker: 0
-  stillId: 
+  stillId:
   stillSprite: {fileID: 0}
   affectionChange: 0
   playerHpChange: 20
   heroineHpChange: 20
   advanceTime: 1
   reactions:
+  - reactionId: Reaction_Rest_Trust_01
+    resultMessage: "\u7121\u7406\u3057\u3066\u5012\u308C\u3089\u308C\u308B\u307B\u3046\u304C\u56F0\u308B\u306E\u3002\u4ECA\u65E5\u306F\u79C1\u304C\u305D\u3070\u306B\u3044\u308B\u304B\u3089\u3001\u3061\u3083\u3093\u3068\u4F11\u307F\u306A\u3055\u3044\u3002"
+    useHeroineNameAsSpeaker: 1
+    expressionId: Shy
+    stillId:
+    stillSprite: {fileID: 0}
+    affectionChange: 0
+    playerHpChange: 0
+    heroineHpChange: 0
+    advanceTime: 1
+    priority: 200
+    showOnce: 0
+    minAffection: 600
+    maxAffection: 9999
+    costumeId:
+    requiredShownEventIds: []
+    requiredSkillIds: []
+    anyTimeSlot: 1
+    allowedTimeSlots: []
+    anyWeather: 1
+    allowedWeathers: []
+    anySeason: 1
+    allowedSeasons: []
+  - reactionId: Reaction_Rest_Friendly_01
+    resultMessage: "\u5C11\u3057\u304F\u3089\u3044\u4F11\u3093\u3060\u3063\u3066\u8AB0\u3082\u8CAC\u3081\u306A\u3044\u308F\u3002\u307B\u3089\u3001\u79C1\u304C\u898B\u3066\u3044\u3066\u3042\u3052\u308B\u304B\u3089\u6A2A\u306B\u306A\u308A\u306A\u3055\u3044\u3002"
+    useHeroineNameAsSpeaker: 1
+    expressionId: Smile
+    stillId:
+    stillSprite: {fileID: 0}
+    affectionChange: 0
+    playerHpChange: 0
+    heroineHpChange: 0
+    advanceTime: 1
+    priority: 100
+    showOnce: 0
+    minAffection: 200
+    maxAffection: 9999
+    costumeId:
+    requiredShownEventIds: []
+    requiredSkillIds: []
+    anyTimeSlot: 1
+    allowedTimeSlots: []
+    anyWeather: 1
+    allowedWeathers: []
+    anySeason: 1
+    allowedSeasons: []
   - reactionId: Reaction_Rest_01
     resultMessage: "\u5C11\u3057\u4F11\u307F\u307E\u3057\u305F\u3002\u4F53\u3068\u5FC3\u304C\u843D\u3061\u7740\u3044\u305F\u6C17\u304C\u3057\u307E\u3059\u3002"
     useHeroineNameAsSpeaker: 0
+    expressionId: Neutral
     stillId: Rest_01
     stillSprite: {fileID: 21300000, guid: 06d3c0e09c340d2438cd9c93faa3e7b3, type: 3}
     affectionChange: 0
@@ -37,21 +84,21 @@ MonoBehaviour:
     priority: 0
     minAffection: 0
     maxAffection: 9999
-    costumeId: 
+    costumeId:
     anyTimeSlot: 1
-    allowedTimeSlots: 
+    allowedTimeSlots:
     anyWeather: 1
-    allowedWeathers: 
+    allowedWeathers:
     anySeason: 1
-    allowedSeasons: 
+    allowedSeasons:
   displayColumn: 1
   sortOrder: 20
   isEnabled: 1
   anyTimeSlot: 1
-  allowedTimeSlots: 
+  allowedTimeSlots:
   anyWeather: 1
-  allowedWeathers: 
+  allowedWeathers:
   anySeason: 1
-  allowedSeasons: 
+  allowedSeasons:
   minAffection: 0
   maxAffection: 9999

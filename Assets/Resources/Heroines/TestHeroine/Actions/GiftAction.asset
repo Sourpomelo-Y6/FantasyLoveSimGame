@@ -11,47 +11,94 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1f41d3cf9d66ee149ad7663c5cd19c24, type: 3}
   m_Name: GiftAction
-  m_EditorClassIdentifier: 
+  m_EditorClassIdentifier:
   actionId: Gift
   displayName: "\u30D7\u30EC\u30BC\u30F3\u30C8"
   executionType: 0
   resultMessage: "\u30D2\u30ED\u30A4\u30F3\u306B\u5C0F\u3055\u306A\u8D08\u308A\u7269\u3092\u6E21\u3057\u307E\u3057\u305F\u3002\u5B09\u3057\u305D\u3046\u306B\u53D7\u3051\u53D6\u3063\u3066\u304F\u308C\u307E\u3057\u305F\u3002"
   unavailableMessage: "\u4ECA\u306F\u3053\u306E\u884C\u52D5\u306F\u3067\u304D\u307E\u305B\u3093\u3002"
   useHeroineNameAsSpeaker: 1
-  stillId: 
+  stillId:
   stillSprite: {fileID: 0}
   affectionChange: 50
   playerHpChange: 0
   heroineHpChange: 0
   advanceTime: 1
   reactions:
+  - reactionId: Reaction_Gift_Trust_01
+    resultMessage: "\u79C1\u306E\u3053\u3068\u3092\u8003\u3048\u3066\u9078\u3093\u3067\u304F\u308C\u305F\u3093\u3067\u3057\u3087\u3046\uFF1F\u3000\u2026\u2026\u5927\u5207\u306B\u3059\u308B\u3002\u3042\u3093\u305F\u304B\u3089\u306E\u8D08\u308A\u7269\u3060\u3082\u306E\u3002"
+    useHeroineNameAsSpeaker: 1
+    expressionId: Shy
+    stillId:
+    stillSprite: {fileID: 0}
+    affectionChange: 70
+    playerHpChange: 0
+    heroineHpChange: 0
+    advanceTime: 1
+    priority: 200
+    showOnce: 0
+    minAffection: 600
+    maxAffection: 9999
+    costumeId:
+    requiredShownEventIds: []
+    requiredSkillIds: []
+    anyTimeSlot: 1
+    allowedTimeSlots: []
+    anyWeather: 1
+    allowedWeathers: []
+    anySeason: 1
+    allowedSeasons: []
+  - reactionId: Reaction_Gift_Friendly_01
+    resultMessage: "\u3078\u3048\u3001\u79C1\u306E\u597D\u307F\u3082\u5C11\u3057\u306F\u5206\u304B\u3063\u3066\u304D\u305F\u307F\u305F\u3044\u306D\u3002\u305B\u3063\u304B\u304F\u3060\u304B\u3089\u3001\u3082\u3089\u3063\u3066\u304A\u3044\u3066\u3042\u3052\u308B\u3002"
+    useHeroineNameAsSpeaker: 1
+    expressionId: Smile
+    stillId:
+    stillSprite: {fileID: 0}
+    affectionChange: 60
+    playerHpChange: 0
+    heroineHpChange: 0
+    advanceTime: 1
+    priority: 100
+    showOnce: 0
+    minAffection: 200
+    maxAffection: 9999
+    costumeId:
+    requiredShownEventIds: []
+    requiredSkillIds: []
+    anyTimeSlot: 1
+    allowedTimeSlots: []
+    anyWeather: 1
+    allowedWeathers: []
+    anySeason: 1
+    allowedSeasons: []
   - reactionId: Reaction_Gift_01
     resultMessage: "\u30D2\u30ED\u30A4\u30F3\u306B\u5C0F\u3055\u306A\u8D08\u308A\u7269\u3092\u6E21\u3057\u307E\u3057\u305F\u3002\u5B09\u3057\u305D\u3046\u306B\u53D7\u3051\u53D6\u3063\u3066\u304F\u308C\u307E\u3057\u305F\u3002"
     useHeroineNameAsSpeaker: 1
-    stillId: 
+    expressionId: Neutral
+    stillId:
     stillSprite: {fileID: 0}
-    affectionChange: 0
+    affectionChange: 50
     playerHpChange: 0
     heroineHpChange: 0
     advanceTime: 1
     priority: 0
     minAffection: 0
     maxAffection: 9999
-    costumeId: 
+    costumeId:
     anyTimeSlot: 1
-    allowedTimeSlots: 
+    allowedTimeSlots:
     anyWeather: 1
-    allowedWeathers: 
+    allowedWeathers:
     anySeason: 1
-    allowedSeasons: 
+    allowedSeasons:
   displayColumn: 2
   sortOrder: 50
   isEnabled: 1
   anyTimeSlot: 1
-  allowedTimeSlots: 
+  allowedTimeSlots:
   anyWeather: 1
-  allowedWeathers: 
+  allowedWeathers:
   anySeason: 1
-  allowedSeasons: 
+  allowedSeasons:
   minAffection: 0
   maxAffection: 9999

@@ -24,27 +24,8 @@ MonoBehaviour:
   playerHpChange: 0
   heroineHpChange: 0
   advanceTime: 0
-  reactions:
-  - reactionId: Reaction_Talk_01
-    resultMessage: "\u30C6\u30B9\u30C8\u30D2\u30ED\u30A4\u30F3\u7528\u306E\u4F1A\u8A71\u30C7\u30FC\u30BF\u3092\u8AAD\u307F\u8FBC\u3093\u3067\u3044\u307E\u3059\u3002"
-    useHeroineNameAsSpeaker: 0
-    stillId: 
-    stillSprite: {fileID: 0}
-    affectionChange: 0
-    playerHpChange: 0
-    heroineHpChange: 0
-    advanceTime: 1
-    priority: 0
-    minAffection: 0
-    maxAffection: 9999
-    costumeId: 
-    anyTimeSlot: 1
-    allowedTimeSlots: 
-    anyWeather: 1
-    allowedWeathers: 
-    anySeason: 1
-    allowedSeasons: 
-  displayColumn: 2
+  reactions: []
+  displayColumn: 1
   sortOrder: 10
   isEnabled: 1
   anyTimeSlot: 1

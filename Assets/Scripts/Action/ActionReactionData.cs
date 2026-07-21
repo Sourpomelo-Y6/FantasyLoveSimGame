@@ -13,6 +13,9 @@ public class ActionReactionData
 
     public bool useHeroineNameAsSpeaker = false;
 
+    [Tooltip("ヒロイン発話時に適用する表情ID。空なら現在の表情を維持します。")]
+    public string expressionId;
+
     [Header("Still")]
     public string stillId;
     public Sprite stillSprite;

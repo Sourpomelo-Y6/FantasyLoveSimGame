@@ -816,7 +816,10 @@ public static class HeroineUnityDataExporter
                     id = reaction.reactionId,
                     resultLines = new List<FromUnityLine>
                     {
-                        CreateLine(reaction.useHeroineNameAsSpeaker, reaction.resultMessage)
+                        CreateLine(
+                            reaction.useHeroineNameAsSpeaker,
+                            reaction.resultMessage,
+                            reaction.expressionId)
                     },
                     imageAssetIds = CreateImageAssetIds(reaction.stillId, reaction.stillSprite, report),
                     affectionChange = reaction.affectionChange,
@@ -829,13 +832,16 @@ public static class HeroineUnityDataExporter
         return reactions;
     }
 
-    private static FromUnityLine CreateLine(bool useHeroineNameAsSpeaker, string text)
+    private static FromUnityLine CreateLine(
+        bool useHeroineNameAsSpeaker,
+        string text,
+        string expressionId = "")
     {
         return new FromUnityLine
         {
             speaker = useHeroineNameAsSpeaker ? "Heroine" : "System",
             text = text ?? string.Empty,
-            expression = string.Empty
+            expression = expressionId ?? string.Empty
         };
     }
 

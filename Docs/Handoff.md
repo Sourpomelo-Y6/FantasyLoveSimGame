@@ -259,11 +259,14 @@ EditorWindowのScene・Prefab一括適用はローカル確認専用。適用後
 - 条件一致しない場合はデフォルト結果を使う
 - `useHeroineNameAsSpeaker` で話者を切り替えられる
 - `stillId` / `stillSprite` を反応ごとに持たせられる
+- `expressionId` を反応ごとに持たせ、ヒロイン発話時の立ち絵表情を切り替えられる。空の場合は現在の表情を維持する
 - `playerHpChange` / `heroineHpChange` でプレイヤーとヒロインの HP 増減を指定できる。実際に増減した値は行動結果メッセージに追記される
 - 同じ `priority` の候補が複数ある場合はランダムで 1 件を選ぶ
 - `requiredShownEventIds` は表示済みイベント、`requiredSkillIds` は取得済みスキルをすべて満たす場合だけ候補になる
 - `showOnce` は `reactionId` を通常会話と共通の表示履歴へ保存するため、会話IDと重複しないIDを使う
 - 条件反応を増やしても、priority 0・一度限りOFF・好感度0～9999・その他条件なしの反応をフォールバックとして残す
+- `reactions` が実行されるのは `SimpleAction` だけである。会話・衣装・衣装反応など専用パネルを開く行動には設定せず、それぞれの専用データで反応を管理する
+- `FantasyLoveSim > Validation > Action Reaction Data` から、ID・条件衝突・参照先・フォールバック・SimpleAction以外への誤設定を全ヒロイン分検証できる
 
 ### 7. 時間経過
 

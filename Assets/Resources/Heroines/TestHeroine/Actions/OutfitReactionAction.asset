@@ -24,26 +24,7 @@ MonoBehaviour:
   playerHpChange: 0
   heroineHpChange: 0
   advanceTime: 0
-  reactions:
-  - reactionId: Reaction_OutfitReaction_01
-    resultMessage: "\u4ECA\u306E\u8863\u88C5\u306B\u3064\u3044\u3066\u3001\u3069\u3046\u53CD\u5FDC\u3057\u307E\u3059\u304B\uFF1F"
-    useHeroineNameAsSpeaker: 0
-    stillId: 
-    stillSprite: {fileID: 0}
-    affectionChange: 0
-    playerHpChange: 0
-    heroineHpChange: 0
-    advanceTime: 1
-    priority: 0
-    minAffection: 0
-    maxAffection: 9999
-    costumeId: 
-    anyTimeSlot: 1
-    allowedTimeSlots: 
-    anyWeather: 1
-    allowedWeathers: 
-    anySeason: 1
-    allowedSeasons: 
+  reactions: []
   displayColumn: 3
   sortOrder: 65
   isEnabled: 1

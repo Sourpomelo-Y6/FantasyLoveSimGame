@@ -1329,12 +1329,22 @@ public static class HeroineAssetImporter
 
     private static string GetFirstLineExpression(ConversationExportItem item)
     {
-        if (item == null || item.lines == null)
+        return GetFirstLineExpression(item == null ? null : item.lines);
+    }
+
+    private static string GetFirstLineExpression(ActionReactionExportItem item)
+    {
+        return GetFirstLineExpression(item == null ? null : item.lines);
+    }
+
+    private static string GetFirstLineExpression(ConversationExportLine[] lines)
+    {
+        if (lines == null)
         {
             return string.Empty;
         }
 
-        foreach (ConversationExportLine line in item.lines)
+        foreach (ConversationExportLine line in lines)
         {
             if (line != null && !string.IsNullOrWhiteSpace(line.text))
             {
@@ -2271,6 +2281,7 @@ public static class HeroineAssetImporter
             reactionId = item.id,
             resultMessage = GetFirstLineText(item),
             useHeroineNameAsSpeaker = UsesHeroineSpeaker(item),
+            expressionId = GetFirstLineExpression(item),
             stillId = stillId,
             stillSprite = ResolveFirstSprite(item.imageAssetIds, spritesByAssetId, report),
             affectionChange = conditions.affectionChange,
