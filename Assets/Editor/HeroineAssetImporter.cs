@@ -324,7 +324,8 @@ public static class HeroineAssetImporter
             {
                 outfitId = item.outfitId,
                 lockedMessage = item.lockedMessage ?? string.Empty,
-                changedMessage = item.changedMessage ?? string.Empty
+                changedMessage = item.changedMessage ?? string.Empty,
+                changedExpressionId = item.changedExpressionId ?? string.Empty
             });
         }
     }
@@ -349,7 +350,8 @@ public static class HeroineAssetImporter
             target.Add(new OutfitReactionMessageOverride
             {
                 reactionType = ParseEnumOrDefault(item.reactionType, OutfitReactionType.Praise),
-                message = item.message
+                message = item.message,
+                expressionId = item.expressionId ?? string.Empty
             });
         }
     }
@@ -2726,6 +2728,7 @@ public static class HeroineAssetImporter
         public string outfitId;
         public string lockedMessage;
         public string changedMessage;
+        public string changedExpressionId;
     }
 
     [Serializable]
@@ -2733,6 +2736,7 @@ public static class HeroineAssetImporter
     {
         public string reactionType;
         public string message;
+        public string expressionId;
     }
 
     [Serializable]

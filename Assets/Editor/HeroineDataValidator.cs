@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using UnityEditor;
 using UnityEngine;
 
@@ -81,8 +82,10 @@ public static class HeroineDataValidator
         ValidateResourcePath("actionResourcePath", profile.actionResourcePath, heroineId, report);
         ValidateResourcePath("scheduledEventResourcePath", profile.scheduledEventResourcePath, heroineId, report);
         ValidateResourcePath("endingResourcePath", profile.endingResourcePath, heroineId, report);
-        ValidateOutfitMessageOverrides(profile, report);
-        ValidateOutfitReactionMessageOverrides(profile, report);
+        HashSet<string> expressionIds = LoadExpressionIds(profile);
+        ValidateSharedOutfitExpressions(expressionIds, report);
+        ValidateOutfitMessageOverrides(profile, expressionIds, report);
+        ValidateOutfitReactionMessageOverrides(profile, expressionIds, report);
     }
 
     private static void ValidateActions(HeroineProfileData profile, ValidationReport report)
@@ -413,7 +416,10 @@ public static class HeroineDataValidator
         }
     }
 
-    private static void ValidateOutfitMessageOverrides(HeroineProfileData profile, ValidationReport report)
+    private static void ValidateOutfitMessageOverrides(
+        HeroineProfileData profile,
+        HashSet<string> expressionIds,
+        ValidationReport report)
     {
         HashSet<string> ids = new HashSet<string>(StringComparer.Ordinal);
         if (profile.outfitMessageOverrides == null)
@@ -430,10 +436,37 @@ public static class HeroineDataValidator
 
             ValidateRequiredId(messageOverride.outfitId, "OutfitMessageOverride.outfitId", profile, report);
             ValidateDuplicateId(ids, messageOverride.outfitId, "OutfitMessageOverride.outfitId", profile, report);
+            ValidateExpressionId(
+                messageOverride.changedExpressionId,
+                "OutfitMessageOverride.changedExpressionId: " + messageOverride.outfitId,
+                expressionIds,
+                report);
         }
     }
 
-    private static void ValidateOutfitReactionMessageOverrides(HeroineProfileData profile, ValidationReport report)
+    private static void ValidateSharedOutfitExpressions(
+        HashSet<string> expressionIds,
+        ValidationReport report)
+    {
+        foreach (OutfitData outfit in Resources.LoadAll<OutfitData>("Outfits"))
+        {
+            if (outfit == null)
+            {
+                continue;
+            }
+
+            ValidateExpressionId(
+                outfit.changedExpressionId,
+                "OutfitData.changedExpressionId: " + outfit.outfitId,
+                expressionIds,
+                report);
+        }
+    }
+
+    private static void ValidateOutfitReactionMessageOverrides(
+        HeroineProfileData profile,
+        HashSet<string> expressionIds,
+        ValidationReport report)
     {
         HashSet<OutfitReactionType> reactionTypes = new HashSet<OutfitReactionType>();
         if (profile.outfitReactionMessageOverrides == null)
@@ -456,6 +489,40 @@ public static class HeroineDataValidator
                     " / " +
                     AssetDatabase.GetAssetPath(profile));
             }
+
+            ValidateExpressionId(
+                messageOverride.expressionId,
+                "OutfitReactionMessageOverride.expressionId: " + messageOverride.reactionType,
+                expressionIds,
+                report);
+        }
+    }
+
+    private static HashSet<string> LoadExpressionIds(HeroineProfileData profile)
+    {
+        HeroineLayeredSpriteData data = Resources.Load<HeroineLayeredSpriteData>(
+            "Heroines/" + profile.heroineId + "/HeroineLayeredSpriteData");
+        if (data == null || data.expressionLayers == null)
+        {
+            return new HashSet<string>(StringComparer.Ordinal);
+        }
+
+        return new HashSet<string>(
+            data.expressionLayers
+                .Where(layer => layer != null && !string.IsNullOrWhiteSpace(layer.expressionId))
+                .Select(layer => layer.expressionId),
+            StringComparer.Ordinal);
+    }
+
+    private static void ValidateExpressionId(
+        string expressionId,
+        string label,
+        HashSet<string> expressionIds,
+        ValidationReport report)
+    {
+        if (!string.IsNullOrWhiteSpace(expressionId) && !expressionIds.Contains(expressionId))
+        {
+            report.Warn(label + " が表情レイヤーに存在しません: " + expressionId);
         }
     }
 

@@ -22,6 +22,7 @@
 - 行動反応は `ActionData.reactions` に入れ、`priority` が高い候補を優先して 1 件選ぶ。条件は好感度・時間帯・天候・季節・衣装・表示済みイベント・取得済みスキルで切り替えられ、`showOnce` と反応専用の `stillSprite` も持てる。主要行動には priority 0 の無条件フォールバックを残す
 - 通常行動と行動反応は `playerHpChange` / `heroineHpChange` を持ち、実行時に HP を増減できる。現在の `休む` はプレイヤーとヒロインの HP を 20 回復する
 - 衣装には着用後の反応を付けられ、`褒める` / `嫌う` / `退屈` / `着替える` の選択肢で評価を更新できる
+- 衣装変更成功時は `OutfitMessageOverride.changedExpressionId` を優先し、空なら共通 `OutfitData.changedExpressionId` を使って表情を切り替える。衣装評価は `OutfitReactionMessageOverride.expressionId` を使い、いずれも空なら現在の表情を維持する
 - 衣装評価の履歴はセーブデータに保存される
 - 予定の状態はセーブデータに保存される
 - 予定の保存と復元は確認済み
@@ -99,7 +100,7 @@
 - 正式なプロジェクトバージョンは`ProjectSettings/ProjectVersion.txt`の`2021.3.45f2 (88f88f591b2e)`とする
 - CloneまたはPull後はUnity Hubから同じEditorバージョンを指定して開く
 - Editorバージョンを変更した場合は、`ProjectSettings/ProjectVersion.txt`も関連変更としてGitへコミットする
-- バージョン更新後はスクリプトの再コンパイルとEditMode Testを確認する。直近のテスト構成は49件なので、`2021.3.45f2`で初回起動した環境でも全49件の成功を確認する
+- バージョン更新後はスクリプトの再コンパイルとEditMode Testを確認する。直近のテスト構成は52件なので、`2021.3.45f2`で初回起動した環境でも全52件の成功を確認する
 
 ## 作業分担ルール
 

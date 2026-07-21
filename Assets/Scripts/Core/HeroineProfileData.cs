@@ -12,6 +12,9 @@ public class OutfitMessageOverride
 
     [TextArea(2, 4)]
     public string changedMessage;
+
+    [Tooltip("着用直後のヒロイン表情ID。空ならOutfitDataの設定を使用します。")]
+    public string changedExpressionId;
 }
 
 [Serializable]
@@ -21,6 +24,9 @@ public class OutfitReactionMessageOverride
 
     [TextArea(2, 4)]
     public string message;
+
+    [Tooltip("反応表示時のヒロイン表情ID。空なら現在の表情を維持します。")]
+    public string expressionId;
 }
 
 [CreateAssetMenu(menuName = "LoveSim/Heroine Profile Data")]

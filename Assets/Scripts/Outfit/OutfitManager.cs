@@ -413,6 +413,17 @@ public class OutfitManager : MonoBehaviour
         return outfit != null ? outfit.changedMessage : "";
     }
 
+    public string GetChangedExpressionId(OutfitData outfit)
+    {
+        OutfitMessageOverride messageOverride = FindMessageOverride(outfit);
+        if (messageOverride != null && !string.IsNullOrEmpty(messageOverride.changedExpressionId))
+        {
+            return messageOverride.changedExpressionId;
+        }
+
+        return outfit != null ? outfit.changedExpressionId : "";
+    }
+
     private OutfitMessageOverride FindMessageOverride(OutfitData outfit)
     {
         if (outfit == null || string.IsNullOrEmpty(outfit.outfitId))

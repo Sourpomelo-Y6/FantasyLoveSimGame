@@ -74,7 +74,7 @@ heroine_profile_from_unity.json
 - `outfitReactionMessageOverrides`
 
 `outfitMessageOverrides` は `outfitId`、`lockedMessage`、`changedMessage` を持つ。
-今後は衣装変更成功時と未解放時の表情を変えられるように、`changedExpressionId` と `lockedExpressionId` も戻す。
+衣装変更成功時の `changedExpressionId` と衣装評価時の `expressionId` は Unity とAssetToolのプロフィールJSONで往復する。空IDは現在表情を維持する。未解放時の `lockedExpressionId` は未実装のため、必要になった段階で追加する。
 `outfitReactionMessageOverrides` は `reactionType` と `message` を持つ。
 今後は `衣装を見る` 実行後のヒロイン反応ごとに表情を変えられるように、`expressionId` も戻す。
 WPF Tool 側では、同じ `outfitId` / `reactionType` の既存データを無条件上書きせず、差分確認または新規追加候補として扱う。

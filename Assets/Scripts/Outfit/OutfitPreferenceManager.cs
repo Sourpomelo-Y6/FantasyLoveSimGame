@@ -6,12 +6,15 @@ public class OutfitPreferenceManager : MonoBehaviour
     private readonly List<OutfitPreference> preferences = new List<OutfitPreference>();
     private readonly Dictionary<OutfitReactionType, string> reactionMessageOverrides =
         new Dictionary<OutfitReactionType, string>();
+    private readonly Dictionary<OutfitReactionType, string> reactionExpressionOverrides =
+        new Dictionary<OutfitReactionType, string>();
 
     public IReadOnlyList<OutfitPreference> Preferences => preferences;
 
     public void SetReactionMessageOverrides(List<OutfitReactionMessageOverride> overrides)
     {
         reactionMessageOverrides.Clear();
+        reactionExpressionOverrides.Clear();
         if (overrides == null)
         {
             return;
@@ -25,6 +28,10 @@ public class OutfitPreferenceManager : MonoBehaviour
             }
 
             reactionMessageOverrides[messageOverride.reactionType] = messageOverride.message;
+            if (!string.IsNullOrWhiteSpace(messageOverride.expressionId))
+            {
+                reactionExpressionOverrides[messageOverride.reactionType] = messageOverride.expressionId;
+            }
         }
     }
 
@@ -125,6 +132,13 @@ public class OutfitPreferenceManager : MonoBehaviour
         return reactionMessageOverrides.TryGetValue(reactionType, out string message)
             ? message
             : fallback;
+    }
+
+    public string GetReactionExpressionId(OutfitReactionType reactionType)
+    {
+        return reactionExpressionOverrides.TryGetValue(reactionType, out string expressionId)
+            ? expressionId
+            : "";
     }
 
     public int GetScore(string outfitId)

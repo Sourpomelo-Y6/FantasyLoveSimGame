@@ -1252,7 +1252,8 @@ public static class HeroineUnityDataExporter
             {
                 outfitId = item.outfitId,
                 lockedMessage = item.lockedMessage ?? string.Empty,
-                changedMessage = item.changedMessage ?? string.Empty
+                changedMessage = item.changedMessage ?? string.Empty,
+                changedExpressionId = item.changedExpressionId ?? string.Empty
             });
         }
 
@@ -1279,7 +1280,8 @@ public static class HeroineUnityDataExporter
             result.Add(new OutfitReactionMessageOverrideFromUnity
             {
                 reactionType = item.reactionType.ToString(),
-                message = item.message
+                message = item.message,
+                expressionId = item.expressionId ?? string.Empty
             });
         }
 
@@ -1502,6 +1504,7 @@ public static class HeroineUnityDataExporter
         public string outfitId;
         public string lockedMessage;
         public string changedMessage;
+        public string changedExpressionId;
     }
 
     [Serializable]
@@ -1509,6 +1512,7 @@ public static class HeroineUnityDataExporter
     {
         public string reactionType;
         public string message;
+        public string expressionId;
     }
 
     [Serializable]

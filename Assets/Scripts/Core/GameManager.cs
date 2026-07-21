@@ -6084,7 +6084,9 @@ public class GameManager : MonoBehaviour
         choiceButtonArea.SetActive(false);
         outfitPanel.SetActive(false);
 
-        ShowHeroineDialogue(message);
+        ShowHeroineDialogue(
+            message,
+            success ? outfitManager.GetChangedExpressionId(outfit) : "");
 
         if (pendingScheduledEvent != null)
         {
@@ -6155,7 +6157,9 @@ public class GameManager : MonoBehaviour
         outfitPanel.SetActive(false);
         outfitReactionPanel.SetActive(false);
 
-        ShowHeroineDialogue(message);
+        ShowHeroineDialogue(
+            message,
+            outfitPreferenceManager.GetReactionExpressionId(reactionType));
 
         RefreshUI();
 

@@ -22,6 +22,9 @@ public class OutfitData : ScriptableObject
     [TextArea(2, 4)]
     public string changedMessage = "";
 
+    [Tooltip("着用直後のヒロイン表情ID。空なら現在の表情を維持します。")]
+    public string changedExpressionId = "";
+
     [Header("Suitability")]
     public bool anySeason = true;
     public List<Season> suitableSeasons = new List<Season>();

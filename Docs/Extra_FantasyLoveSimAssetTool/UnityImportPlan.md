@@ -152,7 +152,7 @@ Unity 側の ScriptableObject 型は次を基本にする。
   - `lockedMessage`
   - `changedMessage`
   - 今後追加: `lockedExpressionId`
-  - 今後追加: `changedExpressionId`
+  - `changedExpressionId`: 衣装変更成功時の表情ID。空なら共通衣装設定または現在表情を使用
 - `outfitReactionMessageOverrides`
   - `reactionType`: `Praise`, `Dislike`, `Bored`, `Change`
   - `message`
