@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using NUnit.Framework;
+using UnityEditor;
 using UnityEngine;
 
 public class ConversationDataValidatorTests
@@ -95,6 +96,50 @@ public class ConversationDataValidatorTests
             Is.Empty,
             report.CreateSummary());
         Assert.That(report.ConversationCount, Is.GreaterThan(0));
+    }
+
+    [Test]
+    public void TestHeroineConversations_CoverAllGenresAndRelationshipBands()
+    {
+        const string root = "Assets/Resources/Heroines/TestHeroine/Conversations";
+        ConversationData[] conversations = AssetDatabase.FindAssets("t:ConversationData", new[] { root })
+            .Select(AssetDatabase.GUIDToAssetPath)
+            .Select(AssetDatabase.LoadAssetAtPath<ConversationData>)
+            .Where(conversation => conversation != null)
+            .ToArray();
+
+        foreach (ConversationGenre genre in System.Enum.GetValues(typeof(ConversationGenre)))
+        {
+            ConversationData[] genreConversations = conversations
+                .Where(conversation => conversation.genre == genre)
+                .ToArray();
+
+            Assert.That(
+                genreConversations.Any(conversation =>
+                    !conversation.showOnce &&
+                    conversation.minAffection == 0 &&
+                    conversation.maxAffection == AffectionDataValidator.MaximumAffection),
+                Is.True,
+                genre + " に無条件フォールバックが必要です。");
+            Assert.That(
+                genreConversations.Any(conversation =>
+                    conversation.minAffection <= 200 && conversation.maxAffection >= 599),
+                Is.True,
+                genre + " に親しみ段階の会話が必要です。");
+            Assert.That(
+                genreConversations.Any(conversation =>
+                    conversation.minAffection <= 600 &&
+                    conversation.maxAffection == AffectionDataValidator.MaximumAffection),
+                Is.True,
+                genre + " に信頼以降の会話が必要です。");
+        }
+
+        Assert.That(
+            conversations
+                .Where(conversation => conversation.conversationId.StartsWith("Conv_"))
+                .All(conversation => conversation.name == conversation.conversationId),
+            Is.True,
+            "新命名規則の会話はファイル名とconversationIdを一致させます。");
     }
 
     private ConversationData Create(string conversationId)
