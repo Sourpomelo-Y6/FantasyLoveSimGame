@@ -14,9 +14,10 @@ MonoBehaviour:
   m_EditorClassIdentifier:
   itemId: WinterOutfitItem
   displayName: "\u51AC\u306E\u670D"
-  price: 100
+  price: 600
   requiredAffection: 0
-  requiredDay: 0
-  requiredPurchasedItemIds: []
+  requiredDay: 14
+  requiredPurchasedItemIds:
+  - AutumnOutfitItem
   unlockedOutfitIds:
   - Winter

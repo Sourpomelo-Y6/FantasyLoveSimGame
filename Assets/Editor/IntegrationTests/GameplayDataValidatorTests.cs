@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using NUnit.Framework;
+using UnityEditor;
 using UnityEngine;
 
 public class GameplayDataValidatorTests
@@ -118,6 +119,59 @@ public class GameplayDataValidatorTests
         Assert.That(warnings.Any(value => value.Contains("自分自身")), Is.True);
         Assert.That(warnings.Any(value => value.Contains("存在しないID")), Is.True);
         Assert.That(warnings.Any(value => value.Contains("カタログ内") && value.Contains("重複")), Is.True);
+    }
+
+    [Test]
+    public void SeasonalOutfitPrices_ExceedInitialBudgetButKeepAnEntryPurchaseAffordable()
+    {
+        ShopItemData[] outfits = SeasonalOutfits();
+
+        Assert.That(outfits, Has.Length.EqualTo(4));
+        Assert.That(outfits.Sum(item => item.price), Is.EqualTo(1550));
+        Assert.That(outfits.Sum(item => item.price), Is.GreaterThan(1000));
+        Assert.That(LoadShopItem("SpringOutfitItem").price, Is.LessThanOrEqualTo(1000));
+    }
+
+    [Test]
+    public void SeasonalOutfitRequirements_CreateExpectedProgression()
+    {
+        ShopItemData spring = LoadShopItem("SpringOutfitItem");
+        ShopItemData summer = LoadShopItem("SummerOutfitItem");
+        ShopItemData autumn = LoadShopItem("AutumnOutfitItem");
+        ShopItemData winter = LoadShopItem("WinterOutfitItem");
+        ShopCatalogData catalog = AssetDatabase.LoadAssetAtPath<ShopCatalogData>(
+            "Assets/Resources/ShopItems/DuoShoppingCatalog.asset");
+
+        Assert.That(spring.requiredDay, Is.Zero);
+        Assert.That(spring.requiredPurchasedItemIds, Is.Empty);
+        Assert.That(summer.requiredDay, Is.EqualTo(7));
+        Assert.That(autumn.requiredAffection, Is.EqualTo(200));
+        Assert.That(autumn.requiredPurchasedItemIds, Is.EqualTo(new[] { "SpringOutfitItem" }));
+        Assert.That(winter.requiredDay, Is.EqualTo(14));
+        Assert.That(winter.requiredPurchasedItemIds, Is.EqualTo(new[] { "AutumnOutfitItem" }));
+        Assert.That(catalog, Is.Not.Null);
+        Assert.That(
+            catalog.items.Where(item => item != null).Select(item => item.itemId),
+            Does.Not.Contain("ShoppingTestItem_01"));
+    }
+
+    private static ShopItemData[] SeasonalOutfits()
+    {
+        return new[]
+        {
+            LoadShopItem("SpringOutfitItem"),
+            LoadShopItem("SummerOutfitItem"),
+            LoadShopItem("AutumnOutfitItem"),
+            LoadShopItem("WinterOutfitItem")
+        };
+    }
+
+    private static ShopItemData LoadShopItem(string itemId)
+    {
+        ShopItemData item = AssetDatabase.LoadAssetAtPath<ShopItemData>(
+            "Assets/Resources/ShopItems/" + itemId + ".asset");
+        Assert.That(item, Is.Not.Null, "Shop item asset is required: " + itemId);
+        return item;
     }
 
     private T Create<T>() where T : ScriptableObject

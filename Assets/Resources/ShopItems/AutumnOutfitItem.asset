@@ -14,9 +14,10 @@ MonoBehaviour:
   m_EditorClassIdentifier:
   itemId: AutumnOutfitItem
   displayName: "\u79CB\u306E\u670D"
-  price: 100
-  requiredAffection: 0
+  price: 450
+  requiredAffection: 200
   requiredDay: 0
-  requiredPurchasedItemIds: []
+  requiredPurchasedItemIds:
+  - SpringOutfitItem
   unlockedOutfitIds:
   - Autumn

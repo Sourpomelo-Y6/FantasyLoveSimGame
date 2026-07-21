@@ -102,7 +102,7 @@
 - 正式なプロジェクトバージョンは`ProjectSettings/ProjectVersion.txt`の`2021.3.45f2 (88f88f591b2e)`とする
 - CloneまたはPull後はUnity Hubから同じEditorバージョンを指定して開く
 - Editorバージョンを変更した場合は、`ProjectSettings/ProjectVersion.txt`も関連変更としてGitへコミットする
-- バージョン更新後はスクリプトの再コンパイルとEditMode Testを確認する。直近のテスト構成は70件なので、`2021.3.45f2`で初回起動した環境でも全70件の成功を確認する
+- バージョン更新後はスクリプトの再コンパイルとEditMode Testを確認する。直近のテスト構成は72件なので、`2021.3.45f2`で初回起動した環境でも全72件の成功を確認する
 
 ## 作業分担ルール
 
@@ -570,12 +570,12 @@ AssetTool側は `usage = Training`、`Images/Training/`、`training_images_expor
 `DuoShopping` 予定からの簡易買い物イベントも実装済み。`DuoShopping` 実行時に専用 `ShopPanel` を開き、`GameManager.duoShoppingShopCatalog` の商品を一覧表示する。
 商品を選ぶとその商品の価格を所持金から消費し、結果を予定イベント本文に追記する。`ShopPanel` を閉じた場合は予定を消費しない。
 `ShopPanel` の商品ボタンは `商品名 / 価格G / 解放: 衣装ID` を表示する。購入済み商品は `購入済み`、所持金不足の商品は `所持金不足` を表示し、どちらもボタンを押せない。表示順は未購入商品を上、購入済み商品を下に並べる。
-`ShopItemData` には購入条件として `requiredAffection`、`requiredDay`、`requiredPurchasedItemIds` を持たせている。条件未達の商品は `条件未達` を表示し、ボタンを押せない。現在の季節衣装商品は条件なしで、各条件フィールドは 0 または空リストにしている。
+`ShopItemData` には購入条件として `requiredAffection`、`requiredDay`、`requiredPurchasedItemIds` を持たせている。条件未達の商品は `条件未達` を表示し、ボタンを押せない。季節衣装は春を無条件の入口とし、夏・秋・冬には日数、好感度、前提商品の条件を段階的に設定している。
 `ShopPanel` は他のパネルと同じく自動生成せず、Canvas 直下に手動配置して `GameManager.shopPanel` に割り当てる。必要な UI は `ShopPanel` ルート、`TitleText`、`EmptyText`、`ShopItemList`、`ShopItemButtonPrefab`、`CloseButton`。
 カタログが未設定または空の場合は `GameManager.duoShoppingShopItem`、それも未設定の場合は従来の固定テスト値へフォールバックする。
-季節衣装の商品は `Assets/Resources/ShopItems/SpringOutfitItem.asset`、`SummerOutfitItem.asset`、`AutumnOutfitItem.asset`、`WinterOutfitItem.asset` の `ShopItemData` で定義済み。各商品は価格 100 で、対応する `Spring` / `Summer` / `Autumn` / `Winter` の衣装を 1 つずつ解放する。
+季節衣装の商品は `Assets/Resources/ShopItems/SpringOutfitItem.asset`、`SummerOutfitItem.asset`、`AutumnOutfitItem.asset`、`WinterOutfitItem.asset` の `ShopItemData` で定義済み。価格は順に200G、300G、450G、600G。夏は7日目、秋は好感度200かつ春購入済み、冬は14日目かつ秋購入済みを条件とし、初期1000Gだけでは全衣装を購入できない。
 購入済み ID は `SaveData.purchasedItemIds` に保存し、`StatusDetailPanel` のプレイヤー詳細に表示する。
-`DuoShoppingCatalog.asset` には季節衣装の商品 4 件を登録済み。既存の `ShoppingTestItem_01` は互換用の単体テスト商品として残している。
+`DuoShoppingCatalog.asset` には季節衣装4件とHP・MPポーションを登録済み。既存の `ShoppingTestItem_01` はカタログ外の互換用単体テスト商品として残している。`FantasyLoveSim > Validation > Shop Balance Report` で価格・日数・好感度・前提商品と季節衣装の合計価格を確認できる。
 商品購入時に解放された衣装 ID は `SaveData.unlockedOutfitIds` に保存し、`OutfitManager` の着用可否判定に渡す。
 春夏秋冬の衣装アセットは手作業で `isUnlockedByDefault=false` に変更済み。購入解放された衣装は好感度条件を無視して着用できる。
 未購入の衣装は好感度不足ではなく未所持として扱う。購入前の春夏秋冬など `isUnlockedByDefault=false` かつ `unlockedOutfitIds` に含まれない衣装は、DressUp の衣装ボタンを表示しない方針にする。

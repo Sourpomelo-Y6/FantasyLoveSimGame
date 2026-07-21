@@ -14,9 +14,9 @@ MonoBehaviour:
   m_EditorClassIdentifier:
   itemId: SummerOutfitItem
   displayName: "\u590F\u306E\u670D"
-  price: 100
+  price: 300
   requiredAffection: 0
-  requiredDay: 0
+  requiredDay: 7
   requiredPurchasedItemIds: []
   unlockedOutfitIds:
   - Summer
