@@ -1,0 +1,37 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cb5097099197776438840c7469e425ca, type: 3}
+  m_Name: Conv_Food_WinterNight_01
+  m_EditorClassIdentifier:
+  heroineId: TestHeroine
+  items: []
+  conversationId: Conv_Food_WinterNight_01
+  genre: 1
+  type: 0
+  heroineLine: 冬の夜は冷えるわね。温かい飲み物を二人分作ったから、冷める前に来なさい。……一人分だけ作る方が面倒だったのよ。
+  expressionId: Shy
+  lines:
+  - speaker: Heroine
+    text: 冬の夜は冷えるわね。温かい飲み物を二人分作ったから、冷める前に来なさい。……一人分だけ作る方が面倒だったのよ。
+    expressionId: Shy
+  choices: []
+  priority: 200
+  showOnce: 0
+  minAffection: 0
+  maxAffection: 9999
+  costumeId:
+  anyTimeSlot: 0
+  allowedTimeSlots: 02000000
+  anySeason: 0
+  allowedSeasons: 03000000
+  anyWeather: 1
+  allowedWeathers:

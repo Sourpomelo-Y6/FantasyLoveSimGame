@@ -1,0 +1,37 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cb5097099197776438840c7469e425ca, type: 3}
+  m_Name: Conv_Adventure_Storm_01
+  m_EditorClassIdentifier:
+  heroineId: TestHeroine
+  items: []
+  conversationId: Conv_Adventure_Storm_01
+  genre: 2
+  type: 0
+  heroineLine: 嵐の日に無理をするのは勇気じゃなくて無謀よ。今日は装備を点検して、次に備えなさい。あんたを探しに行く手間を増やさないで。
+  expressionId: Angry
+  lines:
+  - speaker: Heroine
+    text: 嵐の日に無理をするのは勇気じゃなくて無謀よ。今日は装備を点検して、次に備えなさい。あんたを探しに行く手間を増やさないで。
+    expressionId: Angry
+  choices: []
+  priority: 200
+  showOnce: 0
+  minAffection: 0
+  maxAffection: 9999
+  costumeId:
+  anyTimeSlot: 1
+  allowedTimeSlots:
+  anySeason: 1
+  allowedSeasons:
+  anyWeather: 0
+  allowedWeathers: 03000000

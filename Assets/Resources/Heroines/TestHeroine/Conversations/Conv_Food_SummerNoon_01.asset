@@ -1,0 +1,37 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cb5097099197776438840c7469e425ca, type: 3}
+  m_Name: Conv_Food_SummerNoon_01
+  m_EditorClassIdentifier:
+  heroineId: TestHeroine
+  items: []
+  conversationId: Conv_Food_SummerNoon_01
+  genre: 1
+  type: 0
+  heroineLine: 暑い昼に熱いものを食べる気？ 今日は冷たい料理にしなさい。……あんたの分も冷やしてあるから、勝手に持っていけば。
+  expressionId: Smile
+  lines:
+  - speaker: Heroine
+    text: 暑い昼に熱いものを食べる気？ 今日は冷たい料理にしなさい。……あんたの分も冷やしてあるから、勝手に持っていけば。
+    expressionId: Smile
+  choices: []
+  priority: 200
+  showOnce: 0
+  minAffection: 0
+  maxAffection: 9999
+  costumeId:
+  anyTimeSlot: 0
+  allowedTimeSlots: 01000000
+  anySeason: 0
+  allowedSeasons: 01000000
+  anyWeather: 1
+  allowedWeathers:

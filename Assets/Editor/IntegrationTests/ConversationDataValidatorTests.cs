@@ -99,7 +99,7 @@ public class ConversationDataValidatorTests
     }
 
     [Test]
-    public void TestHeroineConversations_CoverAllGenresAndRelationshipBands()
+    public void TestHeroineConversations_CoverGenresRelationshipBandsAndContexts()
     {
         const string root = "Assets/Resources/Heroines/TestHeroine/Conversations";
         ConversationData[] conversations = AssetDatabase.FindAssets("t:ConversationData", new[] { root })
@@ -132,7 +132,37 @@ public class ConversationDataValidatorTests
                     conversation.maxAffection == AffectionDataValidator.MaximumAffection),
                 Is.True,
                 genre + " に信頼以降の会話が必要です。");
+            Assert.That(
+                genreConversations.Any(conversation =>
+                    !conversation.anyTimeSlot ||
+                    !conversation.anySeason ||
+                    !conversation.anyWeather),
+                Is.True,
+                genre + " に時間帯・季節・天候のいずれかを使う会話が必要です。");
         }
+
+        Assert.That(
+            conversations.Any(conversation => !conversation.anyTimeSlot),
+            Is.True,
+            "時間帯条件を使う会話が必要です。");
+        Assert.That(
+            conversations.Any(conversation => !conversation.anySeason),
+            Is.True,
+            "季節条件を使う会話が必要です。");
+        Assert.That(
+            conversations.Any(conversation => !conversation.anyWeather),
+            Is.True,
+            "天候条件を使う会話が必要です。");
+        Assert.That(
+            conversations
+                .Where(conversation =>
+                    conversation.conversationId.StartsWith("Conv_") &&
+                    (!conversation.anyTimeSlot ||
+                    !conversation.anySeason ||
+                    !conversation.anyWeather))
+                .All(conversation => conversation.priority >= 200),
+            Is.True,
+            "条件付き会話は無条件会話より十分高いpriorityを設定します。");
 
         Assert.That(
             conversations
