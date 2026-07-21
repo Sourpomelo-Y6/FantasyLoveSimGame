@@ -681,8 +681,14 @@ UI デザインは手作業で行っています。
 0〜9999の範囲外を警告する。`GameEventData.maxAffection = 0` は上限なしとして許可する。
 Consoleの各警告には対象アセットが設定されるため、警告をダブルクリックして選択できる。
 
+通常会話は `FantasyLoveSim > Validation > Conversation Data` から全ヒロイン分を検証できる。
+空・不正・重複ID、ファイル名とID、配置先ヒロインと `heroineId`、Simple / Choiceと選択肢、
+同一条件・priority、ジャンル別の無条件フォールバックを確認する。新規IDは
+`Conv_<Genre>_<Context>_<NN>` を推奨するが、既存IDは表示済みセーブとの互換性のため維持する。
+詳細な分類とpriorityの運用は `Docs/ConversationClassificationRules.md` を正本とする。
+
 1. 行動データの反応パターン追加
-2. 会話データの分類ルール整理
+2. 分類ルールに沿った会話データの追加
 3. エンディングデータと条件分岐パターンの追加
 4. 立ち絵切り替えと表情差分の整理
 5. セーブ/ロードの強化

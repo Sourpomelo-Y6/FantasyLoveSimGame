@@ -12,6 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cb5097099197776438840c7469e425ca, type: 3}
   m_Name: Love_002
   m_EditorClassIdentifier: 
+  heroineId: DefaultHeroine
   conversationId: Love_002
   genre: 3
   type: 1

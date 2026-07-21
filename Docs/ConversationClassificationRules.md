@@ -23,6 +23,10 @@ Conv_<Genre>_<Context>_<NN>
 
 例は `Conv_Daily_Greeting_01`、`Conv_Food_Tea_02`、`Conv_Love_RainyNight_01`。IDは表示済み管理とセーブデータで使うため、本番公開後は変更しない。
 
+既存の `Daily_001` や `Love_Affection30_001` などはセーブデータとの互換性を優先して維持する。
+新規会話から上記の `Conv_<Genre>_<Context>_<NN>` 形式を使う。Unity上のファイル名は
+`conversationId` と一致させ、IDには英字で始まる英数字とアンダースコアだけを使用する。
+
 ## 現在利用できる条件
 
 - 好感度 `minAffection / maxAffection`。0から9999で両端を含む。
@@ -81,3 +85,7 @@ Conv_<Genre>_<Context>_<NN>
 - 同ジャンル・条件・priorityの重複を確認する。
 - 通常会話で未接続条件を設定した場合は、Unityの選択条件として使われないことを案内する。
 
+Unity側では `FantasyLoveSim > Validation > Conversation Data` を実行し、全ヒロインの
+空・不正・重複ID、ファイル名との不一致、配置先ヒロインと `heroineId` の不一致、
+会話種別と選択肢の不整合、同一条件・priority、ジャンル別フォールバック不足を確認する。
+既存IDは検証結果を直す目的だけで自動変更しない。
