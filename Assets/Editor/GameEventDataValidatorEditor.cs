@@ -3,7 +3,7 @@ using UnityEngine;
 
 public static class GameEventDataValidatorEditor
 {
-    private const string MenuPath = "FantasyLoveSim/Validate Game Event Data";
+    private const string MenuPath = "FantasyLoveSim/Validation/Game Event Data";
 
     [MenuItem(MenuPath)]
     public static void ValidateGameEventData()

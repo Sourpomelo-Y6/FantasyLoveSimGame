@@ -64,9 +64,9 @@
 - イベントIDは `GameStartIntro`、`DayStart_条件_連番`、`Manual_用途_連番`、`Story_章_連番`、`Still_用途_連番` のように用途が分かる名前にする。`eventId` は既読管理に使うため、本番投入後は変更しない
 - `GameEventData` には `minDay` / `maxDay` / `minAffection` / `maxAffection` / `requiredShownEventIds` / `blockedShownEventIds` を追加済み。発生可否は `GameManager.CanStartGameEvent(GameEventData gameEvent)` に集約し、日開始イベントと手動イベントの両方で同じ条件判定を使う
 - `GameEventData` は衣装条件も持てる。`requiredOutfitIds` / `blockedOutfitIds` の文字列ID指定に加えて、Unity Inspector で `OutfitData` アセットを選べる `requiredOutfits` / `blockedOutfits` を追加済み。判定は現在の `OutfitManager.CurrentOutfit.outfitId` に対して行う
-- `GameEventData.requiredSkillIds` に指定した主人公スキルをすべて取得済みの場合だけイベントを開始できる。取得状態は取得済み主人公ノードから再構築されるため、イベント用のセーブ項目は持たない。存在しない・重複・空のスキル ID は `FantasyLoveSim > Validate Game Event Data` で検出でき、Editor Play / Development Build の起動時にも全ヒロインのイベントを検証する
+- `GameEventData.requiredSkillIds` に指定した主人公スキルをすべて取得済みの場合だけイベントを開始できる。取得状態は取得済み主人公ノードから再構築されるため、イベント用のセーブ項目は持たない。存在しない・重複・空のスキル ID は `FantasyLoveSim > Validation > Game Event Data` で検出でき、Editor Play / Development Build の起動時にも全ヒロインのイベントを検証する
 - 確認用の汎用スキル「気配り」は、訓練を1回完了して訓練回数と SP を獲得した後、1 SPで主人公ノード `Player_Consideration` から取得する。TestHeroine使用時はスキルツリーを閉じると `Manual_Consideration_01` が一度だけ自動開始する。`SkillTreeNodeData.unlockEventId` と `unlockEventHeroineId` で接続し、取得済み・未表示状態からロード後も発生待ちを復元する。F7のデバッグ起動も利用できる
-- `FantasyLoveSim > Validate Skill Tree Data` は取得時イベントが対象ヒロインのイベントパスに存在し、Manual・Once・有効状態であることを確認する。イベント必須スキルが対象ノードまたは前提ノードの取得で保証されない場合も警告する。AssetToolの制作状況では取得時イベントIDとOnceを事前確認できる
+- `FantasyLoveSim > Validation > Skill Tree Data` は取得時イベントが対象ヒロインのイベントパスに存在し、Manual・Once・有効状態であることを確認する。イベント必須スキルが対象ノードまたは前提ノードの取得で保証されない場合も警告する。AssetToolの制作状況では取得時イベントIDとOnceを事前確認できる
 - ヒロイン固有スキル／ノードの正規配置は `Resources/Skills/Heroines/<HeroineId>/` と `Resources/SkillTreeNodes/Heroines/<HeroineId>/`。IDはResources全体で一意になるよう `<HeroineId>_<用途>` とし、TestHeroineの訓練スキル3件は名前空間付きIDへ移行済み。旧ルート配置のTestHeroineノード7件は削除し、DefaultHeroine参照中の共通スキルは残している
 - AssetToolの制作状況・Export前検査とUnityの `HeroineSkillTreeAssetSync` は、ヒロイン固有SkillId／NodeIdの `<HeroineId>_` 接頭辞を検査する。Unity Import前にはResources全体の同一IDとアセットパスも確認し、別アセットとの衝突時はパスをConsoleへ出して処理を中止する。自動改名や既存アセット上書きはしない
 - イベントスチル画像は `Assets/Images/Heroines/<HeroineId>/Event/` に置き、`GameStartIntro_01.png` のようにイベントIDに寄せたファイル名にする
@@ -485,7 +485,7 @@ Importer は完了時に copied images、catalog assets、layers、conversations
 - 行動スチルは `Assets/Images/Heroines/<HeroineId>/Actions/` に置き、`ActionData` または `ActionReactionData` に割り当てる
 - エンディングスチルは `Assets/Images/Heroines/<HeroineId>/Ending/` に置き、`EndingData` に割り当てる
 - `MainScene` の `GameManager.heroineProfile` を切り替えて読み込み確認する
-- Unity Editor の `FantasyLoveSim > Validate Heroine Data` を実行し、ResourcePath、ID 重複、別ヒロイン画像参照、衣装セリフ override の重複 warning を確認する
+- Unity Editor の `FantasyLoveSim > Validation > Heroine Data` を実行し、ResourcePath、ID 重複、別ヒロイン画像参照、衣装セリフ override の重複 warning を確認する
 
 ### 行動を増やす
 
@@ -550,7 +550,7 @@ AssetTool側は `usage = Training`、`Images/Training/`、`training_images_expor
 `SkillTreeNodeData` と条件評価基盤は実装済み。ノードは固定 ID、所有者、主人公用 `SkillData`、ヒロイン用 `targetHeroineId` / `grantedHeroineSkillId`、ポイントコスト、前提ノード、条件一覧、`treePosition` を持つ。条件種類は訓練熟練度、訓練回数、双方の LP 消費回数、モンスター撃破数、好感度、日数。集計範囲は全体、訓練 ID、訓練カテゴリー ID、敵 ID に対応し、全条件を AND で評価する。`GameManager.GetSkillTreeNodes()`、`EvaluateSkillTreeNode(...)`、`TryAcquireSkillTreeNode(...)` を使用する。評価結果は `Locked` / `Available` / `InsufficientPoints` / `Acquired`、現在値・必要値、未取得前提ノードを含む。
 取得済みノードは主人公・ヒロイン別に `SaveData.acquiredPlayerSkillTreeNodeIds` / `acquiredHeroineSkillTreeNodeIds` へ保存する。主人公ノード取得時だけ対応スキルを使用可能にし、ヒロインノードは主人公スキルへ混入させない。起動時とロード時は取得済み主人公ノードから `unlockedSkillIds` を再構築するため、旧来のスキル ID だけでは使用可能にならない。初期主人公ツリーは `PowerStrike` から `BattleFocus`、`GuardStance` から `FirstAid` / `ArmorBreak` へ分岐する。上位ノードは熟練度に加えて、総モンスター撃破数、実戦カテゴリーの相手 LP 消費回数、主人公 LP 消費回数を条件に使う。`SkillTreePanel` と通常メニューからの取得導線は実装済みで、条件達成による自動解放は廃止済み。ヒロインノードは現在プロフィールと一致するものだけを表示し、取得済みの `grantedHeroineSkillId` だけを `BattlePanel` の自動スキル候補にする。DefaultHeroine は `RadiantSlash` から回復・防御へ、TestHeroine は `SharpThrust` から回復・防御へ分岐し、未取得時は通常攻撃を行う。
 `SkillTreePanel` は各ノードの `treePosition` を使って二次元配置し、前提ノード間の接続線を実行時に生成する。Content の表示サイズを座標範囲から自動計算し、必要な方向だけスクロールを有効にする。ノード状態は灰色・黄色・緑・青、接続線は接続先ノードの状態に合わせて色分けし、選択中ボタンへ白い Outline を付ける。詳細欄には取得可否、不足理由、取得結果を表示する。訓練・カテゴリー・敵の条件対象 ID は表示名へ解決し、ヒロインタブでは現在ヒロイン名と所持ポイントを表示する。接続線用 Prefab を含む追加の Scene UI 部品は不要。
-`SkillTreeDataValidator` はノード ID、前提関係、循環参照、所有者・対象ヒロイン、主人公・ヒロインスキル、条件対象 ID、条件重複、座標重複を検証する。Unity Editor の `FantasyLoveSim > Validate Skill Tree Data` で全ノードを検証でき、Editor Play と Development Build の開始時にも一度実行する。警告は `[SkillTreeValidation]` で始まるため Console で絞り込み可能。通常リリースビルドでは起動時検証を呼ばない。
+`SkillTreeDataValidator` はノード ID、前提関係、循環参照、所有者・対象ヒロイン、主人公・ヒロインスキル、条件対象 ID、条件重複、座標重複を検証する。Unity Editor の `FantasyLoveSim > Validation > Skill Tree Data` で全ノードを検証でき、Editor Play と Development Build の開始時にも一度実行する。警告は `[SkillTreeValidation]` で始まるため Console で絞り込み可能。通常リリースビルドでは起動時検証を呼ばない。
 好感度尺度は整数 `0〜9999`。既存の値・増減・条件は10倍へ移行し、従来の100相当は1000、ランク境界は200、400、600、800、1000とする。`HeroineStatus.maxAffection = 9999` と `endingUnlockAffection = 1000` を分離済み。旧 `maxAffection = 100` は通常コンテンツの終端でもあったため、移行後の会話・行動の既定上限は9999にして1000以降も利用可能にする。1000以降は単純な累積値として扱える。現在の `SaveData.saveVersion` は19で、旧好感度・熟練度尺度とのセーブ互換性は保証しない。
 スキルシステムは `SkillData` 系ScriptableObjectと `SkillTreeNodeData` で管理する。スキルは汎用スキル、戦闘用スキル、訓練用スキルに分類する。汎用スキルは探索、会話、買い物、イベント条件、ステータス補正などに使い、戦闘用スキルは攻撃、防御、回復、バフ、デバフなど `BattlePanel` のコマンドに使う。訓練用スキルは模擬戦闘や稽古、熟練度上げに使う。
 `SkillData`、`SkillCategory`、`SkillEffectType`、`SkillTargetType` は追加済み。スキルデータには `skillId`、表示名、カテゴリ、説明、消費コスト、対象、効果種別、威力または回復量、解放条件、使用可能な戦闘種別を持たせる。使用可能スキル ID は `SaveData.unlockedSkillIds` に派生情報として保存するが、取得済み主人公ノードを正本として起動・ロード時に再構築する。参照には `GameManager.IsSkillUnlocked(...)` / `GetUnlockedSkillIds()` を使い、外部から直接解放しない。主人公の装備中戦闘スキルは順序付きの `SaveData.equippedPlayerBattleSkillIds` に最大4件保存する。ヒロインの編成中戦闘スキルは `SaveData.heroineBattleSkillLoadouts` にヒロイン ID ごとの順序付きリストとして最大3件保存する。敵側は `EnemyData.battleSkills` の `EnemyBattleSkillData` を使い、敵ごとのスキル、MP コスト、対象、使用確率、優先度、戦闘中の最大使用回数を設定する。敵 MP も戦闘開始時に全回復し、MP が足りる候補から priority の高いスキルを確率で選ぶ。将来必要になったら `skillProficiencies` のような保存領域を追加する。
@@ -675,7 +675,7 @@ UI デザインは手作業で行っています。
 
 ## 追加開発の優先候補
 
-好感度関連データは `FantasyLoveSim > Validate Affection Data` から全ヒロイン分を検証できる。
+好感度関連データは `FantasyLoveSim > Validation > Affection Data` から全ヒロイン分を検証できる。
 会話と選択肢、行動と条件反応、ゲームイベント、予定イベント、エンディングを調査し、
 旧尺度の `maxAffection = 100`、1〜5程度の旧尺度らしい増減値、条件範囲の逆転、
 0〜9999の範囲外を警告する。`GameEventData.maxAffection = 0` は上限なしとして許可する。

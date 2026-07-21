@@ -2,7 +2,7 @@ using UnityEditor;
 
 public static class AffectionDataValidatorEditor
 {
-    private const string MenuPath = "FantasyLoveSim/Validate Affection Data";
+    private const string MenuPath = "FantasyLoveSim/Validation/Affection Data";
 
     [MenuItem(MenuPath)]
     public static void ValidateAffectionData()

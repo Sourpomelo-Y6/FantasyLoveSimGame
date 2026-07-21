@@ -3,7 +3,7 @@ using UnityEngine;
 
 public static class SkillTreeDataValidatorEditor
 {
-    private const string MenuPath = "FantasyLoveSim/Validate Skill Tree Data";
+    private const string MenuPath = "FantasyLoveSim/Validation/Skill Tree Data";
 
     [MenuItem(MenuPath)]
     public static void ValidateSkillTreeData()

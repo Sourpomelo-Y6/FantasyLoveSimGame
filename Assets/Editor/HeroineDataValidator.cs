@@ -6,7 +6,7 @@ using UnityEngine;
 
 public static class HeroineDataValidator
 {
-    private const string MenuPath = "FantasyLoveSim/Validate Heroine Data";
+    private const string MenuPath = "FantasyLoveSim/Validation/Heroine Data";
 
     [MenuItem(MenuPath)]
     public static void ValidateSelectedHeroineData()
