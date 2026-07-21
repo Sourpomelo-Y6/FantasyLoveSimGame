@@ -7295,119 +7295,24 @@ public class GameManager : MonoBehaviour
             return result;
         }
 
-        BattleStatusData enemyStatus = enemy.CreateBattleStatus();
-        BattleStatusData playerBattleStatus = playerStatus.BattleStatus;
-        BattleStatusData heroineBattleStatus =
-            includeHeroine && heroineStatus != null ? heroineStatus.BattleStatus : null;
-        bool playerActsFirst = playerBattleStatus == null ||
-            playerBattleStatus.speed >= GetSpeed(enemyStatus);
-        const int maxTurns = 20;
+        BattleStatusData heroineBattleStatus = includeHeroine && heroineStatus != null
+            ? heroineStatus.BattleStatus
+            : null;
+        SimpleBattleSimulationResult simulation = SimpleBattleSimulator.Simulate(
+            playerStatus.BattleStatus,
+            heroineBattleStatus,
+            enemy.CreateBattleStatus());
 
-        for (int turn = 1; turn <= maxTurns; turn++)
-        {
-            result.Turns = turn;
+        result.Turns = simulation.Turns;
+        result.PlayerDamageTaken = playerStatus.DamageHp(simulation.PlayerDamageTaken);
+        result.HeroineDamageTaken = heroineStatus != null
+            ? heroineStatus.DamageHp(simulation.HeroineDamageTaken)
+            : 0;
+        result.LogLines.AddRange(simulation.LogLines);
 
-            if (playerActsFirst)
-            {
-                int playerDamage = AttackEnemy(playerBattleStatus, enemyStatus);
-                AddBattleLogLine(ref result, turn + "T: プレイヤー -> 敵 " + playerDamage);
-                if (enemyStatus.currentHp <= 0)
-                {
-                    ApplySimpleBattleVictory(enemy, ref result);
-                    return result;
-                }
-
-                int heroineDamage = AttackEnemy(heroineBattleStatus, enemyStatus);
-                if (heroineDamage > 0)
-                {
-                    AddBattleLogLine(ref result, turn + "T: ヒロイン -> 敵 " + heroineDamage);
-                }
-
-                if (enemyStatus.currentHp <= 0)
-                {
-                    ApplySimpleBattleVictory(enemy, ref result);
-                    return result;
-                }
-
-                AttackParty(enemyStatus, includeHeroine, turn, ref result);
-            }
-            else
-            {
-                AttackParty(enemyStatus, includeHeroine, turn, ref result);
-                if (playerStatus.CurrentHp <= 0)
-                {
-                    ApplySimpleBattleDefeat(enemy, ref result);
-                    return result;
-                }
-
-                int playerDamage = AttackEnemy(playerBattleStatus, enemyStatus);
-                AddBattleLogLine(ref result, turn + "T: プレイヤー -> 敵 " + playerDamage);
-                if (enemyStatus.currentHp <= 0)
-                {
-                    ApplySimpleBattleVictory(enemy, ref result);
-                    return result;
-                }
-
-                int heroineDamage = AttackEnemy(heroineBattleStatus, enemyStatus);
-                if (heroineDamage > 0)
-                {
-                    AddBattleLogLine(ref result, turn + "T: ヒロイン -> 敵 " + heroineDamage);
-                }
-
-                if (enemyStatus.currentHp <= 0)
-                {
-                    ApplySimpleBattleVictory(enemy, ref result);
-                    return result;
-                }
-            }
-
-            if (playerStatus.CurrentHp <= 0)
-            {
-                ApplySimpleBattleDefeat(enemy, ref result);
-                return result;
-            }
-        }
-
-        ApplySimpleBattleDefeat(enemy, ref result);
+        if (simulation.PlayerWon) ApplySimpleBattleVictory(enemy, ref result);
+        else ApplySimpleBattleDefeat(enemy, ref result);
         return result;
-    }
-
-    private static int AttackEnemy(BattleStatusData attacker, BattleStatusData enemyStatus)
-    {
-        if (attacker == null || enemyStatus == null || attacker.currentHp <= 0 || enemyStatus.currentHp <= 0)
-        {
-            return 0;
-        }
-
-        int damage = CalculateBattleDamage(attacker, enemyStatus);
-        enemyStatus.currentHp -= damage;
-        enemyStatus.Clamp();
-        return damage;
-    }
-
-    private void AttackParty(
-        BattleStatusData enemyStatus,
-        bool includeHeroine,
-        int turn,
-        ref SimpleBattleResult result)
-    {
-        if (enemyStatus == null || enemyStatus.currentHp <= 0)
-        {
-            return;
-        }
-
-        bool canAttackHeroine = includeHeroine && heroineStatus != null && heroineStatus.CurrentHp > 0;
-        if (canAttackHeroine && turn % 2 == 0)
-        {
-            int heroineDamage = heroineStatus.DamageHp(CalculateBattleDamage(enemyStatus, heroineStatus.BattleStatus));
-            result.HeroineDamageTaken += heroineDamage;
-            AddBattleLogLine(ref result, turn + "T: 敵 -> ヒロイン " + heroineDamage);
-            return;
-        }
-
-        int playerDamage = playerStatus.DamageHp(CalculateBattleDamage(enemyStatus, playerStatus.BattleStatus));
-        result.PlayerDamageTaken += playerDamage;
-        AddBattleLogLine(ref result, turn + "T: 敵 -> プレイヤー " + playerDamage);
     }
 
     private void ApplySimpleBattleVictory(EnemyData enemy, ref SimpleBattleResult result)
@@ -7472,22 +7377,6 @@ public class GameManager : MonoBehaviour
             "\n戦闘報酬なし" +
             "\nHP 1 で撤退しました。" +
             "\n予定は消費済みです。";
-    }
-
-    private static int CalculateBattleDamage(BattleStatusData attacker, BattleStatusData defender)
-    {
-        if (attacker == null)
-        {
-            return 1;
-        }
-
-        int defense = defender != null ? defender.defense : 0;
-        return Math.Max(1, attacker.attack - defense);
-    }
-
-    private static int GetSpeed(BattleStatusData status)
-    {
-        return status != null ? status.speed : 0;
     }
 
     private static string BuildHeroineDamageMessage(int heroineDamageTaken)

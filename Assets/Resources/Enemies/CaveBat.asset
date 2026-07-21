@@ -19,7 +19,7 @@ MonoBehaviour:
     maxHp: 55
     currentMp: 12
     maxMp: 12
-    attack: 11
+    attack: 20
     defense: 3
     speed: 8
   battleSkills:
@@ -28,7 +28,7 @@ MonoBehaviour:
     effectType: 1
     target: 3
     cost: 4
-    power: 5
+    power: 10
     affectedStat: 0
     statusDurationTurns: 1
     useChancePercent: 50
@@ -45,9 +45,9 @@ MonoBehaviour:
     useChancePercent: 30
     priority: 20
     maxUsesPerBattle: 1
-  rewardMoney: 45
-  affectionChangeOnWin: 1
-  playerSkillPointReward: 2
-  heroineSkillPointReward: 2
+  rewardMoney: 450
+  affectionChangeOnWin: 30
+  playerSkillPointReward: 4
+  heroineSkillPointReward: 4
   victoryMessage: "\u6D1E\u7A9F\u30B3\u30A6\u30E2\u30EA\u3092\u8FFD\u3044\u6255\u3044\u307E\u3057\u305F\u3002"
   defeatMessage: "\u6D1E\u7A9F\u30B3\u30A6\u30E2\u30EA\u306B\u8FFD\u3044\u8FD4\u3055\u308C\u307E\u3057\u305F\u3002"
