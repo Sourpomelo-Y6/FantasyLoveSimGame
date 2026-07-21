@@ -104,6 +104,50 @@ public class EndingDataValidatorTests
     }
 
     [Test]
+    public void EndingData_GetDisplayPages_UsesLegacyFieldsWhenPagesAreEmpty()
+    {
+        EndingData ending = Create("LegacyEnding", 1000);
+        ending.message = "legacy message";
+
+        List<EndingPageData> pages = ending.GetDisplayPages();
+
+        Assert.That(pages, Has.Count.EqualTo(1));
+        Assert.That(pages[0].speakerType, Is.EqualTo(ScheduledEventSpeakerType.System));
+        Assert.That(pages[0].message, Is.EqualTo("legacy message"));
+    }
+
+    [Test]
+    public void EndingData_GetDisplayPages_UsesConfiguredPageOrder()
+    {
+        EndingData ending = Create("PagedEnding", 1000);
+        ending.pages.Add(new EndingPageData { message = "first", expressionId = "Smile" });
+        ending.pages.Add(new EndingPageData { message = "second", expressionId = "Shy" });
+
+        List<EndingPageData> pages = ending.GetDisplayPages();
+
+        Assert.That(pages.Select(page => page.message), Is.EqualTo(new[] { "first", "second" }));
+        Assert.That(pages.Select(page => page.expressionId), Is.EqualTo(new[] { "Smile", "Shy" }));
+    }
+
+    [Test]
+    public void ValidateForTests_DetectsEmptyEndingPage()
+    {
+        EndingData ending = Create("PagedEnding", 0);
+        ending.message = "";
+        ending.pages.Add(new EndingPageData { message = "" });
+
+        EndingDataValidationReport report = EndingDataValidator.ValidateForTests(
+            "TestHeroine",
+            new string[0],
+            new string[0],
+            ending);
+
+        Assert.That(
+            report.Warnings.Any(entry => entry.Message.Contains("pages[0]") && entry.Message.Contains("message")),
+            Is.True);
+    }
+
+    [Test]
     public void ValidateProjectAssets_CurrentEndingAssetsHaveNoWarnings()
     {
         EndingDataValidationReport report = EndingDataValidator.ValidateProjectAssets();

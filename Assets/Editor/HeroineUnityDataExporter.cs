@@ -693,7 +693,7 @@ public static class HeroineUnityDataExporter
                 costumeId = ending.costumeId ?? string.Empty,
                 requiredFlagIds = CreateStringArrayList(ending.requiredShownEventIds)
             },
-            lines = CreateEndingLines(ending.message),
+            lines = CreateEndingLines(ending),
             imageAssetIds = CreateEndingImageAssetIds(ending, report),
             priority = ending.requiredAffection,
             requiredAffection = ending.requiredAffection,
@@ -1057,9 +1057,31 @@ public static class HeroineUnityDataExporter
         return imageAssetIds;
     }
 
-    private static List<FromUnityLine> CreateEndingLines(string message)
+    private static List<FromUnityLine> CreateEndingLines(EndingData ending)
     {
         List<FromUnityLine> lines = new List<FromUnityLine>();
+        if (ending != null && ending.pages != null && ending.pages.Count > 0)
+        {
+            foreach (EndingPageData page in ending.pages)
+            {
+                if (page == null || string.IsNullOrWhiteSpace(page.message))
+                {
+                    continue;
+                }
+
+                lines.Add(new FromUnityLine
+                {
+                    speaker = page.speakerType.ToString(),
+                    speakerName = page.speakerName ?? string.Empty,
+                    text = page.message,
+                    expression = page.expressionId ?? string.Empty,
+                    stillId = page.stillId ?? string.Empty
+                });
+            }
+            return lines;
+        }
+
+        string message = ending != null ? ending.message : string.Empty;
         if (string.IsNullOrWhiteSpace(message))
         {
             return lines;
@@ -1090,6 +1112,18 @@ public static class HeroineUnityDataExporter
         HeroineUnityExportReport report)
     {
         List<string> imageAssetIds = new List<string>();
+        if (ending.pages != null)
+        {
+            foreach (EndingPageData page in ending.pages)
+            {
+                if (page == null || string.IsNullOrWhiteSpace(page.stillId) ||
+                    imageAssetIds.Contains(page.stillId))
+                {
+                    continue;
+                }
+                imageAssetIds.Add(page.stillId);
+            }
+        }
         if (ending.stillSprite == null)
         {
             return imageAssetIds;
@@ -1101,7 +1135,10 @@ public static class HeroineUnityDataExporter
             return imageAssetIds;
         }
 
-        imageAssetIds.Add(ending.stillSprite.name);
+        if (!imageAssetIds.Contains(ending.stillSprite.name))
+        {
+            imageAssetIds.Add(ending.stillSprite.name);
+        }
         return imageAssetIds;
     }
 
@@ -1760,8 +1797,10 @@ public static class HeroineUnityDataExporter
     private sealed class FromUnityLine
     {
         public string speaker;
+        public string speakerName;
         public string text;
         public string expression;
+        public string stillId;
     }
 
     [Serializable]

@@ -16,6 +16,19 @@ MonoBehaviour:
   displayName: Normal Ending
   message: "まだ素直にはなれないけれど、あんたと過ごした時間は悪くなかったわ。また明日も、ここに来なさい。"
   stillSprite: {fileID: 0}
+  pages:
+  - speakerType: 0
+    speakerName:
+    message: "まだ素直にはなれないけれど、あんたと過ごした時間は悪くなかったわ。"
+    expressionId: Neutral
+    stillId:
+    stillSprite: {fileID: 0}
+  - speakerType: 0
+    speakerName:
+    message: "……また明日も、ここに来なさい。待たせたら承知しないから。"
+    expressionId: Smile
+    stillId:
+    stillSprite: {fileID: 0}
   requiredAffection: 0
   costumeId:
   requiredShownEventIds: []

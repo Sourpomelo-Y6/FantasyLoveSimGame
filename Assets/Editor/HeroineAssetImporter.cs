@@ -2422,9 +2422,50 @@ public static class HeroineAssetImporter
         ending.displayName = string.IsNullOrWhiteSpace(item.title) ? item.id : item.title;
         ending.message = JoinLineTexts(item.lines);
         ending.stillSprite = ResolveFirstSprite(item.imageAssetIds, spritesByAssetId, report);
+        ending.pages = CreateEndingPages(item, spritesByAssetId, report);
         ending.requiredAffection = Math.Max(0, conditions.minAffection);
         ending.costumeId = conditions.costumeId ?? string.Empty;
         ending.requiredShownEventIds = conditions.requiredShownEventIds ?? conditions.requiredFlagIds ?? new string[0];
+    }
+
+    private static List<EndingPageData> CreateEndingPages(
+        EndingExportItem item,
+        Dictionary<string, Sprite> spritesByAssetId,
+        HeroineImportReport report)
+    {
+        List<EndingPageData> pages = new List<EndingPageData>();
+        if (item == null || item.lines == null)
+        {
+            return pages;
+        }
+
+        for (int i = 0; i < item.lines.Length; i++)
+        {
+            ConversationExportLine line = item.lines[i];
+            if (line == null || string.IsNullOrWhiteSpace(line.text))
+            {
+                continue;
+            }
+
+            string stillId = line.stillId;
+            if (string.IsNullOrWhiteSpace(stillId) && i == 0)
+            {
+                stillId = GetFirstImageAssetId(item.imageAssetIds);
+            }
+            string[] imageAssetIds = string.IsNullOrWhiteSpace(stillId)
+                ? new string[0]
+                : new[] { stillId };
+            pages.Add(new EndingPageData
+            {
+                speakerType = ParseScheduledEventSpeakerType(line.speaker),
+                speakerName = line.speakerName ?? string.Empty,
+                message = line.text,
+                expressionId = line.expression ?? string.Empty,
+                stillId = stillId ?? string.Empty,
+                stillSprite = ResolveFirstSprite(imageAssetIds, spritesByAssetId, report)
+            });
+        }
+        return pages;
     }
 
     private static Sprite ResolveFirstSprite(
@@ -3008,6 +3049,8 @@ public static class HeroineAssetImporter
         public string speaker;
         public string text;
         public string expression;
+        public string speakerName;
+        public string stillId;
     }
 
     [Serializable]

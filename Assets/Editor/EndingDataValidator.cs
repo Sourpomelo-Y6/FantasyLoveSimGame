@@ -82,6 +82,7 @@ public static class EndingDataValidator
             records,
             LoadEventIdsByHeroine(),
             LoadOutfitIds(),
+            LoadExpressionIdsByHeroine(),
             report);
         report.HeroineCount = records
             .Select(record => record.HeroineId)
@@ -111,7 +112,12 @@ public static class EndingDataValidator
             {
                 { heroineId, CreateIdSet(knownEventIds) }
             };
-        ValidateRecords(records, eventIds, CreateIdSet(knownOutfitIds), report);
+        ValidateRecords(
+            records,
+            eventIds,
+            CreateIdSet(knownOutfitIds),
+            new Dictionary<string, HashSet<string>>(StringComparer.Ordinal),
+            report);
         report.HeroineCount = records.Count > 0 ? 1 : 0;
         return report;
     }
@@ -147,6 +153,7 @@ public static class EndingDataValidator
         List<EndingRecord> records,
         Dictionary<string, HashSet<string>> eventIdsByHeroine,
         HashSet<string> outfitIds,
+        Dictionary<string, HashSet<string>> expressionIdsByHeroine,
         EndingDataValidationReport report)
     {
         foreach (IGrouping<string, EndingRecord> heroineGroup in
@@ -159,12 +166,15 @@ public static class EndingDataValidator
             HashSet<string> knownEventIds;
             eventIdsByHeroine.TryGetValue(heroineGroup.Key, out knownEventIds);
             knownEventIds = knownEventIds ?? new HashSet<string>(StringComparer.Ordinal);
+            HashSet<string> expressionIds;
+            expressionIdsByHeroine.TryGetValue(heroineGroup.Key, out expressionIds);
+            expressionIds = expressionIds ?? new HashSet<string>(StringComparer.Ordinal);
 
             foreach (EndingData ending in endings)
             {
                 report.EndingCount++;
                 string label = "heroine=" + heroineGroup.Key + " / ending=" + ending.endingId;
-                ValidateEnding(ending, label, knownEventIds, outfitIds, report);
+                ValidateEnding(ending, label, knownEventIds, outfitIds, expressionIds, report);
 
                 if (!string.IsNullOrWhiteSpace(ending.endingId))
                 {
@@ -200,6 +210,7 @@ public static class EndingDataValidator
         string label,
         HashSet<string> knownEventIds,
         HashSet<string> outfitIds,
+        HashSet<string> expressionIds,
         EndingDataValidationReport report)
     {
         if (string.IsNullOrWhiteSpace(ending.endingId))
@@ -217,7 +228,8 @@ public static class EndingDataValidator
         {
             report.Warn(label + " の displayName が空です。", ending);
         }
-        if (string.IsNullOrWhiteSpace(ending.message))
+        bool hasPages = ending.pages != null && ending.pages.Count > 0;
+        if (!hasPages && string.IsNullOrWhiteSpace(ending.message))
         {
             report.Warn(label + " の message が空です。", ending);
         }
@@ -236,6 +248,41 @@ public static class EndingDataValidator
         }
 
         ValidateEventIds(ending.requiredShownEventIds, knownEventIds, label, ending, report);
+
+        if (hasPages)
+        {
+            for (int i = 0; i < ending.pages.Count; i++)
+            {
+                EndingPageData page = ending.pages[i];
+                string pageLabel = label + ".pages[" + i + "]";
+                if (page == null)
+                {
+                    report.Warn(pageLabel + " がnullです。", ending);
+                    continue;
+                }
+                if (string.IsNullOrWhiteSpace(page.message))
+                {
+                    report.Warn(pageLabel + " の message が空です。", ending);
+                }
+                if (!string.IsNullOrWhiteSpace(page.expressionId) &&
+                    expressionIds.Count > 0 &&
+                    !expressionIds.Contains(page.expressionId))
+                {
+                    report.Warn(
+                        pageLabel + " の expressionId が表情レイヤーに存在しません: " +
+                        page.expressionId,
+                        ending);
+                }
+                if (!string.IsNullOrWhiteSpace(page.stillId) && page.stillSprite == null)
+                {
+                    report.Warn(pageLabel + " はstillIdがありますがstillSpriteが未設定です。", ending);
+                }
+                if (string.IsNullOrWhiteSpace(page.stillId) && page.stillSprite != null)
+                {
+                    report.Warn(pageLabel + " はstillSpriteがありますがstillIdが空です。", ending);
+                }
+            }
+        }
     }
 
     private static void ValidateEventIds(
@@ -333,6 +380,28 @@ public static class EndingDataValidator
                 .Where(outfit => outfit != null && !string.IsNullOrWhiteSpace(outfit.outfitId))
                 .Select(outfit => outfit.outfitId),
             StringComparer.Ordinal);
+    }
+
+    private static Dictionary<string, HashSet<string>> LoadExpressionIdsByHeroine()
+    {
+        Dictionary<string, HashSet<string>> result =
+            new Dictionary<string, HashSet<string>>(StringComparer.Ordinal);
+        foreach (HeroineLayeredSpriteData data in AssetDatabase.FindAssets(
+            "t:" + nameof(HeroineLayeredSpriteData),
+            new[] { HeroineAssetRoot })
+            .Select(AssetDatabase.GUIDToAssetPath)
+            .Select(AssetDatabase.LoadAssetAtPath<HeroineLayeredSpriteData>)
+            .Where(data => data != null && !string.IsNullOrWhiteSpace(data.heroineId)))
+        {
+            result[data.heroineId] = new HashSet<string>(
+                data.expressionLayers == null
+                    ? new string[0]
+                    : data.expressionLayers
+                        .Where(layer => layer != null && !string.IsNullOrWhiteSpace(layer.expressionId))
+                        .Select(layer => layer.expressionId),
+                StringComparer.Ordinal);
+        }
+        return result;
     }
 
     private static HashSet<string> CreateIdSet(IEnumerable<string> values)

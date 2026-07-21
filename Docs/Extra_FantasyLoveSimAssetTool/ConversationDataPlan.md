@@ -326,7 +326,7 @@ Good、Normal、Bad などの結果条件と、対応するエンディングス
 
 Unity 側の対応先は `EndingData` とする。
 item ごとに `Assets/Resources/Heroines/<HeroineId>/Endings/<EndingId>.asset` を作成、更新する。
-`lines[]` は改行結合して `message` に入れ、`imageAssetIds[0]` をエンディングスチルとして解決する。
+`lines[]` は順番を維持して `EndingData.pages` に変換し、`speaker`、`speakerName`、`text`、`expression`、`stillId` をページ単位で保持する。互換用の `message` には本文を改行結合して保存し、`imageAssetIds[0]` は旧形式のエンディングスチルとしても解決する。ページがない旧データは従来どおり `message` / `stillSprite` を使用する。
 UnityへImportした後は `FantasyLoveSim > Validation > Ending Data` を実行し、ID重複、参照切れ、条件なしフォールバック、同じ必要好感度・衣装条件による選択曖昧さを確認する。同時成立し得る分岐は `conditions.minAffection` を分け、Unity側の選択結果を一意にする。
 
 ## WPF 画面案

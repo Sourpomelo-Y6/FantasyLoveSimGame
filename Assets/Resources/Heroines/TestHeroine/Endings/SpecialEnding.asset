@@ -16,6 +16,25 @@ MonoBehaviour:
   displayName: Adventure Promise Ending
   message: "あの日の森で決めたの。どんな道でも、あんたと一緒なら進んでいけるって。だから次の冒険も、私を連れていきなさい。"
   stillSprite: {fileID: 0}
+  pages:
+  - speakerType: 0
+    speakerName:
+    message: "あの日の森で決めたの。どんな道でも、あんたと一緒なら進んでいけるって。"
+    expressionId: Smile
+    stillId:
+    stillSprite: {fileID: 0}
+  - speakerType: 4
+    speakerName:
+    message: "次はもっと遠くまで、一緒に行こう。"
+    expressionId:
+    stillId:
+    stillSprite: {fileID: 0}
+  - speakerType: 0
+    speakerName:
+    message: "当然よ。次の冒険も、私を連れていきなさい。約束だからね。"
+    expressionId: Shy
+    stillId:
+    stillSprite: {fileID: 0}
   requiredAffection: 1200
   costumeId: Adventure
   requiredShownEventIds:
