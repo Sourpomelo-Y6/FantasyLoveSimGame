@@ -1975,14 +1975,11 @@ public class GameManager : MonoBehaviour
 
     public void OnDialogueWindowClicked()
     {
-        if (!enableDialogueWindowClickAdvance)
-        {
-            return;
-        }
-
-        if (nextButton == null ||
-            !nextButton.gameObject.activeInHierarchy ||
-            !nextButton.interactable)
+        if (!DialogueClickAdvancePolicy.CanAdvance(
+            enableDialogueWindowClickAdvance,
+            GameOptionsManager.DialogueWindowClickAdvanceEnabled,
+            nextButton != null && nextButton.gameObject.activeInHierarchy,
+            nextButton != null && nextButton.interactable))
         {
             return;
         }

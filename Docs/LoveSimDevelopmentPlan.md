@@ -770,7 +770,7 @@ Ending ボタンを押すと、専用の `EndingScene` へ遷移する。
 選択肢、Save/Load、メッセージログ、ステータス詳細などの UI 操作と競合しないよう、クリック進行はメッセージ表示ウィンドウに限定する。
 `DialogueClickAdvanceArea` をメッセージ表示ウィンドウの Panel などに追加し、`GameManager.dialogueClickAdvanceArea` に割り当てると、`Next` ボタンが表示中かつ押せる状態のときだけクリックで次へ進む。
 クリック対象の Image は `Raycast Target` を有効にする必要がある。
-この操作はプレイヤーの好みによって必要性が変わるため、オプション画面を追加して ON/OFF を切り替えられるようにする案を残す。
+クリック進行のON/OFF設定は実装済み。`GameOptionsManager` が端末共通の `game_options.json` を読み書きし、設定なし・破損時は現在挙動と同じONへフォールバックする。`DialogueClickAdvancePolicy` はScene側の互換フラグ、端末設定、Nextボタンの表示・操作可能状態をまとめて判定する。`GameOptionsPanel` はToggle変更時に即時保存し、タイトル画面とメイン画面で同じ設定を共有できる。Scene UIは別途手動配置する。
 
 ## 優先度の高い改善候補
 
@@ -780,7 +780,7 @@ Ending ボタンを押すと、専用の `EndingScene` へ遷移する。
 4. 立ち絵切り替えと表情差分の整理
 5. セーブ/ロード回帰確認とUI補強
 6. UI の視認性改善
-7. メッセージ表示ウィンドウのクリック進行 ON/OFF オプション
+7. メッセージ表示ウィンドウのクリック進行 ON/OFF オプション（保存基盤と接続用Panelを実装済み、Scene UI配置待ち）
 8. 訓練、戦闘、ショップのデータ追加と調整
 
 ## 補足

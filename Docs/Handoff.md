@@ -102,7 +102,7 @@
 - 正式なプロジェクトバージョンは`ProjectSettings/ProjectVersion.txt`の`2021.3.45f2 (88f88f591b2e)`とする
 - CloneまたはPull後はUnity Hubから同じEditorバージョンを指定して開く
 - Editorバージョンを変更した場合は、`ProjectSettings/ProjectVersion.txt`も関連変更としてGitへコミットする
-- バージョン更新後はスクリプトの再コンパイルとEditMode Testを確認する。直近のテスト構成は85件なので、`2021.3.45f2`で初回起動した環境でも全85件の成功を確認する
+- バージョン更新後はスクリプトの再コンパイルとEditMode Testを確認する。直近のテスト構成は93件なので、`2021.3.45f2`で初回起動した環境でも全93件の成功を確認する
 
 ## 作業分担ルール
 
@@ -698,7 +698,8 @@ UI デザインは手作業で行っています。
 - タイトル画面からロードした場合も、MainScene のロード後 UI が閉じた状態で始まる
 - 現在の複数メッセージ進行は `Next` ボタンとメッセージ表示ウィンドウクリックに対応済み。選択肢や Save/Load、ログ、ステータス画面などの UI 操作と競合しないよう、クリック進行はメッセージ表示ウィンドウに限定する。
 - メッセージ表示ウィンドウのクリック進行は `DialogueClickAdvanceArea` で実装済み。Unity 上でメッセージウィンドウの Panel などに追加し、`GameManager.dialogueClickAdvanceArea` に割り当てる。クリック対象の Image は `Raycast Target` を有効にしておく。
-- クリック進行は好みが分かれるため、オプション画面を追加し、ON/OFF を切り替えられるようにする候補として扱う。
+- クリック進行のON/OFF設定も実装済み。端末共通の `Application.persistentDataPath/game_options.json` に保存し、ファイルなし・破損・未対応versionではONを既定値とする。`GameOptionsPanel` の `Dialogue Click Advance Toggle` を変更すると即時保存され、セーブスロットには含めない。`GameManager.enableDialogueWindowClickAdvance` はScene単位の互換用安全弁として残し、これと端末設定の両方がONの場合だけクリックで進行する。
+- オプションUIはCanvas下に非アクティブの `GameOptionsPanel` を作り、同オブジェクトへ `GameOptionsPanel` コンポーネントを追加する。子に `DialogueClickAdvanceToggle`、`CloseButton`、任意の `ResultText` を置いて各参照を割り当てる。表示ボタンのOnClickから `GameOptionsPanel.Open()` を呼ぶ。タイトルとメインの両Sceneに同じ構成を置けば、共通JSONを参照するため同じ設定を利用できる。
 
 ## 追加開発の優先候補
 
