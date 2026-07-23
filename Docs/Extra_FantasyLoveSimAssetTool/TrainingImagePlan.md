@@ -1,8 +1,8 @@
 # Training Image Plan
 
-このドキュメントは、訓練画面で訓練選択時と LP 消費時に表示するヒロイン画像を切り替え、`FantasyLoveSimAssetTool` で画像生成、採用、export、Unity import まで扱うための設計メモである。
+このドキュメントは、訓練画面で訓練選択時と LP 消費時に表示するヒロイン画像を切り替え、`FantasyLoveSimAssetTool` で画像生成、採用、export、Unity import まで扱うための実装済み仕様をまとめたものである。
 
-現時点では設計だけを記録し、Unity Runtime、Unity Editor Importer、AssetTool の実装は後続作業とする。
+Unity Runtime、Unity Editor Importer、AssetTool の接続は実装済み。TestHeroineの初期3訓練には5状態ずつ画像を設定済みで、追加訓練 `CooperativeDrill` の5状態とDefaultHeroineの画像データは未設定である。試作用画像はGit管理外のため、別環境ではAssetToolから再Importするか本番素材一式を用意する。
 
 ## 目的
 
@@ -35,18 +35,18 @@
 
 同時消費は個別消費より優先する。LP画像を表示した次の通常ステップでは `SelectedAfterFirstStep` へ戻し、訓練ボタンを押した場合は選択した訓練の進行状況画像へ切り替える。訓練終了後の結果専用画像は今回の範囲に含めない。
 
-LP消費判定はセッション全体の累計カウンターから推測せず、各 `AdvanceStep()` の直前と直後の差分を使う。実装時は `TrainingStepResult` に `playerLpConsumed` / `heroineLpConsumed` を追加し、画像、ログ、実績集計が同じステップ結果を参照できるようにする。
+LP消費判定はセッション全体の累計カウンターから推測せず、各 `AdvanceStep()` の直前と直後の差分を使う。`TrainingStepResult.playerLpConsumed` / `heroineLpConsumed` を画像、ログ、実績集計で共有する。
 
-## Unity Runtime データ案
+## Unity Runtime データ
 
-ヒロイン別の ScriptableObject として `HeroineTrainingImageData` を追加する。
+ヒロイン別の ScriptableObjectとして `HeroineTrainingImageData` を使用する。
 
 ```text
 Assets/Resources/Heroines/<HeroineId>/TrainingImages/
   HeroineTrainingImageData.asset
 ```
 
-想定フィールド:
+実装フィールド:
 
 ```csharp
 string heroineId;
@@ -318,11 +318,19 @@ Unity Editor Importer は次の順で処理する。
 
 Runtime は参照切れや未設定を許容し、画像がないことを理由に訓練処理を停止させない。
 
-## 実装順
+## 実装状況と残作業
 
-1. AssetTool に `Training` 用途、固定状態、9枚の生成・採用枠を追加する。
-2. `training_images_export.json` を出力する。
-3. Unity Runtime に `HeroineTrainingImageData` と状態判定を追加する。
-4. Unity Editor Importer に Training 画像と対応JSONのImportを追加する。
-5. TestHeroineで選択前後、主人公LP、ヒロインLP、同時LPを確認する。
-6. 表示確認後にDefaultHeroineや追加訓練へ展開する。
+実装済み:
+
+1. AssetToolの `Training` 用途、固定5状態、生成・採用枠
+2. `training_images_export.json` の出力
+3. Unity Runtimeの `HeroineTrainingImageData`、状態判定、`TrainingPanel.heroineImage`への適用
+4. Unity Editor ImporterによるTraining画像と対応JSONのImport
+5. TestHeroineの `LightPractice`、`SparringPractice`、`EnduranceTraining` 各5状態への画像設定
+6. 画像と訓練セリフで同じ `TrainingVisualState` を共有する表示処理
+
+残作業:
+
+1. TestHeroineの `CooperativeDrill` 5状態への画像設定
+2. DefaultHeroine用 `HeroineTrainingImageData.asset` と画像の作成
+3. `ResolveSprite`の訓練別・共通フォールバックとLP状態判定に対する専用EditMode Testの追加
