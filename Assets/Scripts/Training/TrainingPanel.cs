@@ -255,7 +255,7 @@ public class TrainingPanel : MonoBehaviour
         TrainingStepResult stepResult = currentState.AdvanceStep(
             currentTraining,
             activeTrainingSkillModifiers);
-        ApplyTrainingPresentation(ResolveStepVisualState(stepResult));
+        ApplyTrainingPresentation(TrainingVisualStateResolver.Resolve(stepResult));
         AddLog(
             "Step " + currentState.elapsedSteps +
             ": 主人公 -" + stepResult.playerHpCost +
@@ -289,26 +289,6 @@ public class TrainingPanel : MonoBehaviour
         }
 
         RefreshStatus();
-    }
-
-    private static TrainingVisualState ResolveStepVisualState(TrainingStepResult stepResult)
-    {
-        bool playerConsumed = stepResult != null && stepResult.playerLpConsumed > 0;
-        bool heroineConsumed = stepResult != null && stepResult.heroineLpConsumed > 0;
-        if (playerConsumed && heroineConsumed)
-        {
-            return TrainingVisualState.SimultaneousLpConsumed;
-        }
-        if (playerConsumed)
-        {
-            return TrainingVisualState.PlayerLpConsumed;
-        }
-        if (heroineConsumed)
-        {
-            return TrainingVisualState.HeroineLpConsumed;
-        }
-
-        return TrainingVisualState.SelectedAfterFirstStep;
     }
 
     private HeroineTrainingImageData LoadTrainingImageData()

@@ -333,4 +333,4 @@ Runtime は参照切れや未設定を許容し、画像がないことを理由
 
 1. TestHeroineの `CooperativeDrill` 5状態への画像設定
 2. DefaultHeroine用 `HeroineTrainingImageData.asset` と画像の作成
-3. `ResolveSprite`の訓練別・共通フォールバックとLP状態判定に対する専用EditMode Testの追加
+3. `ResolveSprite`の訓練別・共通フォールバックとLP状態判定に対する専用EditMode Test（追加済み）
