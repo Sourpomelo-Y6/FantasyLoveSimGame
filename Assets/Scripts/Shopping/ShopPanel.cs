@@ -346,7 +346,14 @@ public class ShopPanel : MonoBehaviour
         {
             if (itemButtons[i] != null)
             {
-                Destroy(itemButtons[i]);
+                if (Application.isPlaying)
+                {
+                    Destroy(itemButtons[i]);
+                }
+                else
+                {
+                    DestroyImmediate(itemButtons[i]);
+                }
             }
         }
 
