@@ -70,6 +70,7 @@ public class SaveDataRegressionTests
         data.heroineBattleStatus = null;
         data.playerOutfitPromptAbilities = null;
         data.unlockedSkillIds = null;
+        data.itemQuantities = null;
         data.shownConversationIds = null;
         data.shownGameEventIds = null;
         data.scheduleEntries = null;
@@ -86,10 +87,75 @@ public class SaveDataRegressionTests
         Assert.That(data.heroineBattleStatus, Is.Not.Null);
         Assert.That(data.playerOutfitPromptAbilities, Is.Not.Null);
         Assert.That(data.unlockedSkillIds, Is.Empty);
+        Assert.That(data.itemQuantities, Is.Empty);
         Assert.That(data.shownConversationIds, Is.Empty);
         Assert.That(data.shownGameEventIds, Is.Empty);
         Assert.That(data.scheduleEntries, Is.Empty);
         Assert.That(data.skillProgressStats, Is.Not.Null);
+    }
+
+    [Test]
+    public void JsonRoundTrip_PreservesMultipleItemQuantities()
+    {
+        SaveData source = CreateValidSaveData();
+        source.itemQuantities.Add(new ItemQuantityEntry
+        {
+            itemId = "HealPotion",
+            quantity = 3
+        });
+        source.itemQuantities.Add(new ItemQuantityEntry
+        {
+            itemId = "ManaPotion",
+            quantity = 7
+        });
+
+        SaveData restored = SaveDataNormalizer.Normalize(
+            JsonUtility.FromJson<SaveData>(JsonUtility.ToJson(source)));
+
+        Assert.That(GetItemQuantity(restored, "HealPotion"), Is.EqualTo(3));
+        Assert.That(GetItemQuantity(restored, "ManaPotion"), Is.EqualTo(7));
+    }
+
+    [Test]
+    public void Normalize_ItemQuantitiesRepairsInvalidAndDuplicateEntries()
+    {
+        SaveData data = CreateValidSaveData();
+        data.itemQuantities = new List<ItemQuantityEntry>
+        {
+            null,
+            new ItemQuantityEntry { itemId = "", quantity = 9 },
+            new ItemQuantityEntry { itemId = "ManaPotion", quantity = -2 },
+            new ItemQuantityEntry { itemId = "HealPotion", quantity = 2 },
+            new ItemQuantityEntry { itemId = "HealPotion", quantity = 5 },
+            new ItemQuantityEntry { itemId = "ZeroQuantityItem", quantity = 0 }
+        };
+
+        SaveDataNormalizer.Normalize(data);
+
+        Assert.That(
+            data.itemQuantities.Select(entry => entry.itemId),
+            Is.EqualTo(new[] { "HealPotion", "ManaPotion", "ZeroQuantityItem" }));
+        Assert.That(GetItemQuantity(data, "HealPotion"), Is.EqualTo(5));
+        Assert.That(GetItemQuantity(data, "ManaPotion"), Is.Zero);
+        Assert.That(GetItemQuantity(data, "ZeroQuantityItem"), Is.Zero);
+    }
+
+    [Test]
+    public void JsonRoundTrip_PreservesQuantityAfterBattleItemUse()
+    {
+        SaveData source = CreateValidSaveData();
+        ItemQuantityEntry healPotion = new ItemQuantityEntry
+        {
+            itemId = "HealPotion",
+            quantity = 2
+        };
+        source.itemQuantities.Add(healPotion);
+
+        healPotion.quantity--;
+        SaveData restored = SaveDataNormalizer.Normalize(
+            JsonUtility.FromJson<SaveData>(JsonUtility.ToJson(source)));
+
+        Assert.That(GetItemQuantity(restored, "HealPotion"), Is.EqualTo(1));
     }
 
     [Test]
@@ -167,6 +233,13 @@ public class SaveDataRegressionTests
             affection = 0,
             playerMoney = 1000
         };
+    }
+
+    private static int GetItemQuantity(SaveData data, string itemId)
+    {
+        ItemQuantityEntry entry = data.itemQuantities.SingleOrDefault(
+            value => value != null && value.itemId == itemId);
+        return entry != null ? entry.quantity : 0;
     }
 }
 #endif
