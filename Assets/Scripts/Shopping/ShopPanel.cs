@@ -12,6 +12,18 @@ public class ShopPanel : MonoBehaviour
     [SerializeField] private TextMeshProUGUI emptyText;
     [SerializeField] private Transform listParent;
     [SerializeField] private Button itemButtonPrefab;
+    [Header("Item Details")]
+    [SerializeField] private TextMeshProUGUI moneyText;
+    [SerializeField] private TextMeshProUGUI itemNameText;
+    [SerializeField] private TextMeshProUGUI itemTypeText;
+    [SerializeField] private TextMeshProUGUI priceText;
+    [SerializeField] private TextMeshProUGUI descriptionText;
+    [SerializeField] private TextMeshProUGUI requirementText;
+    [SerializeField] private TextMeshProUGUI purchaseResultText;
+    [SerializeField] private Button purchaseButton;
+    [SerializeField] private Color selectedButtonColor = new Color(1f, 0.85f, 0.35f, 1f);
+
+    [Header("Controls")]
     [SerializeField] private Button closeButton;
     [SerializeField] private string title = "買い物";
     [SerializeField] private string emptyMessage = "購入できる商品がありません。";
@@ -20,9 +32,15 @@ public class ShopPanel : MonoBehaviour
     private Func<ShopItemData, bool> isPurchasedResolver;
     private Func<ShopItemData, bool> meetsConditionResolver;
     private Func<ShopItemData, bool> canAffordResolver;
-    private Action<ShopItemData> itemSelected;
+    private Func<int> moneyResolver;
+    private Func<ShopItemData, string> itemPurchased;
     private Action closed;
     private IReadOnlyList<ShopItemData> currentItems;
+    private ShopItemData selectedItem;
+    private readonly Dictionary<Button, ColorBlock> originalButtonColors =
+        new Dictionary<Button, ColorBlock>();
+    private readonly Dictionary<Button, ShopItemData> itemsByButton =
+        new Dictionary<Button, ShopItemData>();
 
     private void Awake()
     {
@@ -40,7 +58,8 @@ public class ShopPanel : MonoBehaviour
         Func<ShopItemData, bool> isPurchased,
         Func<ShopItemData, bool> meetsCondition,
         Func<ShopItemData, bool> canAfford,
-        Action<ShopItemData> onItemSelected,
+        Func<int> getMoney,
+        Func<ShopItemData, string> onItemPurchased,
         Action onClosed)
     {
         EnsureReferences();
@@ -48,9 +67,11 @@ public class ShopPanel : MonoBehaviour
         isPurchasedResolver = isPurchased;
         meetsConditionResolver = meetsCondition;
         canAffordResolver = canAfford;
-        itemSelected = onItemSelected;
+        moneyResolver = getMoney;
+        itemPurchased = onItemPurchased;
         closed = onClosed;
         currentItems = items;
+        selectedItem = null;
 
         if (titleText != null)
         {
@@ -118,9 +139,19 @@ public class ShopPanel : MonoBehaviour
             return;
         }
 
-        foreach (ShopItemData item in GetDisplayItems(items))
+        List<ShopItemData> displayItems = GetDisplayItems(items);
+        foreach (ShopItemData item in displayItems)
         {
             CreateItemButton(item);
+        }
+
+        if (purchaseButton != null && displayItems.Count > 0)
+        {
+            SelectItem(displayItems[0]);
+        }
+        else
+        {
+            RefreshDetails();
         }
     }
 
@@ -167,15 +198,18 @@ public class ShopPanel : MonoBehaviour
             buttonText.text = BuildItemLabel(item);
         }
 
-        bool isPurchased = IsPurchased(item);
-        bool meetsCondition = MeetsCondition(item);
-        bool canAfford = CanAfford(item);
-        button.interactable = !isPurchased && meetsCondition && canAfford;
+        bool canPurchase = CanPurchase(item);
+        button.interactable = purchaseButton != null || canPurchase;
+        originalButtonColors[button] = button.colors;
+        itemsByButton[button] = item;
 
         button.onClick.RemoveAllListeners();
         if (button.interactable)
         {
-            button.onClick.AddListener(() => SelectItem(item));
+            if (purchaseButton != null)
+                button.onClick.AddListener(() => SelectItem(item));
+            else
+                button.onClick.AddListener(() => PurchaseItem(item));
         }
     }
 
@@ -198,7 +232,7 @@ public class ShopPanel : MonoBehaviour
         }
 
         List<string> outfitIds = item != null ? item.GetUnlockedOutfitIds() : new List<string>();
-        if (outfitIds.Count > 0)
+        if (purchaseButton == null && outfitIds.Count > 0)
         {
             label += " / 解放: " + string.Join(", ", outfitIds.ToArray());
         }
@@ -221,10 +255,80 @@ public class ShopPanel : MonoBehaviour
         return canAffordResolver == null || canAffordResolver(item);
     }
 
-    private void SelectItem(ShopItemData item)
+    public void SelectItem(ShopItemData item)
     {
-        itemSelected?.Invoke(item);
+        selectedItem = item;
+        if (purchaseResultText != null) purchaseResultText.text = string.Empty;
+        RefreshDetails();
+        RefreshSelectionColors();
+    }
+
+    public void PurchaseSelectedItem()
+    {
+        PurchaseItem(selectedItem);
+    }
+
+    private void PurchaseItem(ShopItemData item)
+    {
+        if (!CanPurchase(item))
+        {
+            if (purchaseResultText != null)
+                purchaseResultText.text = GetPurchaseStateMessage(item);
+            RefreshDetails();
+            return;
+        }
+
+        string result = itemPurchased != null ? itemPurchased(item) : string.Empty;
         RefreshItems(currentItems);
+        selectedItem = item;
+        RefreshDetails();
+        RefreshSelectionColors();
+        if (purchaseResultText != null) purchaseResultText.text = result;
+    }
+
+    private bool CanPurchase(ShopItemData item)
+    {
+        return item != null && !IsPurchased(item) && MeetsCondition(item) && CanAfford(item);
+    }
+
+    private string GetPurchaseStateMessage(ShopItemData item)
+    {
+        if (item == null) return "商品を選択してください。";
+        if (IsPurchased(item)) return "購入済みです。";
+        if (!MeetsCondition(item)) return "購入条件を満たしていません。";
+        if (!CanAfford(item)) return "所持金が不足しています。";
+        return "購入できます。";
+    }
+
+    private void RefreshDetails()
+    {
+        if (moneyText != null)
+            moneyText.text = "所持金: " + (moneyResolver != null ? moneyResolver() : 0) + "G";
+        SetText(itemNameText, ShopItemPresentation.GetDisplayName(selectedItem));
+        SetText(itemTypeText, ShopItemPresentation.GetTypeLabel(selectedItem));
+        SetText(priceText, selectedItem != null ? "価格: " + selectedItem.price + "G" : string.Empty);
+        SetText(descriptionText, ShopItemPresentation.GetDescription(selectedItem));
+        SetText(requirementText, selectedItem != null
+            ? ShopItemPresentation.GetRequirements(selectedItem) + "\n" + GetPurchaseStateMessage(selectedItem)
+            : string.Empty);
+        if (purchaseButton != null) purchaseButton.interactable = CanPurchase(selectedItem);
+    }
+
+    private void RefreshSelectionColors()
+    {
+        foreach (KeyValuePair<Button, ShopItemData> pair in itemsByButton)
+        {
+            Button button = pair.Key;
+            if (button == null) continue;
+            ColorBlock colors = originalButtonColors[button];
+            if (pair.Value == selectedItem) colors.normalColor = selectedButtonColor;
+            button.colors = colors;
+        }
+    }
+
+    private static void SetText(TextMeshProUGUI target, string value)
+    {
+        if (target != null) target.text = value ?? string.Empty;
     }
 
     private void ClearItems()
@@ -238,6 +342,8 @@ public class ShopPanel : MonoBehaviour
         }
 
         itemButtons.Clear();
+        originalButtonColors.Clear();
+        itemsByButton.Clear();
     }
 
     private void EnsureReferences()
@@ -284,6 +390,19 @@ public class ShopPanel : MonoBehaviour
             }
         }
 
+        if (moneyText == null) moneyText = FindText("MoneyText");
+        if (itemNameText == null) itemNameText = FindText("ItemNameText");
+        if (itemTypeText == null) itemTypeText = FindText("ItemTypeText");
+        if (priceText == null) priceText = FindText("PriceText");
+        if (descriptionText == null) descriptionText = FindText("DescriptionText");
+        if (requirementText == null) requirementText = FindText("RequirementText");
+        if (purchaseResultText == null) purchaseResultText = FindText("PurchaseResultText");
+        if (purchaseButton == null)
+        {
+            Transform purchaseTransform = FindChildRecursive(transform, "PurchaseButton");
+            if (purchaseTransform != null) purchaseButton = purchaseTransform.GetComponent<Button>();
+        }
+
         if (itemButtonPrefab != null)
         {
             itemButtonPrefab.gameObject.SetActive(false);
@@ -293,6 +412,12 @@ public class ShopPanel : MonoBehaviour
         {
             closeButton.onClick.RemoveListener(Close);
             closeButton.onClick.AddListener(Close);
+        }
+
+        if (purchaseButton != null)
+        {
+            purchaseButton.onClick.RemoveListener(PurchaseSelectedItem);
+            purchaseButton.onClick.AddListener(PurchaseSelectedItem);
         }
     }
 

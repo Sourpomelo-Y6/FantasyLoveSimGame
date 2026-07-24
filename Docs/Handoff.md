@@ -102,7 +102,7 @@
 - 正式なプロジェクトバージョンは`ProjectSettings/ProjectVersion.txt`の`2021.3.45f2 (88f88f591b2e)`とする
 - CloneまたはPull後はUnity Hubから同じEditorバージョンを指定して開く
 - Editorバージョンを変更した場合は、`ProjectSettings/ProjectVersion.txt`も関連変更としてGitへコミットする
-- バージョン更新後はスクリプトの再コンパイルとEditMode Testを確認する。直近のテスト構成は93件なので、`2021.3.45f2`で初回起動した環境でも全93件の成功を確認する
+- バージョン更新後はスクリプトの再コンパイルとEditMode Testを確認する。直近のテスト構成は98件なので、`2021.3.45f2`で初回起動した環境でも全98件の成功を確認する
 
 ## 作業分担ルール
 
@@ -577,6 +577,7 @@ AssetTool側は `usage = Training`、`Images/Training/`、`training_images_expor
 季節衣装の商品は `Assets/Resources/ShopItems/SpringOutfitItem.asset`、`SummerOutfitItem.asset`、`AutumnOutfitItem.asset`、`WinterOutfitItem.asset` の `ShopItemData` で定義済み。価格は順に200G、300G、450G、600G。夏は7日目、秋は好感度200かつ春購入済み、冬は14日目かつ秋購入済みを条件とし、初期1000Gだけでは全衣装を購入できない。
 購入済み ID は `SaveData.purchasedItemIds` に保存し、`StatusDetailPanel` のプレイヤー詳細に表示する。
 `DuoShoppingCatalog.asset` には季節衣装4件とHP・MPポーションを登録済み。既存の `ShoppingTestItem_01` はカタログ外の互換用単体テスト商品として残している。`FantasyLoveSim > Validation > Shop Balance Report` で価格・日数・好感度・前提商品と季節衣装の合計価格を確認できる。
+`ShopPanel` は商品一覧と詳細確認を分離できる。`PurchaseButton` が割り当てられている場合、商品ボタンは購入せず選択だけを行い、商品名、種別、価格、説明、購入条件、購入可否を詳細欄へ表示してから購入ボタンで確定する。購入済み・条件未達・所持金不足の商品も選択して理由を確認できる。購入後は商品一覧、選択状態、所持金、詳細欄を更新する。詳細UIが未配置で `PurchaseButton` がない場合は、既存Sceneとの互換性のため商品ボタンによる即購入を維持する。`ShopItemData.description` が空なら回復量や解放衣装から説明を生成する。
 商品購入時に解放された衣装 ID は `SaveData.unlockedOutfitIds` に保存し、`OutfitManager` の着用可否判定に渡す。
 春夏秋冬の衣装アセットは手作業で `isUnlockedByDefault=false` に変更済み。購入解放された衣装は好感度条件を無視して着用できる。
 未購入の衣装は好感度不足ではなく未所持として扱う。購入前の春夏秋冬など `isUnlockedByDefault=false` かつ `unlockedOutfitIds` に含まれない衣装は、DressUp の衣装ボタンを表示しない方針にする。

@@ -7,6 +7,7 @@ public class ShopItemData : ScriptableObject
     [Header("Basic")]
     public string itemId;
     public string displayName;
+    [TextArea(2, 5)] public string description;
     public int price = 100;
 
     [Header("Battle Consumable")]

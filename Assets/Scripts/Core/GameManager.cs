@@ -7567,7 +7567,8 @@ public class GameManager : MonoBehaviour
             IsShopItemPurchased,
             MeetsShopItemPurchaseConditions,
             CanAffordShopItem,
-            OnSelectDuoShoppingShopItem,
+            GetCurrentPlayerMoney,
+            OnPurchaseDuoShoppingShopItem,
             OnCloseDuoShoppingShopPanel);
 
         flowState = ConversationFlowState.Idle;
@@ -7575,12 +7576,12 @@ public class GameManager : MonoBehaviour
         return true;
     }
 
-    private void OnSelectDuoShoppingShopItem(ShopItemData item)
+    private string OnPurchaseDuoShoppingShopItem(ShopItemData item)
     {
         ScheduledEventDefinition scheduledEvent = pendingScheduledEvent;
         if (scheduledEvent == null)
         {
-            return;
+            return "買い物イベントを確認できませんでした。";
         }
 
         string purchaseMessage = ApplyDuoShoppingTestPurchase("", item);
@@ -7591,6 +7592,13 @@ public class GameManager : MonoBehaviour
         }
 
         RefreshUI();
+        return purchaseMessage;
+    }
+
+    private int GetCurrentPlayerMoney()
+    {
+        EnsureCoreStatusReferences();
+        return playerStatus != null ? playerStatus.Money : 0;
     }
 
     private void OnCloseDuoShoppingShopPanel()
