@@ -321,7 +321,16 @@ public class ShopPanel : MonoBehaviour
             Button button = pair.Key;
             if (button == null) continue;
             ColorBlock colors = originalButtonColors[button];
-            if (pair.Value == selectedItem) colors.normalColor = selectedButtonColor;
+            if (pair.Value == selectedItem)
+            {
+                // クリック後は Highlighted / Selected 状態になるため、
+                // normalColor だけでなく操作中に使われる色も統一する。
+                colors.normalColor = selectedButtonColor;
+                colors.highlightedColor = selectedButtonColor;
+                colors.pressedColor = selectedButtonColor;
+                colors.selectedColor = selectedButtonColor;
+            }
+
             button.colors = colors;
         }
     }
