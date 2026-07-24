@@ -18,6 +18,7 @@ public class ShopPanelTests
     private Button purchaseButton;
     private TextMeshProUGUI moneyText;
     private TextMeshProUGUI itemNameText;
+    private TextMeshProUGUI ownedQuantityText;
     private TextMeshProUGUI requirementText;
     private Color selectedColor;
 
@@ -34,6 +35,7 @@ public class ShopPanelTests
         purchaseButton = CreateButton("PurchaseButton", root.transform);
         moneyText = CreateText("MoneyText", root.transform);
         itemNameText = CreateText("ItemNameText", root.transform);
+        ownedQuantityText = CreateText("OwnedQuantityText", root.transform);
         requirementText = CreateText("RequirementText", root.transform);
         selectedColor = new Color(0.95f, 0.65f, 0.2f, 1f);
 
@@ -43,6 +45,7 @@ public class ShopPanelTests
         SetField("purchaseButton", purchaseButton);
         SetField("moneyText", moneyText);
         SetField("itemNameText", itemNameText);
+        SetField("ownedQuantityText", ownedQuantityText);
         SetField("requirementText", requirementText);
         SetField("selectedButtonColor", selectedColor);
     }
@@ -122,7 +125,9 @@ public class ShopPanelTests
     public void PurchaseSelectedItem_RefreshesMoneyListAndDetails()
     {
         ShopItemData item = CreateItem("Potion", "回復薬", 100);
+        item.isBattleConsumable = true;
         int money = 300;
+        int quantity = 2;
         int purchaseCount = 0;
         Open(
             new[] { item },
@@ -130,10 +135,12 @@ public class ShopPanelTests
             _ => true,
             _ => money >= item.price,
             () => money,
+            _ => quantity,
             purchasedItem =>
             {
                 purchaseCount++;
                 money -= purchasedItem.price;
+                quantity++;
                 return "購入しました。";
             });
 
@@ -142,7 +149,29 @@ public class ShopPanelTests
         Assert.That(purchaseCount, Is.EqualTo(1));
         Assert.That(moneyText.text, Is.EqualTo("所持金: 200G"));
         Assert.That(itemNameText.text, Is.EqualTo("回復薬"));
+        Assert.That(ownedQuantityText.text, Is.EqualTo("所持数: 3"));
+        Assert.That(GetButtonText(GetGeneratedButtons()[0]), Does.Contain("所持: 3"));
         Assert.That(GetGeneratedButtons(), Has.Count.EqualTo(1));
+    }
+
+    [Test]
+    public void SelectingItem_DisplaysConsumableQuantityAndOutfitOwnership()
+    {
+        ShopItemData consumable = CreateItem("Potion", "回復薬", 100);
+        consumable.isBattleConsumable = true;
+        ShopItemData outfit = CreateItem("SpringOutfit", "春服", 200);
+
+        Open(
+            new[] { consumable, outfit },
+            item => item == outfit,
+            getQuantity: item => item == consumable ? 4 : 0);
+
+        Assert.That(ownedQuantityText.text, Is.EqualTo("所持数: 4"));
+        Assert.That(GetButtonText(GetGeneratedButtons()[0]), Does.Contain("所持: 4"));
+
+        GetGeneratedButtons()[1].onClick.Invoke();
+
+        Assert.That(ownedQuantityText.text, Is.EqualTo("所持状態: 購入済み"));
     }
 
     [Test]
@@ -159,6 +188,7 @@ public class ShopPanelTests
             _ => true,
             _ => true,
             () => 300,
+            _ => 0,
             _ =>
             {
                 purchaseCount++;
@@ -177,6 +207,7 @@ public class ShopPanelTests
         Func<ShopItemData, bool> meetsCondition = null,
         Func<ShopItemData, bool> canAfford = null,
         Func<int> getMoney = null,
+        Func<ShopItemData, int> getQuantity = null,
         Func<ShopItemData, string> onPurchased = null)
     {
         panel.Open(
@@ -185,8 +216,15 @@ public class ShopPanelTests
             meetsCondition ?? (_ => true),
             canAfford ?? (_ => true),
             getMoney ?? (() => 300),
+            getQuantity ?? (_ => 0),
             onPurchased ?? (_ => "購入しました。"),
             null);
+    }
+
+    private static string GetButtonText(Button button)
+    {
+        TMP_Text text = button != null ? button.GetComponentInChildren<TMP_Text>() : null;
+        return text != null ? text.text : string.Empty;
     }
 
     private List<Button> GetGeneratedButtons()

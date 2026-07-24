@@ -17,6 +17,7 @@ public class ShopPanel : MonoBehaviour
     [SerializeField] private TextMeshProUGUI itemNameText;
     [SerializeField] private TextMeshProUGUI itemTypeText;
     [SerializeField] private TextMeshProUGUI priceText;
+    [SerializeField] private TextMeshProUGUI ownedQuantityText;
     [SerializeField] private TextMeshProUGUI descriptionText;
     [SerializeField] private TextMeshProUGUI requirementText;
     [SerializeField] private TextMeshProUGUI purchaseResultText;
@@ -33,6 +34,7 @@ public class ShopPanel : MonoBehaviour
     private Func<ShopItemData, bool> meetsConditionResolver;
     private Func<ShopItemData, bool> canAffordResolver;
     private Func<int> moneyResolver;
+    private Func<ShopItemData, int> quantityResolver;
     private Func<ShopItemData, string> itemPurchased;
     private Action closed;
     private IReadOnlyList<ShopItemData> currentItems;
@@ -59,6 +61,7 @@ public class ShopPanel : MonoBehaviour
         Func<ShopItemData, bool> meetsCondition,
         Func<ShopItemData, bool> canAfford,
         Func<int> getMoney,
+        Func<ShopItemData, int> getQuantity,
         Func<ShopItemData, string> onItemPurchased,
         Action onClosed)
     {
@@ -68,6 +71,7 @@ public class ShopPanel : MonoBehaviour
         meetsConditionResolver = meetsCondition;
         canAffordResolver = canAfford;
         moneyResolver = getMoney;
+        quantityResolver = getQuantity;
         itemPurchased = onItemPurchased;
         closed = onClosed;
         currentItems = items;
@@ -218,7 +222,11 @@ public class ShopPanel : MonoBehaviour
         string itemName = !string.IsNullOrEmpty(item.displayName) ? item.displayName : item.itemId;
         string label = itemName + " / " + item.price + "G";
 
-        if (IsPurchased(item))
+        if (item != null && item.isBattleConsumable)
+        {
+            label += " / 所持: " + GetQuantity(item);
+        }
+        else if (IsPurchased(item))
         {
             label += " / 購入済み";
         }
@@ -253,6 +261,13 @@ public class ShopPanel : MonoBehaviour
     private bool CanAfford(ShopItemData item)
     {
         return canAffordResolver == null || canAffordResolver(item);
+    }
+
+    private int GetQuantity(ShopItemData item)
+    {
+        return item != null && quantityResolver != null
+            ? Mathf.Max(0, quantityResolver(item))
+            : 0;
     }
 
     public void SelectItem(ShopItemData item)
@@ -307,11 +322,24 @@ public class ShopPanel : MonoBehaviour
         SetText(itemNameText, ShopItemPresentation.GetDisplayName(selectedItem));
         SetText(itemTypeText, ShopItemPresentation.GetTypeLabel(selectedItem));
         SetText(priceText, selectedItem != null ? "価格: " + selectedItem.price + "G" : string.Empty);
+        SetText(ownedQuantityText, GetOwnedStateText(selectedItem));
         SetText(descriptionText, ShopItemPresentation.GetDescription(selectedItem));
         SetText(requirementText, selectedItem != null
             ? ShopItemPresentation.GetRequirements(selectedItem) + "\n" + GetPurchaseStateMessage(selectedItem)
             : string.Empty);
         if (purchaseButton != null) purchaseButton.interactable = CanPurchase(selectedItem);
+    }
+
+    private string GetOwnedStateText(ShopItemData item)
+    {
+        if (item == null)
+        {
+            return string.Empty;
+        }
+
+        return item.isBattleConsumable
+            ? "所持数: " + GetQuantity(item)
+            : "所持状態: " + (IsPurchased(item) ? "購入済み" : "未所持");
     }
 
     private void RefreshSelectionColors()
@@ -410,6 +438,7 @@ public class ShopPanel : MonoBehaviour
         if (itemNameText == null) itemNameText = FindText("ItemNameText");
         if (itemTypeText == null) itemTypeText = FindText("ItemTypeText");
         if (priceText == null) priceText = FindText("PriceText");
+        if (ownedQuantityText == null) ownedQuantityText = FindText("OwnedQuantityText");
         if (descriptionText == null) descriptionText = FindText("DescriptionText");
         if (requirementText == null) requirementText = FindText("RequirementText");
         if (purchaseResultText == null) purchaseResultText = FindText("PurchaseResultText");

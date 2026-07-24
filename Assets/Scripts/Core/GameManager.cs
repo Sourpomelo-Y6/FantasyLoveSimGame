@@ -7568,6 +7568,7 @@ public class GameManager : MonoBehaviour
             MeetsShopItemPurchaseConditions,
             CanAffordShopItem,
             GetCurrentPlayerMoney,
+            GetShopItemQuantity,
             OnPurchaseDuoShoppingShopItem,
             OnCloseDuoShoppingShopPanel);
 
@@ -7599,6 +7600,11 @@ public class GameManager : MonoBehaviour
     {
         EnsureCoreStatusReferences();
         return playerStatus != null ? playerStatus.Money : 0;
+    }
+
+    private int GetShopItemQuantity(ShopItemData item)
+    {
+        return item != null ? GetItemQuantity(item.itemId) : 0;
     }
 
     private void OnCloseDuoShoppingShopPanel()
