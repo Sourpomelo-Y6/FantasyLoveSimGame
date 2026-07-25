@@ -10,7 +10,8 @@
 ### 現在の特徴
 
 - 行動ボタンは `会話` / `休む` / `散歩` / `お茶` / `贈り物`
-- 予定パネルから翌日の予定を設定できる
+- 予定パネルの週間・月間カレンダーから今後30日分の予定を設定・変更・キャンセルできる
+- 7日／30日の予定テンプレートを端末共通で複数保存し、別のゲームセーブからも利用できる
 - 予定パネルは戻るボタンで閉じる
 - 会話ジャンルは `Daily` / `Food` / `Adventure` / `Love`
 - 会話には `Simple` と `Choice` の 2 種類がある
@@ -32,7 +33,7 @@
 - 予定を翌日の具体イベントに変換する案2は、準備フェーズ付きで実装済み
 - 翌朝は今日の予定と着替え可能な準備メッセージを表示し、予定イベント本体は指定された時間帯に発動する
 - 予定イベント本体の直前は、衣装確認モードに応じて `このまま出発` / `着替える` を出し分ける
-- 予定画面は将来、今日・明日だけでなく7日／30日のカレンダー表示へ変更する。実行前キャンセルと、`Application.persistentDataPath` に保存する複数の名前付きテンプレートを追加し、テンプレートだけを別セーブスロットから共有する。詳細は `Docs/ScheduleUiExpansionPlan.md` を参照する
+- 予定画面は7日／30日のカレンダー表示、実行前キャンセル、`Application.persistentDataPath` に保存する複数の名前付きテンプレートまで実装済み。テンプレートはゲームセーブと分離され、別セーブスロットから共有できる。詳細は `Docs/ScheduleUiExpansionPlan.md` を参照する
 - 衣装確認モードは `Always` / `Conditional` / `Hidden` を想定しており、`Conditional` のときは今の衣装が予定に対して問題ない場合に確認を省略する
 - 衣装確認モードの利用可否は取得済み主人公スキルツリーノードから導出し、現在モードだけを `GameManager.playerOutfitPromptAbilities` に保持する
 - タイトルから新規ゲームを開始した直後に、メイン画面へ入る前のゲーム開始イベントを挟み、スチル表示もここで行う方針
@@ -106,7 +107,7 @@
 - 正式なプロジェクトバージョンは`ProjectSettings/ProjectVersion.txt`の`2021.3.45f2 (88f88f591b2e)`とする
 - CloneまたはPull後はUnity Hubから同じEditorバージョンを指定して開く
 - Editorバージョンを変更した場合は、`ProjectSettings/ProjectVersion.txt`も関連変更としてGitへコミットする
-- バージョン更新後はスクリプトの再コンパイルとEditMode Testを確認する。直近のテスト構成は114件なので、`2021.3.45f2`で初回起動した環境でも全114件の成功を確認する
+- バージョン更新後はスクリプトの再コンパイルとEditMode Test全件を確認する。テスト件数は追加実装で変わるため固定値を基準にせず、`2021.3.45f2`で失敗0件であることを確認する
 
 ## 作業分担ルール
 
@@ -488,7 +489,7 @@ Importer は完了時に copied images、catalog assets、layers、conversations
 - `HeroineAssetCatalog.asset` に画像の `assetId` と Sprite 参照が入っているか確認する
 - `Actions` に行動データと行動反応を用意する
 - `Conversations` にジャンル会話と条件付き会話を用意する
-- `GameEvents` に `GameStart` / `DayStart` / `Manual` イベントを用意する
+- `GameEvents` に `GameStart` / `DayStart` / `Manual` と、必要に応じて `ScheduledEventCompleted` / `ActionCompleted` / `LocationEntered` / `QuestCompleted` イベントを用意する。コンテキスト型では `triggerContextId` も設定する
 - `Endings` に `defaultEndingId` と一致する `EndingData` を用意する
 - 立ち絵は `Assets/Images/Heroines/<HeroineId>/Sprites/` に置く
 - イベントスチルは `Assets/Images/Heroines/<HeroineId>/Event/` に置き、`GameEventData` に割り当てる
@@ -712,6 +713,15 @@ UI デザインは手作業で行っています。
 
 ## 追加開発の優先候補
 
+タイトル画面のキービジュアルとデザイン、次のフィクション表記、BGM・SE、実音声を含めない
+ボイス再生基盤は今後の演出作業として `Docs/TitleAndAudioPresentationPlan.md` にまとめている。
+タイトル画面には「この作品はフィクションです。実在の人物･団体･事件とは一切関係がありません。」
+をTMPテキストで常時表示する。画像・音声参照が未設定でも例外なく無音・代替表示で動作させる。
+主要UI確定後は `Docs/UserManual/index.html` を入口とするスクリーンショット付きの
+ユーザー用説明書を作成する。新規ゲーム、画面の見方、会話、予定、訓練、戦闘、ショップ、
+セーブ・ロード、オプションまでを扱い、ブラウザーで直接閲覧できる構成にする。
+制作途中のテスト画像は使わず、採用済み画面の説明用スクリーンショットだけをGit管理する。
+
 データをまとめて確認するときは、Unity Editor の `FantasyLoveSim > Validation > Run All Validations` を使う。ヒロイン、会話、行動反応、ゲームイベント、エンディング、スキルツリー、ローカルのセーブデータ、訓練、敵、ショップを順番に検証し、各項目の調査アセット数と警告数、全体の警告数をダイアログへ表示する。個別に実行する場合は `FantasyLoveSim > Validation > Data` 配下から選ぶ。警告の詳細は Console に出る。戦闘・訓練・ショップの Balance Report は合否判定ではなく調整用の情報なので一括検証には含めない。
 
 好感度関連データは `FantasyLoveSim > Validation > Affection Data` から全ヒロイン分を検証できる。
@@ -733,6 +743,8 @@ Consoleの各警告には対象アセットが設定されるため、警告を�
 5. セーブ/ロードの強化
 6. メッセージ表示ウィンドウのクリック進行 ON/OFF オプション
 7. UI の見た目調整
+8. タイトル画面用画像・デザイン、フィクション表記、BGM・SE、ボイス再生基盤
+9. スクリーンショット付きHTMLユーザー説明書
 
 ## デバッグ時の確認項目
 

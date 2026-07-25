@@ -375,7 +375,10 @@ Unity 側の現行 UI は選択肢 3 件までのため、4 件以上ある場�
 `HeroineLayeredSpriteView` は実装済みで、現在衣装の `costumeId` と会話行の `expressionId` から表示レイヤーを選ぶ。
 指定衣装がなければ `Default`、指定表情がなければ `Neutral` へ fallback する。
 `Data/game_events_export.json` が存在する場合は、`Assets/Resources/Heroines/<HeroineId>/GameEvents/<EventId>.asset` を生成、更新する。
-`category` は `GameStart` / `DayStart` / `Manual` の `GameEventTriggerType` として扱い、未知の場合は warning を出して `Manual` とする。
+`category` は `GameStart` / `DayStart` / `Manual` / `ScheduledEventCompleted` /
+`ActionCompleted` / `LocationEntered` / `QuestCompleted` の `GameEventTriggerType` として扱い、
+未知の場合は warning を出して `Manual` とする。
+コンテキスト型のイベントでは `triggerContextId` も import し、空の場合は warning を出す。
 `lines[]` は `GameEventData.pages` に変換し、`lines[].expression` はイベントページの `expressionId` として保持する。
 `imageAssetIds[0]` は `HeroineAssetCatalog` から Sprite 解決し、最初のページのイベントスチルとして設定する。
 `Data/scheduled_events_export.json` が存在する場合は、`Assets/Resources/Heroines/<HeroineId>/ScheduledEvents/<ScheduledEvent>.asset` を生成、更新する。
@@ -442,7 +445,10 @@ Tool 側で先に作る最小機能:
 最初に Tool 側で実装する対象は `conversations_export.json` とする。
 Unity 側には既に最小 import があるため、Tool 側から export した JSON をそのまま Unity に取り込めるか確認しやすい。
 `game_events_export.json` の Unity import も対応済み。
-次は Tool 側でゲームイベント export を実データとして増やし、Unity 側で `GameStart` / `DayStart` / `Manual` の発火確認を進める。
+Tool側のゲームイベント編集・保存・exportと、Unity側のimportは対応済み。
+`GameStart` / `DayStart` / `Manual` に加え、コンテキスト型の `triggerContextId` も往復できる。
+予定完了イベントはUnityの実行経路へ接続済みで、行動・場所・クエスト完了イベントは
+各ゲーム進行機能を実装するときに発火元へ接続する。
 
 各 JSON は次の共通項目を持つ。
 

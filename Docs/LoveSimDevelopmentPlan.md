@@ -28,7 +28,7 @@
 | メイン画面 | `MainScene` |
 | 会話 | `Daily` / `Food` / `Adventure` / `Love` |
 | 日常行動 | `会話` / `休む` / `散歩` / `お茶` / `贈り物` |
-| 予定システム | 予定パネルで翌日の予定を選択し、保存・復元できる |
+| 予定システム | 週間・月間表示で今後30日分を設定・変更・キャンセルし、7日／30日の端末共通テンプレートを保存・適用できる |
 | 選択肢会話 | 2〜3択で好感度変化 |
 | 行動反応 | 天候・時間帯・季節・好感度で差分を切り替え |
 | 衣装システム | 着用中の衣装に対する反応と評価を保存 |
@@ -36,7 +36,7 @@
 | 好感度 | 0〜9999。従来の値を10倍した整数尺度を使い、1000を従来の100相当として扱う |
 | 行動HP効果 | `ActionData` / `ActionReactionData` の `playerHpChange` と `heroineHpChange` で HP を増減できる。`休む` はプレイヤーとヒロインの HP を 20 回復する |
 | 背景切り替え | 時間帯・天候に応じて背景 Sprite を切り替え |
-| ゲームイベント | `GameStart` / `DayStart` / `Manual` の汎用イベント |
+| ゲームイベント | `GameStart` / `DayStart` / `Manual` と、予定・行動・場所・クエスト完了時のコンテキストイベント |
 | スチル回想 | 解放済み・未解放スチルを一覧表示 |
 | メッセージログ | セッション中の直近メッセージを表示 |
 | タイトルキャラクター選択 | `Resources.LoadAll<HeroineProfileData>("Heroines")` で候補を列挙し、新規ゲーム開始時のヒロインを選べる |
@@ -58,6 +58,8 @@
 3. 立ち絵変更と表情差分
 4. セーブ/ロード回帰確認とUI補強（正規化、保存データ検証、主要状態のJSON往復テストを実装済み）
 5. 訓練、戦闘、ショップのデータ追加と調整
+6. タイトル画面用画像とレイアウト、フィクション表記、BGM・SE、音声データなしで動くボイス再生基盤の追加（詳細は `Docs/TitleAndAudioPresentationPlan.md`）
+7. 主要UI確定後に、操作方法をまとめたスクリーンショット付きHTMLユーザー説明書を作成する
 
 訓練・敵・ショップのデータ追加前には、Unity Editorの `FantasyLoveSim > Validation > Data > Training Data / Enemy Data / Shop Data` を実行する。ID、数値範囲、訓練セリフ・画像・スキルツリー、探索先の敵、商品カタログ・前提商品・解放衣装の参照をまとめて確認できる。未カタログ商品はテスト用・将来用データとして許容する。通常の全データ確認には `FantasyLoveSim > Validation > Run All Validations` を使い、10種類の検証結果と合計警告数を一度に確認する。個別検証は `Validation > Data` 配下にまとめる。Balance Report群は調整用であり、一括検証の合否には含めない。
 
@@ -320,7 +322,7 @@ AssetTool の `sprite_layers_export.json` は importer で `HeroineLayeredSprite
 ### GameEventData
 
 タイトルから新規ゲームを開始した直後の導入や、今後の汎用イベントは `GameEventData` で管理する。
-対象ヒロインの `gameEventResourcePath` 配下に置き、`triggerType` で `GameStart` / `DayStart` / `Manual` を分ける。
+対象ヒロインの `gameEventResourcePath` 配下に置き、`triggerType` で開始契機を分ける。
 ページごとに話者、メッセージ、必要ならスチルを持ち、`showOnce` は `shownGameEventIds` でセーブデータに保存する。
 `TestManualEvent` は `Manual` / `showOnce=false` の確認用イベントで、システム・ヒロイン・予定・衣装の話者表示とスチル表示をまとめて確認するために使う。
 
@@ -341,6 +343,14 @@ AssetTool の `sprite_layers_export.json` は importer で `HeroineLayeredSprite
 - `GameStart`: 新規開始時に一度だけ見る導入イベント。基本は `showOnce=true`
 - `DayStart`: 翌朝に自動で混ぜるイベント。条件付きイベントを増やす場合は発生条件フィールドを追加する
 - `Manual`: デバッグ確認、テスト再生、将来の任意起動イベントに使う。確認用は `showOnce=false`
+- `ScheduledEventCompleted`: 予定の実行完了後に起動する。`triggerContextId` には探索先IDまたは `ScheduleType` 名を指定する
+- `ActionCompleted`: 日常行動の完了後に起動する。`triggerContextId` には行動IDを指定する
+- `LocationEntered`: 場所へ入ったときに起動する。`triggerContextId` には場所IDを指定する
+- `QuestCompleted`: クエスト完了後に起動する。`triggerContextId` にはクエストIDを指定する
+
+後者4種類は `triggerContextId` が必須で、比較時は大文字小文字を区別しない。
+現在ゲーム進行へ接続済みなのは `ScheduledEventCompleted` で、他3種類はデータ契約と検証を
+先行して用意している。
 
 `GameEventData` には発生条件フィールドを追加済み。
 イベント数が増えても「何日目以降」「好感度いくつ以上」「特定イベントを見た後」などを ScriptableObject 側で指定できる。
@@ -701,7 +711,7 @@ UI は Canvas 配下へ手動配置し、`panelRoot`、一覧親、ボタン Pre
 
 これは「予定を翌日に自動実行する」ための仕組みで、現在は準備フェーズ付きで実装済み。
 予定イベントは `Assets/Resources/Heroines/<HeroineId>/ScheduledEvents/` の `ScheduledEventData` アセットで管理する。
-現在の今日・明日だけの予定設定は、週間／月間カレンダー、実行前キャンセル、複数テンプレート、別セーブスロット共有へ拡張する方針。詳細とセーブ移行は `Docs/ScheduleUiExpansionPlan.md` を参照する。
+週間／月間カレンダー、実行前キャンセル、複数テンプレート、別セーブスロット共有は実装済み。詳細とセーブ移行は `Docs/ScheduleUiExpansionPlan.md` を参照する。
 `HeroineProfileData.scheduledEventResourcePath` を優先して読み、該当 `ScheduleType` がない場合だけ `Assets/Resources/ScheduledEvents/` の共通データをフォールバックとして使う。
 `ActionId` は既存の `ActionData` と分けて、予約実行専用の内部 ID として扱っている。
 予定イベント本文の話者は `eventSpeakerType` で `Heroine` / `System` / `Schedule` / `Outfit` から選べる。
