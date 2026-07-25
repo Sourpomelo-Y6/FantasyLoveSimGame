@@ -264,6 +264,7 @@ public static class GameplayDataValidator
                 report.Warn("itemId が重複しています: " + item.itemId, item);
             RequireText(item.displayName, "displayName", item, report);
             WarnNegative(item.price, "price", item, report);
+            WarnNegative(item.maxOwnedQuantity, "maxOwnedQuantity", item, report);
             WarnNegative(item.mpRecoveryAmount, "mpRecoveryAmount", item, report);
             WarnNegative(item.hpRecoveryAmount, "hpRecoveryAmount", item, report);
             WarnNegative(item.requiredAffection, "requiredAffection", item, report);

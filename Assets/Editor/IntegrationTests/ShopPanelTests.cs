@@ -245,6 +245,44 @@ public class ShopPanelTests
     }
 
     [Test]
+    public void CappedConsumable_BecomesPurchasableAfterQuantityDrops()
+    {
+        ShopItemData consumable = CreateItem("Potion", "回復薬", 100);
+        consumable.isBattleConsumable = true;
+        consumable.maxOwnedQuantity = 9;
+        int quantity = 9;
+        Open(
+            new[] { consumable },
+            getQuantity: _ => quantity,
+            onPurchased: _ =>
+            {
+                quantity++;
+                return "購入しました。";
+            });
+
+        Assert.That(purchaseButton.interactable, Is.False);
+        Assert.That(ownedQuantityText.text, Is.EqualTo("所持数: 9 / 9"));
+        Assert.That(requirementText.text, Does.Contain("所持上限に達しています。"));
+        Assert.That(GetButtonText(GetGeneratedButtons()[0]), Does.Contain("所持: 9 / 9 / 上限"));
+
+        quantity = 8;
+        Open(
+            new[] { consumable },
+            getQuantity: _ => quantity,
+            onPurchased: _ =>
+            {
+                quantity++;
+                return "購入しました。";
+            });
+
+        Assert.That(purchaseButton.interactable, Is.True);
+        purchaseButton.onClick.Invoke();
+        Assert.That(quantity, Is.EqualTo(9));
+        Assert.That(purchaseButton.interactable, Is.False);
+        Assert.That(ownedQuantityText.text, Is.EqualTo("所持数: 9 / 9"));
+    }
+
+    [Test]
     public void Open_WithoutPurchaseButton_PreservesImmediatePurchaseBehavior()
     {
         ShopItemData item = CreateItem("Potion", "回復薬", 100);

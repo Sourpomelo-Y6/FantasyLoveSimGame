@@ -7735,13 +7735,22 @@ public class GameManager : MonoBehaviour
 
         if (selectedShopItem != null && selectedShopItem.isBattleConsumable)
         {
+            int currentQuantity = GetItemQuantity(itemId);
+            if (selectedShopItem.maxOwnedQuantity > 0 &&
+                currentQuantity >= selectedShopItem.maxOwnedQuantity)
+            {
+                return AppendLine(
+                    baseMessage,
+                    itemName + " は所持上限に達しています。所持数：" +
+                    currentQuantity + " / " + selectedShopItem.maxOwnedQuantity);
+            }
+
             if (!playerStatus.TrySpendMoney(itemPrice))
             {
                 return AppendLine(baseMessage, "所持金が足りません。現在の所持金：" + playerStatus.Money);
             }
 
-            itemQuantities.TryGetValue(itemId, out int quantity);
-            itemQuantities[itemId] = quantity + 1;
+            itemQuantities[itemId] = currentQuantity + 1;
             return AppendLine(baseMessage, itemName + " を購入しました。所持数：" + itemQuantities[itemId] + " / 所持金：" + playerStatus.Money);
         }
 

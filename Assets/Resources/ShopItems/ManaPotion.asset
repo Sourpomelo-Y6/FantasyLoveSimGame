@@ -9,6 +9,7 @@ MonoBehaviour:
   displayName: マナポーション
   price: 50
   isBattleConsumable: 1
+  maxOwnedQuantity: 9
   mpRecoveryAmount: 10
   requiredAffection: 0
   requiredDay: 0

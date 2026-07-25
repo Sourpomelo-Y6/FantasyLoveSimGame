@@ -12,6 +12,8 @@ public class ShopItemData : ScriptableObject
 
     [Header("Battle Consumable")]
     public bool isBattleConsumable;
+    [Tooltip("0なら所持数無制限。1以上ならこの数に達すると購入できません。")]
+    [Min(0)] public int maxOwnedQuantity;
     [Min(0)] public int mpRecoveryAmount;
     [Min(0)] public int hpRecoveryAmount;
 

@@ -102,7 +102,7 @@
 - 正式なプロジェクトバージョンは`ProjectSettings/ProjectVersion.txt`の`2021.3.45f2 (88f88f591b2e)`とする
 - CloneまたはPull後はUnity Hubから同じEditorバージョンを指定して開く
 - Editorバージョンを変更した場合は、`ProjectSettings/ProjectVersion.txt`も関連変更としてGitへコミットする
-- バージョン更新後はスクリプトの再コンパイルとEditMode Testを確認する。直近のテスト構成は112件なので、`2021.3.45f2`で初回起動した環境でも全112件の成功を確認する
+- バージョン更新後はスクリプトの再コンパイルとEditMode Testを確認する。直近のテスト構成は114件なので、`2021.3.45f2`で初回起動した環境でも全114件の成功を確認する
 
 ## 作業分担ルール
 
@@ -579,14 +579,15 @@ AssetTool側は `usage = Training`、`Images/Training/`、`training_images_expor
 `DuoShoppingCatalog.asset` には季節衣装4件とHP・MPポーションを登録済み。既存の `ShoppingTestItem_01` はカタログ外の互換用単体テスト商品として残している。`FantasyLoveSim > Validation > Shop Balance Report` で価格・日数・好感度・前提商品と季節衣装の合計価格を確認できる。
 `ShopPanel` は商品一覧と詳細確認を分離できる。`PurchaseButton` が割り当てられている場合、商品ボタンは購入せず選択だけを行い、商品名、種別、価格、説明、購入条件、購入可否を詳細欄へ表示してから購入ボタンで確定する。購入済み・条件未達・所持金不足の商品も選択して理由を確認できる。購入後は商品一覧、選択状態、所持金、詳細欄を更新する。詳細UIが未配置で `PurchaseButton` がない場合は、既存Sceneとの互換性のため商品ボタンによる即購入を維持する。`ShopItemData.description` が空なら回復量や解放衣装から説明を生成する。
 `OwnedQuantityText` は消耗品なら現在の所持数、衣装など一度だけ購入する商品なら未所持・購入済みを表示する。消耗品の所持数は商品一覧にも表示し、購入直後に一覧と詳細の両方を更新する。
+戦闘消耗品の `maxOwnedQuantity` は0なら無制限、1以上なら最大所持数として扱う。上限時は購入ボタンを無効化して理由を表示し、戦闘使用後に数量が下がれば再購入できる。既存セーブで上限を超えている数量は削除せず、追加購入だけを止める。HP・MPポーションの上限は各9個。
 `SaveDataRegressionTests` は複数の消耗品所持数、戦闘使用後の数量、重複ID・負数・空ID・数量0の正規化を検証する。同じ商品IDが複数ある旧データは後の値を採用し、負数は0、空IDは除外する。
 商品購入時に解放された衣装 ID は `SaveData.unlockedOutfitIds` に保存し、`OutfitManager` の着用可否判定に渡す。
 春夏秋冬の衣装アセットは手作業で `isUnlockedByDefault=false` に変更済み。購入解放された衣装は好感度条件を無視して着用できる。
 未購入の衣装は好感度不足ではなく未所持として扱う。購入前の春夏秋冬など `isUnlockedByDefault=false` かつ `unlockedOutfitIds` に含まれない衣装は、DressUp の衣装ボタンを表示しない方針にする。
 `lockedMessage` は好感度やイベント条件など、存在は見えているが条件不足で着られない場合に限定する。
-商品一覧と詳細表示を分けるUIは `MainScene` に配置済み。`ShopItemList` は `ScrollRect.Content` に設定し、`Viewport` の `RectMask2D` で表示領域外を隠す。選択中の商品ボタンは通常・ホバー・押下・選択の全状態へ選択色を適用する。商品数が増えた段階で、衣装、消耗品、イベント用アイテムなどのカテゴリ分けやフィルタを追加する。
+商品一覧と詳細表示を分けるUIは `MainScene` に配置済み。`ShopItemList` は `ScrollRect.Content` に設定し、`Viewport` の `RectMask2D` で表示領域外を隠す。選択中の商品ボタンは通常・ホバー・押下・選択の全状態へ選択色を適用する。カテゴリ分けは、すべて・衣装・消耗品・その他の4種類を実装済み。
 `AllCategoryButton`、`OutfitCategoryButton`、`ConsumableCategoryButton`、`OtherCategoryButton` を配置すると、すべて・衣装・消耗品・その他で商品を絞り込める。Shopを開いた直後はすべてを表示し、カテゴリ切替時は先頭商品を選択する。購入後も現在のカテゴリを維持し、該当商品がないカテゴリでは詳細欄を空にする。カテゴリUIが未配置のSceneでは従来どおり全商品を表示する。
-`ShopPanelTests` は先頭商品の自動選択、詳細切替、選択色、購入可否、購入後の再描画、旧即購入動作を検証する。次に進める場合は、商品ごとの価格差、購入条件、ショップの在庫表示を検討する。
+`ShopPanelTests` は先頭商品の自動選択、詳細切替、選択色、カテゴリ絞り込み、購入可否、最大所持数、購入後の再描画、旧即購入動作を検証する。次に進める場合は、商品データの追加や価格・条件のバランス調整を検討する。
 
 ### 会話を増やす
 

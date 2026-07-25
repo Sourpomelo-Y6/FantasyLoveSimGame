@@ -7,6 +7,7 @@ MonoBehaviour:
   displayName: ヒールポーション
   price: 50
   isBattleConsumable: 1
+  maxOwnedQuantity: 9
   mpRecoveryAmount: 0
   hpRecoveryAmount: 20
   requiredAffection: 0

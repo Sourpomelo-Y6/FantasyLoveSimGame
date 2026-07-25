@@ -275,7 +275,11 @@ public class ShopPanel : MonoBehaviour
 
         if (item != null && item.isBattleConsumable)
         {
-            label += " / 所持: " + GetQuantity(item);
+            label += " / 所持: " + GetQuantityLabel(item);
+            if (IsAtOwnedLimit(item))
+            {
+                label += " / 上限";
+            }
         }
         else if (IsPurchased(item))
         {
@@ -319,6 +323,22 @@ public class ShopPanel : MonoBehaviour
         return item != null && quantityResolver != null
             ? Mathf.Max(0, quantityResolver(item))
             : 0;
+    }
+
+    private string GetQuantityLabel(ShopItemData item)
+    {
+        int quantity = GetQuantity(item);
+        return item != null && item.maxOwnedQuantity > 0
+            ? quantity + " / " + item.maxOwnedQuantity
+            : quantity.ToString();
+    }
+
+    private bool IsAtOwnedLimit(ShopItemData item)
+    {
+        return item != null &&
+            item.isBattleConsumable &&
+            item.maxOwnedQuantity > 0 &&
+            GetQuantity(item) >= item.maxOwnedQuantity;
     }
 
     public void SelectItem(ShopItemData item)
@@ -392,13 +412,18 @@ public class ShopPanel : MonoBehaviour
 
     private bool CanPurchase(ShopItemData item)
     {
-        return item != null && !IsPurchased(item) && MeetsCondition(item) && CanAfford(item);
+        return item != null &&
+            !IsPurchased(item) &&
+            !IsAtOwnedLimit(item) &&
+            MeetsCondition(item) &&
+            CanAfford(item);
     }
 
     private string GetPurchaseStateMessage(ShopItemData item)
     {
         if (item == null) return "商品を選択してください。";
         if (IsPurchased(item)) return "購入済みです。";
+        if (IsAtOwnedLimit(item)) return "所持上限に達しています。";
         if (!MeetsCondition(item)) return "購入条件を満たしていません。";
         if (!CanAfford(item)) return "所持金が不足しています。";
         return "購入できます。";
@@ -427,7 +452,7 @@ public class ShopPanel : MonoBehaviour
         }
 
         return item.isBattleConsumable
-            ? "所持数: " + GetQuantity(item)
+            ? "所持数: " + GetQuantityLabel(item)
             : "所持状態: " + (IsPurchased(item) ? "購入済み" : "未所持");
     }
 

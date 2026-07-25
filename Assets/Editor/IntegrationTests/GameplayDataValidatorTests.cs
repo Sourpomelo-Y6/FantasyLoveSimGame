@@ -102,6 +102,7 @@ public class GameplayDataValidatorTests
         item.displayName = "";
         item.price = -1;
         item.isBattleConsumable = true;
+        item.maxOwnedQuantity = -1;
         item.requiredPurchasedItemIds.Add("Potion");
         item.unlockedOutfitIds.Add("MissingOutfit");
 
@@ -115,6 +116,7 @@ public class GameplayDataValidatorTests
         string[] warnings = report.Warnings.Select(value => value.Message).ToArray();
         Assert.That(warnings.Any(value => value.Contains("displayName")), Is.True);
         Assert.That(warnings.Any(value => value.Contains("price")), Is.True);
+        Assert.That(warnings.Any(value => value.Contains("maxOwnedQuantity")), Is.True);
         Assert.That(warnings.Any(value => value.Contains("回復量")), Is.True);
         Assert.That(warnings.Any(value => value.Contains("自分自身")), Is.True);
         Assert.That(warnings.Any(value => value.Contains("存在しないID")), Is.True);
@@ -153,6 +155,18 @@ public class GameplayDataValidatorTests
         Assert.That(
             catalog.items.Where(item => item != null).Select(item => item.itemId),
             Does.Not.Contain("ShoppingTestItem_01"));
+    }
+
+    [Test]
+    public void BattleConsumables_HaveExpectedOwnedLimit()
+    {
+        ShopItemData healPotion = LoadShopItem("HealPotion");
+        ShopItemData manaPotion = LoadShopItem("ManaPotion");
+
+        Assert.That(healPotion.isBattleConsumable, Is.True);
+        Assert.That(manaPotion.isBattleConsumable, Is.True);
+        Assert.That(healPotion.maxOwnedQuantity, Is.EqualTo(9));
+        Assert.That(manaPotion.maxOwnedQuantity, Is.EqualTo(9));
     }
 
     private static ShopItemData[] SeasonalOutfits()
