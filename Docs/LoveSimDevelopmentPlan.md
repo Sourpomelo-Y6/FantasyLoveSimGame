@@ -60,6 +60,7 @@
 5. 訓練、戦闘、ショップのデータ追加と調整
 6. タイトル画面用画像とレイアウト、フィクション表記、BGM・SE、音声データなしで動くボイス再生基盤の追加（詳細は `Docs/TitleAndAudioPresentationPlan.md`）
 7. 主要UI確定後に、操作方法をまとめたスクリーンショット付きHTMLユーザー説明書を作成する
+8. `1920 x 1080`を基準に複数解像度と4:3／16:10表示を確認し、Canvas設定とUI配置を整理する（詳細は `Docs/DisplayAndResolutionPlan.md`）
 
 訓練・敵・ショップのデータ追加前には、Unity Editorの `FantasyLoveSim > Validation > Data > Training Data / Enemy Data / Shop Data` を実行する。ID、数値範囲、訓練セリフ・画像・スキルツリー、探索先の敵、商品カタログ・前提商品・解放衣装の参照をまとめて確認できる。未カタログ商品はテスト用・将来用データとして許容する。通常の全データ確認には `FantasyLoveSim > Validation > Run All Validations` を使い、10種類の検証結果と合計警告数を一度に確認する。個別検証は `Validation > Data` 配下にまとめる。Balance Report群は調整用であり、一括検証の合否には含めない。
 

@@ -18,6 +18,7 @@
 - [`StatusAndAchievementUiReorganizationPlan.md`](StatusAndAchievementUiReorganizationPlan.md): 状態・実績画面
 - [`GameEventDataGuide.md`](GameEventDataGuide.md): ゲームイベントのトリガーとデータ契約
 - [`SaveDataAndLocalFiles.md`](SaveDataAndLocalFiles.md): セーブデータと端末共通ファイル
+- [`DisplayAndResolutionPlan.md`](DisplayAndResolutionPlan.md): 解像度、画面比率、Canvas設定の方針
 - [`ReleaseChecklist.md`](ReleaseChecklist.md): 配布前の確認
 
 ## 制作・将来計画
@@ -43,3 +44,7 @@
 - セーブ形式、JSON schema、固定IDを変えた場合は移行方法も同じ変更で記録する
 - UI名を変えた場合はREADME、Handoff、HTMLユーザー説明書の該当箇所を検索する
 - ローカル画像・フォント・音声の実ファイルは、権利とGit方針を確認してから追加する
+
+## 手動追加メモ
+
+- 画面表示と解像度の対応方針は [`DisplayAndResolutionPlan.md`](DisplayAndResolutionPlan.md) に整理済み
