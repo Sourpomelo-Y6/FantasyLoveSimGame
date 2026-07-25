@@ -16,6 +16,10 @@ public class ShopPanelTests
     private Transform listParent;
     private Button itemButtonPrefab;
     private Button purchaseButton;
+    private Button allCategoryButton;
+    private Button outfitCategoryButton;
+    private Button consumableCategoryButton;
+    private Button otherCategoryButton;
     private TextMeshProUGUI moneyText;
     private TextMeshProUGUI itemNameText;
     private TextMeshProUGUI ownedQuantityText;
@@ -33,6 +37,10 @@ public class ShopPanelTests
         itemButtonPrefab = CreateButton("ShopItemButtonPrefab", root.transform);
         itemButtonPrefab.gameObject.SetActive(false);
         purchaseButton = CreateButton("PurchaseButton", root.transform);
+        allCategoryButton = CreateButton("AllCategoryButton", root.transform);
+        outfitCategoryButton = CreateButton("OutfitCategoryButton", root.transform);
+        consumableCategoryButton = CreateButton("ConsumableCategoryButton", root.transform);
+        otherCategoryButton = CreateButton("OtherCategoryButton", root.transform);
         moneyText = CreateText("MoneyText", root.transform);
         itemNameText = CreateText("ItemNameText", root.transform);
         ownedQuantityText = CreateText("OwnedQuantityText", root.transform);
@@ -43,6 +51,10 @@ public class ShopPanelTests
         SetField("listParent", listParent);
         SetField("itemButtonPrefab", itemButtonPrefab);
         SetField("purchaseButton", purchaseButton);
+        SetField("allCategoryButton", allCategoryButton);
+        SetField("outfitCategoryButton", outfitCategoryButton);
+        SetField("consumableCategoryButton", consumableCategoryButton);
+        SetField("otherCategoryButton", otherCategoryButton);
         SetField("moneyText", moneyText);
         SetField("itemNameText", itemNameText);
         SetField("ownedQuantityText", ownedQuantityText);
@@ -172,6 +184,64 @@ public class ShopPanelTests
         GetGeneratedButtons()[1].onClick.Invoke();
 
         Assert.That(ownedQuantityText.text, Is.EqualTo("所持状態: 購入済み"));
+    }
+
+    [Test]
+    public void CategoryButtons_FilterItemsAndSelectFirstMatchingItem()
+    {
+        ShopItemData consumable = CreateItem("Potion", "回復薬", 100);
+        consumable.isBattleConsumable = true;
+        ShopItemData outfit = CreateItem("SpringOutfit", "春服", 200);
+        outfit.unlockedOutfitIds.Add("Spring");
+        ShopItemData other = CreateItem("KeyItem", "鍵", 50);
+        Open(new[] { consumable, outfit, other });
+
+        outfitCategoryButton.onClick.Invoke();
+
+        Assert.That(GetGeneratedButtons(), Has.Count.EqualTo(1));
+        Assert.That(itemNameText.text, Is.EqualTo("春服"));
+        Assert.That(outfitCategoryButton.colors.normalColor, Is.EqualTo(selectedColor));
+        Assert.That(allCategoryButton.colors.normalColor, Is.Not.EqualTo(selectedColor));
+
+        consumableCategoryButton.onClick.Invoke();
+
+        Assert.That(GetGeneratedButtons(), Has.Count.EqualTo(1));
+        Assert.That(itemNameText.text, Is.EqualTo("回復薬"));
+
+        otherCategoryButton.onClick.Invoke();
+
+        Assert.That(GetGeneratedButtons(), Has.Count.EqualTo(1));
+        Assert.That(itemNameText.text, Is.EqualTo("鍵"));
+
+        allCategoryButton.onClick.Invoke();
+
+        Assert.That(GetGeneratedButtons(), Has.Count.EqualTo(3));
+    }
+
+    [Test]
+    public void PurchaseSelectedItem_PreservesCurrentCategory()
+    {
+        ShopItemData consumable = CreateItem("Potion", "回復薬", 100);
+        consumable.isBattleConsumable = true;
+        ShopItemData outfit = CreateItem("SpringOutfit", "春服", 200);
+        outfit.unlockedOutfitIds.Add("Spring");
+        int quantity = 0;
+        Open(
+            new[] { consumable, outfit },
+            getQuantity: _ => quantity,
+            onPurchased: _ =>
+            {
+                quantity++;
+                return "購入しました。";
+            });
+        consumableCategoryButton.onClick.Invoke();
+
+        purchaseButton.onClick.Invoke();
+
+        Assert.That(GetGeneratedButtons(), Has.Count.EqualTo(1));
+        Assert.That(itemNameText.text, Is.EqualTo("回復薬"));
+        Assert.That(ownedQuantityText.text, Is.EqualTo("所持数: 1"));
+        Assert.That(consumableCategoryButton.colors.normalColor, Is.EqualTo(selectedColor));
     }
 
     [Test]

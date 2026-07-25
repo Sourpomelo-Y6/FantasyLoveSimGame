@@ -102,7 +102,7 @@
 - 正式なプロジェクトバージョンは`ProjectSettings/ProjectVersion.txt`の`2021.3.45f2 (88f88f591b2e)`とする
 - CloneまたはPull後はUnity Hubから同じEditorバージョンを指定して開く
 - Editorバージョンを変更した場合は、`ProjectSettings/ProjectVersion.txt`も関連変更としてGitへコミットする
-- バージョン更新後はスクリプトの再コンパイルとEditMode Testを確認する。直近のテスト構成は110件なので、`2021.3.45f2`で初回起動した環境でも全110件の成功を確認する
+- バージョン更新後はスクリプトの再コンパイルとEditMode Testを確認する。直近のテスト構成は112件なので、`2021.3.45f2`で初回起動した環境でも全112件の成功を確認する
 
 ## 作業分担ルール
 
@@ -585,6 +585,7 @@ AssetTool側は `usage = Training`、`Images/Training/`、`training_images_expor
 未購入の衣装は好感度不足ではなく未所持として扱う。購入前の春夏秋冬など `isUnlockedByDefault=false` かつ `unlockedOutfitIds` に含まれない衣装は、DressUp の衣装ボタンを表示しない方針にする。
 `lockedMessage` は好感度やイベント条件など、存在は見えているが条件不足で着られない場合に限定する。
 商品一覧と詳細表示を分けるUIは `MainScene` に配置済み。`ShopItemList` は `ScrollRect.Content` に設定し、`Viewport` の `RectMask2D` で表示領域外を隠す。選択中の商品ボタンは通常・ホバー・押下・選択の全状態へ選択色を適用する。商品数が増えた段階で、衣装、消耗品、イベント用アイテムなどのカテゴリ分けやフィルタを追加する。
+`AllCategoryButton`、`OutfitCategoryButton`、`ConsumableCategoryButton`、`OtherCategoryButton` を配置すると、すべて・衣装・消耗品・その他で商品を絞り込める。Shopを開いた直後はすべてを表示し、カテゴリ切替時は先頭商品を選択する。購入後も現在のカテゴリを維持し、該当商品がないカテゴリでは詳細欄を空にする。カテゴリUIが未配置のSceneでは従来どおり全商品を表示する。
 `ShopPanelTests` は先頭商品の自動選択、詳細切替、選択色、購入可否、購入後の再描画、旧即購入動作を検証する。次に進める場合は、商品ごとの価格差、購入条件、ショップの在庫表示を検討する。
 
 ### 会話を増やす

@@ -6,6 +6,14 @@ using UnityEngine.UI;
 
 public class ShopPanel : MonoBehaviour
 {
+    private enum ShopCategory
+    {
+        All,
+        Outfit,
+        Consumable,
+        Other
+    }
+
     [SerializeField] private GameManager gameManager;
     [SerializeField] private GameObject panelRoot;
     [SerializeField] private TextMeshProUGUI titleText;
@@ -24,6 +32,12 @@ public class ShopPanel : MonoBehaviour
     [SerializeField] private Button purchaseButton;
     [SerializeField] private Color selectedButtonColor = new Color(1f, 0.85f, 0.35f, 1f);
 
+    [Header("Categories")]
+    [SerializeField] private Button allCategoryButton;
+    [SerializeField] private Button outfitCategoryButton;
+    [SerializeField] private Button consumableCategoryButton;
+    [SerializeField] private Button otherCategoryButton;
+
     [Header("Controls")]
     [SerializeField] private Button closeButton;
     [SerializeField] private string title = "買い物";
@@ -39,10 +53,13 @@ public class ShopPanel : MonoBehaviour
     private Action closed;
     private IReadOnlyList<ShopItemData> currentItems;
     private ShopItemData selectedItem;
+    private ShopCategory currentCategory = ShopCategory.All;
     private readonly Dictionary<Button, ColorBlock> originalButtonColors =
         new Dictionary<Button, ColorBlock>();
     private readonly Dictionary<Button, ShopItemData> itemsByButton =
         new Dictionary<Button, ShopItemData>();
+    private readonly Dictionary<Button, ColorBlock> originalCategoryButtonColors =
+        new Dictionary<Button, ColorBlock>();
 
     private void Awake()
     {
@@ -76,6 +93,7 @@ public class ShopPanel : MonoBehaviour
         closed = onClosed;
         currentItems = items;
         selectedItem = null;
+        currentCategory = ShopCategory.All;
 
         if (titleText != null)
         {
@@ -126,16 +144,22 @@ public class ShopPanel : MonoBehaviour
     {
         ClearItems();
 
-        bool hasItems = items != null && items.Count > 0;
+        List<ShopItemData> displayItems = GetDisplayItems(items);
+        bool hasItems = displayItems.Count > 0;
         if (emptyText != null)
         {
             emptyText.gameObject.SetActive(!hasItems);
-            emptyText.text = emptyMessage;
+            emptyText.text = items != null && items.Count > 0
+                ? "このカテゴリに商品はありません。"
+                : emptyMessage;
         }
 
         if (!hasItems || listParent == null || itemButtonPrefab == null)
         {
-            if (hasItems)
+            selectedItem = null;
+            RefreshDetails();
+            RefreshCategoryButtonColors();
+            if (hasItems && (listParent == null || itemButtonPrefab == null))
             {
                 Debug.LogWarning("ShopPanel の listParent または itemButtonPrefab が設定されていません。");
             }
@@ -143,7 +167,6 @@ public class ShopPanel : MonoBehaviour
             return;
         }
 
-        List<ShopItemData> displayItems = GetDisplayItems(items);
         foreach (ShopItemData item in displayItems)
         {
             CreateItemButton(item);
@@ -157,6 +180,8 @@ public class ShopPanel : MonoBehaviour
         {
             RefreshDetails();
         }
+
+        RefreshCategoryButtonColors();
     }
 
     private List<ShopItemData> GetDisplayItems(IReadOnlyList<ShopItemData> items)
@@ -176,6 +201,11 @@ public class ShopPanel : MonoBehaviour
                 continue;
             }
 
+            if (!MatchesCurrentCategory(item))
+            {
+                continue;
+            }
+
             if (IsPurchased(item))
             {
                 purchasedItems.Add(item);
@@ -188,6 +218,27 @@ public class ShopPanel : MonoBehaviour
 
         displayItems.AddRange(purchasedItems);
         return displayItems;
+    }
+
+    private bool MatchesCurrentCategory(ShopItemData item)
+    {
+        if (currentCategory == ShopCategory.All)
+        {
+            return true;
+        }
+
+        if (currentCategory == ShopCategory.Consumable)
+        {
+            return item.isBattleConsumable;
+        }
+
+        bool isOutfit = item.GetUnlockedOutfitIds().Count > 0;
+        if (currentCategory == ShopCategory.Outfit)
+        {
+            return !item.isBattleConsumable && isOutfit;
+        }
+
+        return !item.isBattleConsumable && !isOutfit;
     }
 
     private void CreateItemButton(ShopItemData item)
@@ -283,6 +334,44 @@ public class ShopPanel : MonoBehaviour
         PurchaseItem(selectedItem);
     }
 
+    public void ShowAllCategory()
+    {
+        SetCategory(ShopCategory.All);
+    }
+
+    public void ShowOutfitCategory()
+    {
+        SetCategory(ShopCategory.Outfit);
+    }
+
+    public void ShowConsumableCategory()
+    {
+        SetCategory(ShopCategory.Consumable);
+    }
+
+    public void ShowOtherCategory()
+    {
+        SetCategory(ShopCategory.Other);
+    }
+
+    private void SetCategory(ShopCategory category)
+    {
+        if (currentCategory == category)
+        {
+            RefreshCategoryButtonColors();
+            return;
+        }
+
+        currentCategory = category;
+        selectedItem = null;
+        if (purchaseResultText != null)
+        {
+            purchaseResultText.text = string.Empty;
+        }
+
+        RefreshItems(currentItems);
+    }
+
     private void PurchaseItem(ShopItemData item)
     {
         if (!CanPurchase(item))
@@ -361,6 +450,38 @@ public class ShopPanel : MonoBehaviour
 
             button.colors = colors;
         }
+    }
+
+    private void RefreshCategoryButtonColors()
+    {
+        SetCategoryButtonColor(allCategoryButton, currentCategory == ShopCategory.All);
+        SetCategoryButtonColor(outfitCategoryButton, currentCategory == ShopCategory.Outfit);
+        SetCategoryButtonColor(consumableCategoryButton, currentCategory == ShopCategory.Consumable);
+        SetCategoryButtonColor(otherCategoryButton, currentCategory == ShopCategory.Other);
+    }
+
+    private void SetCategoryButtonColor(Button button, bool selected)
+    {
+        if (button == null)
+        {
+            return;
+        }
+
+        if (!originalCategoryButtonColors.TryGetValue(button, out ColorBlock colors))
+        {
+            colors = button.colors;
+            originalCategoryButtonColors[button] = colors;
+        }
+
+        if (selected)
+        {
+            colors.normalColor = selectedButtonColor;
+            colors.highlightedColor = selectedButtonColor;
+            colors.pressedColor = selectedButtonColor;
+            colors.selectedColor = selectedButtonColor;
+        }
+
+        button.colors = colors;
     }
 
     private static void SetText(TextMeshProUGUI target, string value)
@@ -442,6 +563,10 @@ public class ShopPanel : MonoBehaviour
         if (descriptionText == null) descriptionText = FindText("DescriptionText");
         if (requirementText == null) requirementText = FindText("RequirementText");
         if (purchaseResultText == null) purchaseResultText = FindText("PurchaseResultText");
+        if (allCategoryButton == null) allCategoryButton = FindButton("AllCategoryButton");
+        if (outfitCategoryButton == null) outfitCategoryButton = FindButton("OutfitCategoryButton");
+        if (consumableCategoryButton == null) consumableCategoryButton = FindButton("ConsumableCategoryButton");
+        if (otherCategoryButton == null) otherCategoryButton = FindButton("OtherCategoryButton");
         if (purchaseButton == null)
         {
             Transform purchaseTransform = FindChildRecursive(transform, "PurchaseButton");
@@ -464,6 +589,28 @@ public class ShopPanel : MonoBehaviour
             purchaseButton.onClick.RemoveListener(PurchaseSelectedItem);
             purchaseButton.onClick.AddListener(PurchaseSelectedItem);
         }
+
+        ConfigureCategoryButton(allCategoryButton, ShowAllCategory);
+        ConfigureCategoryButton(outfitCategoryButton, ShowOutfitCategory);
+        ConfigureCategoryButton(consumableCategoryButton, ShowConsumableCategory);
+        ConfigureCategoryButton(otherCategoryButton, ShowOtherCategory);
+    }
+
+    private Button FindButton(string objectName)
+    {
+        Transform buttonTransform = FindChildRecursive(transform, objectName);
+        return buttonTransform != null ? buttonTransform.GetComponent<Button>() : null;
+    }
+
+    private static void ConfigureCategoryButton(Button button, UnityEngine.Events.UnityAction action)
+    {
+        if (button == null)
+        {
+            return;
+        }
+
+        button.onClick.RemoveListener(action);
+        button.onClick.AddListener(action);
     }
 
     private TextMeshProUGUI FindText(string objectName)

@@ -528,6 +528,7 @@ Inspector で Player の初期値やバランスを調整したい場合は、�
 衣装ボタン生成側では、`OutfitManager.IsOutfitVisibleInDressUp()` により未所持衣装を一覧から除外する判定を実装済み。
 ショップの商品一覧と詳細表示を分けるコードは実装済み。商品ボタンを選択すると商品名、種別、価格、説明、解放内容を含む効果、購入条件、現在の購入可否を表示し、`PurchaseButton`で確定する。購入済み・条件未達・所持金不足の商品も詳細確認でき、購入後は一覧、選択状態、所持金、詳細欄を更新する。`ShopItemData.description` が空なら回復量や解放衣装から説明を自動生成する。新しいScene UIを未配置の場合は従来の即購入を維持する。商品数が増えたら `ShopItemList` をScroll View化し、衣装、消耗品、イベント用アイテムなどのカテゴリ分けやフィルタを追加する。
 消耗品は商品一覧と `OwnedQuantityText` に現在の所持数を表示し、購入後に即時更新する。衣装など一度だけ購入する商品は、詳細欄に未所持または購入済みを表示する。
+ショップのカテゴリ切り替えは、すべて・衣装・消耗品・その他の4種類に対応する。選択カテゴリは購入後も維持し、カテゴリ切替時は表示対象の先頭商品を自動選択する。4つのカテゴリボタンが未配置の場合は全商品表示の互換動作を維持する。
 簡易探索フローは `SoloForest` / `SoloCave` / `SoloLake` / `DuoForest` / `DuoCave` / `DuoLake` を対象にし、予定イベント本文へ探索結果、所持金報酬、HP 変化を追記する。
 HP 増減は `PlayerStatus` / `HeroineStatus` の `DamageHp()` / `RecoverHp()` で行い、`BattleStatusData.Clamp()` により 0 から最大 HP の範囲へ丸める。
 敵データは `EnemyData` ScriptableObject として用意し、敵 ID、表示名、`BattleStatusData`、報酬所持金、勝利時好感度変化、勝利/敗北メッセージを持つ。
