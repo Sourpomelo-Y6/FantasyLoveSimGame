@@ -62,13 +62,14 @@
 - Unity Editor で `MainScene` を直接開いて再生した場合は、`GameStartSettings.ShouldPlayGameStartEvent` の初期値が `false` のため開始イベントは発生しない
 - `GameEventData.showOnce` はセーブデータの `shownGameEventIds` で管理する
 - `GameEventData.affectionChange` はイベントの全ページ表示完了時に一度だけ反映する。`showOnce` イベントは同じ完了処理で `shownGameEventIds` へ記録するため、開始しただけでは好感度も表示済み状態も確定しない。複数の日開始イベントを連続表示する場合は、最後のページまで表示した時点で対象イベントの変化量を合算し、結果をメッセージログへ記録する
+- TestHeroineのイベント完了報酬は `Event_Location_Forest_01=10`、`Event_Quest_01=30`、`Manual_Consideration_01=20`。開始演出と雨の日の自動メッセージは0にして、開始直後の加算と日単位の自動稼ぎを避ける
 - `GameEventData` の `DayStart` は翌朝メッセージに混ぜて自動再生し、`Manual` は `GameManager.TryStartManualGameEvent(string eventId)` から明示起動する
 - `GameManager` にはデバッグ用に `F7` で `debugManualGameEventId` を呼ぶ入口を用意してある
 - テスト用の手動イベントとして `TestManualEvent` を用意している。`GameManager.debugManualGameEventId` に `TestManualEvent` を設定すると `F7` で繰り返し再生できる
 - イベントIDは `GameStartIntro`、`DayStart_条件_連番`、`Manual_用途_連番`、`Story_章_連番`、`Still_用途_連番` のように用途が分かる名前にする。`eventId` は既読管理に使うため、本番投入後は変更しない
 - `GameEventData` には `minDay` / `maxDay` / `minAffection` / `maxAffection` / `requiredShownEventIds` / `blockedShownEventIds` を追加済み。発生可否は `GameManager.CanStartGameEvent(GameEventData gameEvent)` に集約し、日開始イベントと手動イベントの両方で同じ条件判定を使う
 - `GameEventData` は衣装条件も持てる。`requiredOutfitIds` / `blockedOutfitIds` の文字列ID指定に加えて、Unity Inspector で `OutfitData` アセットを選べる `requiredOutfits` / `blockedOutfits` を追加済み。判定は現在の `OutfitManager.CurrentOutfit.outfitId` に対して行う
-- `GameEventData.requiredSkillIds` に指定した主人公スキルをすべて取得済みの場合だけイベントを開始できる。取得状態は取得済み主人公ノードから再構築されるため、イベント用のセーブ項目は持たない。存在しない・重複・空のスキル ID は `FantasyLoveSim > Validation > Data > Game Event Data` で検出でき、Editor Play / Development Build の起動時にも全ヒロインのイベントを検証する
+- `GameEventData.requiredSkillIds` に指定した主人公スキルをすべて取得済みの場合だけイベントを開始できる。取得状態は取得済み主人公ノードから再構築されるため、イベント用のセーブ項目は持たない。`FantasyLoveSim > Validation > Data > Game Event Data` は存在しない・重複・空のスキル ID に加え、Onceイベントの空ID、本文なし、`affectionChange` の `-9999〜9999` 範囲外も検出する。Editor Play / Development Build の起動時にも全ヒロインのイベントを検証する
 - 確認用の汎用スキル「気配り」は、訓練を1回完了して訓練回数と SP を獲得した後、1 SPで主人公ノード `Player_Consideration` から取得する。TestHeroine使用時はスキルツリーを閉じると `Manual_Consideration_01` が一度だけ自動開始する。`SkillTreeNodeData.unlockEventId` と `unlockEventHeroineId` で接続し、取得済み・未表示状態からロード後も発生待ちを復元する。F7のデバッグ起動も利用できる
 - `FantasyLoveSim > Validation > Data > Skill Tree Data` は取得時イベントが対象ヒロインのイベントパスに存在し、Manual・Once・有効状態であることを確認する。イベント必須スキルが対象ノードまたは前提ノードの取得で保証されない場合も警告する。AssetToolの制作状況では取得時イベントIDとOnceを事前確認できる
 - ヒロイン固有スキル／ノードの正規配置は `Resources/Skills/Heroines/<HeroineId>/` と `Resources/SkillTreeNodes/Heroines/<HeroineId>/`。IDはResources全体で一意になるよう `<HeroineId>_<用途>` とし、TestHeroineの訓練スキル3件は名前空間付きIDへ移行済み。旧ルート配置のTestHeroineノード7件は削除し、DefaultHeroine参照中の共通スキルは残している

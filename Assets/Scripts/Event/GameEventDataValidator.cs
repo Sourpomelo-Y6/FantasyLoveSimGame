@@ -42,6 +42,8 @@ public sealed class GameEventValidationReport
 
 public static class GameEventDataValidator
 {
+    private const int MaximumAffectionChange = 9999;
+
     public static GameEventValidationReport ValidateResources()
     {
         return Validate(
@@ -69,10 +71,53 @@ public static class GameEventDataValidator
             }
 
             report.EventCount++;
+            ValidateBasicData(gameEvent, report);
             ValidateRequiredSkills(gameEvent, skillIds, report);
         }
 
         return report;
+    }
+
+    private static void ValidateBasicData(
+        GameEventData gameEvent,
+        GameEventValidationReport report)
+    {
+        string eventLabel = !string.IsNullOrWhiteSpace(gameEvent.eventId)
+            ? gameEvent.eventId
+            : gameEvent.name;
+
+        if (gameEvent.showOnce && string.IsNullOrWhiteSpace(gameEvent.eventId))
+        {
+            report.Warn(eventLabel + " は showOnce ですが eventId が空です。");
+        }
+
+        bool hasMessage = false;
+        if (gameEvent.pages != null)
+        {
+            for (int i = 0; i < gameEvent.pages.Count; i++)
+            {
+                GameEventPageData page = gameEvent.pages[i];
+                if (page != null && !string.IsNullOrWhiteSpace(page.message))
+                {
+                    hasMessage = true;
+                    break;
+                }
+            }
+        }
+
+        if (!hasMessage)
+        {
+            report.Warn(eventLabel + " に本文が設定されたページがありません。");
+        }
+
+        if (gameEvent.affectionChange < -MaximumAffectionChange ||
+            gameEvent.affectionChange > MaximumAffectionChange)
+        {
+            report.Warn(
+                eventLabel +
+                " の affectionChange が範囲外です: " +
+                gameEvent.affectionChange);
+        }
     }
 
     private static HashSet<string> BuildSkillIds(IEnumerable<SkillData> skills)

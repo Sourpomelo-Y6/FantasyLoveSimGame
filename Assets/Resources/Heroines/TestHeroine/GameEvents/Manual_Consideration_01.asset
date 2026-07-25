@@ -17,6 +17,7 @@ MonoBehaviour:
   showOnce: 1
   isEnabled: 1
   sortOrder: 110
+  affectionChange: 20
   minDay: 0
   maxDay: 0
   minAffection: 0
