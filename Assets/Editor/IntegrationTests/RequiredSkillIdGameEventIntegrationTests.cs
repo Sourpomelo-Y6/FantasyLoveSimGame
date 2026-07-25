@@ -50,6 +50,7 @@ public class RequiredSkillIdGameEventIntegrationTests
         GameEventData data = LoadEvent();
         Assert.That(data.requiredSkillIds, Is.EqualTo(new[] { "skill_b", "skill_a", "unknown_skill" }));
         Assert.That(data.minAffection, Is.EqualTo(7));
+        Assert.That(data.affectionChange, Is.EqualTo(12));
 
         WriteImportJson(string.Empty);
         ImportGameEvents();
@@ -61,6 +62,7 @@ public class RequiredSkillIdGameEventIntegrationTests
         data = LoadEvent();
         Assert.That(data.requiredSkillIds, Is.Empty);
         Assert.That(data.minAffection, Is.EqualTo(7));
+        Assert.That(data.affectionChange, Is.EqualTo(12));
     }
 
     [Test]
@@ -72,6 +74,7 @@ public class RequiredSkillIdGameEventIntegrationTests
         EnsureFolder(EventFolder);
         GameEventData data = ScriptableObject.CreateInstance<GameEventData>();
         data.eventId = "SkillGateEvent";
+        data.affectionChange = -4;
         data.requiredSkillIds = new List<string> { " skill_b ", "skill_a", "SKILL_B", "unknown_skill" };
         data.pages = new List<GameEventPageData> { new GameEventPageData { message = "テスト" } };
         AssetDatabase.CreateAsset(data, EventAssetPath);
@@ -87,6 +90,7 @@ public class RequiredSkillIdGameEventIntegrationTests
         Assert.That(
             exported.items[0].conditions.requiredSkillIds,
             Is.EqualTo(new[] { "skill_b", "skill_a", "unknown_skill" }));
+        Assert.That(exported.items[0].affectionChange, Is.EqualTo(-4));
         Assert.That(report.gameEventCount, Is.EqualTo(1));
     }
 
@@ -111,6 +115,7 @@ public class RequiredSkillIdGameEventIntegrationTests
         string json = "{\"schemaVersion\":1,\"heroineId\":\"" + HeroineId +
             "\",\"items\":[{\"id\":\"SkillGateEvent\",\"title\":\"Test\",\"category\":\"Manual\"," +
             "\"conditions\":{\"minAffection\":7," + requiredSkillIdsProperty + "\"once\":true}," +
+            "\"affectionChange\":12," +
             "\"lines\":[{\"speaker\":\"Heroine\",\"text\":\"テスト\",\"expression\":\"\"}]}]}";
         File.WriteAllText(Path.Combine(importFolder, "Data", "game_events_export.json"), json);
     }
@@ -132,6 +137,7 @@ public class RequiredSkillIdGameEventIntegrationTests
     private sealed class GameEventItem
     {
         public GameEventConditions conditions;
+        public int affectionChange;
     }
 
     [Serializable]

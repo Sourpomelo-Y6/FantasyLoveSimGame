@@ -290,6 +290,8 @@ public class GameManager : MonoBehaviour
     private int playerSkillPoints;
     private int heroineSkillPoints;
     private readonly Queue<DialogueMessage> queuedDialogueMessages = new Queue<DialogueMessage>();
+    private readonly List<GameEventData> pendingCompletedGameEvents = new List<GameEventData>();
+    private readonly List<GameEventData> dayStartGameEvents = new List<GameEventData>();
     private readonly List<DialogueMessage> pendingScheduledEventFollowUpMessages = new List<DialogueMessage>();
     private readonly List<MessageLogPanel.MessageLogEntry> messageLogEntries =
         new List<MessageLogPanel.MessageLogEntry>();
@@ -882,14 +884,22 @@ public class GameManager : MonoBehaviour
         outfitManager.SetHeroineExpression(expressionId);
     }
 
-    private void ShowDialogueSequence(List<DialogueMessage> messages)
+    private void ShowDialogueSequence(
+        List<DialogueMessage> messages,
+        List<GameEventData> completionGameEvents = null)
     {
         ResetDialogueSequenceState();
         queuedDialogueMessages.Clear();
+        pendingCompletedGameEvents.Clear();
+        if (completionGameEvents != null)
+        {
+            pendingCompletedGameEvents.AddRange(completionGameEvents);
+        }
         dialogueSequenceIsActive = true;
 
         if (messages == null || messages.Count == 0)
         {
+            pendingCompletedGameEvents.Clear();
             dialogueSequenceIsActive = false;
             nextButton.gameObject.SetActive(false);
             return;
@@ -931,6 +941,7 @@ public class GameManager : MonoBehaviour
 
         if (queuedDialogueMessages.Count == 0 && flowState == ConversationFlowState.Idle)
         {
+            CompletePendingGameEvents();
             ResetDialogueSequenceState();
             dialogueSequenceIsActive = false;
             actionButtonArea.SetActive(true);
@@ -1966,6 +1977,7 @@ public class GameManager : MonoBehaviour
 
         if (dialogueSequenceIsActive && flowState == ConversationFlowState.Idle)
         {
+            CompletePendingGameEvents();
             ResetDialogueSequenceState();
             dialogueSequenceIsActive = false;
             actionButtonArea.SetActive(true);
@@ -5029,14 +5041,19 @@ public class GameManager : MonoBehaviour
 
     private void StartGameStartSequence()
     {
-        List<DialogueMessage> startMessages = BuildGameStartMessages();
-        StartGameEventSequence(startMessages, true);
+        List<GameEventData> completionGameEvents = new List<GameEventData>();
+        List<DialogueMessage> startMessages = BuildGameStartMessages(completionGameEvents);
+        StartGameEventSequence(startMessages, true, completionGameEvents);
     }
 
-    private List<DialogueMessage> BuildGameStartMessages()
+    private List<DialogueMessage> BuildGameStartMessages(
+        List<GameEventData> completionGameEvents)
     {
         List<DialogueMessage> messages = new List<DialogueMessage>();
-        AppendGameEventMessages(messages, GameEventTriggerType.GameStart);
+        AppendGameEventMessages(
+            messages,
+            GameEventTriggerType.GameStart,
+            completionGameEvents);
 
         if (messages.Count > 0)
         {
@@ -5065,7 +5082,10 @@ public class GameManager : MonoBehaviour
         return messages;
     }
 
-    private void AppendGameEventMessages(List<DialogueMessage> messages, GameEventTriggerType triggerType)
+    private void AppendGameEventMessages(
+        List<DialogueMessage> messages,
+        GameEventTriggerType triggerType,
+        List<GameEventData> completionGameEvents = null)
     {
         if (messages == null)
         {
@@ -5080,10 +5100,9 @@ public class GameManager : MonoBehaviour
             }
 
             messages.AddRange(BuildGameEventMessages(gameEvent));
-
-            if (gameEvent.showOnce && !string.IsNullOrEmpty(gameEvent.eventId))
+            if (completionGameEvents != null)
             {
-                MarkGameEventShown(gameEvent.eventId);
+                completionGameEvents.Add(gameEvent);
             }
         }
     }
@@ -5114,17 +5133,18 @@ public class GameManager : MonoBehaviour
             return false;
         }
 
-        StartGameEventSequence(messages, true);
-
-        if (gameEvent.showOnce && !string.IsNullOrEmpty(gameEvent.eventId))
-        {
-            MarkGameEventShown(gameEvent.eventId);
-        }
+        StartGameEventSequence(
+            messages,
+            true,
+            new List<GameEventData> { gameEvent });
 
         return true;
     }
 
-    private void StartGameEventSequence(List<DialogueMessage> messages, bool hideSaveLoadButtons)
+    private void StartGameEventSequence(
+        List<DialogueMessage> messages,
+        bool hideSaveLoadButtons,
+        List<GameEventData> completionGameEvents = null)
     {
         actionButtonArea.SetActive(false);
         genreButtonArea.SetActive(false);
@@ -5138,13 +5158,41 @@ public class GameManager : MonoBehaviour
         pendingGoodNight = false;
         flowState = ConversationFlowState.Idle;
 
-        ShowDialogueSequence(messages);
+        ShowDialogueSequence(messages, completionGameEvents);
 
         if (hideSaveLoadButtons)
         {
             SetSaveLoadButtonsVisible(false);
             dialogueSequenceHidSaveLoadButtons = true;
         }
+    }
+
+    private void CompletePendingGameEvents()
+    {
+        if (pendingCompletedGameEvents.Count == 0)
+        {
+            return;
+        }
+
+        int affectionChange = GameEventCompletionService.Complete(
+            pendingCompletedGameEvents,
+            IsGameEventShown,
+            MarkGameEventShown);
+        pendingCompletedGameEvents.Clear();
+
+        if (affectionChange == 0 || heroineStatus == null)
+        {
+            return;
+        }
+
+        heroineStatus.AddAffection(affectionChange);
+        AddMessageLogEntry(
+            DialogueSpeakerType.System,
+            SystemSpeakerName,
+            "イベント完了: 好感度 " +
+            (affectionChange > 0 ? "+" : "") +
+            affectionChange);
+        RefreshUI();
     }
 
     private List<GameEventData> GetGameEventsForTrigger(GameEventTriggerType triggerType)
@@ -6217,6 +6265,7 @@ public class GameManager : MonoBehaviour
     private List<DialogueMessage> BuildDayStartMessages()
     {
         List<DialogueMessage> messages = new List<DialogueMessage>();
+        dayStartGameEvents.Clear();
         string outfitMessage = AutoChooseOutfitOnNewDay();
 
         if (!string.IsNullOrEmpty(outfitMessage))
@@ -6231,7 +6280,10 @@ public class GameManager : MonoBehaviour
             messages.Add(new DialogueMessage(DialogueSpeakerType.Schedule, ScheduleSpeakerName, scheduleMessage));
         }
 
-        AppendGameEventMessages(messages, GameEventTriggerType.DayStart);
+        AppendGameEventMessages(
+            messages,
+            GameEventTriggerType.DayStart,
+            dayStartGameEvents);
 
         return messages;
     }
@@ -8404,8 +8456,9 @@ public class GameManager : MonoBehaviour
             };
 
             morningMessages.AddRange(dayStartMessages);
-            ShowDialogueSequence(morningMessages);
+            ShowDialogueSequence(morningMessages, dayStartGameEvents);
             dayStartMessages = new List<DialogueMessage>();
+            dayStartGameEvents.Clear();
         }
 
         flowState = ConversationFlowState.Idle;

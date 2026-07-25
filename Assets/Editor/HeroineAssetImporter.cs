@@ -1677,6 +1677,7 @@ public static class HeroineAssetImporter
         gameEvent.showOnce = conditions.once;
         gameEvent.isEnabled = true;
         gameEvent.sortOrder = item.priority;
+        gameEvent.affectionChange = item.affectionChange;
         gameEvent.minDay = Math.Max(0, conditions.minDay);
         gameEvent.maxDay = Math.Max(0, conditions.maxDay);
         gameEvent.minAffection = Math.Max(0, conditions.minAffection);
@@ -2936,6 +2937,7 @@ public static class HeroineAssetImporter
         public ConversationExportLine[] lines;
         public string[] imageAssetIds;
         public int priority;
+        public int affectionChange;
         public string memo;
     }
 

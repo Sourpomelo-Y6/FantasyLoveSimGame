@@ -37,6 +37,7 @@ public class AffectionDataValidatorTests
         GameEventData gameEvent = Create<GameEventData>();
         gameEvent.minAffection = 100;
         gameEvent.maxAffection = 0;
+        gameEvent.affectionChange = 10;
 
         ScheduledEventData scheduledEvent = Create<ScheduledEventData>();
         scheduledEvent.affectionChange = 10;
@@ -67,6 +68,7 @@ public class AffectionDataValidatorTests
 
         GameEventData gameEvent = Create<GameEventData>();
         gameEvent.maxAffection = 100;
+        gameEvent.affectionChange = 3;
 
         ScheduledEventData scheduledEvent = Create<ScheduledEventData>();
         scheduledEvent.affectionChange = 2;
@@ -85,6 +87,7 @@ public class AffectionDataValidatorTests
         Assert.That(warnings.Any(message => message.Contains("maxAffection=100")), Is.True);
         Assert.That(warnings.Any(message => message.Contains("affectionChange=1")), Is.True);
         Assert.That(warnings.Any(message => message.Contains("affectionChange=2")), Is.True);
+        Assert.That(warnings.Any(message => message.Contains("affectionChange=3")), Is.True);
         Assert.That(warnings.Any(message => message.Contains("requiredAffection")), Is.True);
     }
 

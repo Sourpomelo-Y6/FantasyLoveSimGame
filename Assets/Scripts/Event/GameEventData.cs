@@ -26,6 +26,10 @@ public class GameEventData : ScriptableObject
     public bool isEnabled = true;
     public int sortOrder = 0;
 
+    [Header("Completion Effect")]
+    [Tooltip("すべてのページを読み終えた時に変化する好感度。")]
+    public int affectionChange = 0;
+
     [Header("Conditions")]
     public int minDay = 0;
     public int maxDay = 0;

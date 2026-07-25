@@ -459,6 +459,7 @@ Unity 側には既に最小 import があるため、Tool 側から export し�
 - `lines`: 台詞本文
 - `imageAssetIds`: 関連する画像 `assetId`
 - `priority`: 同条件で複数候補がある場合の優先度
+- `affectionChange`: ゲームイベントの全ページ表示完了時に反映する好感度変化
 - `memo`: 制作メモ
 
 `imageAssetIds` は `assets_export.json` の `assetId` を参照する。

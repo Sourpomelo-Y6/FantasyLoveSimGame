@@ -61,6 +61,7 @@
 - 別リポジトリまたは別フォルダで Stable Diffusion 向けキャラクター素材生成ツールを作る方針。仕様は `Docs/CharacterAssetGenerationToolSpec.md` に整理済み
 - Unity Editor で `MainScene` を直接開いて再生した場合は、`GameStartSettings.ShouldPlayGameStartEvent` の初期値が `false` のため開始イベントは発生しない
 - `GameEventData.showOnce` はセーブデータの `shownGameEventIds` で管理する
+- `GameEventData.affectionChange` はイベントの全ページ表示完了時に一度だけ反映する。`showOnce` イベントは同じ完了処理で `shownGameEventIds` へ記録するため、開始しただけでは好感度も表示済み状態も確定しない。複数の日開始イベントを連続表示する場合は、最後のページまで表示した時点で対象イベントの変化量を合算し、結果をメッセージログへ記録する
 - `GameEventData` の `DayStart` は翌朝メッセージに混ぜて自動再生し、`Manual` は `GameManager.TryStartManualGameEvent(string eventId)` から明示起動する
 - `GameManager` にはデバッグ用に `F7` で `debugManualGameEventId` を呼ぶ入口を用意してある
 - テスト用の手動イベントとして `TestManualEvent` を用意している。`GameManager.debugManualGameEventId` に `TestManualEvent` を設定すると `F7` で繰り返し再生できる
@@ -470,7 +471,7 @@ Importer は完了時に copied images、catalog assets、layers、conversations
 レイヤーの実表示を行う `HeroineLayeredSpriteView` は実装済み。
 `OutfitManager` が現在衣装を `costumeId` として渡し、会話表示時は `ConversationData.lines[].expressionId` を表情切り替えに使う。
 指定表情がない場合は `Neutral`、指定衣装がない場合は `Default` へ fallback する。
-`game_events_export.json` がある場合は、`GameEvents/<EventId>.asset` を作成、更新し、`lines[]` を `GameEventData.pages` に変換する。
+`game_events_export.json` がある場合は、`GameEvents/<EventId>.asset` を作成、更新し、`lines[]` を `GameEventData.pages` に変換する。トップレベルの `affectionChange` は全ページ表示完了時の好感度変化として `GameEventData.affectionChange` と往復する。
 イベントページの `expressionId` も会話と同じ表情切り替えに使う。
 追加の `TestHeroine` 画像は容量節約のためコミットしない。
 画像が必要な場合は `FantasyLoveSimAssetTool` の export サンプルから importer で取り込み、ローカル確認用として扱う。

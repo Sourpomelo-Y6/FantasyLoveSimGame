@@ -673,6 +673,7 @@ public static class HeroineUnityDataExporter
             lines = CreateGameEventLines(gameEvent.pages, report),
             imageAssetIds = CreateGameEventImageAssetIds(gameEvent, report),
             priority = gameEvent.sortOrder,
+            affectionChange = gameEvent.affectionChange,
             memo = "Unity側から逆export",
             sourceMetadata = CreateGameEventSourceMetadata(gameEvent)
         };
@@ -1677,6 +1678,7 @@ public static class HeroineUnityDataExporter
         public List<FromUnityLine> lines;
         public List<string> imageAssetIds;
         public int priority;
+        public int affectionChange;
         public string memo;
         public GameEventSourceMetadata sourceMetadata;
     }

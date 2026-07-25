@@ -276,6 +276,7 @@ public static class AffectionDataValidator
         AffectionDataValidationReport report)
     {
         ValidateRange(label, gameEvent.minAffection, gameEvent.maxAffection, true, gameEvent, report);
+        ValidateChange(label + " / completion effect", gameEvent.affectionChange, gameEvent, report);
     }
 
     private static void ValidateScheduledEvent(
