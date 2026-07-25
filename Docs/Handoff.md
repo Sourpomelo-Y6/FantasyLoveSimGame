@@ -63,6 +63,8 @@
 - `GameEventData.showOnce` はセーブデータの `shownGameEventIds` で管理する
 - `GameEventData.affectionChange` はイベントの全ページ表示完了時に一度だけ反映する。`showOnce` イベントは同じ完了処理で `shownGameEventIds` へ記録するため、開始しただけでは好感度も表示済み状態も確定しない。複数の日開始イベントを連続表示する場合は、最後のページまで表示した時点で対象イベントの変化量を合算し、結果をメッセージログへ記録する
 - TestHeroineのイベント完了報酬は `Event_Location_Forest_01=10`、`Event_Quest_01=30`、`Manual_Consideration_01=20`。開始演出と雨の日の自動メッセージは0にして、開始直後の加算と日単位の自動稼ぎを避ける
+- コンテキスト発火イベントは `GameEventData.triggerType` と `triggerContextId` の組で選ぶ。種類は既存の `GameStart` / `DayStart` / `Manual` に加えて `ScheduledEventCompleted` / `ActionCompleted` / `LocationEntered` / `QuestCompleted`。後者4種類は対象ID必須で、大文字小文字を区別せず一致させる。現在の実行接続は予定完了で、森・洞窟・湖の探索はそれぞれ `Forest` / `Cave` / `Lake`、その他の予定は `ScheduleType` 名を対象IDにする
+- TestHeroineの `Event_Location_Forest_01` は `ScheduledEventCompleted:Forest` に設定済み。森探索の予定結果と戦闘後メッセージを読み終えた後に自動再生し、全ページ完了時に好感度10を反映する。勝敗に依存する戦闘後本文は既存の `BattleResultEventData` が担当し、このイベントは森予定そのものの完了反応として扱う
 - `GameEventData` の `DayStart` は翌朝メッセージに混ぜて自動再生し、`Manual` は `GameManager.TryStartManualGameEvent(string eventId)` から明示起動する
 - `GameManager` にはデバッグ用に `F7` で `debugManualGameEventId` を呼ぶ入口を用意してある
 - テスト用の手動イベントとして `TestManualEvent` を用意している。`GameManager.debugManualGameEventId` に `TestManualEvent` を設定すると `F7` で繰り返し再生できる

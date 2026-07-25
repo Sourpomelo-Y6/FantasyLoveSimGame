@@ -22,6 +22,8 @@ public class GameEventData : ScriptableObject
     [Header("Basic")]
     public string eventId;
     public GameEventTriggerType triggerType = GameEventTriggerType.Manual;
+    [Tooltip("発火元を特定するID。例: Forest、Tea、Quest_01。")]
+    public string triggerContextId;
     public bool showOnce = true;
     public bool isEnabled = true;
     public int sortOrder = 0;

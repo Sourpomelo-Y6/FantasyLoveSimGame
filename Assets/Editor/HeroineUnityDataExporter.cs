@@ -1007,6 +1007,8 @@ public static class HeroineUnityDataExporter
         return new GameEventFromUnityConditions
         {
             once = gameEvent.showOnce,
+            triggerType = gameEvent.triggerType.ToString(),
+            triggerContextId = gameEvent.triggerContextId ?? string.Empty,
             locationId = string.Empty,
             minDay = gameEvent.minDay,
             maxDay = gameEvent.maxDay,
@@ -1743,6 +1745,8 @@ public static class HeroineUnityDataExporter
     private sealed class GameEventFromUnityConditions
     {
         public bool once;
+        public string triggerType;
+        public string triggerContextId;
         public string locationId;
         public int minDay;
         public int maxDay;

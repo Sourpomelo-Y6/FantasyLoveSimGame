@@ -13,7 +13,8 @@ MonoBehaviour:
   m_Name: Event_Location_Forest_01
   m_EditorClassIdentifier: 
   eventId: Event_Location_Forest_01
-  triggerType: 2
+  triggerType: 3
+  triggerContextId: Forest
   showOnce: 0
   isEnabled: 1
   sortOrder: 80

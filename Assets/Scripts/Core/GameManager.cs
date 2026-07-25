@@ -292,6 +292,9 @@ public class GameManager : MonoBehaviour
     private readonly Queue<DialogueMessage> queuedDialogueMessages = new Queue<DialogueMessage>();
     private readonly List<GameEventData> pendingCompletedGameEvents = new List<GameEventData>();
     private readonly List<GameEventData> dayStartGameEvents = new List<GameEventData>();
+    private GameEventTriggerType pendingContextGameEventTriggerType;
+    private string pendingContextGameEventTriggerId;
+    private bool hasPendingContextGameEventTrigger;
     private readonly List<DialogueMessage> pendingScheduledEventFollowUpMessages = new List<DialogueMessage>();
     private readonly List<MessageLogPanel.MessageLogEntry> messageLogEntries =
         new List<MessageLogPanel.MessageLogEntry>();
@@ -2032,6 +2035,11 @@ public class GameManager : MonoBehaviour
         {
             returnToScheduledEventPromptAfterOutfitMessage = false;
             ShowScheduledEventOutfitPrompt(pendingScheduledEvent);
+            return;
+        }
+
+        if (TryStartPendingContextGameEvents())
+        {
             return;
         }
 
@@ -5222,6 +5230,67 @@ public class GameManager : MonoBehaviour
         return result;
     }
 
+    private List<GameEventData> GetGameEventsForTrigger(
+        GameEventTriggerType triggerType,
+        string triggerContextId)
+    {
+        List<GameEventData> result = new List<GameEventData>();
+        if (gameEvents == null || string.IsNullOrWhiteSpace(triggerContextId))
+        {
+            return result;
+        }
+
+        foreach (GameEventData gameEvent in gameEvents)
+        {
+            if (!GameEventTriggerMatcher.Matches(
+                    gameEvent,
+                    triggerType,
+                    triggerContextId) ||
+                !CanStartGameEvent(gameEvent))
+            {
+                continue;
+            }
+
+            result.Add(gameEvent);
+        }
+
+        return result;
+    }
+
+    private bool TryStartPendingContextGameEvents()
+    {
+        if (!hasPendingContextGameEventTrigger)
+        {
+            return false;
+        }
+
+        GameEventTriggerType triggerType = pendingContextGameEventTriggerType;
+        string triggerContextId = pendingContextGameEventTriggerId;
+        hasPendingContextGameEventTrigger = false;
+        pendingContextGameEventTriggerId = string.Empty;
+
+        List<GameEventData> matchedEvents =
+            GetGameEventsForTrigger(triggerType, triggerContextId);
+        if (matchedEvents.Count == 0)
+        {
+            return false;
+        }
+
+        List<DialogueMessage> messages = new List<DialogueMessage>();
+        for (int i = 0; i < matchedEvents.Count; i++)
+        {
+            messages.AddRange(BuildGameEventMessages(matchedEvents[i]));
+        }
+
+        if (messages.Count == 0)
+        {
+            return false;
+        }
+
+        StartGameEventSequence(messages, true, matchedEvents);
+        return true;
+    }
+
     private bool CanStartGameEvent(GameEventData gameEvent)
     {
         if (gameEvent == null || !gameEvent.isEnabled)
@@ -7692,6 +7761,12 @@ public class GameManager : MonoBehaviour
     {
         scheduleManager.MarkTodayScheduleEventExecuted();
         heroineStatus.AddAffection(scheduledEvent.AffectionChange);
+        pendingContextGameEventTriggerType =
+            GameEventTriggerType.ScheduledEventCompleted;
+        pendingContextGameEventTriggerId =
+            ResolveScheduledEventGameEventContextId(scheduledEvent.ScheduleType);
+        hasPendingContextGameEventTrigger =
+            !string.IsNullOrEmpty(pendingContextGameEventTriggerId);
         pendingScheduledEvent = null;
         startPendingScheduledEventAfterOutfitMessage = false;
         returnToScheduledEventPromptAfterOutfitMessage = false;
@@ -7712,6 +7787,15 @@ public class GameManager : MonoBehaviour
         nextButton.gameObject.SetActive(true);
 
         RefreshUI();
+    }
+
+    private static string ResolveScheduledEventGameEventContextId(
+        ScheduleType scheduleType)
+    {
+        string explorationContextId = ResolveBattleContextId(scheduleType);
+        return !string.IsNullOrEmpty(explorationContextId)
+            ? explorationContextId
+            : scheduleType.ToString();
     }
 
     private bool IsShopItemPurchased(ShopItemData item)

@@ -2,5 +2,9 @@ public enum GameEventTriggerType
 {
     GameStart,
     DayStart,
-    Manual
+    Manual,
+    ScheduledEventCompleted,
+    ActionCompleted,
+    LocationEntered,
+    QuestCompleted
 }

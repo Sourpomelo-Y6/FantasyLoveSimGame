@@ -1673,7 +1673,12 @@ public static class HeroineAssetImporter
 
         gameEvent.name = item.id;
         gameEvent.eventId = item.id;
-        gameEvent.triggerType = ParseGameEventTriggerType(item.category, report);
+        gameEvent.triggerType = ParseGameEventTriggerType(
+            !string.IsNullOrWhiteSpace(conditions.triggerType)
+                ? conditions.triggerType
+                : item.category,
+            report);
+        gameEvent.triggerContextId = conditions.triggerContextId ?? string.Empty;
         gameEvent.showOnce = conditions.once;
         gameEvent.isEnabled = true;
         gameEvent.sortOrder = item.priority;
@@ -2945,6 +2950,8 @@ public static class HeroineAssetImporter
     private sealed class GameEventExportConditions
     {
         public bool once;
+        public string triggerType;
+        public string triggerContextId;
         public string locationId;
         public int minDay;
         public int maxDay;

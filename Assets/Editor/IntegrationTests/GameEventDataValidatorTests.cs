@@ -53,6 +53,22 @@ public class GameEventDataValidatorTests
         Assert.That(report.Warnings.Any(message => message.Contains("affectionChange")), Is.True);
     }
 
+    [Test]
+    public void Validate_ContextTriggerRequiresTargetId()
+    {
+        GameEventData gameEvent = CreateEvent();
+        gameEvent.eventId = "ForestEvent";
+        gameEvent.triggerType = GameEventTriggerType.ScheduledEventCompleted;
+        gameEvent.pages.Add(new GameEventPageData { message = "本文" });
+
+        GameEventValidationReport report =
+            GameEventDataValidator.Validate(new[] { gameEvent }, null);
+
+        Assert.That(
+            report.Warnings.Any(message => message.Contains("発火対象ID")),
+            Is.True);
+    }
+
     private GameEventData CreateEvent()
     {
         GameEventData gameEvent = ScriptableObject.CreateInstance<GameEventData>();

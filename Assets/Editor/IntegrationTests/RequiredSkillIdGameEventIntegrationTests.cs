@@ -51,6 +51,8 @@ public class RequiredSkillIdGameEventIntegrationTests
         Assert.That(data.requiredSkillIds, Is.EqualTo(new[] { "skill_b", "skill_a", "unknown_skill" }));
         Assert.That(data.minAffection, Is.EqualTo(7));
         Assert.That(data.affectionChange, Is.EqualTo(12));
+        Assert.That(data.triggerType, Is.EqualTo(GameEventTriggerType.ScheduledEventCompleted));
+        Assert.That(data.triggerContextId, Is.EqualTo("Forest"));
 
         WriteImportJson(string.Empty);
         ImportGameEvents();
@@ -74,6 +76,8 @@ public class RequiredSkillIdGameEventIntegrationTests
         EnsureFolder(EventFolder);
         GameEventData data = ScriptableObject.CreateInstance<GameEventData>();
         data.eventId = "SkillGateEvent";
+        data.triggerType = GameEventTriggerType.ScheduledEventCompleted;
+        data.triggerContextId = "Forest";
         data.affectionChange = -4;
         data.requiredSkillIds = new List<string> { " skill_b ", "skill_a", "SKILL_B", "unknown_skill" };
         data.pages = new List<GameEventPageData> { new GameEventPageData { message = "テスト" } };
@@ -91,6 +95,10 @@ public class RequiredSkillIdGameEventIntegrationTests
             exported.items[0].conditions.requiredSkillIds,
             Is.EqualTo(new[] { "skill_b", "skill_a", "unknown_skill" }));
         Assert.That(exported.items[0].affectionChange, Is.EqualTo(-4));
+        Assert.That(
+            exported.items[0].conditions.triggerType,
+            Is.EqualTo("ScheduledEventCompleted"));
+        Assert.That(exported.items[0].conditions.triggerContextId, Is.EqualTo("Forest"));
         Assert.That(report.gameEventCount, Is.EqualTo(1));
     }
 
@@ -114,7 +122,8 @@ public class RequiredSkillIdGameEventIntegrationTests
     {
         string json = "{\"schemaVersion\":1,\"heroineId\":\"" + HeroineId +
             "\",\"items\":[{\"id\":\"SkillGateEvent\",\"title\":\"Test\",\"category\":\"Manual\"," +
-            "\"conditions\":{\"minAffection\":7," + requiredSkillIdsProperty + "\"once\":true}," +
+            "\"conditions\":{\"minAffection\":7,\"triggerType\":\"ScheduledEventCompleted\"," +
+            "\"triggerContextId\":\"Forest\"," + requiredSkillIdsProperty + "\"once\":true}," +
             "\"affectionChange\":12," +
             "\"lines\":[{\"speaker\":\"Heroine\",\"text\":\"テスト\",\"expression\":\"\"}]}]}";
         File.WriteAllText(Path.Combine(importFolder, "Data", "game_events_export.json"), json);
@@ -144,6 +153,8 @@ public class RequiredSkillIdGameEventIntegrationTests
     private sealed class GameEventConditions
     {
         public List<string> requiredSkillIds;
+        public string triggerType;
+        public string triggerContextId;
     }
 }
 #endif

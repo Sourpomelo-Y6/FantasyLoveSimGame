@@ -91,6 +91,12 @@ public static class GameEventDataValidator
             report.Warn(eventLabel + " は showOnce ですが eventId が空です。");
         }
 
+        if (GameEventTriggerMatcher.RequiresContext(gameEvent.triggerType) &&
+            string.IsNullOrWhiteSpace(gameEvent.triggerContextId))
+        {
+            report.Warn(eventLabel + " は発火対象IDが必要です。");
+        }
+
         bool hasMessage = false;
         if (gameEvent.pages != null)
         {

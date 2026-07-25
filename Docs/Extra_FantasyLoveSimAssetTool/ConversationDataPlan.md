@@ -178,6 +178,8 @@ Unity 側の対応先は `ConversationData` を想定する。
       "category": "Intro",
       "conditions": {
         "once": true,
+        "triggerType": "ScheduledEventCompleted",
+        "triggerContextId": "Forest",
         "locationId": "",
         "minAffection": 0,
         "costumeId": ""
@@ -205,6 +207,10 @@ Unity 側の対応先は `GameEventData` を想定する。
 全ページを表示し終えた時だけ反映され、`showOnce` イベントは表示済み記録と同時に
 一度だけ確定する。AssetToolではイベント編集欄の「イベント完了時変化」で編集し、
 Unity向けexportとFromUnity importの両方で維持する。
+`conditions.triggerType` と `conditions.triggerContextId` はカテゴリとは別の実行接続情報。
+`ScheduledEventCompleted` / `ActionCompleted` / `LocationEntered` / `QuestCompleted` では
+対象IDを必須とする。現在は `ScheduledEventCompleted:Forest` が森探索予定の完了後に
+接続されている。
 
 ## scheduled_events_export.json
 
