@@ -212,8 +212,13 @@ version 1・2からの移行時は、音量1、ミュートOFF、自動再生ON�
 - 訓練セリフ
 - 戦闘結果メッセージ
 
-通常会話、`GameEventPageData`、エンディングへの接続は実装済み。
-予定イベント、行動反応、訓練、戦闘結果への個別接続は後続作業とする。
+通常会話、`GameEventPageData`、エンディング、予定イベント、行動反応、選択肢返答、
+ヒロイン共通メッセージへの接続は実装済み。
+予定イベントは準備用 `preparationVoiceId` と結果用 `eventVoiceId` を分ける。
+行動反応は `ActionReactionData.voiceId`、選択肢は
+`ConversationChoice.responseVoiceId` を使用する。ヒロイン共通メッセージは
+`HeroineProfileData` の初期表示、次行動、朝、就寝前それぞれにボイスIDを持つ。
+訓練と戦闘結果への個別接続は後続作業とする。
 
 ## Git管理
 

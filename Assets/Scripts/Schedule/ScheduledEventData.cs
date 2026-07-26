@@ -20,9 +20,13 @@ public class ScheduledEventData : ScriptableObject
 
     [TextArea(2, 4)]
     public string preparationMessage;
+    [Tooltip("準備メッセージ用のボイスID。空なら再生しません。")]
+    public string preparationVoiceId;
 
     [TextArea(3, 6)]
     public string eventMessage;
+    [Tooltip("実行結果メッセージ用のボイスID。空なら再生しません。")]
+    public string eventVoiceId;
 
     [Header("Still")]
     public string stillId;
@@ -45,7 +49,9 @@ public class ScheduledEventData : ScriptableObject
             affectionChange,
             costumeId,
             stillId,
-            stillSprite
+            stillSprite,
+            preparationVoiceId,
+            eventVoiceId
         );
     }
 }

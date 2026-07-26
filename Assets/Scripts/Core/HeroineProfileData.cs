@@ -44,15 +44,19 @@ public class HeroineProfileData : ScriptableObject
     [Header("Common Dialogue")]
     [TextArea(2, 4)]
     public string initialDialogueMessage = "今日は何を話しましょうか？";
+    public string initialDialogueVoiceId;
 
     [TextArea(2, 4)]
     public string nextActionPrompt = "次は何をしましょうか？";
+    public string nextActionPromptVoiceId;
 
     [TextArea(2, 4)]
     public string morningGreeting = "おはようございます。今日もよろしくお願いしますね。";
+    public string morningGreetingVoiceId;
 
     [TextArea(2, 4)]
     public string goodNightGreeting = "もう夜も遅いですね。おやすみなさい。また明日。";
+    public string goodNightGreetingVoiceId;
 
     [TextArea(2, 4)]
     public string gameStartFallbackMessage = "新しい物語が始まります。";

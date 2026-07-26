@@ -178,6 +178,48 @@ public class GameOptionsTests
             Is.EqualTo(expected));
     }
 
+    [Test]
+    public void ScheduledEventDefinition_CopiesVoiceIds()
+    {
+        ScheduledEventData data =
+            UnityEngine.ScriptableObject.CreateInstance<ScheduledEventData>();
+        try
+        {
+            data.preparationVoiceId = "SchedulePrepare01";
+            data.eventVoiceId = "ScheduleResult01";
+
+            ScheduledEventDefinition definition = data.ToDefinition();
+
+            Assert.That(definition.PreparationVoiceId, Is.EqualTo("SchedulePrepare01"));
+            Assert.That(definition.EventVoiceId, Is.EqualTo("ScheduleResult01"));
+        }
+        finally
+        {
+            UnityEngine.Object.DestroyImmediate(data);
+        }
+    }
+
+    [Test]
+    public void AdditionalVoiceMetadata_DefaultsToEmpty()
+    {
+        Assert.That(new ActionReactionData().voiceId, Is.Null.Or.Empty);
+        Assert.That(new ConversationChoice().responseVoiceId, Is.Null.Or.Empty);
+
+        HeroineProfileData profile =
+            UnityEngine.ScriptableObject.CreateInstance<HeroineProfileData>();
+        try
+        {
+            Assert.That(profile.initialDialogueVoiceId, Is.Null.Or.Empty);
+            Assert.That(profile.nextActionPromptVoiceId, Is.Null.Or.Empty);
+            Assert.That(profile.morningGreetingVoiceId, Is.Null.Or.Empty);
+            Assert.That(profile.goodNightGreetingVoiceId, Is.Null.Or.Empty);
+        }
+        finally
+        {
+            UnityEngine.Object.DestroyImmediate(profile);
+        }
+    }
+
     [TestCase(false, true, true, true, false)]
     [TestCase(true, false, true, true, false)]
     [TestCase(true, true, false, true, false)]

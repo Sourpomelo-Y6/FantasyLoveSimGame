@@ -536,10 +536,29 @@ public class GameManager : MonoBehaviour
         string stillId,
         Sprite stillSprite)
     {
+        ShowDialogue(speakerType, speakerName, message, stillId, stillSprite, "");
+    }
+
+    private void ShowDialogue(
+        DialogueSpeakerType speakerType,
+        string speakerName,
+        string message,
+        string stillId,
+        Sprite stillSprite,
+        string voiceId)
+    {
         ResetDialogueSequenceState();
         queuedDialogueMessages.Clear();
         dialogueSequenceIsActive = false;
-        SetDialogueText(speakerType, speakerName, message, stillId, stillSprite);
+        SetDialogueText(
+            speakerType,
+            speakerName,
+            message,
+            stillId,
+            stillSprite,
+            "",
+            null,
+            voiceId);
     }
 
     private void SetDialogueText(
@@ -1143,6 +1162,14 @@ public class GameManager : MonoBehaviour
 
     private void ShowHeroineDialogue(string message, string expressionId)
     {
+        ShowHeroineDialogue(message, expressionId, "");
+    }
+
+    private void ShowHeroineDialogue(
+        string message,
+        string expressionId,
+        string voiceId)
+    {
         ResetDialogueSequenceState();
         queuedDialogueMessages.Clear();
         dialogueSequenceIsActive = false;
@@ -1152,7 +1179,9 @@ public class GameManager : MonoBehaviour
             message,
             "",
             null,
-            expressionId);
+            expressionId,
+            null,
+            voiceId);
     }
 
     private void ShowSystemDialogue(string message)
@@ -1196,6 +1225,26 @@ public class GameManager : MonoBehaviour
         return GetHeroineProfileDialogue(
             heroineProfile != null ? heroineProfile.goodNightGreeting : null,
             "もう夜も遅いですね。おやすみなさい。また明日。");
+    }
+
+    private string GetInitialDialogueVoiceId()
+    {
+        return heroineProfile != null ? heroineProfile.initialDialogueVoiceId : "";
+    }
+
+    private string GetNextActionPromptVoiceId()
+    {
+        return heroineProfile != null ? heroineProfile.nextActionPromptVoiceId : "";
+    }
+
+    private string GetMorningGreetingVoiceId()
+    {
+        return heroineProfile != null ? heroineProfile.morningGreetingVoiceId : "";
+    }
+
+    private string GetGoodNightGreetingVoiceId()
+    {
+        return heroineProfile != null ? heroineProfile.goodNightGreetingVoiceId : "";
     }
 
     private string GetGameStartFallbackMessage()
@@ -1544,7 +1593,10 @@ public class GameManager : MonoBehaviour
             return;
         }
 
-        ShowHeroineDialogue(GetInitialDialogueMessage());
+        ShowHeroineDialogue(
+            GetInitialDialogueMessage(),
+            "",
+            GetInitialDialogueVoiceId());
         RefreshUI();
         SetSaveLoadButtonsVisible(true);
         EnsureStatusDetailPanel();
@@ -2074,7 +2126,10 @@ public class GameManager : MonoBehaviour
         {
             pendingGoodNight = false;
 
-            ShowHeroineDialogue(GetGoodNightGreeting());
+            ShowHeroineDialogue(
+                GetGoodNightGreeting(),
+                "",
+                GetGoodNightGreetingVoiceId());
 
             flowState = ConversationFlowState.ShowingGoodNight;
 
@@ -2123,7 +2178,10 @@ public class GameManager : MonoBehaviour
         outfitReactionPanel.SetActive(false);
         actionButtonArea.SetActive(true);
 
-        ShowHeroineDialogue(GetNextActionPrompt());
+        ShowHeroineDialogue(
+            GetNextActionPrompt(),
+            "",
+            GetNextActionPromptVoiceId());
     }
 
     private void ShowChoices()
@@ -2179,7 +2237,7 @@ public class GameManager : MonoBehaviour
     {
         choiceButtonArea.SetActive(false);
 
-        ShowHeroineDialogue(choice.responseText);
+        ShowHeroineDialogue(choice.responseText, "", choice.responseVoiceId);
 
         heroineStatus.AddAffection(choice.affectionChange);
 
@@ -2244,7 +2302,10 @@ public class GameManager : MonoBehaviour
         outfitReactionPanel.SetActive(false);
         actionButtonArea.SetActive(true);
 
-        ShowHeroineDialogue(GetNextActionPrompt());
+        ShowHeroineDialogue(
+            GetNextActionPrompt(),
+            "",
+            GetNextActionPromptVoiceId());
     }
 
     private void OnClickEnding()
@@ -4856,7 +4917,8 @@ public class GameManager : MonoBehaviour
         string actionId,
         string stillId = "",
         Sprite stillSprite = null,
-        string expressionId = "")
+        string expressionId = "",
+        string voiceId = "")
     {
         actionButtonArea.SetActive(false);
         genreButtonArea.SetActive(false);
@@ -4877,7 +4939,9 @@ public class GameManager : MonoBehaviour
             resultMessage,
             stillId,
             stillSprite,
-            expressionId);
+            expressionId,
+            null,
+            voiceId);
 
         heroineStatus.AddAffection(affectionChange);
 
@@ -6081,7 +6145,8 @@ public class GameManager : MonoBehaviour
                 action.actionId,
                 string.IsNullOrEmpty(reaction.stillId) ? action.stillId : reaction.stillId,
                 reaction.stillSprite != null ? reaction.stillSprite : action.stillSprite,
-                reaction.expressionId
+                reaction.expressionId,
+                reaction.voiceId
             );
 
             return;
@@ -6414,7 +6479,16 @@ public class GameManager : MonoBehaviour
 
         if (!string.IsNullOrEmpty(scheduleMessage))
         {
-            messages.Add(new DialogueMessage(DialogueSpeakerType.Schedule, ScheduleSpeakerName, scheduleMessage));
+            messages.Add(
+                new DialogueMessage(
+                    DialogueSpeakerType.Schedule,
+                    ScheduleSpeakerName,
+                    scheduleMessage,
+                    "",
+                    null,
+                    "",
+                    null,
+                    GetTodayScheduledEventPreparationVoiceId()));
         }
 
         AppendGameEventMessages(
@@ -6470,6 +6544,18 @@ public class GameManager : MonoBehaviour
         }
 
         return scheduledEvent.PreparationMessage;
+    }
+
+    private string GetTodayScheduledEventPreparationVoiceId()
+    {
+        if (scheduleManager == null || scheduleManager.TodayScheduleEventExecuted)
+        {
+            return "";
+        }
+
+        ScheduledEventDefinition scheduledEvent =
+            GetScheduledEventDefinition(scheduleManager.TodaySchedule);
+        return scheduledEvent != null ? scheduledEvent.PreparationVoiceId : "";
     }
 
     private bool TryStartScheduledEvent()
@@ -8172,23 +8258,53 @@ public class GameManager : MonoBehaviour
         switch (scheduledEvent.EventSpeakerType)
         {
             case ScheduledEventSpeakerType.System:
-                ShowDialogue(DialogueSpeakerType.System, SystemSpeakerName, eventMessage, stillId, stillSprite);
+                ShowDialogue(
+                    DialogueSpeakerType.System,
+                    SystemSpeakerName,
+                    eventMessage,
+                    stillId,
+                    stillSprite,
+                    scheduledEvent.EventVoiceId);
                 return;
 
             case ScheduledEventSpeakerType.Schedule:
-                ShowDialogue(DialogueSpeakerType.Schedule, ScheduleSpeakerName, eventMessage, stillId, stillSprite);
+                ShowDialogue(
+                    DialogueSpeakerType.Schedule,
+                    ScheduleSpeakerName,
+                    eventMessage,
+                    stillId,
+                    stillSprite,
+                    scheduledEvent.EventVoiceId);
                 return;
 
             case ScheduledEventSpeakerType.Outfit:
-                ShowDialogue(DialogueSpeakerType.Outfit, OutfitSpeakerName, eventMessage, stillId, stillSprite);
+                ShowDialogue(
+                    DialogueSpeakerType.Outfit,
+                    OutfitSpeakerName,
+                    eventMessage,
+                    stillId,
+                    stillSprite,
+                    scheduledEvent.EventVoiceId);
                 return;
 
             case ScheduledEventSpeakerType.Player:
-                ShowDialogue(DialogueSpeakerType.Player, PlayerSpeakerName, eventMessage, stillId, stillSprite);
+                ShowDialogue(
+                    DialogueSpeakerType.Player,
+                    PlayerSpeakerName,
+                    eventMessage,
+                    stillId,
+                    stillSprite,
+                    scheduledEvent.EventVoiceId);
                 return;
 
             default:
-                ShowDialogue(DialogueSpeakerType.Heroine, heroineStatus.HeroineName, eventMessage, stillId, stillSprite);
+                ShowDialogue(
+                    DialogueSpeakerType.Heroine,
+                    heroineStatus.HeroineName,
+                    eventMessage,
+                    stillId,
+                    stillSprite,
+                    scheduledEvent.EventVoiceId);
                 return;
         }
     }
@@ -8594,7 +8710,10 @@ public class GameManager : MonoBehaviour
 
         if (dayStartMessages == null || dayStartMessages.Count == 0)
         {
-            ShowHeroineDialogue(GetMorningGreeting());
+            ShowHeroineDialogue(
+                GetMorningGreeting(),
+                "",
+                GetMorningGreetingVoiceId());
         }
         else
         {
@@ -8603,7 +8722,12 @@ public class GameManager : MonoBehaviour
                 new DialogueMessage(
                     DialogueSpeakerType.Heroine,
                     heroineStatus.HeroineName,
-                    GetMorningGreeting()
+                    GetMorningGreeting(),
+                    "",
+                    null,
+                    "",
+                    null,
+                    GetMorningGreetingVoiceId()
                 )
             };
 
@@ -8651,7 +8775,10 @@ public class GameManager : MonoBehaviour
 
     private void ShowGoodNightBeforeNextDay()
     {
-        ShowHeroineDialogue(GetGoodNightGreeting());
+        ShowHeroineDialogue(
+            GetGoodNightGreeting(),
+            "",
+            GetGoodNightGreetingVoiceId());
 
         flowState = ConversationFlowState.ShowingGoodNight;
 

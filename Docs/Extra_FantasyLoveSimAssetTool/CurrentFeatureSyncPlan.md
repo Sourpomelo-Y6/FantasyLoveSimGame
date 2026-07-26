@@ -96,6 +96,13 @@ Unityからは `heroine_skills_from_unity.json` を出力し、Toolで
 
 訓練文章の専用データ型がUnity側で確定するまでは、Toolへ先行して不安定なJSONを追加せず、`training_images_export.json` と画像生成を優先する。
 
+### ボイスID同期（Unity側基盤実装済み・Tool側未実装）
+
+Unity側では通常会話、ゲームイベント、エンディングに加え、予定イベントの準備・結果、
+行動反応、選択肢返答、ヒロイン共通メッセージへボイスIDを設定できる。
+実音声はGit管理せず、ToolとのJSON同期では文字列IDだけを往復対象にする。
+旧JSONに項目がない場合は空文字として扱い、既存データを消さない方式で追加する。
+
 訓練文章は `training_dialogues_export.json` で同期済み。戦闘結果文章は
 `battle_result_events_export.json` と `battle_panel_result_messages_export.json` をToolから出力し、
 Unityからは対応する `*_from_unity.json` を出力する。Toolの戦闘メッセージタブでは、

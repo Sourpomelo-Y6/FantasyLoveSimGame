@@ -15,6 +15,8 @@ public class ActionReactionData
 
     [Tooltip("ヒロイン発話時に適用する表情ID。空なら現在の表情を維持します。")]
     public string expressionId;
+    [Tooltip("反応表示時に再生するボイスID。空なら再生しません。")]
+    public string voiceId;
 
     [Header("Still")]
     public string stillId;

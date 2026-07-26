@@ -14,6 +14,8 @@ public class ScheduledEventDefinition
     public string CostumeId { get; private set; }
     public string StillId { get; private set; }
     public Sprite StillSprite { get; private set; }
+    public string PreparationVoiceId { get; private set; }
+    public string EventVoiceId { get; private set; }
 
     public ScheduledEventDefinition(
         ScheduleType scheduleType,
@@ -27,7 +29,9 @@ public class ScheduledEventDefinition
         int affectionChange,
         string costumeId = "",
         string stillId = "",
-        Sprite stillSprite = null)
+        Sprite stillSprite = null,
+        string preparationVoiceId = "",
+        string eventVoiceId = "")
     {
         ScheduleType = scheduleType;
         ActionId = actionId;
@@ -41,5 +45,7 @@ public class ScheduledEventDefinition
         CostumeId = costumeId;
         StillId = stillId;
         StillSprite = stillSprite;
+        PreparationVoiceId = preparationVoiceId;
+        EventVoiceId = eventVoiceId;
     }
 }
