@@ -710,6 +710,8 @@ UI デザインは手作業で行っています。
 - メッセージ表示ウィンドウのクリック進行は `DialogueClickAdvanceArea` で実装済み。Unity 上でメッセージウィンドウの Panel などに追加し、`GameManager.dialogueClickAdvanceArea` に割り当てる。クリック対象の Image は `Raycast Target` を有効にしておく。
 - クリック進行のON/OFF設定も実装済み。端末共通の `Application.persistentDataPath/game_options.json` に保存し、ファイルなし・破損・未対応versionではONを既定値とする。`GameOptionsPanel` の `Dialogue Click Advance Toggle` を変更すると即時保存され、セーブスロットには含めない。`GameManager.enableDialogueWindowClickAdvance` はScene単位の互換用安全弁として残し、これと端末設定の両方がONの場合だけクリックで進行する。
 - オプションUIはCanvas下に非アクティブの `GameOptionsPanel` を作り、同オブジェクトへ `GameOptionsPanel` コンポーネントを追加する。子に `DialogueClickAdvanceToggle`、`CloseButton`、任意の `ResultText` を置いて各参照を割り当てる。表示ボタンのOnClickから `GameOptionsPanel.Open()` を呼ぶ。タイトルとメインの両Sceneに同じ構成を置けば、共通JSONを参照するため同じ設定を利用できる。
+- `AudioManager` はRuntimeInitializeで自動生成し、Scene間でBGM用・SE用AudioSourceを維持する。音源なし、空パス、参照できないパスは無音のまま継続する。Title／Main／EndingのBGMは `Resources/Audio/Bgm/Title`、`Main`、`Ending` を規約パスとして自動要求する。実音源はGit管理しない。
+- `game_options.json` はversion 2。`bgmVolume` / `bgmMuted` / `seVolume` / `seMuted` を端末共通で保存し、version 1は音量1・ミュートOFFへ移行する。`GameOptionsPanel` のSlider／Toggle参照はコード追加済みだが、TitleSceneとMainSceneのUI配置・Inspector割り当ては未実施。
 
 ## 追加開発の優先候補
 

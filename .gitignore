@@ -9,6 +9,14 @@ Assets/Fonts/**/* SDF.asset.meta
 Assets/Fonts/**/* SDF Atlas*.png
 Assets/Fonts/**/* SDF Atlas*.png.meta
 
+# Locally supplied audio assets
+Assets/**/*.wav
+Assets/**/*.wav.meta
+Assets/**/*.mp3
+Assets/**/*.mp3.meta
+Assets/**/*.ogg
+Assets/**/*.ogg.meta
+
 # Unity generated folders
 Library/
 Logs/

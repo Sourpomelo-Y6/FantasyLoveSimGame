@@ -86,6 +86,27 @@ MainSceneからタイトルへ戻った場合は再表示しない。アプリ�
 - 戦闘BGM
 - エンディングBGM
 
+### 現在のBGM・SE基盤
+
+`AudioManager` は実装済み。RuntimeInitializeで自動生成し、`DontDestroyOnLoad` によりScene間で
+1個だけ維持する。BGM用とSE用の `AudioSource` を分離し、同じBGMの重複再生防止、
+短いフェード切り替え、未設定時の安全な無音動作に対応する。
+
+Scene BGMはアセットのGUIDをSceneへ保存せず、次のResourcesパスから任意ロードする。
+
+| Scene | Resourcesパス | ローカル配置例 |
+| --- | --- | --- |
+| `TitleScene` | `Audio/Bgm/Title` | `Assets/Resources/Audio/Bgm/Title.ogg` |
+| `MainScene` | `Audio/Bgm/Main` | `Assets/Resources/Audio/Bgm/Main.ogg` |
+| `EndingScene` | `Audio/Bgm/Ending` | `Assets/Resources/Audio/Bgm/Ending.ogg` |
+
+対応ファイルが存在しない場合はBGMを停止し、例外を発生させない。
+戦闘や訓練のようにMainScene内で切り替える場合は、パネル開始時に
+`AudioManager.Instance.PlayBgmFromResources(...)` を呼び、終了時にMain用BGMへ戻す。
+
+SEは `AudioManager.Instance.PlaySe(AudioClip)` または
+`PlaySeFromResources(string)` で要求する。実音源と各ボタンへの接続は後続作業とする。
+
 ## SE
 
 画面操作とゲーム結果が分かりやすくなるよう、SE再生機能を追加する。
@@ -103,6 +124,29 @@ MainSceneからタイトルへ戻った場合は再表示しない。アプリ�
 
 連続クリックやログ送りで音が過剰に重ならないよう、必要なSEには短い再生間隔制限を設ける。
 SE音量とミュートも端末共通オプションへ保存する。
+
+### 端末共通オプション
+
+`game_options.json` はversion 2へ更新済みで、次を保存する。
+
+- `bgmVolume`: 0～1
+- `bgmMuted`
+- `seVolume`: 0～1
+- `seMuted`
+
+version 1からロードした場合はBGM・SE音量を1、ミュートをOFFとして補完する。
+範囲外の音量は0～1へ丸める。
+
+`GameOptionsPanel` にはUIを後から割り当てられる次のInspector参照を追加済み。
+
+- `Bgm Volume Slider`
+- `Bgm Mute Toggle`
+- `Se Volume Slider`
+- `Se Mute Toggle`
+
+Sliderの `Min Value` は0、`Max Value` は1、`Whole Numbers` はOFFにする。
+ToggleとSliderはコード側でイベントを登録するため、Inspectorの `On Value Changed` へ
+メソッドを手動登録しない。
 
 ## ボイス再生機能
 
@@ -209,8 +253,8 @@ Git管理するもの:
 
 1. タイトル画面の免責テキスト配置とセッション初回のクリック終了（実装済み）
 2. タイトル画像の任意参照と画像なしフォールバックを作る
-3. BGM・SEを分離した `AudioManager` を実装する
-4. 音量、ミュート、ボイス自動再生をゲームオプションへ追加する
+3. BGM・SEを分離した `AudioManager` を実装する（実装済み）
+4. BGM・SE音量とミュートをゲームオプションへ追加する（コード・保存実装済み、UI配置は未実施）
 5. ボイスデータなしで動作する共通ボイス再生基盤を実装する
 6. 通常会話とゲームイベントへ `voiceId` を接続する
 7. 素材のライセンス確認後に本番用画像・BGM・SE・ボイスを登録する

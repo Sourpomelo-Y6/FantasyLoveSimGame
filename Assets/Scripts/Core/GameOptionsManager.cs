@@ -5,10 +5,14 @@ using UnityEngine;
 [Serializable]
 public sealed class GameOptionsData
 {
-    public const int CurrentVersion = 1;
+    public const int CurrentVersion = 2;
 
     public int version = CurrentVersion;
     public bool dialogueWindowClickAdvance = true;
+    [Range(0f, 1f)] public float bgmVolume = 1f;
+    public bool bgmMuted;
+    [Range(0f, 1f)] public float seVolume = 1f;
+    public bool seMuted;
 }
 
 public static class GameOptionsManager
@@ -22,6 +26,11 @@ public static class GameOptionsManager
     {
         get { return GetCurrent().dialogueWindowClickAdvance; }
     }
+
+    public static float BgmVolume => GetCurrent().bgmVolume;
+    public static bool BgmMuted => GetCurrent().bgmMuted;
+    public static float SeVolume => GetCurrent().seVolume;
+    public static bool SeMuted => GetCurrent().seMuted;
 
     public static GameOptionsData GetCurrent()
     {
@@ -37,13 +46,35 @@ public static class GameOptionsManager
     {
         GameOptionsData updated = Clone(GetCurrent());
         updated.dialogueWindowClickAdvance = enabled;
-        if (!TrySaveToPath(updated, FilePath, out message))
-        {
-            return false;
-        }
+        return TryApplyUpdatedData(updated, out message);
+    }
 
-        current = updated;
-        return true;
+    public static bool SetBgmVolume(float volume, out string message)
+    {
+        GameOptionsData updated = Clone(GetCurrent());
+        updated.bgmVolume = Mathf.Clamp01(volume);
+        return TryApplyUpdatedData(updated, out message);
+    }
+
+    public static bool SetBgmMuted(bool muted, out string message)
+    {
+        GameOptionsData updated = Clone(GetCurrent());
+        updated.bgmMuted = muted;
+        return TryApplyUpdatedData(updated, out message);
+    }
+
+    public static bool SetSeVolume(float volume, out string message)
+    {
+        GameOptionsData updated = Clone(GetCurrent());
+        updated.seVolume = Mathf.Clamp01(volume);
+        return TryApplyUpdatedData(updated, out message);
+    }
+
+    public static bool SetSeMuted(bool muted, out string message)
+    {
+        GameOptionsData updated = Clone(GetCurrent());
+        updated.seMuted = muted;
+        return TryApplyUpdatedData(updated, out message);
     }
 
     public static void Reload()
@@ -71,6 +102,17 @@ public static class GameOptionsManager
                 return defaults;
             }
 
+            if (loaded.version == 1)
+            {
+                // version 1には音量項目がないため、無音の0ではなく既定音量へ移行する。
+                loaded.bgmVolume = 1f;
+                loaded.seVolume = 1f;
+                loaded.bgmMuted = false;
+                loaded.seMuted = false;
+            }
+
+            loaded.version = GameOptionsData.CurrentVersion;
+            Normalize(loaded);
             return loaded;
         }
         catch (Exception exception)
@@ -101,6 +143,7 @@ public static class GameOptionsManager
         {
             string directory = Path.GetDirectoryName(path);
             if (!string.IsNullOrEmpty(directory)) Directory.CreateDirectory(directory);
+            Normalize(data);
             data.version = GameOptionsData.CurrentVersion;
             File.WriteAllText(temporaryPath, JsonUtility.ToJson(data, true));
             File.Copy(temporaryPath, path, true);
@@ -120,5 +163,29 @@ public static class GameOptionsManager
     private static GameOptionsData Clone(GameOptionsData source)
     {
         return JsonUtility.FromJson<GameOptionsData>(JsonUtility.ToJson(source));
+    }
+
+    private static bool TryApplyUpdatedData(GameOptionsData updated, out string message)
+    {
+        Normalize(updated);
+        if (!TrySaveToPath(updated, FilePath, out message))
+        {
+            return false;
+        }
+
+        current = updated;
+        AudioManager.ApplyCurrentOptionsIfAvailable();
+        return true;
+    }
+
+    private static void Normalize(GameOptionsData data)
+    {
+        if (data == null)
+        {
+            return;
+        }
+
+        data.bgmVolume = Mathf.Clamp01(data.bgmVolume);
+        data.seVolume = Mathf.Clamp01(data.seVolume);
     }
 }

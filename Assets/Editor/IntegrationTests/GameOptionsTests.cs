@@ -29,6 +29,10 @@ public class GameOptionsTests
         GameOptionsData data = GameOptionsManager.LoadFromPath(GetTestPath(), false);
 
         Assert.That(data.dialogueWindowClickAdvance, Is.True);
+        Assert.That(data.bgmVolume, Is.EqualTo(1f));
+        Assert.That(data.bgmMuted, Is.False);
+        Assert.That(data.seVolume, Is.EqualTo(1f));
+        Assert.That(data.seMuted, Is.False);
         Assert.That(data.version, Is.EqualTo(GameOptionsData.CurrentVersion));
     }
 
@@ -37,7 +41,11 @@ public class GameOptionsTests
     {
         GameOptionsData source = new GameOptionsData
         {
-            dialogueWindowClickAdvance = false
+            dialogueWindowClickAdvance = false,
+            bgmVolume = 0.25f,
+            bgmMuted = true,
+            seVolume = 0.75f,
+            seMuted = true
         };
         string message;
 
@@ -45,6 +53,10 @@ public class GameOptionsTests
         GameOptionsData restored = GameOptionsManager.LoadFromPath(GetTestPath(), false);
 
         Assert.That(restored.dialogueWindowClickAdvance, Is.False);
+        Assert.That(restored.bgmVolume, Is.EqualTo(0.25f).Within(0.001f));
+        Assert.That(restored.bgmMuted, Is.True);
+        Assert.That(restored.seVolume, Is.EqualTo(0.75f).Within(0.001f));
+        Assert.That(restored.seMuted, Is.True);
         Assert.That(restored.version, Is.EqualTo(GameOptionsData.CurrentVersion));
     }
 
@@ -56,6 +68,45 @@ public class GameOptionsTests
         GameOptionsData data = GameOptionsManager.LoadFromPath(GetTestPath(), false);
 
         Assert.That(data.dialogueWindowClickAdvance, Is.True);
+        Assert.That(data.bgmVolume, Is.EqualTo(1f));
+        Assert.That(data.seVolume, Is.EqualTo(1f));
+    }
+
+    [Test]
+    public void LoadFromPath_VersionOneMigratesAudioDefaults()
+    {
+        File.WriteAllText(
+            GetTestPath(),
+            "{\"version\":1,\"dialogueWindowClickAdvance\":false}");
+
+        GameOptionsData data = GameOptionsManager.LoadFromPath(GetTestPath(), false);
+
+        Assert.That(data.version, Is.EqualTo(GameOptionsData.CurrentVersion));
+        Assert.That(data.dialogueWindowClickAdvance, Is.False);
+        Assert.That(data.bgmVolume, Is.EqualTo(1f));
+        Assert.That(data.bgmMuted, Is.False);
+        Assert.That(data.seVolume, Is.EqualTo(1f));
+        Assert.That(data.seMuted, Is.False);
+    }
+
+    [Test]
+    public void SaveAndLoad_ClampsAudioVolumes()
+    {
+        GameOptionsData source = new GameOptionsData
+        {
+            bgmVolume = -0.5f,
+            seVolume = 1.5f
+        };
+        string message;
+
+        Assert.That(
+            GameOptionsManager.TrySaveToPath(source, GetTestPath(), out message),
+            Is.True,
+            message);
+        GameOptionsData restored = GameOptionsManager.LoadFromPath(GetTestPath(), false);
+
+        Assert.That(restored.bgmVolume, Is.EqualTo(0f));
+        Assert.That(restored.seVolume, Is.EqualTo(1f));
     }
 
     [TestCase(false, true, true, true, false)]
