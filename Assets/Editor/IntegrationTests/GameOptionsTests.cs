@@ -220,6 +220,71 @@ public class GameOptionsTests
         }
     }
 
+    [Test]
+    public void TrainingDialogue_PrefersVoicedCandidateAndReturnsVoiceId()
+    {
+        HeroineTrainingDialogueData data =
+            UnityEngine.ScriptableObject.CreateInstance<HeroineTrainingDialogueData>();
+        try
+        {
+            data.entries.Add(new HeroineTrainingDialogueEntry
+            {
+                trainingId = "Training01",
+                visualState = TrainingVisualState.SelectedBeforeFirstStep,
+                messages = new System.Collections.Generic.List<string> { "従来のセリフ" },
+                voicedMessages =
+                    new System.Collections.Generic.List<HeroineTrainingDialogueCandidate>
+                    {
+                        new HeroineTrainingDialogueCandidate
+                        {
+                            message = "音声付きセリフ",
+                            voiceId = "Training/Line01"
+                        }
+                    }
+            });
+
+            HeroineTrainingDialogueSelection selection = data.ResolveDialogue(
+                "Training01",
+                TrainingVisualState.SelectedBeforeFirstStep,
+                string.Empty);
+
+            Assert.That(selection.Message, Is.EqualTo("音声付きセリフ"));
+            Assert.That(selection.VoiceId, Is.EqualTo("Training/Line01"));
+        }
+        finally
+        {
+            UnityEngine.Object.DestroyImmediate(data);
+        }
+    }
+
+    [Test]
+    public void TrainingDialogue_LegacyMessagesRemainSupported()
+    {
+        HeroineTrainingDialogueData data =
+            UnityEngine.ScriptableObject.CreateInstance<HeroineTrainingDialogueData>();
+        try
+        {
+            data.entries.Add(new HeroineTrainingDialogueEntry
+            {
+                trainingId = "Training01",
+                visualState = TrainingVisualState.SelectedAfterFirstStep,
+                messages = new System.Collections.Generic.List<string> { "従来のセリフ" }
+            });
+
+            HeroineTrainingDialogueSelection selection = data.ResolveDialogue(
+                "Training01",
+                TrainingVisualState.SelectedAfterFirstStep,
+                string.Empty);
+
+            Assert.That(selection.Message, Is.EqualTo("従来のセリフ"));
+            Assert.That(selection.VoiceId, Is.Empty);
+        }
+        finally
+        {
+            UnityEngine.Object.DestroyImmediate(data);
+        }
+    }
+
     [TestCase(false, true, true, true, false)]
     [TestCase(true, false, true, true, false)]
     [TestCase(true, true, false, true, false)]

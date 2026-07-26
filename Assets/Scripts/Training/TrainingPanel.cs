@@ -27,6 +27,7 @@ public class TrainingPanel : MonoBehaviour
     [Header("Heroine Dialogue")]
     [SerializeField] private TextMeshProUGUI heroineNameText;
     [SerializeField] private TextMeshProUGUI trainingMessageText;
+    [SerializeField] private Button voiceReplayButton;
 
     [Header("Controls")]
     [SerializeField] private Button advanceButton;
@@ -111,6 +112,7 @@ public class TrainingPanel : MonoBehaviour
         trainingImageData = LoadTrainingImageData();
         trainingDialogueData = LoadTrainingDialogueData();
         lastTrainingMessage = string.Empty;
+        AudioManager.StopVoiceIfAvailable();
         RefreshHeroineName();
         if (trainingMessageText != null)
         {
@@ -126,6 +128,7 @@ public class TrainingPanel : MonoBehaviour
 
     public void Close()
     {
+        AudioManager.StopVoiceIfAvailable();
         if (currentState != null && !currentState.isFinished)
         {
             currentState.Interrupt();
@@ -367,23 +370,33 @@ public class TrainingPanel : MonoBehaviour
 
     private void ApplyTrainingDialogue(TrainingVisualState state)
     {
+        AudioManager.StopVoiceIfAvailable();
+        RefreshVoiceReplayButton();
         if (trainingMessageText == null || trainingDialogueData == null || currentTraining == null)
         {
             return;
         }
 
-        string message = trainingDialogueData.ResolveMessage(
+        HeroineTrainingDialogueSelection dialogue =
+            trainingDialogueData.ResolveDialogue(
             currentTraining.trainingId,
             state,
             lastTrainingMessage);
-        if (string.IsNullOrEmpty(message))
+        if (!dialogue.HasMessage)
         {
             // 未設定時は現在のセリフを維持する。
             return;
         }
 
-        lastTrainingMessage = message;
-        trainingMessageText.text = message;
+        lastTrainingMessage = dialogue.Message;
+        trainingMessageText.text = dialogue.Message;
+        if (!string.IsNullOrWhiteSpace(dialogue.VoiceId))
+        {
+            AudioManager.Instance.PlayVoiceById(
+                gameManager != null ? gameManager.CurrentHeroineId : string.Empty,
+                dialogue.VoiceId);
+        }
+        RefreshVoiceReplayButton();
     }
 
     private void RefreshHeroineName()
@@ -399,6 +412,24 @@ public class TrainingPanel : MonoBehaviour
         heroineNameText.text = profile != null && !string.IsNullOrEmpty(profile.displayName)
             ? profile.displayName
             : "ヒロイン";
+    }
+
+    private void ReplayCurrentVoice()
+    {
+        AudioManager.Instance.ReplayCurrentVoice();
+        RefreshVoiceReplayButton();
+    }
+
+    private void RefreshVoiceReplayButton()
+    {
+        if (voiceReplayButton == null)
+        {
+            return;
+        }
+
+        AudioManager audioManager = AudioManager.Instance;
+        voiceReplayButton.gameObject.SetActive(audioManager.HasPreparedVoice);
+        voiceReplayButton.interactable = audioManager.CanReplayCurrentVoice;
     }
 
     private static string BuildTrainingSkillModifierLog(TrainingStepResult stepResult)
@@ -445,6 +476,7 @@ public class TrainingPanel : MonoBehaviour
         }
 
         currentState.Interrupt();
+        AudioManager.StopVoiceIfAvailable();
         AddLog("訓練を途中でやめました。");
         NotifyTrainingResult();
         RefreshStatus();
@@ -458,6 +490,7 @@ public class TrainingPanel : MonoBehaviour
         }
 
         hasReportedResult = true;
+        AudioManager.StopVoiceIfAvailable();
         PanelRoot.SetActive(false);
         gameManager.OnTrainingPanelResult(TrainingResult.Create(currentTraining, currentState));
     }
@@ -544,22 +577,22 @@ public class TrainingPanel : MonoBehaviour
 
         if (playerHpText != null)
         {
-            playerHpText.text = "主人公HP: " + FormatHp(currentState != null ? currentState.playerHp : 0, currentState != null ? currentState.playerMaxHp : 0);
+            playerHpText.text = "HP: " + FormatHp(currentState != null ? currentState.playerHp : 0, currentState != null ? currentState.playerMaxHp : 0);
         }
 
         if (heroineHpText != null)
         {
-            heroineHpText.text = "ヒロインHP: " + FormatHp(currentState != null ? currentState.heroineHp : 0, currentState != null ? currentState.heroineMaxHp : 0);
+            heroineHpText.text = "HP: " + FormatHp(currentState != null ? currentState.heroineHp : 0, currentState != null ? currentState.heroineMaxHp : 0);
         }
 
         if (playerLpText != null)
         {
-            playerLpText.text = "主人公LP: " + (currentState != null ? currentState.playerLp : 0);
+            playerLpText.text = "LP: " + (currentState != null ? currentState.playerLp : 0);
         }
 
         if (heroineLpText != null)
         {
-            heroineLpText.text = "ヒロインLP: " + (currentState != null ? currentState.heroineLp : 0);
+            heroineLpText.text = "LP: " + (currentState != null ? currentState.heroineLp : 0);
         }
 
         if (resultLogText != null)
@@ -577,6 +610,8 @@ public class TrainingPanel : MonoBehaviour
         {
             quitButton.interactable = canAdvance;
         }
+
+        RefreshVoiceReplayButton();
     }
 
     private void AddLog(string message)
@@ -775,6 +810,11 @@ public class TrainingPanel : MonoBehaviour
             trainingMessageText = FindText("TrainingMessageText");
         }
 
+        if (voiceReplayButton == null)
+        {
+            voiceReplayButton = FindButton("VoiceReplayButton");
+        }
+
         if (advanceButton == null)
         {
             advanceButton = FindButton("AdvanceButton");
@@ -814,6 +854,12 @@ public class TrainingPanel : MonoBehaviour
         {
             closeButton.onClick.RemoveListener(Close);
             closeButton.onClick.AddListener(Close);
+        }
+
+        if (voiceReplayButton != null)
+        {
+            voiceReplayButton.onClick.RemoveListener(ReplayCurrentVoice);
+            voiceReplayButton.onClick.AddListener(ReplayCurrentVoice);
         }
     }
 

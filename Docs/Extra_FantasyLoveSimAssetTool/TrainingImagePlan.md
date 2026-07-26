@@ -196,6 +196,7 @@ Training_EnduranceTraining_SimultaneousLpConsumed.png
 trainingId
 visualState
 messages[]
+voicedMessages[]  // message + voiceId。任意
 ```
 
 画像とセリフが別々に状態判定を行うと表示が食い違うため、訓練進行時に `TrainingVisualState` を一度だけ決定し、画像切り替えとセリフ選択の両方へ渡す。
@@ -220,16 +221,20 @@ messages[]
 - 同じ枠に複数候補がある場合は、直前と同じセリフを除外してランダム選択
 - `trainingId` が空のエントリは、ヒロイン内の状態共通フォールバック
 - データまたはUIが未設定でも例外を発生させない
+- `voicedMessages` がある枠は音声付き候補を優先し、未設定の枠は従来の `messages` を使用
+- `voiceId` は `Resources/Audio/Voice/<HeroineId>/` 以下の拡張子なしパス
 
 `TrainingPanel` のUIには次のTextMeshProUGUIを追加する。
 
 ```text
 HeroineNameText
 TrainingMessageText
+VoiceReplayButton（任意）
 ```
 
 同名の子GameObjectであれば自動検出する。Inspectorから明示的に参照を設定してもよい。
 訓練選択時とステップ進行時に、画像とセリフへ同じ `TrainingVisualState` を適用する。
+`VoiceReplayButton` のOn Clickはコードが登録するため、Inspectorでは登録しない。
 
 ### AssetToolとUnity Importer
 
@@ -252,6 +257,11 @@ training_dialogues_from_unity.json
 ```
 
 AssetToolの訓練画像タブからこのファイルを読み込むと、`trainingId + visualState` が一致する既存枠へ未登録候補だけを追加する。既存候補は削除・置換しないため、Toolを正本としながらUnity側の手修正を安全に回収できる。
+
+現行のAssetTool同期形式は本文の `messages[]` までを対象とする。Unityからの出力では
+`voicedMessages` の本文も候補として含めるため本文は欠落しないが、`voiceId` はまだ往復しない。
+AssetToolから再ImportするとUnity側で手入力した音声IDを保持できないため、音声ID同期対応までは
+訓練音声を設定したアセットへAssetTool Importを上書き実行しない。
 
 ### 動的な訓練カタログ
 

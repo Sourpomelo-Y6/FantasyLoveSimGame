@@ -231,7 +231,7 @@ public static class HeroineUnityDataExporter
                     {
                         TrainingId = entry.trainingId,
                         VisualState = entry.visualState.ToString(),
-                        Messages = entry.messages
+                        Messages = GetTrainingDialogueMessages(entry)
                     }),
                     report.Warn)
                 .Select(item => new TrainingDialogueFromUnityItem
@@ -245,6 +245,23 @@ public static class HeroineUnityDataExporter
 
         report.trainingDialogueEntryCount = export.items.Count;
         WriteJson(Path.Combine(outputFolder, "training_dialogues_from_unity.json"), export);
+    }
+
+    private static List<string> GetTrainingDialogueMessages(
+        HeroineTrainingDialogueEntry entry)
+    {
+        List<string> messages = entry.messages != null
+            ? new List<string>(entry.messages)
+            : new List<string>();
+        if (entry.voicedMessages != null)
+        {
+            messages.AddRange(
+                entry.voicedMessages
+                    .Where(candidate => candidate != null)
+                    .Select(candidate => candidate.message));
+        }
+
+        return messages;
     }
 
     private static void ExportTrainingCatalog(

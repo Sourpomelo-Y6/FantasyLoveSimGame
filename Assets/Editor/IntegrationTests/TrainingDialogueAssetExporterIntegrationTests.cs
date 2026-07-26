@@ -54,6 +54,11 @@ public class TrainingDialogueAssetExporterIntegrationTests
         {
             data.entries.Add(Entry("CooperativeDrill", state, " 候補A ", "候補B", "候補A"));
         }
+        data.entries[0].voicedMessages.Add(new HeroineTrainingDialogueCandidate
+        {
+            message = "音声付き候補",
+            voiceId = "Training/Line01"
+        });
         data.entries.Add(Entry(" CooperativeDrill ", "PlayerLpConsumed", "候補C"));
         data.entries.Add(Entry("CooperativeDrill", "HeroineLpConsumed", " "));
         EditorUtility.SetDirty(data);
@@ -72,6 +77,11 @@ public class TrainingDialogueAssetExporterIntegrationTests
         TrainingDialogueExportItem playerLp = exported.items.Single(item => item.visualState == "PlayerLpConsumed");
         Assert.That(playerLp.trainingId, Is.EqualTo("CooperativeDrill"));
         Assert.That(playerLp.messages, Is.EqualTo(new[] { "候補A", "候補B", "候補C" }));
+        TrainingDialogueExportItem before = exported.items.Single(
+            item => item.visualState == "SelectedBeforeFirstStep");
+        Assert.That(
+            before.messages,
+            Is.EqualTo(new[] { "候補A", "候補B", "音声付き候補" }));
         Assert.That(report.trainingDialogueEntryCount, Is.EqualTo(5));
     }
 

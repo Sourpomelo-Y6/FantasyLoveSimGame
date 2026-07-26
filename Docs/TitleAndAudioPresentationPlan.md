@@ -198,7 +198,7 @@ version 1・2からの移行時は、音量1、ミュートOFF、自動再生ON�
 再生できる。手動再生は `voiceAutoPlay` がOFFでも実行できるが、`voiceMuted` がONの場合は
 実行しない。
 
-`GameManager` と `EndingManager` には任意の `Voice Replay Button` 参照を追加済み。
+`GameManager`、`EndingManager`、`TrainingPanel` には任意の `Voice Replay Button` 参照を追加済み。
 現在のページに有効な音声がなければボタンを非表示にし、ミュート中は操作不可にする。
 ボタンの `On Click` はコード側で登録するため、Scene側でメソッドを手動登録しない。
 
@@ -218,7 +218,11 @@ version 1・2からの移行時は、音量1、ミュートOFF、自動再生ON�
 行動反応は `ActionReactionData.voiceId`、選択肢は
 `ConversationChoice.responseVoiceId` を使用する。ヒロイン共通メッセージは
 `HeroineProfileData` の初期表示、次行動、朝、就寝前それぞれにボイスIDを持つ。
-訓練と戦闘結果への個別接続は後続作業とする。
+訓練セリフへの接続も実装済み。`HeroineTrainingDialogueEntry.voicedMessages` に本文と
+`voiceId` の組を登録すると、訓練選択・切替・ステップ進行時に自動再生する。
+従来の `messages` は互換用として引き続き利用でき、音声付き候補が1件以上ある枠では
+音声付き候補を優先する。訓練画面を閉じる、途中終了する、訓練結果が確定する場合は停止する。
+戦闘結果への個別接続は後続作業とする。
 
 ## Git管理
 

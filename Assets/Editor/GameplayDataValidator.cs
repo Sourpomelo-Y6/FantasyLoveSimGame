@@ -123,7 +123,13 @@ public static class GameplayDataValidator
                     ValidateTrainingReference(entry.trainingId, "訓練セリフ", ids, asset, report);
                 string key = (entry.trainingId ?? string.Empty) + "|" + entry.visualState;
                 if (!keys.Add(key)) report.Warn("訓練セリフの状態が重複しています: " + key, asset);
-                if (entry.messages == null || !entry.messages.Any(message => !string.IsNullOrWhiteSpace(message)))
+                bool hasLegacyMessage = entry.messages != null &&
+                    entry.messages.Any(message => !string.IsNullOrWhiteSpace(message));
+                bool hasVoicedMessage = entry.voicedMessages != null &&
+                    entry.voicedMessages.Any(candidate =>
+                        candidate != null &&
+                        !string.IsNullOrWhiteSpace(candidate.message));
+                if (!hasLegacyMessage && !hasVoicedMessage)
                     report.Warn("訓練セリフ本文がありません: " + key, asset);
             }
         }
