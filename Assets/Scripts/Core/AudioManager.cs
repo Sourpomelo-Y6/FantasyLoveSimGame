@@ -16,6 +16,7 @@ public sealed class AudioManager : MonoBehaviour
     private AudioSource bgmSource;
     private AudioSource seSource;
     private AudioSource voiceSource;
+    private AudioClip preparedVoiceClip;
     private Coroutine bgmTransition;
 
     public static AudioManager Instance
@@ -29,6 +30,9 @@ public sealed class AudioManager : MonoBehaviour
 
     public AudioClip CurrentBgm => bgmSource != null ? bgmSource.clip : null;
     public AudioClip CurrentVoice => voiceSource != null ? voiceSource.clip : null;
+    public bool HasPreparedVoice => preparedVoiceClip != null;
+    public bool CanReplayCurrentVoice =>
+        CanReplayVoice(HasPreparedVoice, GameOptionsManager.VoiceMuted);
 
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
     private static void Bootstrap()
@@ -150,41 +154,58 @@ public sealed class AudioManager : MonoBehaviour
         PlaySe(Resources.Load<AudioClip>(resourcePath));
     }
 
-    public void PlayVoice(AudioClip clip, bool respectAutoPlay = true)
+    public bool PlayVoice(AudioClip clip, bool respectAutoPlay = true)
     {
         CreateAudioSources();
         voiceSource.Stop();
         voiceSource.clip = null;
+        preparedVoiceClip = clip;
 
         GameOptionsData options = GameOptionsManager.GetCurrent();
         if (clip == null || (respectAutoPlay && !options.voiceAutoPlay))
         {
-            return;
+            return false;
         }
 
         voiceSource.volume = options.voiceMuted ? 0f : options.voiceVolume;
         voiceSource.clip = clip;
         voiceSource.Play();
+        return true;
     }
 
-    public void PlayVoiceFromResources(
+    public bool PlayVoiceFromResources(
         string resourcePath,
         bool respectAutoPlay = true)
     {
         AudioClip clip = string.IsNullOrWhiteSpace(resourcePath)
             ? null
             : Resources.Load<AudioClip>(resourcePath);
-        PlayVoice(clip, respectAutoPlay);
+        return PlayVoice(clip, respectAutoPlay);
     }
 
-    public void PlayVoiceById(
+    public bool PlayVoiceById(
         string heroineId,
         string voiceId,
         bool respectAutoPlay = true)
     {
-        PlayVoiceFromResources(
+        return PlayVoiceFromResources(
             BuildVoiceResourcePath(heroineId, voiceId),
             respectAutoPlay);
+    }
+
+    public bool ReplayCurrentVoice()
+    {
+        if (!CanReplayCurrentVoice)
+        {
+            return false;
+        }
+
+        return PlayVoice(preparedVoiceClip, false);
+    }
+
+    public static bool CanReplayVoice(bool hasPreparedVoice, bool voiceMuted)
+    {
+        return hasPreparedVoice && !voiceMuted;
     }
 
     public static string BuildVoiceResourcePath(string heroineId, string voiceId)
@@ -217,6 +238,7 @@ public sealed class AudioManager : MonoBehaviour
 
         voiceSource.Stop();
         voiceSource.clip = null;
+        preparedVoiceClip = null;
     }
 
     public static void StopVoiceIfAvailable()

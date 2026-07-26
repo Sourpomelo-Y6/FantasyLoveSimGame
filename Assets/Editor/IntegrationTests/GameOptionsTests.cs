@@ -164,6 +164,20 @@ public class GameOptionsTests
             Is.Empty);
     }
 
+    [TestCase(false, false, false)]
+    [TestCase(false, true, false)]
+    [TestCase(true, true, false)]
+    [TestCase(true, false, true)]
+    public void VoiceReplayPolicy_RequiresPreparedUnmutedVoice(
+        bool hasPreparedVoice,
+        bool voiceMuted,
+        bool expected)
+    {
+        Assert.That(
+            AudioManager.CanReplayVoice(hasPreparedVoice, voiceMuted),
+            Is.EqualTo(expected));
+    }
+
     [TestCase(false, true, true, true, false)]
     [TestCase(true, false, true, true, false)]
     [TestCase(true, true, false, true, false)]

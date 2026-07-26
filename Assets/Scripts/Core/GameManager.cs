@@ -212,6 +212,7 @@ public class GameManager : MonoBehaviour
 
     [Header("Control Buttons")]
     [SerializeField] private Button nextButton;
+    [SerializeField] private Button voiceReplayButton;
     [SerializeField] private DialogueClickAdvanceArea dialogueClickAdvanceArea;
     [SerializeField] private bool enableDialogueWindowClickAdvance = true;
 
@@ -421,6 +422,7 @@ public class GameManager : MonoBehaviour
     private void Update()
     {
         RefreshSaveLoadButtonState();
+        RefreshVoiceReplayButton();
 
         if (Input.GetKeyDown(debugManualGameEventKey))
         {
@@ -561,6 +563,7 @@ public class GameManager : MonoBehaviour
         string voiceId = "")
     {
         AudioManager.Instance.PlayVoiceById(currentHeroineId, voiceId);
+        RefreshVoiceReplayButton();
 
         if (!string.IsNullOrEmpty(expressionId))
         {
@@ -681,6 +684,7 @@ public class GameManager : MonoBehaviour
     private void ResetDialogueSequenceState()
     {
         AudioManager.StopVoiceIfAvailable();
+        RefreshVoiceReplayButton();
 
         if (dialogueSequenceHasStillSpriteOverride && dialogueSequenceStillImageTarget != null)
         {
@@ -736,6 +740,24 @@ public class GameManager : MonoBehaviour
         }
 
         dialogueSequenceHasBackgroundZoomOverride = false;
+    }
+
+    public void ReplayCurrentVoice()
+    {
+        AudioManager.Instance.ReplayCurrentVoice();
+        RefreshVoiceReplayButton();
+    }
+
+    private void RefreshVoiceReplayButton()
+    {
+        if (voiceReplayButton == null)
+        {
+            return;
+        }
+
+        AudioManager audioManager = AudioManager.Instance;
+        voiceReplayButton.gameObject.SetActive(audioManager.HasPreparedVoice);
+        voiceReplayButton.interactable = audioManager.CanReplayCurrentVoice;
     }
 
     private void SetSaveLoadButtonsVisible(bool visible)
@@ -1465,6 +1487,10 @@ public class GameManager : MonoBehaviour
         changeOutfitButton.onClick.AddListener(() => OnClickOutfitReaction(OutfitReactionType.Change));
 
         nextButton.onClick.AddListener(OnClickNext);
+        if (voiceReplayButton != null)
+        {
+            voiceReplayButton.onClick.AddListener(ReplayCurrentVoice);
+        }
         if (dialogueClickAdvanceArea != null)
         {
             dialogueClickAdvanceArea.Initialize(this);
@@ -1478,6 +1504,7 @@ public class GameManager : MonoBehaviour
         outfitPanel.SetActive(false);
         outfitReactionPanel.SetActive(false);
         nextButton.gameObject.SetActive(false);
+        RefreshVoiceReplayButton();
         endingButton.gameObject.SetActive(false);
         SetSaveLoadButtonsVisible(false);
         if (eventStillImage != null)

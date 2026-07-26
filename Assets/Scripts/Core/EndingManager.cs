@@ -9,6 +9,7 @@ public class EndingManager : MonoBehaviour
     [Header("UI")]
     [SerializeField] private Button titleButton;
     [SerializeField] private Button nextButton;
+    [SerializeField] private Button voiceReplayButton;
     [SerializeField] private TextMeshProUGUI speakerNameText;
     [SerializeField] private TextMeshProUGUI endingText;
     [SerializeField] private Image stillImage;
@@ -48,6 +49,10 @@ public class EndingManager : MonoBehaviour
         if (nextButton != null)
         {
             nextButton.onClick.AddListener(ShowNextPage);
+        }
+        if (voiceReplayButton != null)
+        {
+            voiceReplayButton.onClick.AddListener(ReplayCurrentVoice);
         }
 
         ShowCurrentPage();
@@ -100,6 +105,7 @@ public class EndingManager : MonoBehaviour
         AudioManager.Instance.PlayVoiceById(
             heroineProfile != null ? heroineProfile.heroineId : string.Empty,
             page != null ? page.voiceId : string.Empty);
+        RefreshVoiceReplayButton();
 
         bool hasNextPage = currentPageIndex + 1 < currentPages.Count;
         if (nextButton != null)
@@ -110,6 +116,24 @@ public class EndingManager : MonoBehaviour
         {
             titleButton.gameObject.SetActive(nextButton == null || !hasNextPage);
         }
+    }
+
+    public void ReplayCurrentVoice()
+    {
+        AudioManager.Instance.ReplayCurrentVoice();
+        RefreshVoiceReplayButton();
+    }
+
+    private void RefreshVoiceReplayButton()
+    {
+        if (voiceReplayButton == null)
+        {
+            return;
+        }
+
+        AudioManager audioManager = AudioManager.Instance;
+        voiceReplayButton.gameObject.SetActive(audioManager.HasPreparedVoice);
+        voiceReplayButton.interactable = audioManager.CanReplayCurrentVoice;
     }
 
     private string ResolveSpeakerName(EndingPageData page)

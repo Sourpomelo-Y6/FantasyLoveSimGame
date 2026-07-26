@@ -192,6 +192,16 @@ version 1・2からの移行時は、音量1、ミュートOFF、自動再生ON�
 `GameOptionsPanel` には後からUIを接続できる `Voice Volume Slider`、
 `Voice Mute Toggle`、`Voice Auto Play Toggle` を追加済み。参照が未設定でも例外は発生しない。
 
+### ボイス手動再生
+
+`AudioManager` は現在のページで読み込めたボイスを保持し、`ReplayCurrentVoice()` で先頭から
+再生できる。手動再生は `voiceAutoPlay` がOFFでも実行できるが、`voiceMuted` がONの場合は
+実行しない。
+
+`GameManager` と `EndingManager` には任意の `Voice Replay Button` 参照を追加済み。
+現在のページに有効な音声がなければボタンを非表示にし、ミュート中は操作不可にする。
+ボタンの `On Click` はコード側で登録するため、Scene側でメソッドを手動登録しない。
+
 対象データ候補:
 
 - `ConversationLineData`

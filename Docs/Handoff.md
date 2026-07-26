@@ -46,7 +46,7 @@
 - タイトルから新規ゲームを開始した直後は、`GameEventData` の `GameStart` イベントを再生してからメイン画面を始める。`GameEventData` はヒロイン別 Resources パスに置き、ページ単位で話者・メッセージ・スチルを持てる
 - ヒロイン差し替えは `HeroineProfileData` で管理する。画像、会話、イベント、行動反応、エンディング、朝夜の挨拶などの共通セリフをヒロイン単位で束ね、`Images/Background` は共通背景として扱う。現在は `DefaultHeroineProfile.asset` で `Heroines/DefaultHeroine/Actions` / `Conversations` / `GameEvents` / `Endings` を参照している
 - タイトル画面にはキャラクター選択 UI を追加済み。`Resources.LoadAll<HeroineProfileData>("Heroines")` で候補を列挙し、選択中プロフィールの表示名と立ち絵をプレビューして、決定後に新規ゲーム用の選択ヒロインとして `GameStartSettings` へ渡す。ロード時はセーブデータ内のヒロイン ID を優先する
-- `AudioManager` はBGM・SE・ボイスをScene間で共有する。ボイスは通常会話、ゲームイベント、エンディングの `voiceId` から `Resources/Audio/Voice/<HeroineId>/` 以下を任意ロードし、未登録でも文章表示を継続する。音量・ミュート・自動再生はversion 3の端末共通 `game_options.json` に保存する
+- `AudioManager` はBGM・SE・ボイスをScene間で共有する。ボイスは通常会話、ゲームイベント、エンディングの `voiceId` から `Resources/Audio/Voice/<HeroineId>/` 以下を任意ロードし、未登録でも文章表示を継続する。音量・ミュート・自動再生はversion 3の端末共通 `game_options.json` に保存する。現在ページの音声は `ReplayCurrentVoice()` で手動再生でき、MainSceneとEndingSceneは任意の `Voice Replay Button` を接続できる
 - `HeroineProfileData` の共通セリフ、衣装メッセージ、Resources path、ヒロイン戦闘スキルは `FantasyLoveSimAssetTool` のプロフィール画面で編集でき、`heroine_profile_export.json` と Unity の `heroine_profile_from_unity.json` の往復同期に対応済み。旧JSONで省略された戦闘スキルは既存値を維持し、明示された空配列だけを削除として扱う
 - ヒロイン固有の訓練スキルとスキルツリーノードはAssetToolのプロフィール画面で編集し、`heroine_skills_export.json` / `heroine_skills_from_unity.json` で往復できる。Unity Importerはヒロイン別フォルダだけを更新し、主人公ノード、他ヒロイン、共通 `TrainingData` を変更しない。前提ノード、解放訓練、実績条件、ツリー座標も同期対象
 - ヒロイン別の戦闘後イベントと戦闘パネル結果メッセージはAssetToolの「戦闘メッセージ」タブで編集し、`battle_result_events_export.json` / `battle_panel_result_messages_export.json` と対応するFromUnity JSONで往復できる。結果種別、`battleContextId`、本文、`stillId`、好感度、解放衣装を保持し、Unity Importerはプロフィールで指定されたヒロイン別Resources pathだけを更新する
