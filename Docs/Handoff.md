@@ -725,7 +725,10 @@ UI デザインは手作業で行っています。
 画面表示は `1920 x 1080` を基準とし、`1280 x 720`、`2560 x 1440`、`1920 x 1200`、
 `1600 x 900`、`1024 x 768` でも主要UIを確認する。
 `TitleScene` と `MainScene` は `Scale With Screen Size`、基準 `1920 x 1080`、Match `0.5` だが、
-`EndingScene` は現在 `Constant Pixel Size`、基準 `800 x 600` のため統一候補とする。
+`EndingScene` も `Scale With Screen Size`、基準 `1920 x 1080`、Match `0.5` へ統一済み。
+`MainScene` は背景、キャラクター、HUD、会話、行動、システムボタン、オーバーレイ、
+フェードの親領域を追加して初期表示を整理中。現時点ではある程度表示できる状態まで確認済みで、
+状態欄の親基準座標、本文Stretch、狭い画面の行動ボタン、正方形立ち絵の表示方式を残作業とする。
 解像度、画面比率、将来の画面設定UIの方針は `Docs/DisplayAndResolutionPlan.md` を参照する。
 
 データをまとめて確認するときは、Unity Editor の `FantasyLoveSim > Validation > Run All Validations` を使う。ヒロイン、会話、行動反応、ゲームイベント、エンディング、スキルツリー、ローカルのセーブデータ、訓練、敵、ショップを順番に検証し、各項目の調査アセット数と警告数、全体の警告数をダイアログへ表示する。個別に実行する場合は `FantasyLoveSim > Validation > Data` 配下から選ぶ。警告の詳細は Console に出る。戦闘・訓練・ショップの Balance Report は合否判定ではなく調整用の情報なので一括検証には含めない。

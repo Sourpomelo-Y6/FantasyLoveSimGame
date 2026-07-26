@@ -93,12 +93,42 @@ SceneのCanvas設定は次の状態。
 
 ## 実装順
 
-1. `EndingScene` を含む全Canvasの設定を確認・統一する
+1. `EndingScene` を含む全Canvasの設定を確認・統一する（`EndingScene` は対応済み）
 2. 主要画面を上記6解像度で目視確認し、崩れを一覧化する
 3. Anchor、Layout Group、Content Size Fitter、Maskの問題を画面単位で直す
 4. 背景・スチルの横長／4:3表示方針を確定する
 5. 必要になった段階で画面設定UIと端末共通保存を実装する
 6. HTMLユーザー説明書の動作環境と画面設定へ反映する
+
+## MainSceneの現在状況
+
+初期表示について、Canvas直下に並んでいたUIを役割別に整理する作業を開始した。
+次の親領域はSceneへ配置済み。
+
+- `BackgroundLayer`: 背景
+- `CharacterLayer` / `HeroineArea`: 通常画像とレイヤー式立ち絵
+- `MainHudLayer` / `TopStatusArea`: 主人公・共通・ヒロインの状態表示
+- `DialogueArea`: メッセージ表示
+- `ActionArea`: 行動ボタン
+- `SystemButtonArea`: Save、Load、Option等
+- `OverlayLayer`: 予定、訓練、スキル、戦闘、ショップ、状態、ログ等
+- `TransitionLayer`: フェード表示
+
+`SystemButtonArea` の配置は現在のデザインに合わせて調整済み。
+キャラクター画像は1024 x 1024の正方形素材であり、4:3画面を隙間なく埋めると上下が切れ、
+画像全体を表示すると左右に余白が出る。現在は完全な全画面表示より、主要部分が確認でき、
+メッセージや状態UIを妨げない表示を優先している。
+
+### MainSceneの残作業
+
+- `TopStatusArea` と子パネルのAnchor、Pivot、親基準座標を整理する
+- `DialogueArea` 内の話者名と本文を固定幅から横Stretchへ移行する
+- `ActionArea` を1280 x 720、1024 x 768で確認し、必要なら縦並びまたは2列へ変更する
+- `SystemButtonArea` の高さを表示ボタン数に合わせ、狭い画面でのはみ出しを確認する
+- `DialogueArea`、`ActionArea`、`SystemButtonArea` を必要に応じて `MainHudLayer` 配下へ統一する
+- `HeroineArea` の表示方式を、全体表示優先か画面充填優先か本番素材確定時に決める
+- 初期表示完了後、`OverlayLayer` 内の各パネルを解像度ごとに個別確認する
+- 1920 x 1080、1280 x 720、1024 x 768で初期表示と主要操作を再確認する
 
 ## 完了条件
 
