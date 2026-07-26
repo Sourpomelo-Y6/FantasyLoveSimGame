@@ -11,6 +11,9 @@ public sealed class GameOptionsPanel : MonoBehaviour
     [SerializeField] private Toggle bgmMuteToggle;
     [SerializeField] private Slider seVolumeSlider;
     [SerializeField] private Toggle seMuteToggle;
+    [SerializeField] private Slider voiceVolumeSlider;
+    [SerializeField] private Toggle voiceMuteToggle;
+    [SerializeField] private Toggle voiceAutoPlayToggle;
     [SerializeField] private Button closeButton;
     [SerializeField] private TextMeshProUGUI resultText;
 
@@ -39,6 +42,18 @@ public sealed class GameOptionsPanel : MonoBehaviour
         if (seMuteToggle != null)
         {
             seMuteToggle.onValueChanged.AddListener(OnSeMuteChanged);
+        }
+        if (voiceVolumeSlider != null)
+        {
+            voiceVolumeSlider.onValueChanged.AddListener(OnVoiceVolumeChanged);
+        }
+        if (voiceMuteToggle != null)
+        {
+            voiceMuteToggle.onValueChanged.AddListener(OnVoiceMuteChanged);
+        }
+        if (voiceAutoPlayToggle != null)
+        {
+            voiceAutoPlayToggle.onValueChanged.AddListener(OnVoiceAutoPlayChanged);
         }
         if (closeButton != null)
         {
@@ -80,6 +95,18 @@ public sealed class GameOptionsPanel : MonoBehaviour
         if (seMuteToggle != null)
         {
             seMuteToggle.SetIsOnWithoutNotify(GameOptionsManager.SeMuted);
+        }
+        if (voiceVolumeSlider != null)
+        {
+            voiceVolumeSlider.SetValueWithoutNotify(GameOptionsManager.VoiceVolume);
+        }
+        if (voiceMuteToggle != null)
+        {
+            voiceMuteToggle.SetIsOnWithoutNotify(GameOptionsManager.VoiceMuted);
+        }
+        if (voiceAutoPlayToggle != null)
+        {
+            voiceAutoPlayToggle.SetIsOnWithoutNotify(GameOptionsManager.VoiceAutoPlay);
         }
         if (resultText != null) resultText.text = string.Empty;
         isRefreshing = false;
@@ -127,6 +154,24 @@ public sealed class GameOptionsPanel : MonoBehaviour
     {
         SaveAudioOption(
             (out string message) => GameOptionsManager.SetSeMuted(muted, out message));
+    }
+
+    private void OnVoiceVolumeChanged(float volume)
+    {
+        SaveAudioOption(
+            (out string message) => GameOptionsManager.SetVoiceVolume(volume, out message));
+    }
+
+    private void OnVoiceMuteChanged(bool muted)
+    {
+        SaveAudioOption(
+            (out string message) => GameOptionsManager.SetVoiceMuted(muted, out message));
+    }
+
+    private void OnVoiceAutoPlayChanged(bool enabled)
+    {
+        SaveAudioOption(
+            (out string message) => GameOptionsManager.SetVoiceAutoPlay(enabled, out message));
     }
 
     private void SaveAudioOption(OptionSaver save)

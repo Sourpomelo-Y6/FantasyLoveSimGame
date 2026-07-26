@@ -46,6 +46,7 @@
 - タイトルから新規ゲームを開始した直後は、`GameEventData` の `GameStart` イベントを再生してからメイン画面を始める。`GameEventData` はヒロイン別 Resources パスに置き、ページ単位で話者・メッセージ・スチルを持てる
 - ヒロイン差し替えは `HeroineProfileData` で管理する。画像、会話、イベント、行動反応、エンディング、朝夜の挨拶などの共通セリフをヒロイン単位で束ね、`Images/Background` は共通背景として扱う。現在は `DefaultHeroineProfile.asset` で `Heroines/DefaultHeroine/Actions` / `Conversations` / `GameEvents` / `Endings` を参照している
 - タイトル画面にはキャラクター選択 UI を追加済み。`Resources.LoadAll<HeroineProfileData>("Heroines")` で候補を列挙し、選択中プロフィールの表示名と立ち絵をプレビューして、決定後に新規ゲーム用の選択ヒロインとして `GameStartSettings` へ渡す。ロード時はセーブデータ内のヒロイン ID を優先する
+- `AudioManager` はBGM・SE・ボイスをScene間で共有する。ボイスは通常会話、ゲームイベント、エンディングの `voiceId` から `Resources/Audio/Voice/<HeroineId>/` 以下を任意ロードし、未登録でも文章表示を継続する。音量・ミュート・自動再生はversion 3の端末共通 `game_options.json` に保存する
 - `HeroineProfileData` の共通セリフ、衣装メッセージ、Resources path、ヒロイン戦闘スキルは `FantasyLoveSimAssetTool` のプロフィール画面で編集でき、`heroine_profile_export.json` と Unity の `heroine_profile_from_unity.json` の往復同期に対応済み。旧JSONで省略された戦闘スキルは既存値を維持し、明示された空配列だけを削除として扱う
 - ヒロイン固有の訓練スキルとスキルツリーノードはAssetToolのプロフィール画面で編集し、`heroine_skills_export.json` / `heroine_skills_from_unity.json` で往復できる。Unity Importerはヒロイン別フォルダだけを更新し、主人公ノード、他ヒロイン、共通 `TrainingData` を変更しない。前提ノード、解放訓練、実績条件、ツリー座標も同期対象
 - ヒロイン別の戦闘後イベントと戦闘パネル結果メッセージはAssetToolの「戦闘メッセージ」タブで編集し、`battle_result_events_export.json` / `battle_panel_result_messages_export.json` と対応するFromUnity JSONで往復できる。結果種別、`battleContextId`、本文、`stillId`、好感度、解放衣装を保持し、Unity Importerはプロフィールで指定されたヒロイン別Resources pathだけを更新する
@@ -711,7 +712,7 @@ UI デザインは手作業で行っています。
 - クリック進行のON/OFF設定も実装済み。端末共通の `Application.persistentDataPath/game_options.json` に保存し、ファイルなし・破損・未対応versionではONを既定値とする。`GameOptionsPanel` の `Dialogue Click Advance Toggle` を変更すると即時保存され、セーブスロットには含めない。`GameManager.enableDialogueWindowClickAdvance` はScene単位の互換用安全弁として残し、これと端末設定の両方がONの場合だけクリックで進行する。
 - オプションUIはCanvas下に非アクティブの `GameOptionsPanel` を作り、同オブジェクトへ `GameOptionsPanel` コンポーネントを追加する。子に `DialogueClickAdvanceToggle`、`CloseButton`、任意の `ResultText` を置いて各参照を割り当てる。表示ボタンのOnClickから `GameOptionsPanel.Open()` を呼ぶ。タイトルとメインの両Sceneに同じ構成を置けば、共通JSONを参照するため同じ設定を利用できる。
 - `AudioManager` はRuntimeInitializeで自動生成し、Scene間でBGM用・SE用AudioSourceを維持する。音源なし、空パス、参照できないパスは無音のまま継続する。Title／Main／EndingのBGMは `Resources/Audio/Bgm/Title`、`Main`、`Ending` を規約パスとして自動要求する。実音源はGit管理しない。
-- `game_options.json` はversion 2。`bgmVolume` / `bgmMuted` / `seVolume` / `seMuted` を端末共通で保存し、version 1は音量1・ミュートOFFへ移行する。`GameOptionsPanel` のSlider／Toggle参照はコード追加済みだが、TitleSceneとMainSceneのUI配置・Inspector割り当ては未実施。
+- `game_options.json` はversion 3。BGM・SE・ボイスの音量とミュート、ボイス自動再生を端末共通で保存する。version 1・2から不足項目を安全な既定値へ移行する。BGM・SEのUI配置は完了済みで、ボイス用Slider／Toggleはコード側の参照追加まで完了している。
 
 ## 追加開発の優先候補
 

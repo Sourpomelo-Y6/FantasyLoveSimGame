@@ -11,6 +11,8 @@ public class GameEventPageData
     public string message;
 
     public string expressionId;
+    [Tooltip("Resources/Audio/Voice/<HeroineId>/ 以下の拡張子なし音声ID。空なら再生しません。")]
+    public string voiceId;
 
     public string stillId;
     public Sprite stillSprite;

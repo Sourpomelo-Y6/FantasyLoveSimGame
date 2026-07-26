@@ -5,7 +5,7 @@ using UnityEngine;
 [Serializable]
 public sealed class GameOptionsData
 {
-    public const int CurrentVersion = 2;
+    public const int CurrentVersion = 3;
 
     public int version = CurrentVersion;
     public bool dialogueWindowClickAdvance = true;
@@ -13,6 +13,9 @@ public sealed class GameOptionsData
     public bool bgmMuted;
     [Range(0f, 1f)] public float seVolume = 1f;
     public bool seMuted;
+    [Range(0f, 1f)] public float voiceVolume = 1f;
+    public bool voiceMuted;
+    public bool voiceAutoPlay = true;
 }
 
 public static class GameOptionsManager
@@ -31,6 +34,9 @@ public static class GameOptionsManager
     public static bool BgmMuted => GetCurrent().bgmMuted;
     public static float SeVolume => GetCurrent().seVolume;
     public static bool SeMuted => GetCurrent().seMuted;
+    public static float VoiceVolume => GetCurrent().voiceVolume;
+    public static bool VoiceMuted => GetCurrent().voiceMuted;
+    public static bool VoiceAutoPlay => GetCurrent().voiceAutoPlay;
 
     public static GameOptionsData GetCurrent()
     {
@@ -77,6 +83,27 @@ public static class GameOptionsManager
         return TryApplyUpdatedData(updated, out message);
     }
 
+    public static bool SetVoiceVolume(float volume, out string message)
+    {
+        GameOptionsData updated = Clone(GetCurrent());
+        updated.voiceVolume = Mathf.Clamp01(volume);
+        return TryApplyUpdatedData(updated, out message);
+    }
+
+    public static bool SetVoiceMuted(bool muted, out string message)
+    {
+        GameOptionsData updated = Clone(GetCurrent());
+        updated.voiceMuted = muted;
+        return TryApplyUpdatedData(updated, out message);
+    }
+
+    public static bool SetVoiceAutoPlay(bool enabled, out string message)
+    {
+        GameOptionsData updated = Clone(GetCurrent());
+        updated.voiceAutoPlay = enabled;
+        return TryApplyUpdatedData(updated, out message);
+    }
+
     public static void Reload()
     {
         current = null;
@@ -109,6 +136,14 @@ public static class GameOptionsManager
                 loaded.seVolume = 1f;
                 loaded.bgmMuted = false;
                 loaded.seMuted = false;
+            }
+
+            if (loaded.version < 3)
+            {
+                // version 2以前にはボイス項目がないため、安全な既定値を補完する。
+                loaded.voiceVolume = 1f;
+                loaded.voiceMuted = false;
+                loaded.voiceAutoPlay = true;
             }
 
             loaded.version = GameOptionsData.CurrentVersion;
@@ -187,5 +222,6 @@ public static class GameOptionsManager
 
         data.bgmVolume = Mathf.Clamp01(data.bgmVolume);
         data.seVolume = Mathf.Clamp01(data.seVolume);
+        data.voiceVolume = Mathf.Clamp01(data.voiceVolume);
     }
 }

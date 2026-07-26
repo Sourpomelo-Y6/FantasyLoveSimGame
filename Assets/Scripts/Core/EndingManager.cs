@@ -55,6 +55,8 @@ public class EndingManager : MonoBehaviour
 
     public void ShowNextPage()
     {
+        AudioManager.StopVoiceIfAvailable();
+
         if (currentPageIndex + 1 >= currentPages.Count)
         {
             return;
@@ -94,6 +96,10 @@ public class EndingManager : MonoBehaviour
                 currentEnding != null ? currentEnding.costumeId : string.Empty,
                 page.expressionId);
         }
+
+        AudioManager.Instance.PlayVoiceById(
+            heroineProfile != null ? heroineProfile.heroineId : string.Empty,
+            page != null ? page.voiceId : string.Empty);
 
         bool hasNextPage = currentPageIndex + 1 < currentPages.Count;
         if (nextButton != null)
@@ -234,6 +240,7 @@ public class EndingManager : MonoBehaviour
         }
 
         EndingSelectionSettings.Clear();
+        AudioManager.StopVoiceIfAvailable();
         SceneManager.LoadScene(titleSceneName);
     }
 }

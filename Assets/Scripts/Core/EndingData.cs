@@ -13,6 +13,8 @@ public class EndingPageData
 
     [Tooltip("ヒロイン立ち絵の表情ID。空なら現在の表情を維持します。")]
     public string expressionId;
+    [Tooltip("Resources/Audio/Voice/<HeroineId>/ 以下の拡張子なし音声ID。空なら再生しません。")]
+    public string voiceId;
 
     [Tooltip("回想・識別用のスチルID。画像が未完成なら空で構いません。")]
     public string stillId;

@@ -127,7 +127,7 @@ SE音量とミュートも端末共通オプションへ保存する。
 
 ### 端末共通オプション
 
-`game_options.json` はversion 2へ更新済みで、次を保存する。
+`game_options.json` はボイス設定追加によりversion 3へ更新済みで、次を保存する。
 
 - `bgmVolume`: 0～1
 - `bgmMuted`
@@ -135,6 +135,7 @@ SE音量とミュートも端末共通オプションへ保存する。
 - `seMuted`
 
 version 1からロードした場合はBGM・SE音量を1、ミュートをOFFとして補完する。
+version 1・2のボイス設定は音量1、ミュートOFF、自動再生ONとして補完する。
 範囲外の音量は0～1へ丸める。
 
 `GameOptionsPanel` にはUIを後から割り当てられる次のInspector参照を追加済み。
@@ -151,7 +152,7 @@ ToggleとSliderはコード側でイベントを登録するため、Inspector�
 ## ボイス再生機能
 
 実際のボイスデータは現段階では追加しない。
-将来、会話やイベントへ音声を割り当てられる再生基盤だけを実装する。
+会話やイベントへ音声を割り当てられる再生基盤を実装済み。
 
 必要な機能:
 
@@ -164,6 +165,33 @@ ToggleとSliderはコード側でイベントを登録するため、Inspector�
 - ボイス音量、ミュート、自動再生ON/OFFを端末共通オプションへ保存する
 - 将来のボイス再生テスト用に、実音声を必要としない再生要求の単体テストを用意する
 
+### 現在のボイス再生基盤
+
+`AudioManager` はボイス専用 `AudioSource` を持ち、BGM・SEとは独立して再生する。
+通常会話の `ConversationLineData.voiceId`、旧1行形式の `ConversationData.voiceId`、
+`GameEventPageData.voiceId`、`EndingPageData.voiceId` をページ表示時に読み込む。
+
+通常の `voiceId` は次のResourcesパスへ解決する。
+
+```text
+Assets/Resources/Audio/Voice/<HeroineId>/<voiceId>.ogg
+```
+
+`Audio/Voice/` から始まるIDは共通音声などの完全なResourcesパスとして扱う。
+拡張子はデータへ含めない。ファイルが存在しない場合、またはIDが空の場合は、
+現在の文章表示を維持したまま無音で進行する。Next操作とページ切り替えでは現在の
+ボイスを停止する。
+
+`game_options.json` はversion 3へ更新し、以下を端末共通設定として保存する。
+
+- `voiceVolume`: 0～1
+- `voiceMuted`
+- `voiceAutoPlay`
+
+version 1・2からの移行時は、音量1、ミュートOFF、自動再生ONを補完する。
+`GameOptionsPanel` には後からUIを接続できる `Voice Volume Slider`、
+`Voice Mute Toggle`、`Voice Auto Play Toggle` を追加済み。参照が未設定でも例外は発生しない。
+
 対象データ候補:
 
 - `ConversationLineData`
@@ -174,8 +202,8 @@ ToggleとSliderはコード側でイベントを登録するため、Inspector�
 - 訓練セリフ
 - 戦闘結果メッセージ
 
-すべてへ一度に追加せず、最初は通常会話と `GameEventPageData` で共通再生処理を確認してから
-他のデータへ広げる。
+通常会話、`GameEventPageData`、エンディングへの接続は実装済み。
+予定イベント、行動反応、訓練、戦闘結果への個別接続は後続作業とする。
 
 ## Git管理
 
@@ -254,9 +282,9 @@ Git管理するもの:
 1. タイトル画面の免責テキスト配置とセッション初回のクリック終了（実装済み）
 2. タイトル画像の任意参照と画像なしフォールバックを作る
 3. BGM・SEを分離した `AudioManager` を実装する（実装済み）
-4. BGM・SE音量とミュートをゲームオプションへ追加する（コード・保存実装済み、UI配置は未実施）
-5. ボイスデータなしで動作する共通ボイス再生基盤を実装する
-6. 通常会話とゲームイベントへ `voiceId` を接続する
+4. BGM・SE音量とミュートをゲームオプションへ追加する（実装・UI配置済み）
+5. ボイスデータなしで動作する共通ボイス再生基盤を実装する（実装済み）
+6. 通常会話とゲームイベントへ `voiceId` を接続する（実装済み）
 7. 素材のライセンス確認後に本番用画像・BGM・SE・ボイスを登録する
 8. 主要UIが固まった段階でスクリーンショット付きHTMLユーザー説明書を作成する
 

@@ -33,6 +33,9 @@ public class GameOptionsTests
         Assert.That(data.bgmMuted, Is.False);
         Assert.That(data.seVolume, Is.EqualTo(1f));
         Assert.That(data.seMuted, Is.False);
+        Assert.That(data.voiceVolume, Is.EqualTo(1f));
+        Assert.That(data.voiceMuted, Is.False);
+        Assert.That(data.voiceAutoPlay, Is.True);
         Assert.That(data.version, Is.EqualTo(GameOptionsData.CurrentVersion));
     }
 
@@ -45,7 +48,10 @@ public class GameOptionsTests
             bgmVolume = 0.25f,
             bgmMuted = true,
             seVolume = 0.75f,
-            seMuted = true
+            seMuted = true,
+            voiceVolume = 0.5f,
+            voiceMuted = true,
+            voiceAutoPlay = false
         };
         string message;
 
@@ -57,6 +63,9 @@ public class GameOptionsTests
         Assert.That(restored.bgmMuted, Is.True);
         Assert.That(restored.seVolume, Is.EqualTo(0.75f).Within(0.001f));
         Assert.That(restored.seMuted, Is.True);
+        Assert.That(restored.voiceVolume, Is.EqualTo(0.5f).Within(0.001f));
+        Assert.That(restored.voiceMuted, Is.True);
+        Assert.That(restored.voiceAutoPlay, Is.False);
         Assert.That(restored.version, Is.EqualTo(GameOptionsData.CurrentVersion));
     }
 
@@ -70,6 +79,8 @@ public class GameOptionsTests
         Assert.That(data.dialogueWindowClickAdvance, Is.True);
         Assert.That(data.bgmVolume, Is.EqualTo(1f));
         Assert.That(data.seVolume, Is.EqualTo(1f));
+        Assert.That(data.voiceVolume, Is.EqualTo(1f));
+        Assert.That(data.voiceAutoPlay, Is.True);
     }
 
     [Test]
@@ -87,6 +98,26 @@ public class GameOptionsTests
         Assert.That(data.bgmMuted, Is.False);
         Assert.That(data.seVolume, Is.EqualTo(1f));
         Assert.That(data.seMuted, Is.False);
+        Assert.That(data.voiceVolume, Is.EqualTo(1f));
+        Assert.That(data.voiceMuted, Is.False);
+        Assert.That(data.voiceAutoPlay, Is.True);
+    }
+
+    [Test]
+    public void LoadFromPath_VersionTwoMigratesVoiceDefaults()
+    {
+        File.WriteAllText(
+            GetTestPath(),
+            "{\"version\":2,\"bgmVolume\":0.4,\"seVolume\":0.6}");
+
+        GameOptionsData data = GameOptionsManager.LoadFromPath(GetTestPath(), false);
+
+        Assert.That(data.version, Is.EqualTo(GameOptionsData.CurrentVersion));
+        Assert.That(data.bgmVolume, Is.EqualTo(0.4f).Within(0.001f));
+        Assert.That(data.seVolume, Is.EqualTo(0.6f).Within(0.001f));
+        Assert.That(data.voiceVolume, Is.EqualTo(1f));
+        Assert.That(data.voiceMuted, Is.False);
+        Assert.That(data.voiceAutoPlay, Is.True);
     }
 
     [Test]
@@ -95,7 +126,8 @@ public class GameOptionsTests
         GameOptionsData source = new GameOptionsData
         {
             bgmVolume = -0.5f,
-            seVolume = 1.5f
+            seVolume = 1.5f,
+            voiceVolume = 2f
         };
         string message;
 
@@ -107,6 +139,29 @@ public class GameOptionsTests
 
         Assert.That(restored.bgmVolume, Is.EqualTo(0f));
         Assert.That(restored.seVolume, Is.EqualTo(1f));
+        Assert.That(restored.voiceVolume, Is.EqualTo(1f));
+    }
+
+    [TestCase("", "Line01", "Audio/Voice/Line01")]
+    [TestCase("TestHeroine", "Line01", "Audio/Voice/TestHeroine/Line01")]
+    [TestCase("TestHeroine", "Scenes/Intro01", "Audio/Voice/TestHeroine/Scenes/Intro01")]
+    [TestCase("Ignored", "Audio/Voice/Common/System01", "Audio/Voice/Common/System01")]
+    public void VoiceResourcePath_UsesStableResourcesConvention(
+        string heroineId,
+        string voiceId,
+        string expected)
+    {
+        Assert.That(
+            AudioManager.BuildVoiceResourcePath(heroineId, voiceId),
+            Is.EqualTo(expected));
+    }
+
+    [Test]
+    public void VoiceResourcePath_EmptyVoiceIdDoesNotRequestAudio()
+    {
+        Assert.That(
+            AudioManager.BuildVoiceResourcePath("TestHeroine", " "),
+            Is.Empty);
     }
 
     [TestCase(false, true, true, true, false)]

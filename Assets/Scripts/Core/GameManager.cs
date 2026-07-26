@@ -48,6 +48,7 @@ public class GameManager : MonoBehaviour
         public readonly Sprite StillSprite;
         public readonly string ExpressionId;
         public readonly BattleResultVisualMode? BattleResultVisualMode;
+        public readonly string VoiceId;
 
         public DialogueMessage(DialogueSpeakerType speakerType, string speakerName, string message)
             : this(speakerType, speakerName, message, null)
@@ -81,6 +82,27 @@ public class GameManager : MonoBehaviour
             Sprite stillSprite,
             string expressionId,
             BattleResultVisualMode? battleResultVisualMode = null)
+            : this(
+                speakerType,
+                speakerName,
+                message,
+                stillId,
+                stillSprite,
+                expressionId,
+                battleResultVisualMode,
+                "")
+        {
+        }
+
+        public DialogueMessage(
+            DialogueSpeakerType speakerType,
+            string speakerName,
+            string message,
+            string stillId,
+            Sprite stillSprite,
+            string expressionId,
+            BattleResultVisualMode? battleResultVisualMode,
+            string voiceId)
         {
             SpeakerType = speakerType;
             SpeakerName = speakerName;
@@ -89,6 +111,7 @@ public class GameManager : MonoBehaviour
             StillSprite = stillSprite;
             ExpressionId = expressionId;
             BattleResultVisualMode = battleResultVisualMode;
+            VoiceId = voiceId;
         }
     }
 
@@ -534,8 +557,11 @@ public class GameManager : MonoBehaviour
         string stillId,
         Sprite stillSprite,
         string expressionId,
-        BattleResultVisualMode? battleResultVisualMode = null)
+        BattleResultVisualMode? battleResultVisualMode = null,
+        string voiceId = "")
     {
+        AudioManager.Instance.PlayVoiceById(currentHeroineId, voiceId);
+
         if (!string.IsNullOrEmpty(expressionId))
         {
             ApplyHeroineExpression(expressionId);
@@ -654,6 +680,8 @@ public class GameManager : MonoBehaviour
 
     private void ResetDialogueSequenceState()
     {
+        AudioManager.StopVoiceIfAvailable();
+
         if (dialogueSequenceHasStillSpriteOverride && dialogueSequenceStillImageTarget != null)
         {
             dialogueSequenceStillImageTarget.sprite = dialogueSequencePreviousStillSprite;
@@ -915,7 +943,8 @@ public class GameManager : MonoBehaviour
             messages[0].StillId,
             messages[0].StillSprite,
             messages[0].ExpressionId,
-            messages[0].BattleResultVisualMode);
+            messages[0].BattleResultVisualMode,
+            messages[0].VoiceId);
 
         for (int i = 1; i < messages.Count; i++)
         {
@@ -940,7 +969,8 @@ public class GameManager : MonoBehaviour
             message.StillId,
             message.StillSprite,
             message.ExpressionId,
-            message.BattleResultVisualMode);
+            message.BattleResultVisualMode,
+            message.VoiceId);
 
         if (queuedDialogueMessages.Count == 0 && flowState == ConversationFlowState.Idle)
         {
@@ -976,7 +1006,9 @@ public class GameManager : MonoBehaviour
                 message.Message,
                 message.StillId,
                 message.StillSprite,
-                message.ExpressionId);
+                message.ExpressionId,
+                message.BattleResultVisualMode,
+                message.VoiceId);
             return;
         }
 
@@ -1009,7 +1041,9 @@ public class GameManager : MonoBehaviour
                         line.text,
                         "",
                         null,
-                        line.expressionId));
+                        line.expressionId,
+                        null,
+                        line.voiceId));
             }
 
             return messages;
@@ -1024,7 +1058,9 @@ public class GameManager : MonoBehaviour
                     conversation.heroineLine,
                     "",
                     null,
-                    conversation.expressionId));
+                    conversation.expressionId,
+                    null,
+                    conversation.voiceId));
         }
 
         return messages;
@@ -1624,6 +1660,7 @@ public class GameManager : MonoBehaviour
         conversation.type = item.type;
         conversation.heroineLine = item.heroineLine;
         conversation.expressionId = item.expressionId;
+        conversation.voiceId = item.voiceId;
         conversation.lines = item.lines == null
             ? new List<ConversationLineData>()
             : new List<ConversationLineData>(item.lines);
@@ -1936,6 +1973,8 @@ public class GameManager : MonoBehaviour
         {
             return;
         }
+
+        AudioManager.StopVoiceIfAvailable();
 
         if (TryShowNextQueuedDialogue())
         {
@@ -5632,7 +5671,9 @@ public class GameManager : MonoBehaviour
                     page.message,
                     page.stillId,
                     stillSprite,
-                    page.expressionId
+                    page.expressionId,
+                    null,
+                    page.voiceId
                 )
             );
         }

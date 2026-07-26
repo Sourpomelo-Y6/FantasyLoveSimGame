@@ -11,6 +11,8 @@ public class ConversationLineData
     public string text;
 
     public string expressionId;
+    [Tooltip("Resources/Audio/Voice/<HeroineId>/ 以下の拡張子なし音声ID。空なら再生しません。")]
+    public string voiceId;
 }
 
 [Serializable]
@@ -27,6 +29,8 @@ public class ConversationDataItem
     public string heroineLine;
 
     public string expressionId;
+    [Tooltip("旧1行形式で再生するボイスID。")]
+    public string voiceId;
 
     public List<ConversationLineData> lines = new List<ConversationLineData>();
 
@@ -74,6 +78,8 @@ public class ConversationData : ScriptableObject
     public string heroineLine;
 
     public string expressionId;
+    [Tooltip("旧1行形式で再生するボイスID。")]
+    public string voiceId;
 
     public List<ConversationLineData> lines = new List<ConversationLineData>();
 

@@ -3,7 +3,7 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 
 /// <summary>
-/// BGMとSEをScene間で共有する再生基盤。
+/// BGM、SE、ボイスをScene間で共有する再生基盤。
 /// 音源が未導入の場合は無音のまま安全に動作する。
 /// </summary>
 [DefaultExecutionOrder(-9000)]
@@ -15,6 +15,7 @@ public sealed class AudioManager : MonoBehaviour
 
     private AudioSource bgmSource;
     private AudioSource seSource;
+    private AudioSource voiceSource;
     private Coroutine bgmTransition;
 
     public static AudioManager Instance
@@ -27,6 +28,7 @@ public sealed class AudioManager : MonoBehaviour
     }
 
     public AudioClip CurrentBgm => bgmSource != null ? bgmSource.clip : null;
+    public AudioClip CurrentVoice => voiceSource != null ? voiceSource.clip : null;
 
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
     private static void Bootstrap()
@@ -82,6 +84,7 @@ public sealed class AudioManager : MonoBehaviour
         GameOptionsData options = GameOptionsManager.GetCurrent();
         bgmSource.volume = options.bgmMuted ? 0f : options.bgmVolume;
         seSource.volume = options.seMuted ? 0f : options.seVolume;
+        voiceSource.volume = options.voiceMuted ? 0f : options.voiceVolume;
     }
 
     public static void ApplyCurrentOptionsIfAvailable()
@@ -147,6 +150,83 @@ public sealed class AudioManager : MonoBehaviour
         PlaySe(Resources.Load<AudioClip>(resourcePath));
     }
 
+    public void PlayVoice(AudioClip clip, bool respectAutoPlay = true)
+    {
+        CreateAudioSources();
+        voiceSource.Stop();
+        voiceSource.clip = null;
+
+        GameOptionsData options = GameOptionsManager.GetCurrent();
+        if (clip == null || (respectAutoPlay && !options.voiceAutoPlay))
+        {
+            return;
+        }
+
+        voiceSource.volume = options.voiceMuted ? 0f : options.voiceVolume;
+        voiceSource.clip = clip;
+        voiceSource.Play();
+    }
+
+    public void PlayVoiceFromResources(
+        string resourcePath,
+        bool respectAutoPlay = true)
+    {
+        AudioClip clip = string.IsNullOrWhiteSpace(resourcePath)
+            ? null
+            : Resources.Load<AudioClip>(resourcePath);
+        PlayVoice(clip, respectAutoPlay);
+    }
+
+    public void PlayVoiceById(
+        string heroineId,
+        string voiceId,
+        bool respectAutoPlay = true)
+    {
+        PlayVoiceFromResources(
+            BuildVoiceResourcePath(heroineId, voiceId),
+            respectAutoPlay);
+    }
+
+    public static string BuildVoiceResourcePath(string heroineId, string voiceId)
+    {
+        if (string.IsNullOrWhiteSpace(voiceId))
+        {
+            return string.Empty;
+        }
+
+        string normalizedVoiceId = voiceId.Trim().Trim('/');
+        if (normalizedVoiceId.StartsWith("Audio/Voice/"))
+        {
+            return normalizedVoiceId;
+        }
+
+        string normalizedHeroineId = string.IsNullOrWhiteSpace(heroineId)
+            ? string.Empty
+            : heroineId.Trim().Trim('/');
+        return string.IsNullOrEmpty(normalizedHeroineId)
+            ? "Audio/Voice/" + normalizedVoiceId
+            : "Audio/Voice/" + normalizedHeroineId + "/" + normalizedVoiceId;
+    }
+
+    public void StopVoice()
+    {
+        if (voiceSource == null)
+        {
+            return;
+        }
+
+        voiceSource.Stop();
+        voiceSource.clip = null;
+    }
+
+    public static void StopVoiceIfAvailable()
+    {
+        if (instance != null)
+        {
+            instance.StopVoice();
+        }
+    }
+
     private void CreateAudioSources()
     {
         if (bgmSource == null)
@@ -161,6 +241,13 @@ public sealed class AudioManager : MonoBehaviour
             seSource = gameObject.AddComponent<AudioSource>();
             seSource.playOnAwake = false;
             seSource.loop = false;
+        }
+
+        if (voiceSource == null)
+        {
+            voiceSource = gameObject.AddComponent<AudioSource>();
+            voiceSource.playOnAwake = false;
+            voiceSource.loop = false;
         }
     }
 
