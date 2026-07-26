@@ -81,7 +81,10 @@ public class TrainingDialogueAssetExporterIntegrationTests
             item => item.visualState == "SelectedBeforeFirstStep");
         Assert.That(
             before.messages,
-            Is.EqualTo(new[] { "候補A", "候補B", "音声付き候補" }));
+            Is.EqualTo(new[] { "候補A", "候補B" }));
+        Assert.That(before.voicedMessages.Count, Is.EqualTo(1));
+        Assert.That(before.voicedMessages[0].message, Is.EqualTo("音声付き候補"));
+        Assert.That(before.voicedMessages[0].voiceId, Is.EqualTo("Training/Line01"));
         Assert.That(report.trainingDialogueEntryCount, Is.EqualTo(5));
     }
 
@@ -182,6 +185,14 @@ public class TrainingDialogueAssetExporterIntegrationTests
         public string trainingId;
         public string visualState;
         public List<string> messages;
+        public List<TrainingDialogueVoiceExportItem> voicedMessages;
+    }
+
+    [Serializable]
+    private sealed class TrainingDialogueVoiceExportItem
+    {
+        public string message;
+        public string voiceId;
     }
 }
 #endif

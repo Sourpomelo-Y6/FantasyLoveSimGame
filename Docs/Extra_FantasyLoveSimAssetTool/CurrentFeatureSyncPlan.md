@@ -96,15 +96,17 @@ Unityからは `heroine_skills_from_unity.json` を出力し、Toolで
 
 訓練文章の専用データ型がUnity側で確定するまでは、Toolへ先行して不安定なJSONを追加せず、`training_images_export.json` と画像生成を優先する。
 
-### ボイスID同期（Unity側基盤実装済み・Tool側未実装）
+### ボイスID同期（訓練セリフまで実装済み）
 
 Unity側では通常会話、ゲームイベント、エンディングに加え、予定イベントの準備・結果、
 行動反応、選択肢返答、ヒロイン共通メッセージ、訓練セリフへボイスIDを設定できる。
 実音声はGit管理せず、ToolとのJSON同期では文字列IDだけを往復対象にする。
 旧JSONに項目がない場合は空文字として扱い、既存データを消さない方式で追加する。
-訓練セリフの現行JSONは本文だけを同期し、UnityからのExportでは音声付き候補の本文も
-`messages[]` へ含める。`voiceId` の往復と、旧JSON Import時に既存音声IDを保持する
-マージ規則はTool側の後続作業とする。
+訓練セリフは従来の音声なし `messages[]` と、`message` / `voiceId` を組にした
+`voicedMessages[]` を往復する。Toolの訓練画像タブで選択中候補のVoice IDを編集できる。
+Unity Importerは旧JSONに `voicedMessages` キーがない場合は既存音声IDを維持し、
+新形式で空配列が明示された場合だけその枠の音声付き候補を空にする。ToolのFromUnity
+Importは本文一致で候補を複製せずVoice IDを更新し、本文だけの旧JSONでは既存Voice IDを消さない。
 
 訓練文章は `training_dialogues_export.json` で同期済み。戦闘結果文章は
 `battle_result_events_export.json` と `battle_panel_result_messages_export.json` をToolから出力し、

@@ -9,6 +9,15 @@ namespace FantasyLoveSim.EditorTools
         public string TrainingId { get; set; }
         public string VisualState { get; set; }
         public List<string> Messages { get; set; } = new List<string>();
+        public List<TrainingDialogueVoiceSyncItem> VoicedMessages { get; set; } =
+            new List<TrainingDialogueVoiceSyncItem>();
+        public bool ReplaceVoicedMessages { get; set; }
+    }
+
+    public sealed class TrainingDialogueVoiceSyncItem
+    {
+        public string Message { get; set; }
+        public string VoiceId { get; set; }
     }
 
     public static class TrainingDialogueSyncService
@@ -78,7 +87,9 @@ namespace FantasyLoveSim.EditorTools
                 }
 
                 List<string> messages = NormalizeMessages(source.Messages);
-                if (messages.Count == 0)
+                List<TrainingDialogueVoiceSyncItem> voicedMessages =
+                    NormalizeVoicedMessages(source.VoicedMessages);
+                if (messages.Count == 0 && voicedMessages.Count == 0)
                 {
                     warn?.Invoke("セリフ候補が空の項目をスキップしました: " + trainingId + " / " + visualState);
                     continue;
@@ -87,7 +98,9 @@ namespace FantasyLoveSim.EditorTools
                 {
                     TrainingId = trainingId,
                     VisualState = visualState,
-                    Messages = messages
+                    Messages = messages,
+                    VoicedMessages = voicedMessages,
+                    ReplaceVoicedMessages = source.ReplaceVoicedMessages
                 });
             }
             return result;
@@ -131,11 +144,31 @@ namespace FantasyLoveSim.EditorTools
                         target.Messages.Add(message);
                     }
                 }
+                foreach (TrainingDialogueVoiceSyncItem candidate in
+                    NormalizeVoicedMessages(source.VoicedMessages))
+                {
+                    TrainingDialogueVoiceSyncItem existing =
+                        target.VoicedMessages.FirstOrDefault(value =>
+                            string.Equals(value.Message, candidate.Message, StringComparison.Ordinal));
+                    if (existing == null)
+                    {
+                        target.VoicedMessages.Add(candidate);
+                    }
+                    else if (!string.Equals(
+                        existing.VoiceId,
+                        candidate.VoiceId,
+                        StringComparison.Ordinal))
+                    {
+                        warn?.Invoke(
+                            "同じ本文に異なるvoiceIdが設定されています。先の設定を使用します: " +
+                            trainingId + " / " + visualState + " / " + candidate.Message);
+                    }
+                }
             }
 
             result.RemoveAll(item =>
             {
-                if (item.Messages.Count > 0)
+                if (item.Messages.Count > 0 || item.VoicedMessages.Count > 0)
                 {
                     return false;
                 }
@@ -152,6 +185,30 @@ namespace FantasyLoveSim.EditorTools
                 .Select(message => message.Trim())
                 .Distinct(StringComparer.Ordinal)
                 .ToList();
+        }
+
+        private static List<TrainingDialogueVoiceSyncItem> NormalizeVoicedMessages(
+            IEnumerable<TrainingDialogueVoiceSyncItem> candidates)
+        {
+            List<TrainingDialogueVoiceSyncItem> result =
+                new List<TrainingDialogueVoiceSyncItem>();
+            foreach (TrainingDialogueVoiceSyncItem candidate in
+                candidates ?? Enumerable.Empty<TrainingDialogueVoiceSyncItem>())
+            {
+                string message = (candidate?.Message ?? string.Empty).Trim();
+                if (message.Length == 0 ||
+                    result.Any(value =>
+                        string.Equals(value.Message, message, StringComparison.Ordinal)))
+                {
+                    continue;
+                }
+                result.Add(new TrainingDialogueVoiceSyncItem
+                {
+                    Message = message,
+                    VoiceId = (candidate.VoiceId ?? string.Empty).Trim()
+                });
+            }
+            return result;
         }
     }
 }

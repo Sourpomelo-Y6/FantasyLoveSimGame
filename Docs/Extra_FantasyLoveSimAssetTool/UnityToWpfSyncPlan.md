@@ -183,9 +183,9 @@ scheduled_events_from_unity.json
 
 ### 9. HeroineTrainingDialogueData
 
-訓練セリフは実装済みの `training_dialogues_from_unity.json` で戻す。Unity Editorはヒロイン別の `HeroineTrainingDialogueData` を読み、`trainingId + visualState` ごとの `messages[]` を出力する。重複した枠は1枠へ統合し、空の候補は出力しない。
+訓練セリフは実装済みの `training_dialogues_from_unity.json` で戻す。Unity Editorはヒロイン別の `HeroineTrainingDialogueData` を読み、`trainingId + visualState` ごとの音声なし `messages[]` と、`message` / `voiceId` を持つ `voicedMessages[]` を出力する。重複した枠は1枠へ統合し、空の候補は出力しない。
 
-WPF Toolの訓練画像タブにある `Unity訓練セリフ読込` からJSONを選択する。同一キーの既存枠は保持し、Unity側にしかない候補だけを追加する。同じ文面は重複追加しない。旧ローカルデータの `BeforeFirstStep` / `AfterFirstStep` は、現行の `SelectedBeforeFirstStep` / `SelectedAfterFirstStep` へ正規化する。
+WPF Toolの訓練画像タブにある `Unity訓練セリフ読込` からJSONを選択する。同一キーの既存枠は保持し、Unity側にしかない候補だけを追加する。同じ文面は重複追加せずVoice IDを更新する。本文だけの旧JSONは既存Voice IDを消さない。旧ローカルデータの `BeforeFirstStep` / `AfterFirstStep` は、現行の `SelectedBeforeFirstStep` / `SelectedAfterFirstStep` へ正規化する。
 
 ### 10. TrainingData参照カタログ
 

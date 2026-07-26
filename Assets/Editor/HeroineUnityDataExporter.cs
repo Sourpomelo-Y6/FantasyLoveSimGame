@@ -231,14 +231,21 @@ public static class HeroineUnityDataExporter
                     {
                         TrainingId = entry.trainingId,
                         VisualState = entry.visualState.ToString(),
-                        Messages = GetTrainingDialogueMessages(entry)
+                        Messages = entry.messages,
+                        VoicedMessages = GetTrainingDialogueVoicedMessages(entry)
                     }),
                     report.Warn)
                 .Select(item => new TrainingDialogueFromUnityItem
                 {
                     trainingId = item.TrainingId,
                     visualState = item.VisualState,
-                    messages = item.Messages
+                    messages = item.Messages,
+                    voicedMessages = item.VoicedMessages.Select(candidate =>
+                        new TrainingDialogueVoiceFromUnityItem
+                        {
+                            message = candidate.Message,
+                            voiceId = candidate.VoiceId
+                        }).ToList()
                 })
                 .ToList();
         }
@@ -247,21 +254,18 @@ public static class HeroineUnityDataExporter
         WriteJson(Path.Combine(outputFolder, "training_dialogues_from_unity.json"), export);
     }
 
-    private static List<string> GetTrainingDialogueMessages(
+    private static List<TrainingDialogueVoiceSyncItem> GetTrainingDialogueVoicedMessages(
         HeroineTrainingDialogueEntry entry)
     {
-        List<string> messages = entry.messages != null
-            ? new List<string>(entry.messages)
-            : new List<string>();
-        if (entry.voicedMessages != null)
-        {
-            messages.AddRange(
-                entry.voicedMessages
-                    .Where(candidate => candidate != null)
-                    .Select(candidate => candidate.message));
-        }
-
-        return messages;
+        return (entry.voicedMessages ??
+            new List<HeroineTrainingDialogueCandidate>())
+            .Where(candidate => candidate != null)
+            .Select(candidate => new TrainingDialogueVoiceSyncItem
+            {
+                Message = candidate.message,
+                VoiceId = candidate.voiceId
+            })
+            .ToList();
     }
 
     private static void ExportTrainingCatalog(
@@ -1553,6 +1557,14 @@ public static class HeroineUnityDataExporter
         public string trainingId;
         public string visualState;
         public List<string> messages;
+        public List<TrainingDialogueVoiceFromUnityItem> voicedMessages;
+    }
+
+    [Serializable]
+    private sealed class TrainingDialogueVoiceFromUnityItem
+    {
+        public string message;
+        public string voiceId;
     }
 
     [Serializable]

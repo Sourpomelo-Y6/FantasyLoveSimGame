@@ -648,9 +648,11 @@ public static class HeroineAssetImporter
         }
 
         TrainingDialoguesExport exported;
+        string json;
         try
         {
-            exported = JsonUtility.FromJson<TrainingDialoguesExport>(File.ReadAllText(jsonPath));
+            json = File.ReadAllText(jsonPath);
+            exported = JsonUtility.FromJson<TrainingDialoguesExport>(json);
         }
         catch (Exception ex)
         {
@@ -662,6 +664,8 @@ public static class HeroineAssetImporter
             report.Warn("training_dialogues_export.json を読み込めなかったためスキップしました。");
             return;
         }
+        bool hasVoicedMessagesField =
+            json.IndexOf("\"voicedMessages\"", StringComparison.Ordinal) >= 0;
         if (!TrainingDialogueSyncService.ValidateImportHeader(
             exported.schemaVersion,
             1,
@@ -682,6 +686,26 @@ public static class HeroineAssetImporter
             AssetDatabase.CreateAsset(data, assetPath);
         }
         data.heroineId = heroineId;
+        Dictionary<string, List<HeroineTrainingDialogueCandidate>> existingVoicedMessages =
+            (data.entries ?? new List<HeroineTrainingDialogueEntry>())
+                .Where(entry => entry != null)
+                .GroupBy(
+                    entry => (entry.trainingId ?? string.Empty) + "\n" + entry.visualState,
+                    StringComparer.Ordinal)
+                .ToDictionary(
+                    group => group.Key,
+                    group => group
+                        .SelectMany(entry =>
+                            entry.voicedMessages ??
+                            new List<HeroineTrainingDialogueCandidate>())
+                        .Where(candidate => candidate != null)
+                        .Select(candidate => new HeroineTrainingDialogueCandidate
+                        {
+                            message = candidate.message,
+                            voiceId = candidate.voiceId
+                        })
+                        .ToList(),
+                    StringComparer.Ordinal);
         data.entries = new List<HeroineTrainingDialogueEntry>();
 
         HashSet<string> knownTrainingIds = new HashSet<string>(
@@ -695,7 +719,17 @@ public static class HeroineAssetImporter
                 {
                     TrainingId = item.trainingId,
                     VisualState = item.visualState,
-                    Messages = (item.messages ?? Array.Empty<string>()).ToList()
+                    Messages = (item.messages ?? Array.Empty<string>()).ToList(),
+                    VoicedMessages = (item.voicedMessages ??
+                        Array.Empty<TrainingDialogueVoiceExportItem>())
+                        .Where(candidate => candidate != null)
+                        .Select(candidate => new TrainingDialogueVoiceSyncItem
+                        {
+                            Message = candidate.message,
+                            VoiceId = candidate.voiceId
+                        })
+                        .ToList(),
+                    ReplaceVoicedMessages = hasVoicedMessagesField
                 }),
             knownTrainingIds,
             report.Warn);
@@ -705,11 +739,29 @@ public static class HeroineAssetImporter
             {
                 continue;
             }
+            string key = item.TrainingId + "\n" + state;
+            List<HeroineTrainingDialogueCandidate> voicedMessages;
+            if (item.ReplaceVoicedMessages)
+            {
+                voicedMessages = item.VoicedMessages
+                    .Select(candidate => new HeroineTrainingDialogueCandidate
+                    {
+                        message = candidate.Message,
+                        voiceId = candidate.VoiceId
+                    })
+                    .ToList();
+            }
+            else if (!existingVoicedMessages.TryGetValue(key, out voicedMessages))
+            {
+                voicedMessages = new List<HeroineTrainingDialogueCandidate>();
+            }
+
             data.entries.Add(new HeroineTrainingDialogueEntry
             {
                 trainingId = item.TrainingId,
                 visualState = state,
-                messages = item.Messages
+                messages = item.Messages,
+                voicedMessages = voicedMessages
             });
         }
         report.trainingDialogueEntryCount = data.entries.Count;
@@ -2840,6 +2892,14 @@ public static class HeroineAssetImporter
         public string trainingId;
         public string visualState;
         public string[] messages;
+        public TrainingDialogueVoiceExportItem[] voicedMessages;
+    }
+
+    [Serializable]
+    private sealed class TrainingDialogueVoiceExportItem
+    {
+        public string message;
+        public string voiceId;
     }
 
     [Serializable]

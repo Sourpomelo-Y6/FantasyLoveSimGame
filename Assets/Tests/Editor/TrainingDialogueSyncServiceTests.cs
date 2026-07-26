@@ -74,6 +74,37 @@ namespace FantasyLoveSim.EditorTests
             Assert.That(warnings.Count, Is.EqualTo(2));
         }
 
+        [Test]
+        public void BuildImportItems_NormalizesVoicedMessages()
+        {
+            List<TrainingDialogueSyncItem> result =
+                TrainingDialogueSyncService.BuildImportItems(
+                    new[]
+                    {
+                        new TrainingDialogueSyncItem
+                        {
+                            TrainingId = "TrainingA",
+                            VisualState = "PlayerLpConsumed",
+                            ReplaceVoicedMessages = true,
+                            VoicedMessages = new List<TrainingDialogueVoiceSyncItem>
+                            {
+                                new TrainingDialogueVoiceSyncItem
+                                {
+                                    Message = " 音声付き ",
+                                    VoiceId = " Training/Line01 "
+                                }
+                            }
+                        }
+                    },
+                    new HashSet<string> { "TrainingA" },
+                    null);
+
+            Assert.That(result.Count, Is.EqualTo(1));
+            Assert.That(result[0].ReplaceVoicedMessages, Is.True);
+            Assert.That(result[0].VoicedMessages[0].Message, Is.EqualTo("音声付き"));
+            Assert.That(result[0].VoicedMessages[0].VoiceId, Is.EqualTo("Training/Line01"));
+        }
+
         [TestCase(2, "TestHeroine")]
         [TestCase(1, "OtherHeroine")]
         public void ValidateImportHeader_RejectsUnsupportedVersionOrDifferentHeroine(

@@ -258,10 +258,12 @@ training_dialogues_from_unity.json
 
 AssetToolの訓練画像タブからこのファイルを読み込むと、`trainingId + visualState` が一致する既存枠へ未登録候補だけを追加する。既存候補は削除・置換しないため、Toolを正本としながらUnity側の手修正を安全に回収できる。
 
-現行のAssetTool同期形式は本文の `messages[]` までを対象とする。Unityからの出力では
-`voicedMessages` の本文も候補として含めるため本文は欠落しないが、`voiceId` はまだ往復しない。
-AssetToolから再ImportするとUnity側で手入力した音声IDを保持できないため、音声ID同期対応までは
-訓練音声を設定したアセットへAssetTool Importを上書き実行しない。
+AssetTool同期は音声なし候補の `messages[]` と、本文・Voice IDを組にした
+`voicedMessages[]` の両方に対応する。訓練画像タブで候補を選択し、本文の下にある
+`Voice ID（拡張子なし）` へ `Training/LightPractice01` のように入力する。
+Unity Importerは `voicedMessages` がない旧JSONを読み込んでも既存音声IDを維持する。
+新形式の空配列は意図した削除として扱う。実音声は
+`Resources/Audio/Voice/<HeroineId>/` 以下へローカル配置し、同期・Git管理するのは文字列IDだけとする。
 
 ### 動的な訓練カタログ
 

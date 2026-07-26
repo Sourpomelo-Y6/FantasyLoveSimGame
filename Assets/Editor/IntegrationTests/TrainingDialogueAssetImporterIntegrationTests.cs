@@ -70,6 +70,52 @@ public class TrainingDialogueAssetImporterIntegrationTests
     }
 
     [Test]
+    public void ImportTrainingDialogues_OldJsonPreservesExistingVoiceIds()
+    {
+        HeroineTrainingDialogueData existing = CreateExistingAsset("既存本文");
+        existing.entries[0].voicedMessages.Add(new HeroineTrainingDialogueCandidate
+        {
+            message = "音声付き本文",
+            voiceId = "Training/Existing01"
+        });
+        EditorUtility.SetDirty(existing);
+        AssetDatabase.SaveAssets();
+        WriteJson("{\"schemaVersion\":1,\"heroineId\":\"" + HeroineId +
+            "\",\"items\":[{\"trainingId\":\"\",\"visualState\":\"SelectedBeforeFirstStep\",\"messages\":[\"更新本文\"]}]}");
+
+        Import();
+        AssetDatabase.SaveAssets();
+        HeroineTrainingDialogueData reloaded =
+            AssetDatabase.LoadAssetAtPath<HeroineTrainingDialogueData>(AssetPath);
+
+        Assert.That(reloaded.entries[0].messages, Is.EqualTo(new[] { "更新本文" }));
+        Assert.That(reloaded.entries[0].voicedMessages.Count, Is.EqualTo(1));
+        Assert.That(
+            reloaded.entries[0].voicedMessages[0].voiceId,
+            Is.EqualTo("Training/Existing01"));
+    }
+
+    [Test]
+    public void ImportTrainingDialogues_NewJsonReplacesVoiceCandidates()
+    {
+        CreateExistingAsset("既存本文");
+        WriteJson("{\"schemaVersion\":1,\"heroineId\":\"" + HeroineId +
+            "\",\"items\":[{\"trainingId\":\"\",\"visualState\":\"PlayerLpConsumed\"," +
+            "\"messages\":[],\"voicedMessages\":[{\"message\":\"音声付き本文\"," +
+            "\"voiceId\":\"Training/New01\"}]}]}");
+
+        Import();
+        AssetDatabase.SaveAssets();
+        HeroineTrainingDialogueData reloaded =
+            AssetDatabase.LoadAssetAtPath<HeroineTrainingDialogueData>(AssetPath);
+
+        Assert.That(reloaded.entries[0].messages, Is.Empty);
+        Assert.That(reloaded.entries[0].voicedMessages.Count, Is.EqualTo(1));
+        Assert.That(reloaded.entries[0].voicedMessages[0].message, Is.EqualTo("音声付き本文"));
+        Assert.That(reloaded.entries[0].voicedMessages[0].voiceId, Is.EqualTo("Training/New01"));
+    }
+
+    [Test]
     public void ImportTrainingDialogues_LeavesExistingAssetUnchangedForDifferentHeroine()
     {
         CreateExistingAsset("維持する候補");
