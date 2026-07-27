@@ -5,15 +5,85 @@ using NUnit.Framework;
 public class AudioAssetValidatorTests
 {
     [Test]
-    public void ValidateProjectAssets_ChecksEveryRegisteredBgmAndSe()
+    public void ValidateProjectAssets_ChecksRegisteredAudioAndDataVoiceReferences()
     {
         AudioAssetValidationReport report =
             AudioAssetValidator.ValidateProjectAssets();
 
-        Assert.That(report.CheckedCount, Is.EqualTo(27));
+        Assert.That(report.GetCheckedCount("BGM"), Is.EqualTo(5));
+        Assert.That(report.GetCheckedCount("SE"), Is.EqualTo(22));
+        Assert.That(report.GetCheckedCount("VOICE"), Is.GreaterThan(0));
+        Assert.That(report.CheckedCount, Is.GreaterThanOrEqualTo(27));
         Assert.That(report.FoundCount, Is.InRange(0, report.CheckedCount));
         Assert.That(report.MissingCount, Is.EqualTo(
             report.CheckedCount - report.FoundCount));
+    }
+
+    [Test]
+    public void CollectVoiceRequirements_UsesHeroineAndSourceField()
+    {
+        ConversationData data =
+            UnityEngine.ScriptableObject.CreateInstance<ConversationData>();
+        try
+        {
+            data.name = "ConversationTest";
+            data.heroineId = "TestHeroine";
+            data.voiceId = "Conversation/Legacy";
+            data.lines.Add(new ConversationLineData
+            {
+                voiceId = "Conversation/Line01"
+            });
+            data.choices.Add(new ConversationChoice
+            {
+                responseVoiceId = " "
+            });
+
+            System.Collections.Generic.List<AudioAssetValidationEntry> entries =
+                AudioAssetValidator.CollectVoiceRequirements(
+                    new UnityEngine.Object[] { data });
+
+            Assert.That(entries.Count, Is.EqualTo(2));
+            Assert.That(
+                entries.Select(entry => entry.ResourcePath),
+                Is.EquivalentTo(new[]
+                {
+                    "Audio/Voice/TestHeroine/Conversation/Legacy",
+                    "Audio/Voice/TestHeroine/Conversation/Line01"
+                }));
+            Assert.That(entries.All(entry => entry.Category == "VOICE"), Is.True);
+            Assert.That(entries.All(entry => entry.Context == data), Is.True);
+            Assert.That(entries.All(entry => entry.SourceLabel.Contains("ConversationTest")), Is.True);
+        }
+        finally
+        {
+            UnityEngine.Object.DestroyImmediate(data);
+        }
+    }
+
+    [Test]
+    public void Validate_AllowsMultipleReferencesToSameVoiceClip()
+    {
+        AudioAssetValidationEntry[] requirements =
+        {
+            new AudioAssetValidationEntry(
+                "VOICE",
+                "Common/Line01",
+                "Audio/Voice/TestHeroine/Common/Line01",
+                "Source A"),
+            new AudioAssetValidationEntry(
+                "VOICE",
+                "Common/Line01",
+                "Audio/Voice/TestHeroine/Common/Line01",
+                "Source B")
+        };
+
+        AudioAssetValidationReport report = AudioAssetValidator.Validate(
+            requirements,
+            new[] { "Audio/Voice/TestHeroine/Common/Line01" });
+
+        Assert.That(report.GetCheckedCount("VOICE"), Is.EqualTo(2));
+        Assert.That(report.GetFoundCount("VOICE"), Is.EqualTo(2));
+        Assert.That(report.Missing, Is.Empty);
     }
 
     [Test]

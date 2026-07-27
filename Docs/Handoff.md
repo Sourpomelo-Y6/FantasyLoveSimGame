@@ -717,7 +717,7 @@ UI デザインは手作業で行っています。
 - MainScene内の戦闘・訓練BGM切り替えも実装済み。戦闘は `Resources/Audio/Bgm/Battle`、訓練は `Resources/Audio/Bgm/Training` を開始時に要求し、結果確定・結果通知・手動クローズ時にMain BGMへ戻す。
 - SEは `AudioManager.PlaySeById` と `Resources/Audio/SE/<論理ID>` の規約で接続済み。一般ButtonはSceneロード後に決定・キャンセル・次送りを自動接続し、購入、スキル取得、予定、訓練、戦闘は処理結果から専用SEを再生する。音源がなくても例外は発生しない。論理ID一覧は `Docs/TitleAndAudioPresentationPlan.md` を参照する。
 - 同一SEの連打抑制を実装済み。一般操作音0.1秒、購入・取得結果とイベント開始0.35秒、戦闘結果と訓練完了0.75秒を基本とし、別IDは続けて再生できる。戦闘の回復成功、使用不能、MP不足、未装備・未所持にも結果に応じたSEを接続している。
-- ローカル音源の不足は `FantasyLoveSim > Validation > Assets > Audio Assets` で確認できる。期待するBGM・SEの調査数、検出数、不足数と配置例を表示する。任意の非Git管理素材を対象とするため `Run All Validations` には含めない。
+- ローカル音源の不足は `FantasyLoveSim > Validation > Assets > Audio Assets` で確認できる。期待するBGM・SEに加え、プロフィール、会話、行動反応、イベント、予定、訓練、戦闘結果、エンディングが参照するVOICEを動的に収集し、種類別の調査数・検出数・不足数を表示する。VOICE不足は参照元アセットとフィールド位置をConsoleへ出す。任意の非Git管理素材を対象とするため `Run All Validations` には含めない。
 - `game_options.json` はversion 3。BGM・SE・ボイスの音量とミュート、ボイス自動再生を端末共通で保存する。version 1・2から不足項目を安全な既定値へ移行する。BGM・SEのUI配置は完了済みで、ボイス用Slider／Toggleはコード側の参照追加まで完了している。
 
 ## 追加開発の優先候補
