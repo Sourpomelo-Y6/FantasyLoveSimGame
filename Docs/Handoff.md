@@ -46,7 +46,7 @@
 - タイトルから新規ゲームを開始した直後は、`GameEventData` の `GameStart` イベントを再生してからメイン画面を始める。`GameEventData` はヒロイン別 Resources パスに置き、ページ単位で話者・メッセージ・スチルを持てる
 - ヒロイン差し替えは `HeroineProfileData` で管理する。画像、会話、イベント、行動反応、エンディング、朝夜の挨拶などの共通セリフをヒロイン単位で束ね、`Images/Background` は共通背景として扱う。現在は `DefaultHeroineProfile.asset` で `Heroines/DefaultHeroine/Actions` / `Conversations` / `GameEvents` / `Endings` を参照している
 - タイトル画面にはキャラクター選択 UI を追加済み。`Resources.LoadAll<HeroineProfileData>("Heroines")` で候補を列挙し、選択中プロフィールの表示名と立ち絵をプレビューして、決定後に新規ゲーム用の選択ヒロインとして `GameStartSettings` へ渡す。ロード時はセーブデータ内のヒロイン ID を優先する
-- `AudioManager` はBGM・SE・ボイスをScene間で共有する。ボイスは通常会話、ゲームイベント、エンディングの `voiceId` から `Resources/Audio/Voice/<HeroineId>/` 以下を任意ロードし、未登録でも文章表示を継続する。音量・ミュート・自動再生はversion 3の端末共通 `game_options.json` に保存する。現在ページの音声は `ReplayCurrentVoice()` で手動再生でき、MainSceneとEndingSceneは任意の `Voice Replay Button` を接続できる
+- `AudioManager` はBGM・SE・ボイスをScene間で共有する。ボイスは通常会話、ゲームイベント、予定イベント、行動反応、選択肢返答、共通メッセージ、訓練、戦闘結果、エンディングの `voiceId` から `Resources/Audio/Voice/<HeroineId>/` 以下を任意ロードし、未登録でも文章表示を継続する。音量・ミュート・自動再生はversion 3の端末共通 `game_options.json` に保存する。現在ページの音声は `ReplayCurrentVoice()` で手動再生でき、MainScene、TrainingPanel、EndingSceneは任意の `Voice Replay Button` を接続できる
 - 予定イベントは準備・結果、行動反応、会話選択肢の返答、ヒロイン共通の初期表示・次行動・朝・就寝前メッセージにも任意のボイスIDを設定でき、すべて共通の自動再生・ミュート・手動再生処理を通る
 - `HeroineProfileData` の共通セリフ、衣装メッセージ、Resources path、ヒロイン戦闘スキルは `FantasyLoveSimAssetTool` のプロフィール画面で編集でき、`heroine_profile_export.json` と Unity の `heroine_profile_from_unity.json` の往復同期に対応済み。旧JSONで省略された戦闘スキルは既存値を維持し、明示された空配列だけを削除として扱う
 - ヒロイン固有の訓練スキルとスキルツリーノードはAssetToolのプロフィール画面で編集し、`heroine_skills_export.json` / `heroine_skills_from_unity.json` で往復できる。Unity Importerはヒロイン別フォルダだけを更新し、主人公ノード、他ヒロイン、共通 `TrainingData` を変更しない。前提ノード、解放訓練、実績条件、ツリー座標も同期対象
@@ -718,12 +718,14 @@ UI デザインは手作業で行っています。
 - SEは `AudioManager.PlaySeById` と `Resources/Audio/SE/<論理ID>` の規約で接続済み。一般ButtonはSceneロード後に決定・キャンセル・次送りを自動接続し、購入、スキル取得、予定、訓練、戦闘は処理結果から専用SEを再生する。音源がなくても例外は発生しない。論理ID一覧は `Docs/TitleAndAudioPresentationPlan.md` を参照する。
 - 同一SEの連打抑制を実装済み。一般操作音0.1秒、購入・取得結果とイベント開始0.35秒、戦闘結果と訓練完了0.75秒を基本とし、別IDは続けて再生できる。戦闘の回復成功、使用不能、MP不足、未装備・未所持にも結果に応じたSEを接続している。
 - ローカル音源の不足は `FantasyLoveSim > Validation > Assets > Audio Assets` で確認できる。期待するBGM・SEに加え、プロフィール、会話、行動反応、イベント、予定、訓練、戦闘結果、エンディングが参照するVOICEを動的に収集し、種類別の調査数・検出数・不足数を表示する。VOICE不足は参照元アセットとフィールド位置をConsoleへ出す。任意の非Git管理素材を対象とするため `Run All Validations` には含めない。
-- `game_options.json` はversion 3。BGM・SE・ボイスの音量とミュート、ボイス自動再生を端末共通で保存する。version 1・2から不足項目を安全な既定値へ移行する。BGM・SEのUI配置は完了済みで、ボイス用Slider／Toggleはコード側の参照追加まで完了している。
+- AssetToolとUnityは音声ファイルを同期せず、Voice IDだけをJSONで往復する。通常会話、ゲームイベント、予定イベント、行動反応、訓練、戦闘結果、エンディングに対応済み。通常会話・予定・行動反応・エンディングは `VoiceIdHeroineDataSyncIntegrationTests`、ゲームイベントは `RequiredSkillIdGameEventIntegrationTests` で、実音声なしのImport・逆Exportと旧JSON互換を確認する。
+- `game_options.json` はversion 3。BGM・SE・ボイスの音量とミュート、ボイス自動再生を端末共通で保存する。version 1・2から不足項目を安全な既定値へ移行する。BGM・SE・ボイスの設定UIと再生確認まで完了している。
 
 ## 追加開発の優先候補
 
-タイトル画面のキービジュアルとデザイン、次のフィクション表記、BGM・SE、実音声を含めない
-ボイス再生基盤は今後の演出作業として `Docs/TitleAndAudioPresentationPlan.md` にまとめている。
+タイトル画面のキービジュアルとデザイン、次のフィクション表記、本番用のBGM・SE・ボイス素材選定は
+`Docs/TitleAndAudioPresentationPlan.md` にまとめている。音響コード基盤とVoice ID同期は完了済みで、
+実素材はライセンス確認後に別工程で登録する。
 タイトル画面には「この作品はフィクションです。実在の人物･団体･事件とは一切関係がありません。」
 をTMPテキストで表示する。`TitleDisclaimerPanel` により、起動後最初のTitleSceneだけ
 全面の `DisclaimerArea` を表示し、クリックで閉じる。同じ起動セッション中はタイトルへ戻っても

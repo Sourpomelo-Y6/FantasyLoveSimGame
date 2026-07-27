@@ -72,10 +72,32 @@ This project is licensed under the MIT License. See [LICENSE](LICENSE) for detai
 
 新しく作成するTextMeshProにも同じフォントを使う場合は、`Edit > Project Settings > TextMesh Pro > Default Font Asset`も手動設定してください。詳しい生成設定、既存Scene・Prefabへの一括適用、Gitへコミットしないファイルについては、[TextMeshPro日本語フォント設定](Docs/JapaneseFontSetup.md)を参照してください。
 
+## ローカル音源の設定
+
+BGM・SE・VOICEの再生基盤は実装済みですが、制作途中の音源とライセンス未確定素材は
+Gitリポジトリへ含めていません。必要な環境では次のResources規約へローカル配置します。
+
+```text
+Assets/Resources/Audio/Bgm/<BGM ID>.<拡張子>
+Assets/Resources/Audio/SE/<SE ID>.<拡張子>
+Assets/Resources/Audio/Voice/<HeroineId>/<Voice ID>.<拡張子>
+```
+
+データへ入力するIDには拡張子を含めません。Unity Editorの
+`FantasyLoveSim > Validation > Assets > Audio Assets`を実行すると、コードが要求する
+BGM・SEとヒロインデータが参照するVOICEの検出数・不足数・配置例を確認できます。
+音源が未配置でもゲームは例外を発生させず、無音のまま進行します。
+
+AssetToolとUnityのJSON同期では音声ファイルではなくVoice IDだけを往復します。
+通常会話、ゲームイベント、予定イベント、行動反応、訓練、戦闘結果、エンディングが
+同期対象です。詳細は[タイトル画面・音響演出計画](Docs/TitleAndAudioPresentationPlan.md)を
+参照してください。
+
 ## 注意
 
 - `Assets/Fonts/Local`内のフォント、TMP Font Asset、フォントアトラスはGit管理しません
 - ローカルFont Assetを直接適用したScene・Prefabや、割り当て後の`JapaneseFontSettings.asset`は、GUID参照切れを防ぐためコミットしないでください
+- 制作途中またはライセンス未確認の`.wav`、`.mp3`、`.ogg`と、その`.meta`はコミットしないでください
 - セットアップ時に不足があれば、`Docs/Images` や `Assets/Images` 配下の画像を個別に追加してください
 
 ## 操作

@@ -174,8 +174,12 @@ Unity 側でヒロイン別の翌日予定、お出かけ、デート本文を�
 scheduled_events_from_unity.json
 ```
 
-`HeroineProfileData.scheduledEventResourcePath` から `ScheduledEventData` を読み、`scheduleType`、`actionId`、`triggerTimeSlot`、`outfitPromptMode`、`eventSpeakerType`、`preparationMessage`、`eventMessage`、`stillId`、`affectionChange` を戻す。
+`HeroineProfileData.scheduledEventResourcePath` から `ScheduledEventData` を読み、`scheduleType`、`actionId`、`triggerTimeSlot`、`outfitPromptMode`、`eventSpeakerType`、`preparationMessage`、`eventMessage`、準備・結果の `voiceId`、`stillId`、`affectionChange` を戻す。
 共通フォールバックの `Assets/Resources/ScheduledEvents/` は、ヒロイン固有データと混ざらないよう逆 export 対象にしない。
+
+通常会話、ゲームイベント、予定イベント、行動反応、エンディングは、各本文行の
+`voiceId` をFromUnity JSONへ戻す。AssetTool側で再編集してUnityへExportした場合も同じIDを
+Importerが復元する。音声ファイル、拡張子、Unity GUIDは同期対象に含めない。
 
 ### 8. HeroineTrainingImageData
 

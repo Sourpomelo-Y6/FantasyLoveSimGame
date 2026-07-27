@@ -96,12 +96,14 @@ Unityからは `heroine_skills_from_unity.json` を出力し、Toolで
 
 訓練文章の専用データ型がUnity側で確定するまでは、Toolへ先行して不安定なJSONを追加せず、`training_images_export.json` と画像生成を優先する。
 
-### ボイスID同期（訓練・戦闘結果まで実装済み）
+### ボイスID同期（主要データの双方向同期を実装済み）
 
 Unity側では通常会話、ゲームイベント、エンディングに加え、予定イベントの準備・結果、
 行動反応、選択肢返答、ヒロイン共通メッセージ、訓練セリフへボイスIDを設定できる。
 実音声はGit管理せず、ToolとのJSON同期では文字列IDだけを往復対象にする。
-旧JSONに項目がない場合は空文字として扱い、既存データを消さない方式で追加する。
+通常会話、ゲームイベント、予定イベント、行動反応、エンディングは、各 `lines[]` の
+`voiceId` をAssetToolからUnityへ取り込み、Unityの `*_from_unity.json` にも戻す。
+旧JSONに項目がない場合は空文字として安全に扱い、音声なしの本文として利用できる。
 訓練セリフは従来の音声なし `messages[]` と、`message` / `voiceId` を組にした
 `voicedMessages[]` を往復する。Toolの訓練画像タブで選択中候補のVoice IDを編集できる。
 Unity Importerは旧JSONに `voicedMessages` キーがない場合は既存音声IDを維持し、
@@ -110,6 +112,11 @@ Importは本文一致で候補を複製せずVoice IDを更新し、本文だけ
 戦闘後イベントと戦闘パネル結果文も各項目に任意の `voiceId` を持ち、AssetToolの
 「戦闘メッセージ」タブで編集して既存の双方向JSONで往復する。旧JSONで `voiceId` が
 省略されている場合は既存値を維持し、空文字が明示された場合だけ解除する。
+
+通常会話・予定イベント・行動反応・エンディングのVoice IDあり／なしと双方向同期は
+Unity側の `VoiceIdHeroineDataSyncIntegrationTests`、ゲームイベントは
+`RequiredSkillIdGameEventIntegrationTests` で検証する。テストは論理IDだけを使用し、
+実際のVOICEファイルを必要としない。
 
 訓練文章は `training_dialogues_export.json` で同期済み。戦闘結果文章は
 `battle_result_events_export.json` と `battle_panel_result_messages_export.json` をToolから出力し、
