@@ -346,7 +346,7 @@ public static class HeroineUnityDataExporter
         WriteJson(Path.Combine(outputFolder, "training_catalog_from_unity.json"), export);
     }
 
-    private static void ExportActions(
+    internal static void ExportActions(
         HeroineProfileData profile,
         string outputFolder,
         HeroineUnityExportReport report)
@@ -390,7 +390,7 @@ public static class HeroineUnityDataExporter
         WriteJson(Path.Combine(outputFolder, "actions_from_unity.json"), export);
     }
 
-    private static void ExportConversations(
+    internal static void ExportConversations(
         HeroineProfileData profile,
         string outputFolder,
         HeroineUnityExportReport report)
@@ -487,7 +487,7 @@ public static class HeroineUnityDataExporter
         WriteJson(Path.Combine(outputFolder, "game_events_from_unity.json"), export);
     }
 
-    private static void ExportScheduledEvents(
+    internal static void ExportScheduledEvents(
         HeroineProfileData profile,
         string outputFolder,
         HeroineUnityExportReport report)
@@ -531,7 +531,7 @@ public static class HeroineUnityDataExporter
         WriteJson(Path.Combine(outputFolder, "scheduled_events_from_unity.json"), export);
     }
 
-    private static void ExportEndings(
+    internal static void ExportEndings(
         HeroineProfileData profile,
         string outputFolder,
         HeroineUnityExportReport report)

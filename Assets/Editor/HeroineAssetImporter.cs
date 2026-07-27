@@ -1167,7 +1167,7 @@ public static class HeroineAssetImporter
         }
     }
 
-    private static void ImportConversations(
+    internal static void ImportConversations(
         string exportFolder,
         string heroineId,
         HeroineImportReport report)
@@ -1914,7 +1914,7 @@ public static class HeroineAssetImporter
             string.Equals(speaker, "主人公", StringComparison.OrdinalIgnoreCase);
     }
 
-    private static void ImportScheduledEvents(
+    internal static void ImportScheduledEvents(
         string exportFolder,
         string heroineId,
         HeroineImportReport report)
@@ -2226,7 +2226,7 @@ public static class HeroineAssetImporter
         return string.Empty;
     }
 
-    private static void ImportActionReactions(
+    internal static void ImportActionReactions(
         string exportFolder,
         string heroineId,
         HeroineImportReport report)
@@ -2429,7 +2429,7 @@ public static class HeroineAssetImporter
         return reaction;
     }
 
-    private static void ImportEndings(
+    internal static void ImportEndings(
         string exportFolder,
         string heroineId,
         HeroineImportReport report)
