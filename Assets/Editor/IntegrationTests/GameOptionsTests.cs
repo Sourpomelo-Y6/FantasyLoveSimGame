@@ -335,6 +335,40 @@ public class GameOptionsTests
         Assert.That(AudioManager.CanPlaySe(seId, muted), Is.EqualTo(expected));
     }
 
+    [TestCase(1f, false, 0f, 0.75f, true)]
+    [TestCase(1f, true, 0.95f, 0.1f, false)]
+    [TestCase(1.06f, true, 0.95f, 0.1f, true)]
+    [TestCase(1f, true, 1f, 0f, true)]
+    public void CanPlaySeAt_UsesPerIdCooldown(
+        float currentTime,
+        bool hasLastPlayTime,
+        float lastPlayTime,
+        float cooldown,
+        bool expected)
+    {
+        Assert.That(
+            AudioManager.CanPlaySeAt(
+                currentTime,
+                hasLastPlayTime,
+                lastPlayTime,
+                cooldown),
+            Is.EqualTo(expected));
+    }
+
+    [TestCase("UI/Confirm", 0.1f)]
+    [TestCase("Shop/PurchaseSuccess", 0.35f)]
+    [TestCase("Event/Start", 0.35f)]
+    [TestCase("Battle/Victory", 0.75f)]
+    [TestCase("Training/Complete", 0.75f)]
+    public void GetSeCooldownSeconds_UsesPurposeSpecificIntervals(
+        string seId,
+        float expected)
+    {
+        Assert.That(
+            AudioManager.GetSeCooldownSeconds(seId),
+            Is.EqualTo(expected).Within(0.001f));
+    }
+
     [TestCase("CloseButton", UiSePlayer.CancelSeId)]
     [TestCase("NextPageButton", UiSePlayer.NextSeId)]
     [TestCase("StatusButton", UiSePlayer.ConfirmSeId)]

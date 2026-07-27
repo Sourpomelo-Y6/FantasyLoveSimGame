@@ -127,9 +127,16 @@ Sceneロード後、一般的なButtonには名前から決定・キャンセル
 | 訓練進行／完了／中断 | `Training/Step`, `Training/Complete`, `Training/Cancel` | `Assets/Resources/Audio/SE/Training/...` |
 | 戦闘行動 | `Battle/Attack`, `Battle/Defend`, `Battle/Skill`, `Battle/Item` | `Assets/Resources/Audio/SE/Battle/...` |
 | 戦闘結果 | `Battle/Victory`, `Battle/Defeat`, `Battle/Escape` | `Assets/Resources/Audio/SE/Battle/...` |
+| 回復 | `Battle/Heal` | `Assets/Resources/Audio/SE/Battle/Heal.ogg` |
+| イベント開始 | `Event/Start` | `Assets/Resources/Audio/SE/Event/Start.ogg` |
 
 拡張子はUnityが読み込める音声形式でよく、コードには含めない。実音源と `.meta` は
 ローカル確認用としてGitへコミットしない。
+
+同一IDのSEには短い再生間隔制限を適用する。一般操作音は0.1秒、購入・取得結果と
+イベント開始は0.35秒、戦闘結果と訓練完了は0.75秒を基本とする。別IDのSEは続けて
+再生できる。戦闘では回復成功に `Battle/Heal`、回復不能、MP不足、スキル未装備、
+アイテム未所持・使用不能などに `UI/Error` を使用する。
 
 ### ローカル音源の検証
 
@@ -143,7 +150,7 @@ FantasyLoveSim
 ```
 
 Title、Main、Ending、Battle、TrainingのBGMと、現在接続済みのUI・購入・スキル・予定・
-訓練・戦闘SEについて、調査数、検出数、不足数を表示する。不足した論理IDごとの
+訓練・戦闘・イベントSEについて、調査数、検出数、不足数を表示する。不足した論理IDごとの
 ローカル配置例はConsoleへ出力する。音源は任意のため、不足してもゲームのコンパイルや
 実行を停止せず、無音で継続する。
 

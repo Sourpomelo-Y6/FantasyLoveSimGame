@@ -84,11 +84,13 @@ public static class AudioAssetValidator
         Se("Training/Cancel"),
         Se("Battle/Attack"),
         Se("Battle/Defend"),
+        Se("Battle/Heal"),
         Se("Battle/Skill"),
         Se("Battle/Item"),
         Se("Battle/Victory"),
         Se("Battle/Defeat"),
-        Se("Battle/Escape")
+        Se("Battle/Escape"),
+        Se("Event/Start")
     };
 
     public static AudioAssetValidationReport ValidateProjectAssets()

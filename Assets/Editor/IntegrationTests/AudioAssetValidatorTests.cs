@@ -10,7 +10,7 @@ public class AudioAssetValidatorTests
         AudioAssetValidationReport report =
             AudioAssetValidator.ValidateProjectAssets();
 
-        Assert.That(report.CheckedCount, Is.EqualTo(25));
+        Assert.That(report.CheckedCount, Is.EqualTo(27));
         Assert.That(report.FoundCount, Is.InRange(0, report.CheckedCount));
         Assert.That(report.MissingCount, Is.EqualTo(
             report.CheckedCount - report.FoundCount));

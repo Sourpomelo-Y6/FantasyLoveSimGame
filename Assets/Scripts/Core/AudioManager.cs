@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -21,6 +22,8 @@ public sealed class AudioManager : MonoBehaviour
     private AudioSource voiceSource;
     private AudioClip preparedVoiceClip;
     private Coroutine bgmTransition;
+    private readonly Dictionary<string, float> lastSePlayTimes =
+        new Dictionary<string, float>();
 
     public static AudioManager Instance
     {
@@ -191,6 +194,21 @@ public sealed class AudioManager : MonoBehaviour
             return false;
         }
 
+        float currentTime = Time.unscaledTime;
+        float lastPlayTime;
+        bool hasLastPlayTime = lastSePlayTimes.TryGetValue(
+            resourcePath,
+            out lastPlayTime);
+        if (!CanPlaySeAt(
+            currentTime,
+            hasLastPlayTime,
+            lastPlayTime,
+            GetSeCooldownSeconds(seId)))
+        {
+            return false;
+        }
+
+        lastSePlayTimes[resourcePath] = currentTime;
         PlaySe(clip);
         return true;
     }
@@ -198,6 +216,46 @@ public sealed class AudioManager : MonoBehaviour
     public static bool CanPlaySe(string seId, bool seMuted)
     {
         return !seMuted && !string.IsNullOrWhiteSpace(seId);
+    }
+
+    public static bool CanPlaySeAt(
+        float currentTime,
+        bool hasLastPlayTime,
+        float lastPlayTime,
+        float cooldownSeconds)
+    {
+        return !hasLastPlayTime ||
+            currentTime - lastPlayTime >= Mathf.Max(0f, cooldownSeconds);
+    }
+
+    public static float GetSeCooldownSeconds(string seId)
+    {
+        if (string.IsNullOrWhiteSpace(seId))
+        {
+            return 0f;
+        }
+
+        if (ContainsSeIdPart(
+            seId,
+            "Victory",
+            "Defeat",
+            "Escape",
+            "Complete"))
+        {
+            return 0.75f;
+        }
+
+        if (ContainsSeIdPart(
+            seId,
+            "Success",
+            "Failed",
+            "Acquire",
+            "Event/Start"))
+        {
+            return 0.35f;
+        }
+
+        return 0.1f;
     }
 
     public static string BuildSeResourcePath(string seId)
@@ -211,6 +269,21 @@ public sealed class AudioManager : MonoBehaviour
         return normalizedSeId.StartsWith("Audio/SE/")
             ? normalizedSeId
             : "Audio/SE/" + normalizedSeId;
+    }
+
+    private static bool ContainsSeIdPart(string seId, params string[] values)
+    {
+        for (int i = 0; i < values.Length; i++)
+        {
+            if (seId.IndexOf(
+                values[i],
+                System.StringComparison.OrdinalIgnoreCase) >= 0)
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     public bool PlayVoice(AudioClip clip, bool respectAutoPlay = true)

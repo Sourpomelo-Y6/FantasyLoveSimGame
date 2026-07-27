@@ -5285,6 +5285,10 @@ public class GameManager : MonoBehaviour
         bool hideSaveLoadButtons,
         List<GameEventData> completionGameEvents = null)
     {
+        if (messages != null && messages.Count > 0)
+        {
+            AudioManager.Instance.PlaySeById("Event/Start");
+        }
         actionButtonArea.SetActive(false);
         genreButtonArea.SetActive(false);
         choiceButtonArea.SetActive(false);
@@ -6806,6 +6810,7 @@ public class GameManager : MonoBehaviour
             return;
         }
 
+        AudioManager.Instance.PlaySeById("Event/Start");
         if (IsShoppingSchedule(scheduledEvent.ScheduleType) && TryOpenDuoShoppingShopPanel(scheduledEvent))
         {
             return;

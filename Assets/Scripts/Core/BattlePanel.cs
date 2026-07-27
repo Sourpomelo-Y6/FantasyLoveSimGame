@@ -294,10 +294,12 @@ public class BattlePanel : MonoBehaviour
         int recovered = Recover(target, DebugHealAmount);
         if (recovered > 0)
         {
+            AudioManager.Instance.PlaySeById("Battle/Heal");
             AddLog(targetName + " は " + recovered + " 回復した。");
         }
         else
         {
+            PlayErrorSe();
             AddLog("回復できる対象がいません。");
         }
 
@@ -322,6 +324,7 @@ public class BattlePanel : MonoBehaviour
 
         if (gameManager == null)
         {
+            PlayErrorSe();
             AddLog("使用できる戦闘スキルがありません。訓練でスキルを解放してください。");
             Refresh();
             return;
@@ -330,6 +333,7 @@ public class BattlePanel : MonoBehaviour
         List<SkillData> skills = gameManager.GetEquippedPlayerBattleSkills();
         if (skills.Count == 0)
         {
+            PlayErrorSe();
             AddLog("装備中の戦闘スキルがありません。スキルツリーで装備してください。");
             Refresh();
             return;
@@ -349,6 +353,7 @@ public class BattlePanel : MonoBehaviour
         // Keeps the existing generic selector usable until the dedicated panel is placed in the scene.
         if (!gameManager.TryOpenBattleSkillSelection(UseSelectedSkill))
         {
+            PlayErrorSe();
             AddLog("戦闘スキル選択 UI が設定されていません。");
             Refresh();
         }
@@ -364,6 +369,7 @@ public class BattlePanel : MonoBehaviour
         List<ShopItemData> items = gameManager.GetBattleItems();
         if (items.Count == 0)
         {
+            PlayErrorSe();
             AddLog("マナポーションを所持していません。");
             Refresh();
             return;
@@ -408,6 +414,7 @@ public class BattlePanel : MonoBehaviour
         if (battleFinished || target == null || item == null || !CanUseBattleItemOnTarget(item, target) ||
             !gameManager.TryConsumeBattleItem(item.itemId, out item))
         {
+            PlayErrorSe();
             AddLog("アイテムを使用できません。");
             Refresh();
             return false;
@@ -450,6 +457,7 @@ public class BattlePanel : MonoBehaviour
         int skillCost = Mathf.Max(0, skill.cost);
         if (debugPlayerStatus == null || !debugPlayerStatus.TrySpendMp(skillCost))
         {
+            PlayErrorSe();
             AddLog(
                 "MP が足りないため " +
                 skill.GetDisplayName() +
@@ -1036,6 +1044,11 @@ public class BattlePanel : MonoBehaviour
     private static void RestoreMainBgm()
     {
         AudioManager.Instance.PlayBgmById(AudioManager.MainBgmId);
+    }
+
+    private static void PlayErrorSe()
+    {
+        AudioManager.Instance.PlaySeById("UI/Error");
     }
 
     private static string ResolveBattleResultSeId(string resultLabel)
