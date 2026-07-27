@@ -50,9 +50,10 @@
 - 予定イベントは準備・結果、行動反応、会話選択肢の返答、ヒロイン共通の初期表示・次行動・朝・就寝前メッセージにも任意のボイスIDを設定でき、すべて共通の自動再生・ミュート・手動再生処理を通る
 - `HeroineProfileData` の共通セリフ、衣装メッセージ、Resources path、ヒロイン戦闘スキルは `FantasyLoveSimAssetTool` のプロフィール画面で編集でき、`heroine_profile_export.json` と Unity の `heroine_profile_from_unity.json` の往復同期に対応済み。旧JSONで省略された戦闘スキルは既存値を維持し、明示された空配列だけを削除として扱う
 - ヒロイン固有の訓練スキルとスキルツリーノードはAssetToolのプロフィール画面で編集し、`heroine_skills_export.json` / `heroine_skills_from_unity.json` で往復できる。Unity Importerはヒロイン別フォルダだけを更新し、主人公ノード、他ヒロイン、共通 `TrainingData` を変更しない。前提ノード、解放訓練、実績条件、ツリー座標も同期対象
-- ヒロイン別の戦闘後イベントと戦闘パネル結果メッセージはAssetToolの「戦闘メッセージ」タブで編集し、`battle_result_events_export.json` / `battle_panel_result_messages_export.json` と対応するFromUnity JSONで往復できる。結果種別、`battleContextId`、本文、`stillId`、好感度、解放衣装を保持し、Unity Importerはプロフィールで指定されたヒロイン別Resources pathだけを更新する
+- ヒロイン別の戦闘後イベントと戦闘パネル結果メッセージはAssetToolの「戦闘メッセージ」タブで編集し、`battle_result_events_export.json` / `battle_panel_result_messages_export.json` と対応するFromUnity JSONで往復できる。結果種別、`battleContextId`、本文、任意のVoice ID、`stillId`、好感度、解放衣装を保持し、Unity Importerはプロフィールで指定されたヒロイン別Resources pathだけを更新する。旧JSONでVoice IDが省略されている場合は既存値を維持し、明示した空文字だけを解除として扱う
 - AssetToolの戦闘メッセージ結果種別は候補選択式で、スチル・衣装IDも登録済み候補を参照できる。Export時に空値、未知の結果種別、重複条件、未登録参照を検証し、Unity Import結果には戦闘メッセージの追加・更新・削除・スキップ件数を表示する
 - 戦闘後イベントは話者種別、任意話者名、表情IDを持ち、既存の話者・表情付きメッセージキューで表示する。話者名が空なら種別に応じた既定名を使い、表情IDが空なら現在の表情を維持する。AssetToolでは話者と登録済み表情を候補選択でき、JSON往復にも対応する
+- 戦闘後イベントのVoice IDは本文表示時に再生する。戦闘パネル結果文のVoice IDは分割された戦闘ログの先頭ページだけで再生し、後続ページでは繰り返さない。いずれもメイン画面のVoice Replay Buttonで手動再生できる
 - 戦闘後イベントの表示方式は `Auto / StillOnly / StillWithPortrait / PortraitOnly`。`Auto` はカタログから専用スチルを解決できれば立ち絵を隠し、解決できなければ探索画像の上へ半透明の黒い暗幕と立ち絵を表示する。暗幕は参照未設定時に立ち絵の背面へ実行時生成される。TestHeroineの同行勝利は探索画像を残す `StillWithPortrait` を使用する
 - AssetToolの `Unity Profile読込` は、同じフォルダにある戦闘結果・戦闘パネル文JSONの追加、更新、削除、維持件数と、話者・表情・表示方式の変更件数を戦闘メッセージタブへ表示する。画面下の `戦闘メッセージへ` で直接移動できる
 - AssetToolの `制作状況` タブは、現在選択中のヒロインについて基本情報、戦闘メッセージ、訓練画像、訓練セリフ、キャラクター画像、会話、イベント、行動反応、表情、衣装、戦闘スキル、スキルツリー、Export準備を既存データから `○ / △ / × / ―` で都度集計する。訓練セリフは登録済み訓練ごとの5状態について枠・重複・本文を確認し、詳細クリックで対応Assetとセリフ候補を選択する。キャラクター画像は登録済み・参照中・基本立ち絵・標準戦闘枠を必須としてAcceptedと実ファイルを確認し、未参照候補は `―` にする。行動反応は主要5行動、ID、本文、条件、優先度、重複、各参照を確認し、詳細から `ActionReactions` の該当行へ移動する。イベントとExport前検査も個別に確認でき、未完成のみ表示と再集計に対応する

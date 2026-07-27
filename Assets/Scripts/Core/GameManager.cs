@@ -129,6 +129,7 @@ public class GameManager : MonoBehaviour
         public int TotalPlayerSkillPoints;
         public int TotalHeroineSkillPoints;
         public string Message;
+        public string VoiceId;
         public List<string> LogLines;
     }
 
@@ -7197,7 +7198,8 @@ public class GameManager : MonoBehaviour
                 eventData.stillId ?? "",
                 stillSprite,
                 eventData.expressionId ?? "",
-                eventData.visualMode));
+                eventData.visualMode,
+                eventData.voiceId ?? ""));
             return;
         }
 
@@ -7461,7 +7463,8 @@ public class GameManager : MonoBehaviour
             BattleLogSpeakerName,
             "戦闘ログ",
             lines,
-            3);
+            3,
+            result.VoiceId);
     }
 
     private void AddPagedFollowUpMessages(
@@ -7469,7 +7472,8 @@ public class GameManager : MonoBehaviour
         string speakerName,
         string title,
         IList<string> lines,
-        int contentLinesPerPage)
+        int contentLinesPerPage,
+        string firstPageVoiceId = "")
     {
         if (lines == null || lines.Count == 0 || contentLinesPerPage <= 0)
         {
@@ -7488,7 +7492,15 @@ public class GameManager : MonoBehaviour
             }
 
             pendingScheduledEventFollowUpMessages.Add(
-                new DialogueMessage(speakerType, speakerName, message));
+                new DialogueMessage(
+                    speakerType,
+                    speakerName,
+                    message,
+                    "",
+                    null,
+                    "",
+                    null,
+                    pageIndex == 0 ? firstPageVoiceId : ""));
         }
     }
 
@@ -9345,12 +9357,14 @@ public class GameManager : MonoBehaviour
         }
         List<string> recoveryMessages = ApplyBattlePanelResultStatus(result);
         string resultMessage = ResolveBattlePanelResultMessage(result);
+        string resultVoiceId = ResolveBattlePanelResultVoiceId(result);
         lastBattlePanelSimpleResult = ConvertBattlePanelResultToSimpleBattleResult(
             result,
             playerStatus != null ? playerStatus.BattleStatus : null,
             result.heroineStatus != null && heroineStatus != null ? heroineStatus.BattleStatus : null,
             recoveryMessages,
             resultMessage,
+            resultVoiceId,
             isDuoExploration,
             isScheduledBattleResult);
         hasLastBattlePanelSimpleResult = true;
@@ -9451,6 +9465,7 @@ public class GameManager : MonoBehaviour
         BattleStatusData heroineBattleStatus,
         List<string> recoveryMessages,
         string resultMessage,
+        string resultVoiceId,
         bool isDuoExploration,
         bool applyOutcomeRewards)
     {
@@ -9467,6 +9482,7 @@ public class GameManager : MonoBehaviour
             HeroineSkillPointReward = 0,
             TotalPlayerSkillPoints = playerSkillPoints,
             TotalHeroineSkillPoints = heroineSkillPoints,
+            VoiceId = resultVoiceId ?? "",
             LogLines = new List<string>()
         };
         ApplyBattlePanelOutcomeRewards(ref simpleResult, result, applyOutcomeRewards, isDuoExploration);
@@ -9582,16 +9598,36 @@ public class GameManager : MonoBehaviour
 
     private string ResolveBattlePanelResultMessage(BattlePanel.BattleResult result)
     {
+        BattlePanelResultMessageData data =
+            ResolveBattlePanelResultMessageData(result);
+        return data != null && !string.IsNullOrEmpty(data.message)
+            ? FormatMessageVariables(data.message)
+            : GetDefaultBattlePanelResultMessage(
+                result != null
+                    ? result.resultType
+                    : BattlePanel.BattleResultType.None);
+    }
+
+    private string ResolveBattlePanelResultVoiceId(BattlePanel.BattleResult result)
+    {
+        BattlePanelResultMessageData data =
+            ResolveBattlePanelResultMessageData(result);
+        return data != null ? data.voiceId ?? "" : "";
+    }
+
+    private BattlePanelResultMessageData ResolveBattlePanelResultMessageData(
+        BattlePanel.BattleResult result)
+    {
         BattlePanel.BattleResultType resultType = result != null
             ? result.resultType
             : BattlePanel.BattleResultType.None;
         BattlePanelResultMessageType messageType = ConvertBattlePanelResultMessageType(resultType);
-        string message = ResolveBattlePanelResultMessageFromSource(
+        BattlePanelResultMessageData data = ResolveBattlePanelResultMessageFromSource(
             GetBattlePanelResultMessages(),
             messageType);
-        if (!string.IsNullOrEmpty(message))
+        if (data != null)
         {
-            return message;
+            return data;
         }
 
         if (!string.Equals(
@@ -9599,25 +9635,25 @@ public class GameManager : MonoBehaviour
             BattlePanelResultMessageResourcePath,
             StringComparison.Ordinal))
         {
-            message = ResolveBattlePanelResultMessageFromSource(
+            data = ResolveBattlePanelResultMessageFromSource(
                 GetCommonBattlePanelResultMessages(),
                 messageType);
-            if (!string.IsNullOrEmpty(message))
+            if (data != null)
             {
-                return message;
+                return data;
             }
         }
 
-        return GetDefaultBattlePanelResultMessage(resultType);
+        return null;
     }
 
-    private string ResolveBattlePanelResultMessageFromSource(
+    private BattlePanelResultMessageData ResolveBattlePanelResultMessageFromSource(
         BattlePanelResultMessageData[] messages,
         BattlePanelResultMessageType messageType)
     {
         if (messages == null)
         {
-            return "";
+            return null;
         }
 
         for (int i = 0; i < messages.Length; i++)
@@ -9627,11 +9663,11 @@ public class GameManager : MonoBehaviour
                 messageData.resultType == messageType &&
                 !string.IsNullOrEmpty(messageData.message))
             {
-                return FormatMessageVariables(messageData.message);
+                return messageData;
             }
         }
 
-        return "";
+        return null;
     }
 
     private BattlePanelResultMessageData[] GetBattlePanelResultMessages()

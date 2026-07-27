@@ -236,6 +236,10 @@ Unity Editor 拡張側で型付き ScriptableObject を読むため、WPF Tool �
 `Unity Event読込` から `game_events_from_unity.json` を選んだ場合は、`GameEvents` の `ConversationEntry` として新規追加する。
 同じ `Id` のイベントが既に存在する場合は上書きせずスキップする。
 `訓練画像` タブの `Unity訓練セリフ読込` では `training_dialogues_from_unity.json` を選ぶ。同じ `trainingId + visualState` の枠は上書きせず、未登録の文面だけを候補へ追加して直ちに `profile.json` を保存する。
+
+戦闘メッセージのFromUnity JSONは、戦闘後イベントと戦闘パネル結果文の各項目に
+任意の `voiceId` を含む。Toolは既存の追加・更新・削除規則でVoice IDも比較・保存する。
+旧JSONでVoice IDが省略されている場合はTool側の既存値を維持し、明示された空文字は解除として扱う。
 Unity 側 exporter が `sourceMetadata.choices` に退避した選択肢は、WPF 側の `Choices` に取り込む。
 保持する項目は `choiceText`、`responseText`、`affectionChange` とする。
 `Unity Ending読込` から `endings_from_unity.json` を選んだ場合は、`Endings` の `ConversationEntry` として新規追加する想定にする。

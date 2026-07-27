@@ -41,6 +41,7 @@ public static class HeroineBattleMessageAssetSync
                     speakerType = x.speakerType.ToString(),
                     speakerName = x.speakerName,
                     message = x.message,
+                    voiceId = x.voiceId,
                     stillId = x.stillId,
                     visualMode = x.visualMode.ToString(),
                     expressionId = x.expressionId,
@@ -57,7 +58,8 @@ public static class HeroineBattleMessageAssetSync
                 {
                     messageId = GetAssetId(x, x.resultType.ToString()),
                     resultType = x.resultType.ToString(),
-                    message = x.message
+                    message = x.message,
+                    voiceId = x.voiceId
                 }).ToArray()
         };
         File.WriteAllText(Path.Combine(outputFolder, ResultExportName), JsonUtility.ToJson(resultFile, true));
@@ -67,7 +69,9 @@ public static class HeroineBattleMessageAssetSync
     private static void ImportResultEvents(string jsonPath, HeroineProfileData profile, BattleMessageImportSummary summary)
     {
         if (!File.Exists(jsonPath)) return;
-        ResultEventsFile data = JsonUtility.FromJson<ResultEventsFile>(File.ReadAllText(jsonPath));
+        string json = File.ReadAllText(jsonPath);
+        ResultEventsFile data = JsonUtility.FromJson<ResultEventsFile>(json);
+        bool hasVoiceIdField = json.IndexOf("\"voiceId\"", StringComparison.Ordinal) >= 0;
         if (!CanImport(data?.schemaVersion ?? 0, data?.heroineId, profile.heroineId, Path.GetFileName(jsonPath))) { summary.skippedCount++; return; }
         if (data.items == null) return;
         string folder = ToHeroineAssetFolder(profile.battleResultEventResourcePath, profile.heroineId);
@@ -86,6 +90,7 @@ public static class HeroineBattleMessageAssetSync
             asset.speakerType = Parse(item.speakerType, ScheduledEventSpeakerType.Heroine);
             asset.speakerName = item.speakerName ?? string.Empty;
             asset.message = item.message ?? string.Empty;
+            if (hasVoiceIdField) asset.voiceId = item.voiceId ?? string.Empty;
             asset.stillId = item.stillId ?? string.Empty;
             asset.visualMode = Parse(item.visualMode, BattleResultVisualMode.Auto);
             asset.expressionId = item.expressionId ?? string.Empty;
@@ -100,7 +105,9 @@ public static class HeroineBattleMessageAssetSync
     private static void ImportPanelMessages(string jsonPath, HeroineProfileData profile, BattleMessageImportSummary summary)
     {
         if (!File.Exists(jsonPath)) return;
-        PanelMessagesFile data = JsonUtility.FromJson<PanelMessagesFile>(File.ReadAllText(jsonPath));
+        string json = File.ReadAllText(jsonPath);
+        PanelMessagesFile data = JsonUtility.FromJson<PanelMessagesFile>(json);
+        bool hasVoiceIdField = json.IndexOf("\"voiceId\"", StringComparison.Ordinal) >= 0;
         if (!CanImport(data?.schemaVersion ?? 0, data?.heroineId, profile.heroineId, Path.GetFileName(jsonPath))) { summary.skippedCount++; return; }
         if (data.items == null) return;
         string folder = ToHeroineAssetFolder(profile.battlePanelResultMessageResourcePath, profile.heroineId);
@@ -116,6 +123,7 @@ public static class HeroineBattleMessageAssetSync
             else summary.updatedCount++;
             asset.resultType = Parse(item.resultType, BattlePanelResultMessageType.Default);
             asset.message = item.message ?? string.Empty;
+            if (hasVoiceIdField) asset.voiceId = item.voiceId ?? string.Empty;
             EditorUtility.SetDirty(asset);
             keep.Add(path);
         }
@@ -169,9 +177,9 @@ public static class HeroineBattleMessageAssetSync
     }
 
     [Serializable] private class ResultEventsFile { public int schemaVersion; public string heroineId; public ResultEventItem[] items; }
-    [Serializable] private class ResultEventItem { public string eventId; public string resultType; public string battleContextId; public string speakerType; public string speakerName; public string message; public string stillId; public string visualMode; public string expressionId; public int affectionChange; public string[] unlockedOutfitIds; }
+    [Serializable] private class ResultEventItem { public string eventId; public string resultType; public string battleContextId; public string speakerType; public string speakerName; public string message; public string voiceId; public string stillId; public string visualMode; public string expressionId; public int affectionChange; public string[] unlockedOutfitIds; }
     [Serializable] private class PanelMessagesFile { public int schemaVersion; public string heroineId; public PanelMessageItem[] items; }
-    [Serializable] private class PanelMessageItem { public string messageId; public string resultType; public string message; }
+    [Serializable] private class PanelMessageItem { public string messageId; public string resultType; public string message; public string voiceId; }
 }
 
 public sealed class BattleMessageImportSummary
