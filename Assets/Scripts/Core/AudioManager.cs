@@ -10,6 +10,9 @@ using UnityEngine.SceneManagement;
 public sealed class AudioManager : MonoBehaviour
 {
     private const float DefaultFadeDuration = 0.35f;
+    public const string MainBgmId = "Main";
+    public const string BattleBgmId = "Battle";
+    public const string TrainingBgmId = "Training";
 
     private static AudioManager instance;
 
@@ -125,6 +128,26 @@ public sealed class AudioManager : MonoBehaviour
             ? null
             : Resources.Load<AudioClip>(resourcePath);
         PlayBgm(clip, fadeDuration);
+    }
+
+    public void PlayBgmById(
+        string bgmId,
+        float fadeDuration = DefaultFadeDuration)
+    {
+        PlayBgmFromResources(BuildBgmResourcePath(bgmId), fadeDuration);
+    }
+
+    public static string BuildBgmResourcePath(string bgmId)
+    {
+        if (string.IsNullOrWhiteSpace(bgmId))
+        {
+            return string.Empty;
+        }
+
+        string normalizedBgmId = bgmId.Trim().Trim('/');
+        return normalizedBgmId.StartsWith("Audio/Bgm/")
+            ? normalizedBgmId
+            : "Audio/Bgm/" + normalizedBgmId;
     }
 
     public void StopBgm(float fadeDuration = DefaultFadeDuration)
@@ -378,7 +401,7 @@ public sealed class AudioManager : MonoBehaviour
             case "TitleScene":
                 return "Audio/Bgm/Title";
             case "MainScene":
-                return "Audio/Bgm/Main";
+                return BuildBgmResourcePath(MainBgmId);
             case "EndingScene":
                 return "Audio/Bgm/Ending";
             default:

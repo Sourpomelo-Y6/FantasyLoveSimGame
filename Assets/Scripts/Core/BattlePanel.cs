@@ -135,6 +135,7 @@ public class BattlePanel : MonoBehaviour
     {
         EnsureReferences();
         HookButtons();
+        AudioManager.Instance.PlayBgmById(AudioManager.BattleBgmId);
 
         currentDebugEnemy = enemy;
         enemyDisplayName = currentDebugEnemy != null ? currentDebugEnemy.GetDisplayName() : "デバッグ敵";
@@ -179,6 +180,7 @@ public class BattlePanel : MonoBehaviour
 
     public void Close()
     {
+        RestoreMainBgm();
         if (battleSkillPanel != null)
         {
             battleSkillPanel.Close();
@@ -1022,12 +1024,18 @@ public class BattlePanel : MonoBehaviour
     {
         battleFinished = true;
         AudioManager.Instance.PlaySeById(ResolveBattleResultSeId(resultLabel));
+        RestoreMainBgm();
         ApplyBattleResultImages(resultLabel);
         AddLog(message);
         AddLog("戦闘結果：" + resultLabel);
         AddHpSummaryLog();
         NotifyBattleResult(resultLabel);
         Refresh();
+    }
+
+    private static void RestoreMainBgm()
+    {
+        AudioManager.Instance.PlayBgmById(AudioManager.MainBgmId);
     }
 
     private static string ResolveBattleResultSeId(string resultLabel)

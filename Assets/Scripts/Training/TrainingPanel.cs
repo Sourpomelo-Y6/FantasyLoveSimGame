@@ -82,6 +82,7 @@ public class TrainingPanel : MonoBehaviour
     {
         EnsureReferences();
         HookButtons();
+        AudioManager.Instance.PlayBgmById(AudioManager.TrainingBgmId);
 
         trainings.Clear();
         if (availableTrainings != null)
@@ -128,6 +129,7 @@ public class TrainingPanel : MonoBehaviour
 
     public void Close()
     {
+        RestoreMainBgm();
         AudioManager.StopVoiceIfAvailable();
         if (currentState != null && !currentState.isFinished)
         {
@@ -496,9 +498,15 @@ public class TrainingPanel : MonoBehaviour
         }
 
         hasReportedResult = true;
+        RestoreMainBgm();
         AudioManager.StopVoiceIfAvailable();
         PanelRoot.SetActive(false);
         gameManager.OnTrainingPanelResult(TrainingResult.Create(currentTraining, currentState));
+    }
+
+    private static void RestoreMainBgm()
+    {
+        AudioManager.Instance.PlayBgmById(AudioManager.MainBgmId);
     }
 
     private void RefreshTrainingList()

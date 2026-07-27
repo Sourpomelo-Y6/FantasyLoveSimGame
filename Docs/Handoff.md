@@ -714,6 +714,7 @@ UI デザインは手作業で行っています。
 - クリック進行のON/OFF設定も実装済み。端末共通の `Application.persistentDataPath/game_options.json` に保存し、ファイルなし・破損・未対応versionではONを既定値とする。`GameOptionsPanel` の `Dialogue Click Advance Toggle` を変更すると即時保存され、セーブスロットには含めない。`GameManager.enableDialogueWindowClickAdvance` はScene単位の互換用安全弁として残し、これと端末設定の両方がONの場合だけクリックで進行する。
 - オプションUIはCanvas下に非アクティブの `GameOptionsPanel` を作り、同オブジェクトへ `GameOptionsPanel` コンポーネントを追加する。子に `DialogueClickAdvanceToggle`、`CloseButton`、任意の `ResultText` を置いて各参照を割り当てる。表示ボタンのOnClickから `GameOptionsPanel.Open()` を呼ぶ。タイトルとメインの両Sceneに同じ構成を置けば、共通JSONを参照するため同じ設定を利用できる。
 - `AudioManager` はRuntimeInitializeで自動生成し、Scene間でBGM用・SE用AudioSourceを維持する。音源なし、空パス、参照できないパスは無音のまま継続する。Title／Main／EndingのBGMは `Resources/Audio/Bgm/Title`、`Main`、`Ending` を規約パスとして自動要求する。実音源はGit管理しない。
+- MainScene内の戦闘・訓練BGM切り替えも実装済み。戦闘は `Resources/Audio/Bgm/Battle`、訓練は `Resources/Audio/Bgm/Training` を開始時に要求し、結果確定・結果通知・手動クローズ時にMain BGMへ戻す。
 - SEは `AudioManager.PlaySeById` と `Resources/Audio/SE/<論理ID>` の規約で接続済み。一般ButtonはSceneロード後に決定・キャンセル・次送りを自動接続し、購入、スキル取得、予定、訓練、戦闘は処理結果から専用SEを再生する。音源がなくても例外は発生しない。論理ID一覧は `Docs/TitleAndAudioPresentationPlan.md` を参照する。
 - `game_options.json` はversion 3。BGM・SE・ボイスの音量とミュート、ボイス自動再生を端末共通で保存する。version 1・2から不足項目を安全な既定値へ移行する。BGM・SEのUI配置は完了済みで、ボイス用Slider／Toggleはコード側の参照追加まで完了している。
 

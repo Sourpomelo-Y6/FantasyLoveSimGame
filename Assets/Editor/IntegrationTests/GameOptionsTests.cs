@@ -315,6 +315,15 @@ public class GameOptionsTests
         Assert.That(AudioManager.BuildSeResourcePath(seId), Is.EqualTo(expected));
     }
 
+    [TestCase("", "")]
+    [TestCase("Main", "Audio/Bgm/Main")]
+    [TestCase(" /Battle/ ", "Audio/Bgm/Battle")]
+    [TestCase("Audio/Bgm/Training", "Audio/Bgm/Training")]
+    public void BuildBgmResourcePath_NormalizesLogicalId(string bgmId, string expected)
+    {
+        Assert.That(AudioManager.BuildBgmResourcePath(bgmId), Is.EqualTo(expected));
+    }
+
     [TestCase("", false, false)]
     [TestCase("UI/Confirm", true, false)]
     [TestCase("UI/Confirm", false, true)]

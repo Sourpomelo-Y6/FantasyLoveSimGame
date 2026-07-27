@@ -102,7 +102,10 @@ Scene BGMはアセットのGUIDをSceneへ保存せず、次のResourcesパス�
 
 対応ファイルが存在しない場合はBGMを停止し、例外を発生させない。
 戦闘や訓練のようにMainScene内で切り替える場合は、パネル開始時に
-`AudioManager.Instance.PlayBgmFromResources(...)` を呼び、終了時にMain用BGMへ戻す。
+`AudioManager.Instance.PlayBgmById(...)` を呼び、終了時にMain用BGMへ戻す。
+この切り替えは実装済みで、戦闘開始時は `Audio/Bgm/Battle`、訓練画面開始時は
+`Audio/Bgm/Training` を要求する。戦闘結果確定、訓練結果通知、または各パネルを手動で
+閉じたときに `Audio/Bgm/Main` へ戻る。同一BGMは重複再生せず、音源未配置時は無音で継続する。
 
 SEは `AudioManager.Instance.PlaySeById(string)` へ論理IDを渡し、
 `Assets/Resources/Audio/SE/<ID>.*` から任意ロードする。実音源がない場合は無音のまま継続する。
