@@ -53,6 +53,7 @@ public class RequiredSkillIdGameEventIntegrationTests
         Assert.That(data.affectionChange, Is.EqualTo(12));
         Assert.That(data.triggerType, Is.EqualTo(GameEventTriggerType.ScheduledEventCompleted));
         Assert.That(data.triggerContextId, Is.EqualTo("Forest"));
+        Assert.That(data.pages[0].voiceId, Is.EqualTo("Event/SkillGate01"));
 
         WriteImportJson(string.Empty);
         ImportGameEvents();
@@ -80,7 +81,14 @@ public class RequiredSkillIdGameEventIntegrationTests
         data.triggerContextId = "Forest";
         data.affectionChange = -4;
         data.requiredSkillIds = new List<string> { " skill_b ", "skill_a", "SKILL_B", "unknown_skill" };
-        data.pages = new List<GameEventPageData> { new GameEventPageData { message = "テスト" } };
+        data.pages = new List<GameEventPageData>
+        {
+            new GameEventPageData
+            {
+                message = "テスト",
+                voiceId = "Event/SkillGateExport01"
+            }
+        };
         AssetDatabase.CreateAsset(data, EventAssetPath);
         AssetDatabase.SaveAssets();
 
@@ -99,6 +107,7 @@ public class RequiredSkillIdGameEventIntegrationTests
             exported.items[0].conditions.triggerType,
             Is.EqualTo("ScheduledEventCompleted"));
         Assert.That(exported.items[0].conditions.triggerContextId, Is.EqualTo("Forest"));
+        Assert.That(exported.items[0].lines[0].voiceId, Is.EqualTo("Event/SkillGateExport01"));
         Assert.That(report.gameEventCount, Is.EqualTo(1));
     }
 
@@ -125,7 +134,8 @@ public class RequiredSkillIdGameEventIntegrationTests
             "\"conditions\":{\"minAffection\":7,\"triggerType\":\"ScheduledEventCompleted\"," +
             "\"triggerContextId\":\"Forest\"," + requiredSkillIdsProperty + "\"once\":true}," +
             "\"affectionChange\":12," +
-            "\"lines\":[{\"speaker\":\"Heroine\",\"text\":\"テスト\",\"expression\":\"\"}]}]}";
+            "\"lines\":[{\"speaker\":\"Heroine\",\"text\":\"テスト\",\"expression\":\"\"," +
+            "\"voiceId\":\"Event/SkillGate01\"}]}]}";
         File.WriteAllText(Path.Combine(importFolder, "Data", "game_events_export.json"), json);
     }
 
@@ -147,6 +157,13 @@ public class RequiredSkillIdGameEventIntegrationTests
     {
         public GameEventConditions conditions;
         public int affectionChange;
+        public List<GameEventLine> lines;
+    }
+
+    [Serializable]
+    private sealed class GameEventLine
+    {
+        public string voiceId;
     }
 
     [Serializable]

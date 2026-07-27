@@ -619,7 +619,8 @@ public static class HeroineUnityDataExporter
             lines = CreateConversationLines(
                 conversation.lines,
                 conversation.heroineLine,
-                conversation.expressionId),
+                conversation.expressionId,
+                conversation.voiceId),
             imageAssetIds = new List<string>(),
             priority = conversation.priority,
             memo = "Unity側から逆export",
@@ -646,7 +647,8 @@ public static class HeroineUnityDataExporter
             lines = CreateConversationLines(
                 item.lines,
                 item.heroineLine,
-                item.expressionId),
+                item.expressionId,
+                item.voiceId),
             imageAssetIds = new List<string>(),
             priority = item.priority,
             memo = "Unity側から逆export",
@@ -776,7 +778,8 @@ public static class HeroineUnityDataExporter
                 {
                     speaker = "Schedule",
                     text = scheduledEvent.preparationMessage,
-                    expression = string.Empty
+                    expression = string.Empty,
+                    voiceId = scheduledEvent.preparationVoiceId ?? string.Empty
                 });
         }
 
@@ -787,7 +790,8 @@ public static class HeroineUnityDataExporter
                 {
                     speaker = scheduledEvent.eventSpeakerType.ToString(),
                     text = scheduledEvent.eventMessage,
-                    expression = string.Empty
+                    expression = string.Empty,
+                    voiceId = scheduledEvent.eventVoiceId ?? string.Empty
                 });
         }
 
@@ -841,7 +845,8 @@ public static class HeroineUnityDataExporter
                         CreateLine(
                             reaction.useHeroineNameAsSpeaker,
                             reaction.resultMessage,
-                            reaction.expressionId)
+                            reaction.expressionId,
+                            reaction.voiceId)
                     },
                     imageAssetIds = CreateImageAssetIds(reaction.stillId, reaction.stillSprite, report),
                     affectionChange = reaction.affectionChange,
@@ -857,20 +862,23 @@ public static class HeroineUnityDataExporter
     private static FromUnityLine CreateLine(
         bool useHeroineNameAsSpeaker,
         string text,
-        string expressionId = "")
+        string expressionId = "",
+        string voiceId = "")
     {
         return new FromUnityLine
         {
             speaker = useHeroineNameAsSpeaker ? "Heroine" : "System",
             text = text ?? string.Empty,
-            expression = expressionId ?? string.Empty
+            expression = expressionId ?? string.Empty,
+            voiceId = voiceId ?? string.Empty
         };
     }
 
     private static List<FromUnityLine> CreateConversationLines(
         List<ConversationLineData> sourceLines,
         string heroineLine,
-        string expressionId)
+        string expressionId,
+        string voiceId)
     {
         List<FromUnityLine> lines = new List<FromUnityLine>();
         if (sourceLines != null)
@@ -887,7 +895,8 @@ public static class HeroineUnityDataExporter
                     {
                         speaker = string.IsNullOrWhiteSpace(line.speaker) ? "Heroine" : line.speaker,
                         text = line.text ?? string.Empty,
-                        expression = line.expressionId ?? string.Empty
+                        expression = line.expressionId ?? string.Empty,
+                        voiceId = line.voiceId ?? string.Empty
                     });
             }
         }
@@ -899,7 +908,8 @@ public static class HeroineUnityDataExporter
                 {
                     speaker = "Heroine",
                     text = heroineLine,
-                    expression = expressionId ?? string.Empty
+                    expression = expressionId ?? string.Empty,
+                    voiceId = voiceId ?? string.Empty
                 });
         }
 
@@ -927,8 +937,10 @@ public static class HeroineUnityDataExporter
                 new FromUnityLine
                 {
                     speaker = page.speakerType.ToString(),
+                    speakerName = page.speakerName ?? string.Empty,
                     text = page.message ?? string.Empty,
-                    expression = page.expressionId ?? string.Empty
+                    expression = page.expressionId ?? string.Empty,
+                    voiceId = page.voiceId ?? string.Empty
                 });
 
             if (string.IsNullOrWhiteSpace(page.stillId) && page.stillSprite != null)
@@ -1099,6 +1111,7 @@ public static class HeroineUnityDataExporter
                     speakerName = page.speakerName ?? string.Empty,
                     text = page.message,
                     expression = page.expressionId ?? string.Empty,
+                    voiceId = page.voiceId ?? string.Empty,
                     stillId = page.stillId ?? string.Empty
                 });
             }
@@ -1835,6 +1848,7 @@ public static class HeroineUnityDataExporter
         public string speakerName;
         public string text;
         public string expression;
+        public string voiceId;
         public string stillId;
     }
 

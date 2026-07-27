@@ -1301,6 +1301,7 @@ public static class HeroineAssetImporter
         conversation.type = ConversationType.Simple;
         conversation.heroineLine = GetFirstLineText(item);
         conversation.expressionId = GetFirstLineExpression(item);
+        conversation.voiceId = GetFirstLineVoiceId(item == null ? null : item.lines);
         ApplyConversationLines(conversation.lines, item);
         ApplyConversationChoices(conversation, item, report);
         conversation.priority = item.priority;
@@ -1338,6 +1339,7 @@ public static class HeroineAssetImporter
         conversation.type = ConversationType.Simple;
         conversation.heroineLine = GetFirstLineText(item);
         conversation.expressionId = GetFirstLineExpression(item);
+        conversation.voiceId = GetFirstLineVoiceId(item == null ? null : item.lines);
         ApplyConversationLines(conversation.lines, item);
         ApplyConversationChoices(conversation, item, report);
         conversation.priority = item.priority;
@@ -1403,6 +1405,24 @@ public static class HeroineAssetImporter
             if (line != null && !string.IsNullOrWhiteSpace(line.text))
             {
                 return line.expression ?? string.Empty;
+            }
+        }
+
+        return string.Empty;
+    }
+
+    private static string GetFirstLineVoiceId(ConversationExportLine[] lines)
+    {
+        if (lines == null)
+        {
+            return string.Empty;
+        }
+
+        foreach (ConversationExportLine line in lines)
+        {
+            if (line != null && !string.IsNullOrWhiteSpace(line.text))
+            {
+                return line.voiceId ?? string.Empty;
             }
         }
 
@@ -1515,7 +1535,8 @@ public static class HeroineAssetImporter
             {
                 speaker = line.speaker ?? string.Empty,
                 text = line.text,
-                expressionId = line.expression ?? string.Empty
+                expressionId = line.expression ?? string.Empty,
+                voiceId = line.voiceId ?? string.Empty
             };
 
             target.Add(conversationLine);
@@ -1848,9 +1869,10 @@ public static class HeroineAssetImporter
             GameEventPageData page = new GameEventPageData
             {
                 speakerType = ParseScheduledEventSpeakerType(line.speaker),
-                speakerName = "",
+                speakerName = line.speakerName ?? string.Empty,
                 message = line.text,
                 expressionId = line.expression ?? string.Empty,
+                voiceId = line.voiceId ?? string.Empty,
                 stillId = appliedStill ? string.Empty : stillId,
                 stillSprite = appliedStill ? null : stillSprite
             };
@@ -2108,7 +2130,9 @@ public static class HeroineAssetImporter
         scheduledEvent.eventSpeakerType = ParseScheduledEventSpeakerType(
             FirstNonEmpty(conditions.eventSpeakerType, conditions.speakerType, GetFirstLineSpeaker(item.lines)));
         scheduledEvent.preparationMessage = ResolveScheduledPreparationMessage(item);
+        scheduledEvent.preparationVoiceId = ResolveScheduledPreparationVoiceId(item);
         scheduledEvent.eventMessage = ResolveScheduledEventMessage(item);
+        scheduledEvent.eventVoiceId = ResolveScheduledEventVoiceId(item);
         scheduledEvent.stillId = stillId;
         scheduledEvent.stillSprite = ResolveFirstSprite(item.imageAssetIds, spritesByAssetId, report);
         scheduledEvent.affectionChange = conditions.affectionChange;
@@ -2152,6 +2176,36 @@ public static class HeroineAssetImporter
         }
 
         return string.Join("\n", texts);
+    }
+
+    private static string ResolveScheduledPreparationVoiceId(ScheduledEventExportItem item)
+    {
+        if (item == null || item.lines == null || item.lines.Length < 2)
+        {
+            return string.Empty;
+        }
+
+        return item.lines[0]?.voiceId ?? string.Empty;
+    }
+
+    private static string ResolveScheduledEventVoiceId(ScheduledEventExportItem item)
+    {
+        if (item == null || item.lines == null || item.lines.Length == 0)
+        {
+            return string.Empty;
+        }
+
+        int startIndex = item.lines.Length >= 2 ? 1 : 0;
+        for (int i = startIndex; i < item.lines.Length; i++)
+        {
+            ConversationExportLine line = item.lines[i];
+            if (line != null && !string.IsNullOrWhiteSpace(line.text))
+            {
+                return line.voiceId ?? string.Empty;
+            }
+        }
+
+        return string.Empty;
     }
 
     private static string GetFirstLineSpeaker(ConversationExportLine[] lines)
@@ -2342,6 +2396,7 @@ public static class HeroineAssetImporter
             resultMessage = GetFirstLineText(item),
             useHeroineNameAsSpeaker = UsesHeroineSpeaker(item),
             expressionId = GetFirstLineExpression(item),
+            voiceId = GetFirstLineVoiceId(item == null ? null : item.lines),
             stillId = stillId,
             stillSprite = ResolveFirstSprite(item.imageAssetIds, spritesByAssetId, report),
             affectionChange = conditions.affectionChange,
@@ -2519,6 +2574,7 @@ public static class HeroineAssetImporter
                 speakerName = line.speakerName ?? string.Empty,
                 message = line.text,
                 expressionId = line.expression ?? string.Empty,
+                voiceId = line.voiceId ?? string.Empty,
                 stillId = stillId ?? string.Empty,
                 stillSprite = ResolveFirstSprite(imageAssetIds, spritesByAssetId, report)
             });
@@ -3118,6 +3174,7 @@ public static class HeroineAssetImporter
         public string speaker;
         public string text;
         public string expression;
+        public string voiceId;
         public string speakerName;
         public string stillId;
     }
