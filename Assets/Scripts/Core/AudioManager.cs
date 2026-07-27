@@ -154,6 +154,42 @@ public sealed class AudioManager : MonoBehaviour
         PlaySe(Resources.Load<AudioClip>(resourcePath));
     }
 
+    public bool PlaySeById(string seId)
+    {
+        if (!CanPlaySe(seId, GameOptionsManager.SeMuted))
+        {
+            return false;
+        }
+
+        string resourcePath = BuildSeResourcePath(seId);
+        AudioClip clip = Resources.Load<AudioClip>(resourcePath);
+        if (clip == null)
+        {
+            return false;
+        }
+
+        PlaySe(clip);
+        return true;
+    }
+
+    public static bool CanPlaySe(string seId, bool seMuted)
+    {
+        return !seMuted && !string.IsNullOrWhiteSpace(seId);
+    }
+
+    public static string BuildSeResourcePath(string seId)
+    {
+        if (string.IsNullOrWhiteSpace(seId))
+        {
+            return string.Empty;
+        }
+
+        string normalizedSeId = seId.Trim().Trim('/');
+        return normalizedSeId.StartsWith("Audio/SE/")
+            ? normalizedSeId
+            : "Audio/SE/" + normalizedSeId;
+    }
+
     public bool PlayVoice(AudioClip clip, bool respectAutoPlay = true)
     {
         CreateAudioSources();
@@ -325,6 +361,14 @@ public sealed class AudioManager : MonoBehaviour
     private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
     {
         PlayBgmFromResources(GetSceneBgmResourcePath(scene.name));
+        StartCoroutine(InstallUiSeAfterSceneLoad());
+    }
+
+    private IEnumerator InstallUiSeAfterSceneLoad()
+    {
+        // Scene内のStart()で生成されるボタンも対象にする。
+        yield return null;
+        UiSePlayer.InstallSceneButtons();
     }
 
     private static string GetSceneBgmResourcePath(string sceneName)

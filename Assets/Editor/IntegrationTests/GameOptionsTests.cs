@@ -306,6 +306,39 @@ public class GameOptionsTests
             Is.EqualTo(expected));
     }
 
+    [TestCase("", "")]
+    [TestCase("UI/Confirm", "Audio/SE/UI/Confirm")]
+    [TestCase(" /Battle/Victory/ ", "Audio/SE/Battle/Victory")]
+    [TestCase("Audio/SE/Shop/PurchaseSuccess", "Audio/SE/Shop/PurchaseSuccess")]
+    public void BuildSeResourcePath_NormalizesLogicalId(string seId, string expected)
+    {
+        Assert.That(AudioManager.BuildSeResourcePath(seId), Is.EqualTo(expected));
+    }
+
+    [TestCase("", false, false)]
+    [TestCase("UI/Confirm", true, false)]
+    [TestCase("UI/Confirm", false, true)]
+    public void CanPlaySe_RequiresIdAndUnmutedOption(
+        string seId,
+        bool muted,
+        bool expected)
+    {
+        Assert.That(AudioManager.CanPlaySe(seId, muted), Is.EqualTo(expected));
+    }
+
+    [TestCase("CloseButton", UiSePlayer.CancelSeId)]
+    [TestCase("NextPageButton", UiSePlayer.NextSeId)]
+    [TestCase("StatusButton", UiSePlayer.ConfirmSeId)]
+    [TestCase("AttackButton", "")]
+    [TestCase("PurchaseButton", "")]
+    [TestCase("ScheduleButton", "")]
+    public void ResolveDefaultSeId_SeparatesGenericAndResultSensitiveButtons(
+        string buttonName,
+        string expected)
+    {
+        Assert.That(UiSePlayer.ResolveDefaultSeId(buttonName), Is.EqualTo(expected));
+    }
+
     private string GetTestPath()
     {
         return System.IO.Path.Combine(testFolder, "game_options.json");

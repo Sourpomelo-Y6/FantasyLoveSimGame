@@ -204,6 +204,7 @@ public class BattlePanel : MonoBehaviour
             return;
         }
 
+        AudioManager.Instance.PlaySeById("Battle/Attack");
         turnCount++;
         AddLog("--- " + turnCount + "ターン目 ---");
         ApplyPlayerImage(BattleSpriteIdle);
@@ -246,6 +247,7 @@ public class BattlePanel : MonoBehaviour
             return;
         }
 
+        AudioManager.Instance.PlaySeById("Battle/Defend");
         turnCount++;
         AddLog("--- " + turnCount + "ターン目 ---");
         ApplyPlayerImage(BattleSpriteIdle);
@@ -409,6 +411,7 @@ public class BattlePanel : MonoBehaviour
             return false;
         }
 
+        AudioManager.Instance.PlaySeById("Battle/Item");
         turnCount++;
         AddLog("--- " + turnCount + "ターン目 ---");
         ApplyPlayerImage(BattleSpriteIdle);
@@ -454,6 +457,7 @@ public class BattlePanel : MonoBehaviour
             return;
         }
 
+        AudioManager.Instance.PlaySeById("Battle/Skill");
         turnCount++;
         AddLog("--- " + turnCount + "ターン目 ---");
         ApplyPlayerImage(BattleSpriteIdle);
@@ -1017,12 +1021,21 @@ public class BattlePanel : MonoBehaviour
     private void FinishBattle(string resultLabel, string message)
     {
         battleFinished = true;
+        AudioManager.Instance.PlaySeById(ResolveBattleResultSeId(resultLabel));
         ApplyBattleResultImages(resultLabel);
         AddLog(message);
         AddLog("戦闘結果：" + resultLabel);
         AddHpSummaryLog();
         NotifyBattleResult(resultLabel);
         Refresh();
+    }
+
+    private static string ResolveBattleResultSeId(string resultLabel)
+    {
+        if (resultLabel == "勝利") return "Battle/Victory";
+        if (resultLabel == "敗北") return "Battle/Defeat";
+        if (resultLabel == "撤退") return "Battle/Escape";
+        return string.Empty;
     }
 
     private void NotifyBattleResult(string resultLabel)

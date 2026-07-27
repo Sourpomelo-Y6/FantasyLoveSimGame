@@ -287,8 +287,13 @@ public class TrainingPanel : MonoBehaviour
 
         if (currentState.isFinished)
         {
+            AudioManager.Instance.PlaySeById("Training/Complete");
             AddLog(GetTrainingEndLog(currentState.endReason));
             NotifyTrainingResult();
+        }
+        else
+        {
+            AudioManager.Instance.PlaySeById("Training/Step");
         }
 
         RefreshStatus();
@@ -476,6 +481,7 @@ public class TrainingPanel : MonoBehaviour
         }
 
         currentState.Interrupt();
+        AudioManager.Instance.PlaySeById("Training/Cancel");
         AudioManager.StopVoiceIfAvailable();
         AddLog("訓練を途中でやめました。");
         NotifyTrainingResult();

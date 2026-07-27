@@ -104,8 +104,29 @@ Scene BGMはアセットのGUIDをSceneへ保存せず、次のResourcesパス�
 戦闘や訓練のようにMainScene内で切り替える場合は、パネル開始時に
 `AudioManager.Instance.PlayBgmFromResources(...)` を呼び、終了時にMain用BGMへ戻す。
 
-SEは `AudioManager.Instance.PlaySe(AudioClip)` または
-`PlaySeFromResources(string)` で要求する。実音源と各ボタンへの接続は後続作業とする。
+SEは `AudioManager.Instance.PlaySeById(string)` へ論理IDを渡し、
+`Assets/Resources/Audio/SE/<ID>.*` から任意ロードする。実音源がない場合は無音のまま継続する。
+Sceneロード後、一般的なButtonには名前から決定・キャンセル・次送りSEを自動接続する。
+購入、スキル取得、予定、訓練、戦闘のように成否を伴う操作は、自動接続の対象外とし、
+処理結果が確定した箇所から専用SEを要求して二重再生を避ける。
+
+現在の規約ID:
+
+| 用途 | 論理ID | ローカル配置例 |
+| --- | --- | --- |
+| 決定 | `UI/Confirm` | `Assets/Resources/Audio/SE/UI/Confirm.ogg` |
+| キャンセル | `UI/Cancel` | `Assets/Resources/Audio/SE/UI/Cancel.ogg` |
+| 次送り | `UI/Next` | `Assets/Resources/Audio/SE/UI/Next.ogg` |
+| エラー | `UI/Error` | `Assets/Resources/Audio/SE/UI/Error.ogg` |
+| 購入成功／失敗 | `Shop/PurchaseSuccess`, `Shop/PurchaseFailed` | `Assets/Resources/Audio/SE/Shop/...` |
+| スキル取得成功／失敗 | `Skill/AcquireSuccess`, `Skill/AcquireFailed` | `Assets/Resources/Audio/SE/Skill/...` |
+| 予定設定／取消 | `Schedule/Set`, `Schedule/Cancel` | `Assets/Resources/Audio/SE/Schedule/...` |
+| 訓練進行／完了／中断 | `Training/Step`, `Training/Complete`, `Training/Cancel` | `Assets/Resources/Audio/SE/Training/...` |
+| 戦闘行動 | `Battle/Attack`, `Battle/Defend`, `Battle/Skill`, `Battle/Item` | `Assets/Resources/Audio/SE/Battle/...` |
+| 戦闘結果 | `Battle/Victory`, `Battle/Defeat`, `Battle/Escape` | `Assets/Resources/Audio/SE/Battle/...` |
+
+拡張子はUnityが読み込める音声形式でよく、コードには含めない。実音源と `.meta` は
+ローカル確認用としてGitへコミットしない。
 
 ## SE
 

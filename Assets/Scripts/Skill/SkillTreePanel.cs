@@ -592,11 +592,13 @@ public class SkillTreePanel : MonoBehaviour
 
         if (!gameManager.TryAcquireSkillTreeNode(selectedNode))
         {
+            AudioManager.Instance.PlaySeById("Skill/AcquireFailed");
             feedbackMessage = "取得できませんでした。条件とスキルポイントを確認してください。";
             RefreshSelectedNode();
             return;
         }
 
+        AudioManager.Instance.PlaySeById("Skill/AcquireSuccess");
         feedbackMessage = selectedNode.GetDisplayName() + "を習得しました。";
         Refresh();
     }

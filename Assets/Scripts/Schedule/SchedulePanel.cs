@@ -90,14 +90,30 @@ public class SchedulePanel : MonoBehaviour
     private void Awake()
     {
         ResolveWeeklyUiReferences();
+        SuppressResultSensitiveButtonSe();
         HookButtons();
     }
 
     private void OnEnable()
     {
         ResolveWeeklyUiReferences();
+        SuppressResultSensitiveButtonSe();
         HookButtons();
         ResetToCurrentWeek();
+    }
+
+    private void SuppressResultSensitiveButtonSe()
+    {
+        UiSePlayer.SuppressAutomaticSe(cancelButton);
+        if (scheduleChoiceButtons == null)
+        {
+            return;
+        }
+
+        for (int i = 0; i < scheduleChoiceButtons.Length; i++)
+        {
+            UiSePlayer.SuppressAutomaticSe(scheduleChoiceButtons[i]);
+        }
     }
 
     [ContextMenu("Auto Assign Calendar UI References")]
@@ -247,7 +263,9 @@ public class SchedulePanel : MonoBehaviour
     {
         if (scheduleManager == null) return;
         string message;
-        scheduleManager.TryCancelSchedule(selectedDay, "Player", out message);
+        bool succeeded = scheduleManager.TryCancelSchedule(selectedDay, "Player", out message);
+        AudioManager.Instance.PlaySeById(
+            succeeded ? "Schedule/Cancel" : "UI/Error");
         RefreshDisplay();
         RefreshMessage(message);
         RefreshGameUi();
@@ -270,6 +288,8 @@ public class SchedulePanel : MonoBehaviour
         {
             Debug.LogWarning(message);
         }
+        AudioManager.Instance.PlaySeById(
+            succeeded ? "Schedule/Set" : "UI/Error");
 
         RefreshDisplay();
         RefreshMessage(message);

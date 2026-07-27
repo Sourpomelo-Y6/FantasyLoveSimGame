@@ -396,6 +396,7 @@ public class ShopPanel : MonoBehaviour
     {
         if (!CanPurchase(item))
         {
+            AudioManager.Instance.PlaySeById("Shop/PurchaseFailed");
             if (purchaseResultText != null)
                 purchaseResultText.text = GetPurchaseStateMessage(item);
             RefreshDetails();
@@ -403,6 +404,7 @@ public class ShopPanel : MonoBehaviour
         }
 
         string result = itemPurchased != null ? itemPurchased(item) : string.Empty;
+        AudioManager.Instance.PlaySeById("Shop/PurchaseSuccess");
         RefreshItems(currentItems);
         selectedItem = item;
         RefreshDetails();
