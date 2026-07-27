@@ -716,6 +716,7 @@ UI デザインは手作業で行っています。
 - `AudioManager` はRuntimeInitializeで自動生成し、Scene間でBGM用・SE用AudioSourceを維持する。音源なし、空パス、参照できないパスは無音のまま継続する。Title／Main／EndingのBGMは `Resources/Audio/Bgm/Title`、`Main`、`Ending` を規約パスとして自動要求する。実音源はGit管理しない。
 - MainScene内の戦闘・訓練BGM切り替えも実装済み。戦闘は `Resources/Audio/Bgm/Battle`、訓練は `Resources/Audio/Bgm/Training` を開始時に要求し、結果確定・結果通知・手動クローズ時にMain BGMへ戻す。
 - SEは `AudioManager.PlaySeById` と `Resources/Audio/SE/<論理ID>` の規約で接続済み。一般ButtonはSceneロード後に決定・キャンセル・次送りを自動接続し、購入、スキル取得、予定、訓練、戦闘は処理結果から専用SEを再生する。音源がなくても例外は発生しない。論理ID一覧は `Docs/TitleAndAudioPresentationPlan.md` を参照する。
+- ローカル音源の不足は `FantasyLoveSim > Validation > Assets > Audio Assets` で確認できる。期待するBGM・SEの調査数、検出数、不足数と配置例を表示する。任意の非Git管理素材を対象とするため `Run All Validations` には含めない。
 - `game_options.json` はversion 3。BGM・SE・ボイスの音量とミュート、ボイス自動再生を端末共通で保存する。version 1・2から不足項目を安全な既定値へ移行する。BGM・SEのUI配置は完了済みで、ボイス用Slider／Toggleはコード側の参照追加まで完了している。
 
 ## 追加開発の優先候補
