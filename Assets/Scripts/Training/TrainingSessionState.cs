@@ -17,6 +17,7 @@ public class TrainingStepModifiers
     public int heroineHpCostReduction;
     public int affectionRewardModifier;
     public int trainingProficiencyRewardModifier;
+    public TrainingCondition condition;
     public List<SkillData> applicableSkills = new List<SkillData>();
 
     public bool HasAnyEffect
@@ -26,7 +27,8 @@ public class TrainingStepModifiers
             return playerHpCostReduction != 0 ||
                 heroineHpCostReduction != 0 ||
                 affectionRewardModifier != 0 ||
-                trainingProficiencyRewardModifier != 0;
+                trainingProficiencyRewardModifier != 0 ||
+                condition != null;
         }
     }
 
@@ -98,13 +100,18 @@ public class TrainingStepResult
     public int playerLpConsumed;
     public int heroineLpConsumed;
     public int basePlayerHpCost;
+    public int skillAdjustedPlayerHpCost;
     public int playerHpCost;
     public int baseHeroineHpCost;
+    public int skillAdjustedHeroineHpCost;
     public int heroineHpCost;
     public int baseAffectionReward;
+    public int skillAdjustedAffectionReward;
     public int affectionReward;
     public int baseTrainingProficiencyReward;
+    public int skillAdjustedTrainingProficiencyReward;
     public int trainingProficiencyReward;
+    public TrainingCondition condition;
     public List<string> effectiveSkillIds = new List<string>();
     public List<string> effectiveSkillNames = new List<string>();
 
@@ -116,6 +123,18 @@ public class TrainingStepResult
                 baseHeroineHpCost != heroineHpCost ||
                 baseAffectionReward != affectionReward ||
                 baseTrainingProficiencyReward != trainingProficiencyReward;
+        }
+    }
+
+    public bool HasAppliedSkillModifier
+    {
+        get
+        {
+            return basePlayerHpCost != skillAdjustedPlayerHpCost ||
+                baseHeroineHpCost != skillAdjustedHeroineHpCost ||
+                baseAffectionReward != skillAdjustedAffectionReward ||
+                baseTrainingProficiencyReward !=
+                    skillAdjustedTrainingProficiencyReward;
         }
     }
 }
@@ -233,18 +252,33 @@ public class TrainingSessionState
         int heroineReduction = modifiers != null
             ? Math.Max(0, modifiers.heroineHpCostReduction)
             : 0;
-        result.playerHpCost = ApplyHpCostReduction(
+        result.skillAdjustedPlayerHpCost = ApplyHpCostReduction(
             result.basePlayerHpCost,
             playerReduction);
-        result.heroineHpCost = ApplyHpCostReduction(
+        result.skillAdjustedHeroineHpCost = ApplyHpCostReduction(
             result.baseHeroineHpCost,
             heroineReduction);
-        result.affectionReward = ApplyRewardModifier(
+        result.skillAdjustedAffectionReward = ApplyRewardModifier(
             result.baseAffectionReward,
             modifiers != null ? modifiers.affectionRewardModifier : 0);
-        result.trainingProficiencyReward = ApplyRewardModifier(
+        result.skillAdjustedTrainingProficiencyReward = ApplyRewardModifier(
             result.baseTrainingProficiencyReward,
             modifiers != null ? modifiers.trainingProficiencyRewardModifier : 0);
+        result.condition = modifiers != null ? modifiers.condition : null;
+        result.playerHpCost = ApplyHpCostModifier(
+            result.skillAdjustedPlayerHpCost,
+            result.condition != null ? result.condition.playerHpCostModifier : 0);
+        result.heroineHpCost = ApplyHpCostModifier(
+            result.skillAdjustedHeroineHpCost,
+            result.condition != null ? result.condition.heroineHpCostModifier : 0);
+        result.affectionReward = ApplyRewardModifier(
+            result.skillAdjustedAffectionReward,
+            result.condition != null ? result.condition.affectionRewardModifier : 0);
+        result.trainingProficiencyReward = ApplyRewardModifier(
+            result.skillAdjustedTrainingProficiencyReward,
+            result.condition != null
+                ? result.condition.trainingProficiencyRewardModifier
+                : 0);
         CollectEffectiveSkills(result, modifiers);
         return result;
     }
@@ -258,11 +292,15 @@ public class TrainingSessionState
             return;
         }
 
-        bool playerHpChanged = result.basePlayerHpCost != result.playerHpCost;
-        bool heroineHpChanged = result.baseHeroineHpCost != result.heroineHpCost;
-        bool affectionChanged = result.baseAffectionReward != result.affectionReward;
+        bool playerHpChanged =
+            result.basePlayerHpCost != result.skillAdjustedPlayerHpCost;
+        bool heroineHpChanged =
+            result.baseHeroineHpCost != result.skillAdjustedHeroineHpCost;
+        bool affectionChanged =
+            result.baseAffectionReward != result.skillAdjustedAffectionReward;
         bool proficiencyChanged =
-            result.baseTrainingProficiencyReward != result.trainingProficiencyReward;
+            result.baseTrainingProficiencyReward !=
+                result.skillAdjustedTrainingProficiencyReward;
         for (int i = 0; i < modifiers.applicableSkills.Count; i++)
         {
             SkillData skill = modifiers.applicableSkills[i];
@@ -295,16 +333,19 @@ public class TrainingSessionState
 
         totalPlayerHpCostReduction = AddClamped(
             totalPlayerHpCostReduction,
-            Math.Max(0, stepResult.basePlayerHpCost - stepResult.playerHpCost));
+            Math.Max(0,
+                stepResult.basePlayerHpCost - stepResult.skillAdjustedPlayerHpCost));
         totalHeroineHpCostReduction = AddClamped(
             totalHeroineHpCostReduction,
-            Math.Max(0, stepResult.baseHeroineHpCost - stepResult.heroineHpCost));
+            Math.Max(0,
+                stepResult.baseHeroineHpCost - stepResult.skillAdjustedHeroineHpCost));
         totalAffectionRewardModifier = AddClamped(
             totalAffectionRewardModifier,
-            stepResult.affectionReward - stepResult.baseAffectionReward);
+            stepResult.skillAdjustedAffectionReward -
+                stepResult.baseAffectionReward);
         totalTrainingProficiencyRewardModifier = AddClamped(
             totalTrainingProficiencyRewardModifier,
-            stepResult.trainingProficiencyReward -
+            stepResult.skillAdjustedTrainingProficiencyReward -
                 stepResult.baseTrainingProficiencyReward);
 
         if (stepResult.effectiveSkillIds == null)
@@ -346,6 +387,18 @@ public class TrainingSessionState
         }
 
         return Math.Max(1, baseCost - Math.Min(baseCost, reduction));
+    }
+
+    private static int ApplyHpCostModifier(int cost, int modifier)
+    {
+        if (cost <= 0)
+        {
+            return 0;
+        }
+
+        long adjustedCost = (long)cost + modifier;
+        if (adjustedCost <= 1) return 1;
+        return adjustedCost > int.MaxValue ? int.MaxValue : (int)adjustedCost;
     }
 
     private static int ApplyRewardModifier(int baseReward, int modifier)

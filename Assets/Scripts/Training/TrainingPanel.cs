@@ -17,6 +17,7 @@ public class TrainingPanel : MonoBehaviour
 
     [Header("Status")]
     [SerializeField] private TextMeshProUGUI trainingNameText;
+    [SerializeField] private TextMeshProUGUI conditionText;
     [SerializeField] private TextMeshProUGUI stepCountText;
     [SerializeField] private TextMeshProUGUI playerHpText;
     [SerializeField] private TextMeshProUGUI heroineHpText;
@@ -49,6 +50,7 @@ public class TrainingPanel : MonoBehaviour
     private TrainingSessionState currentState;
     private TrainingStepModifiers activeTrainingSkillModifiers =
         new TrainingStepModifiers();
+    private TrainingCondition currentTrainingCondition;
     private HeroineTrainingImageData trainingImageData;
     private HeroineTrainingDialogueData trainingDialogueData;
     private string lastTrainingMessage = string.Empty;
@@ -108,6 +110,8 @@ public class TrainingPanel : MonoBehaviour
                 gameManager.GetActiveHeroineTrainingSkills());
         }
         activeTrainingSkillModifiers = new TrainingStepModifiers();
+        currentTrainingCondition = TrainingConditionResolver.Resolve(
+            gameManager != null ? gameManager.CurrentDay : 1);
         currentTraining = null;
         currentState = null;
         trainingImageData = LoadTrainingImageData();
@@ -121,6 +125,7 @@ public class TrainingPanel : MonoBehaviour
         }
         hasReportedResult = false;
         logLines.Clear();
+        AddLog(BuildConditionSummary(currentTrainingCondition));
 
         PanelRoot.SetActive(true);
         RefreshTrainingList();
@@ -168,11 +173,13 @@ public class TrainingPanel : MonoBehaviour
             training,
             activePlayerTrainingSkills,
             activeHeroineTrainingSkills);
+        activeTrainingSkillModifiers.condition = currentTrainingCondition;
         if (currentState == null)
         {
             currentState = TrainingSessionState.Create(training, playerBattleStatus, heroineBattleStatus);
             hasReportedResult = false;
             logLines.Clear();
+            AddLog(BuildConditionSummary(currentTrainingCondition));
             AddLog(training.GetDisplayName() + "を開始しました。");
             AddLog(currentState.maxSteps > 0
                 ? "最大ステップ: " + currentState.maxSteps
@@ -265,9 +272,13 @@ public class TrainingPanel : MonoBehaviour
             "Step " + currentState.elapsedSteps +
             ": 主人公 -" + stepResult.playerHpCost +
             " / ヒロイン -" + stepResult.heroineHpCost);
-        if (stepResult.HasAppliedModifier)
+        if (stepResult.HasAppliedSkillModifier)
         {
             AddLog(BuildTrainingSkillModifierLog(stepResult));
+        }
+        if (stepResult.condition != null)
+        {
+            AddLog(BuildTrainingConditionModifierLog(stepResult));
         }
         if (stepResult.affectionReward > 0)
         {
@@ -442,12 +453,15 @@ public class TrainingPanel : MonoBehaviour
     private static string BuildTrainingSkillModifierLog(TrainingStepResult stepResult)
     {
         List<string> parts = new List<string>();
-        int playerReduction = stepResult.basePlayerHpCost - stepResult.playerHpCost;
-        int heroineReduction = stepResult.baseHeroineHpCost - stepResult.heroineHpCost;
+        int playerReduction =
+            stepResult.basePlayerHpCost - stepResult.skillAdjustedPlayerHpCost;
+        int heroineReduction =
+            stepResult.baseHeroineHpCost - stepResult.skillAdjustedHeroineHpCost;
         int affectionDifference =
-            stepResult.affectionReward - stepResult.baseAffectionReward;
+            stepResult.skillAdjustedAffectionReward -
+            stepResult.baseAffectionReward;
         int proficiencyDifference =
-            stepResult.trainingProficiencyReward -
+            stepResult.skillAdjustedTrainingProficiencyReward -
             stepResult.baseTrainingProficiencyReward;
 
         if (playerReduction > 0)
@@ -467,7 +481,43 @@ public class TrainingPanel : MonoBehaviour
             parts.Add("熟練度 " + FormatSignedValue(proficiencyDifference));
         }
 
-        return "スキル補正: " + string.Join(" / ", parts.ToArray());
+        return parts.Count > 0
+            ? "スキル補正: " + string.Join(" / ", parts.ToArray())
+            : "スキル補正: 最終値への変化なし";
+    }
+
+    private static string BuildTrainingConditionModifierLog(
+        TrainingStepResult stepResult)
+    {
+        TrainingCondition condition = stepResult.condition;
+        int playerDifference =
+            stepResult.playerHpCost - stepResult.skillAdjustedPlayerHpCost;
+        int heroineDifference =
+            stepResult.heroineHpCost - stepResult.skillAdjustedHeroineHpCost;
+        int affectionDifference =
+            stepResult.affectionReward - stepResult.skillAdjustedAffectionReward;
+        int proficiencyDifference =
+            stepResult.trainingProficiencyReward -
+            stepResult.skillAdjustedTrainingProficiencyReward;
+        return "調子補正(" + condition.DisplayName + "): HP 主" +
+            FormatSignedValue(playerDifference) + "/姫" +
+            FormatSignedValue(heroineDifference) + " / 好感度 " +
+            FormatSignedValue(affectionDifference) + " / 熟練度 " +
+            FormatSignedValue(proficiencyDifference);
+    }
+
+    private static string BuildConditionSummary(TrainingCondition condition)
+    {
+        if (condition == null)
+        {
+            return "本日の調子: 未設定";
+        }
+
+        return "本日の調子: " + condition.DisplayName +
+            "（30日周期 " + condition.cycleDay + "日目 / HP " +
+            FormatSignedValue(condition.playerHpCostModifier) + " / 好感度 " +
+            FormatSignedValue(condition.affectionRewardModifier) + " / 熟練度 " +
+            FormatSignedValue(condition.trainingProficiencyRewardModifier) + "）";
     }
 
     private static string FormatSignedValue(int value)
@@ -570,6 +620,11 @@ public class TrainingPanel : MonoBehaviour
 
     private void RefreshStatus()
     {
+        if (conditionText != null)
+        {
+            conditionText.text = BuildConditionSummary(currentTrainingCondition);
+        }
+
         if (trainingNameText != null)
         {
             string trainingLabel = currentTraining != null
@@ -782,6 +837,11 @@ public class TrainingPanel : MonoBehaviour
         if (trainingNameText == null)
         {
             trainingNameText = FindText("TrainingNameText");
+        }
+
+        if (conditionText == null)
+        {
+            conditionText = FindText("ConditionText");
         }
 
         if (stepCountText == null)

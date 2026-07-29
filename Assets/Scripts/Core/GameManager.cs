@@ -293,6 +293,7 @@ public class GameManager : MonoBehaviour
     public string CurrentHeroineId => currentHeroineId;
     public HeroineProfileData CurrentHeroineProfile => heroineProfile;
     public HeroineAssetCatalog CurrentHeroineAssetCatalog => heroineAssetCatalog;
+    public int CurrentDay => timeManager != null ? timeManager.Day : 1;
 
     private readonly HashSet<string> shownConversationIds = new HashSet<string>();
     private readonly HashSet<string> shownGameEventIds = new HashSet<string>();
