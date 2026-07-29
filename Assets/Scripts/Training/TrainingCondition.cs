@@ -5,6 +5,7 @@ public enum TrainingConditionRank
 {
     Excellent,
     Good,
+    Normal,
     Poor,
     Awful
 }
@@ -32,6 +33,8 @@ public class TrainingCondition
                     return "絶好調";
                 case TrainingConditionRank.Good:
                     return "好調";
+                case TrainingConditionRank.Normal:
+                    return "普通";
                 case TrainingConditionRank.Poor:
                     return "不調";
                 case TrainingConditionRank.Awful:
@@ -52,44 +55,60 @@ public class TrainingCondition
                 trainingProficiencyRewardModifier > 0;
         }
     }
+
+    public bool IsDebuff
+    {
+        get
+        {
+            return playerHpCostModifier > 0 ||
+                heroineHpCostModifier > 0 ||
+                affectionRewardModifier < 0 ||
+                trainingProficiencyRewardModifier < 0;
+        }
+    }
+
+    public bool IsNeutral
+    {
+        get { return !IsBuff && !IsDebuff; }
+    }
 }
 
 public static class TrainingConditionResolver
 {
     public const int CycleLength = 30;
 
-    // 好調15日、不調15日。極端な調子は連続しない配置にする。
+    // 好調側10日、普通10日、不調側10日。極端な調子は連続させない。
     private static readonly TrainingConditionRank[] Cycle =
     {
         TrainingConditionRank.Good,
+        TrainingConditionRank.Normal,
         TrainingConditionRank.Poor,
+        TrainingConditionRank.Normal,
         TrainingConditionRank.Good,
         TrainingConditionRank.Awful,
         TrainingConditionRank.Excellent,
-        TrainingConditionRank.Poor,
         TrainingConditionRank.Good,
         TrainingConditionRank.Poor,
+        TrainingConditionRank.Normal,
         TrainingConditionRank.Good,
+        TrainingConditionRank.Normal,
+        TrainingConditionRank.Poor,
         TrainingConditionRank.Awful,
         TrainingConditionRank.Excellent,
-        TrainingConditionRank.Poor,
+        TrainingConditionRank.Normal,
         TrainingConditionRank.Good,
         TrainingConditionRank.Poor,
+        TrainingConditionRank.Normal,
         TrainingConditionRank.Good,
+        TrainingConditionRank.Normal,
+        TrainingConditionRank.Poor,
         TrainingConditionRank.Awful,
         TrainingConditionRank.Excellent,
+        TrainingConditionRank.Normal,
         TrainingConditionRank.Poor,
+        TrainingConditionRank.Normal,
         TrainingConditionRank.Good,
-        TrainingConditionRank.Poor,
-        TrainingConditionRank.Good,
-        TrainingConditionRank.Awful,
-        TrainingConditionRank.Excellent,
-        TrainingConditionRank.Poor,
-        TrainingConditionRank.Good,
-        TrainingConditionRank.Poor,
-        TrainingConditionRank.Good,
-        TrainingConditionRank.Poor,
-        TrainingConditionRank.Good,
+        TrainingConditionRank.Normal,
         TrainingConditionRank.Poor
     };
 
@@ -116,6 +135,8 @@ public static class TrainingConditionResolver
                 condition.playerHpCostModifier = -1;
                 condition.heroineHpCostModifier = -1;
                 condition.trainingProficiencyRewardModifier = 1;
+                break;
+            case TrainingConditionRank.Normal:
                 break;
             case TrainingConditionRank.Poor:
                 condition.playerHpCostModifier = 1;

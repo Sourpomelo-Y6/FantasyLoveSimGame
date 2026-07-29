@@ -22,9 +22,10 @@ public class TrainingConditionTests
     }
 
     [Test]
-    public void Resolve_ContainsBuffAndDebuffDaysWithoutNeutralDays()
+    public void Resolve_ContainsTenBuffNeutralAndDebuffDays()
     {
         int buffDays = 0;
+        int neutralDays = 0;
         int debuffDays = 0;
         for (int day = 1; day <= TrainingConditionResolver.CycleLength; day++)
         {
@@ -33,16 +34,32 @@ public class TrainingConditionTests
             {
                 buffDays++;
             }
+            else if (condition.IsNeutral)
+            {
+                neutralDays++;
+            }
             else
             {
                 debuffDays++;
             }
-
-            Assert.That(condition.playerHpCostModifier, Is.Not.EqualTo(0));
         }
 
-        Assert.That(buffDays, Is.EqualTo(15));
-        Assert.That(debuffDays, Is.EqualTo(15));
+        Assert.That(buffDays, Is.EqualTo(10));
+        Assert.That(neutralDays, Is.EqualTo(10));
+        Assert.That(debuffDays, Is.EqualTo(10));
+    }
+
+    [Test]
+    public void Resolve_NormalDayHasNoModifiers()
+    {
+        TrainingCondition condition = TrainingConditionResolver.Resolve(2);
+
+        Assert.That(condition.rank, Is.EqualTo(TrainingConditionRank.Normal));
+        Assert.That(condition.IsNeutral, Is.True);
+        Assert.That(condition.playerHpCostModifier, Is.EqualTo(0));
+        Assert.That(condition.heroineHpCostModifier, Is.EqualTo(0));
+        Assert.That(condition.affectionRewardModifier, Is.EqualTo(0));
+        Assert.That(condition.trainingProficiencyRewardModifier, Is.EqualTo(0));
     }
 
     [Test]
@@ -58,7 +75,7 @@ public class TrainingConditionTests
         {
             playerHpCostReduction = 1,
             heroineHpCostReduction = 1,
-            condition = TrainingConditionResolver.Resolve(5)
+            condition = TrainingConditionResolver.Resolve(7)
         };
 
         TrainingStepResult result =
@@ -83,7 +100,7 @@ public class TrainingConditionTests
         {
             playerHpCostReduction = 999,
             heroineHpCostReduction = 999,
-            condition = TrainingConditionResolver.Resolve(5)
+            condition = TrainingConditionResolver.Resolve(7)
         };
         TrainingStepModifiers debuff = new TrainingStepModifiers
         {
