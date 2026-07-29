@@ -394,11 +394,13 @@ public class GameManager : MonoBehaviour
     [Header("Battle Result Events")]
     [SerializeField] private string battleResultEventResourcePath = BattleResultEventResourcePath;
     [SerializeField] private string battlePanelResultMessageResourcePath = BattlePanelResultMessageResourcePath;
+    [SerializeField] private string soloReturnReactionResourcePath = "SoloReturnReactions";
     [SerializeField] private BattleResultEventData[] battleResultEvents;
     private BattleResultEventData[] commonBattleResultEvents;
     private bool battleResultEventsLoadedFromResources = false;
     private BattlePanelResultMessageData[] battlePanelResultMessages;
     private BattlePanelResultMessageData[] commonBattlePanelResultMessages;
+    private SoloReturnReactionData[] soloReturnReactions;
 
     [Header("Game Event Debug")]
     [SerializeField] private string debugManualGameEventId = "";
@@ -1321,6 +1323,9 @@ public class GameManager : MonoBehaviour
         battlePanelResultMessageResourcePath = GetProfileResourcePath(
             profile.battlePanelResultMessageResourcePath,
             battlePanelResultMessageResourcePath);
+        soloReturnReactionResourcePath = GetProfileResourcePath(
+            profile.soloReturnReactionResourcePath,
+            soloReturnReactionResourcePath);
 
         if (battleResultEventsLoadedFromResources)
         {
@@ -1331,6 +1336,7 @@ public class GameManager : MonoBehaviour
         commonBattleResultEvents = null;
         battlePanelResultMessages = null;
         commonBattlePanelResultMessages = null;
+        soloReturnReactions = null;
 
         Debug.Log(
             "Applied HeroineProfile resource paths: heroineId=" +
@@ -1346,7 +1352,9 @@ public class GameManager : MonoBehaviour
             " / battleResultEvents=" +
             battleResultEventResourcePath +
             " / battlePanelResultMessages=" +
-            battlePanelResultMessageResourcePath);
+            battlePanelResultMessageResourcePath +
+            " / soloReturnReactions=" +
+            soloReturnReactionResourcePath);
     }
 
     private HeroineProfileData ResolveHeroineProfile()
@@ -7167,6 +7175,7 @@ public class GameManager : MonoBehaviour
         {
             AddBattleLogFollowUpMessages(battleResult);
             AddBattleResultEventFollowUpMessage(scheduleType, battleResult);
+            AddSoloReturnReactionFollowUpMessage(scheduleType, battleResult);
         }
 
         return AppendLine(baseMessage, resultMessage);
@@ -7240,6 +7249,84 @@ public class GameManager : MonoBehaviour
 
         pendingScheduledEventFollowUpMessages.Add(
             new DialogueMessage(DialogueSpeakerType.Schedule, ScheduleSpeakerName, message));
+    }
+
+    private void AddSoloReturnReactionFollowUpMessage(
+        ScheduleType scheduleType,
+        SimpleBattleResult result)
+    {
+        if (!ScheduleManager.IsSoloSchedule(scheduleType))
+        {
+            return;
+        }
+
+        BattleResultEventType eventType =
+            ResolveBattleResultEventType(scheduleType, result);
+        SoloReturnReactionData reaction = ResolveSoloReturnReaction(
+            eventType,
+            ResolveBattleContextId(scheduleType));
+        if (reaction == null || string.IsNullOrWhiteSpace(reaction.message))
+        {
+            return;
+        }
+
+        Sprite stillSprite = null;
+        if (!string.IsNullOrWhiteSpace(reaction.stillId))
+        {
+            TryResolveHeroineCatalogSprite(reaction.stillId, out stillSprite);
+        }
+
+        pendingScheduledEventFollowUpMessages.Add(
+            new DialogueMessage(
+                DialogueSpeakerType.Heroine,
+                ResolveHeroineDisplayName(),
+                FormatMessageVariables(reaction.message),
+                reaction.stillId ?? "",
+                stillSprite,
+                reaction.expressionId ?? "",
+                reaction.visualMode,
+                reaction.voiceId ?? ""));
+    }
+
+    private SoloReturnReactionData ResolveSoloReturnReaction(
+        BattleResultEventType eventType,
+        string battleContextId)
+    {
+        if (soloReturnReactions == null)
+        {
+            soloReturnReactions =
+                Resources.LoadAll<SoloReturnReactionData>(
+                    soloReturnReactionResourcePath);
+        }
+
+        SoloReturnReactionData fallback = null;
+        for (int i = 0; i < soloReturnReactions.Length; i++)
+        {
+            SoloReturnReactionData reaction = soloReturnReactions[i];
+            if (reaction == null ||
+                reaction.battleResultEventType != eventType ||
+                string.IsNullOrWhiteSpace(reaction.message))
+            {
+                continue;
+            }
+
+            if (string.IsNullOrWhiteSpace(reaction.battleContextId))
+            {
+                if (fallback == null)
+                {
+                    fallback = reaction;
+                }
+            }
+            else if (string.Equals(
+                reaction.battleContextId,
+                battleContextId,
+                StringComparison.OrdinalIgnoreCase))
+            {
+                return reaction;
+            }
+        }
+
+        return fallback;
     }
 
     private string BuildBattleResultEventMessage(ScheduleType scheduleType, SimpleBattleResult result)
@@ -8562,7 +8649,7 @@ public class GameManager : MonoBehaviour
                     TimeSlot.Noon,
                     false,
                     ScheduledEventOutfitPromptMode.Conditional,
-                    ScheduledEventSpeakerType.Heroine,
+                    ScheduledEventSpeakerType.Schedule,
                     "今日は昼に一人で森へ出かける予定です。",
                     "森の中をゆっくり歩きました。木漏れ日の下で、少し気持ちが軽くなります。",
                     1
@@ -8575,7 +8662,7 @@ public class GameManager : MonoBehaviour
                     TimeSlot.Noon,
                     false,
                     ScheduledEventOutfitPromptMode.Conditional,
-                    ScheduledEventSpeakerType.Heroine,
+                    ScheduledEventSpeakerType.Schedule,
                     "今日は昼に一人で洞窟へ向かう予定です。",
                     "洞窟の入口まで足を運びました。ひんやりした空気に、少し冒険の気配を感じます。",
                     1
@@ -8588,7 +8675,7 @@ public class GameManager : MonoBehaviour
                     TimeSlot.Noon,
                     false,
                     ScheduledEventOutfitPromptMode.Conditional,
-                    ScheduledEventSpeakerType.Heroine,
+                    ScheduledEventSpeakerType.Schedule,
                     "今日は昼に一人で湖へ行く予定です。",
                     "湖畔で静かな時間を過ごしました。水面を眺めていると、心が落ち着きます。",
                     1
@@ -8601,7 +8688,7 @@ public class GameManager : MonoBehaviour
                     TimeSlot.Noon,
                     false,
                     ScheduledEventOutfitPromptMode.Conditional,
-                    ScheduledEventSpeakerType.Heroine,
+                    ScheduledEventSpeakerType.Schedule,
                     "今日は昼に一人で買い物へ行く予定です。",
                     "街で買い物をしました。店先を見て回るだけでも、少し気分が華やぎます。",
                     1

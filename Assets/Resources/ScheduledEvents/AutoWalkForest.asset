@@ -16,7 +16,7 @@ MonoBehaviour:
   actionId: AutoWalkForest
   triggerTimeSlot: 1
   allowOutfitChangeBeforeStart: 0
-  eventSpeakerType: 0
+  eventSpeakerType: 2
   preparationMessage: 今日は昼に一人で森へ出かける予定です。
   eventMessage: 森の中をゆっくり歩きました。木漏れ日の下で、少し気持ちが軽くなります。
   affectionChange: 10

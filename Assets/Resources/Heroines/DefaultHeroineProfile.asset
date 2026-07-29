@@ -65,4 +65,5 @@ MonoBehaviour:
   scheduledEventResourcePath: Heroines/DefaultHeroine/ScheduledEvents
   battleResultEventResourcePath: Heroines/DefaultHeroine/BattleResultEvents
   battlePanelResultMessageResourcePath: Heroines/DefaultHeroine/BattlePanelResultMessages
+  soloReturnReactionResourcePath: Heroines/DefaultHeroine/SoloReturnReactions
   endingResourcePath: Heroines/DefaultHeroine/Endings

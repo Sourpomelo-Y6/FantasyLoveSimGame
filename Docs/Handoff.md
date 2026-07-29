@@ -35,6 +35,7 @@
 - 翌朝は今日の予定と着替え可能な準備メッセージを表示し、予定イベント本体は指定された時間帯に発動する
 - 予定イベント本体の直前は、衣装確認モードに応じて `このまま出発` / `着替える` を出し分ける。ただし `SoloForest` / `SoloCave` / `SoloLake` / `SoloShopping` は主人公単独の外出なので、ヒロインの衣装確認を常に省略する
 - 単独探索の戦闘結果は、戦闘パネル結果文と戦闘後イベントの両方でヒロイン別データより共通データを優先し、予定／戦闘ログ話者の文章として表示する。ヒロインの台詞、ボイス、表情、立ち絵は使用しない。同行探索だけがヒロイン別の戦闘結果演出を使用する
+- ソロ探索完了後は `HeroineProfileData.soloReturnReactionResourcePath` の `SoloReturnReactionData` を読み、共通戦闘結果の後に帰宅後のヒロイン反応を表示できる。TestHeroineの旧Solo勝利・敗北データは `SoloReturnReactions` へ移行済み。単独予定の探索本文自体は予定話者で表示し、帰還後反応だけにヒロインの表情・ボイス・立ち絵を許可する
 - 予定画面は7日／30日のカレンダー表示、実行前キャンセル、`Application.persistentDataPath` に保存する複数の名前付きテンプレートまで実装済み。テンプレートはゲームセーブと分離され、別セーブスロットから共有できる。詳細は `Docs/ScheduleUiExpansionPlan.md` を参照する
 - 衣装確認モードは `Always` / `Conditional` / `Hidden` を想定しており、`Conditional` のときは今の衣装が予定に対して問題ない場合に確認を省略する
 - 衣装確認モードの利用可否は取得済み主人公スキルツリーノードから導出し、現在モードだけを `GameManager.playerOutfitPromptAbilities` に保持する

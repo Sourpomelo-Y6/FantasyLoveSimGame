@@ -38,5 +38,27 @@ public class ScheduleTypeRulesTests
         Assert.That(data.speakerType,
             Is.EqualTo(ScheduledEventSpeakerType.Schedule));
     }
+
+    [TestCase("SoloVictory", BattleResultEventType.SoloVictory)]
+    [TestCase("SoloDefeat", BattleResultEventType.SoloDefeat)]
+    public void TestHeroineSoloResult_IsStoredAsReturnReaction(
+        string assetName,
+        BattleResultEventType expectedType)
+    {
+        string returnPath =
+            "Assets/Resources/Heroines/TestHeroine/SoloReturnReactions/" +
+            assetName + ".asset";
+        SoloReturnReactionData reaction =
+            AssetDatabase.LoadAssetAtPath<SoloReturnReactionData>(returnPath);
+
+        Assert.That(reaction, Is.Not.Null);
+        Assert.That(reaction.battleResultEventType, Is.EqualTo(expectedType));
+        Assert.That(reaction.message, Is.Not.Empty);
+        Assert.That(
+            AssetDatabase.LoadAssetAtPath<BattleResultEventData>(
+                "Assets/Resources/Heroines/TestHeroine/BattleResultEvents/" +
+                assetName + ".asset"),
+            Is.Null);
+    }
 }
 #endif
