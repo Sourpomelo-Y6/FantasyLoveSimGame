@@ -558,6 +558,8 @@ Duo 探索ではヒロイン同行時の反応文に切り替え、将来の好�
 `BattleResultEventData` は、`BattleResultEventType`、`battleContextId`、メッセージ本文、将来用の `stillId`、`affectionChange`、`unlockedOutfitIds` を持つ。
 `GameManager.battleResultEvents` に一致するデータが設定されていればそのメッセージを使い、未設定または空の場合は従来の固定文へフォールバックする。
 `battleContextId` が一致するデータを優先し、空の `battleContextId` は Solo/Duo 勝敗だけで使える共通フォールバックデータとして扱う。
+
+主人公単独の探索では、その場にいないヒロインの戦闘後台詞を表示しない。戦闘パネルの勝利・敗北・撤退文は共通 `BattlePanelResultMessages` を使い、`SoloVictory` / `SoloDefeat` / `SoloEscape` は共通 `BattleResultEvents` の文章を予定話者として表示する。ヒロイン別データに同じ結果種別が存在しても使用しない。単独結果ではヒロインのボイス、表情、立ち絵も適用せず、ヒロイン別の演出はDuo探索だけに限定する。
 `GameManager.battleResultEvents` が未設定の場合は、`Resources/BattleResultEvents` から `BattleResultEventData` を自動読み込みする。
 初期データとして `SoloVictory`、`DuoVictory`、`SoloDefeat`、`DuoDefeat` を用意する。
 `DuoVictory` はデータ参照確認用に固定文とは異なる文面にし、表示されれば `Resources/BattleResultEvents` のデータが使われていると判断できる。

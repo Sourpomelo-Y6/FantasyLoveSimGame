@@ -7191,9 +7191,26 @@ public class GameManager : MonoBehaviour
     {
         BattleResultEventType eventType = ResolveBattleResultEventType(scheduleType, result);
         string battleContextId = ResolveBattleContextId(scheduleType);
-        BattleResultEventData eventData = ResolveBattleResultEventData(eventType, battleContextId);
+        bool isSoloSchedule = ScheduleManager.IsSoloSchedule(scheduleType);
+        // 単独探索では、その場にいないヒロイン専用の台詞・音声・立ち絵を使用しない。
+        BattleResultEventData eventData = isSoloSchedule
+            ? ResolveBattleResultEventDataFromSource(
+                GetCommonBattleResultEvents(),
+                eventType,
+                battleContextId)
+            : ResolveBattleResultEventData(eventType, battleContextId);
         if (eventData != null && !string.IsNullOrEmpty(eventData.message))
         {
+            if (isSoloSchedule)
+            {
+                pendingScheduledEventFollowUpMessages.Add(
+                    new DialogueMessage(
+                        DialogueSpeakerType.Schedule,
+                        ScheduleSpeakerName,
+                        FormatMessageVariables(eventData.message)));
+                return;
+            }
+
             DialogueSpeakerType speakerType = GetDialogueSpeakerType(eventData.speakerType);
             string speakerName = string.IsNullOrWhiteSpace(eventData.speakerName)
                 ? GetGameEventDefaultSpeakerName(eventData.speakerType)
@@ -7229,7 +7246,13 @@ public class GameManager : MonoBehaviour
     {
         BattleResultEventType eventType = ResolveBattleResultEventType(scheduleType, result);
         string battleContextId = ResolveBattleContextId(scheduleType);
-        string dataMessage = ResolveBattleResultEventDataMessage(eventType, battleContextId);
+        BattleResultEventData data = ScheduleManager.IsSoloSchedule(scheduleType)
+            ? ResolveBattleResultEventDataFromSource(
+                GetCommonBattleResultEvents(),
+                eventType,
+                battleContextId)
+            : ResolveBattleResultEventData(eventType, battleContextId);
+        string dataMessage = data != null ? FormatMessageVariables(data.message) : "";
         if (!string.IsNullOrEmpty(dataMessage))
         {
             return dataMessage;
@@ -7309,14 +7332,6 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    private string ResolveBattleResultEventDataMessage(
-        BattleResultEventType eventType,
-        string battleContextId)
-    {
-        BattleResultEventData data = ResolveBattleResultEventData(eventType, battleContextId);
-        return data != null ? FormatMessageVariables(data.message) : "";
-    }
-
     private BattleResultEventData ResolveBattleResultEventData(
         BattleResultEventType eventType,
         string battleContextId)
@@ -7362,15 +7377,6 @@ public class GameManager : MonoBehaviour
         }
 
         return commonBattleResultEvents;
-    }
-
-    private string ResolveBattleResultEventDataMessageFromSource(
-        BattleResultEventData[] sourceEvents,
-        BattleResultEventType eventType,
-        string battleContextId)
-    {
-        BattleResultEventData data = ResolveBattleResultEventDataFromSource(sourceEvents, eventType, battleContextId);
-        return data != null ? FormatMessageVariables(data.message) : "";
     }
 
     private static BattleResultEventData ResolveBattleResultEventDataFromSource(
@@ -9368,8 +9374,16 @@ public class GameManager : MonoBehaviour
             RecordMonsterDefeat(result.enemyId);
         }
         List<string> recoveryMessages = ApplyBattlePanelResultStatus(result);
-        string resultMessage = ResolveBattlePanelResultMessage(result);
-        string resultVoiceId = ResolveBattlePanelResultVoiceId(result);
+        bool useCommonBattleResultPresentation =
+            isScheduledBattleResult &&
+            ScheduleManager.IsSoloSchedule(
+                pendingBattlePanelScheduledEvent.ScheduleType);
+        string resultMessage = ResolveBattlePanelResultMessage(
+            result,
+            useCommonBattleResultPresentation);
+        string resultVoiceId = ResolveBattlePanelResultVoiceId(
+            result,
+            useCommonBattleResultPresentation);
         lastBattlePanelSimpleResult = ConvertBattlePanelResultToSimpleBattleResult(
             result,
             playerStatus != null ? playerStatus.BattleStatus : null,
@@ -9608,10 +9622,12 @@ public class GameManager : MonoBehaviour
             includeOutcomeRewardLines);
     }
 
-    private string ResolveBattlePanelResultMessage(BattlePanel.BattleResult result)
+    private string ResolveBattlePanelResultMessage(
+        BattlePanel.BattleResult result,
+        bool forceCommon = false)
     {
         BattlePanelResultMessageData data =
-            ResolveBattlePanelResultMessageData(result);
+            ResolveBattlePanelResultMessageData(result, forceCommon);
         return data != null && !string.IsNullOrEmpty(data.message)
             ? FormatMessageVariables(data.message)
             : GetDefaultBattlePanelResultMessage(
@@ -9620,20 +9636,30 @@ public class GameManager : MonoBehaviour
                     : BattlePanel.BattleResultType.None);
     }
 
-    private string ResolveBattlePanelResultVoiceId(BattlePanel.BattleResult result)
+    private string ResolveBattlePanelResultVoiceId(
+        BattlePanel.BattleResult result,
+        bool forceCommon = false)
     {
         BattlePanelResultMessageData data =
-            ResolveBattlePanelResultMessageData(result);
+            ResolveBattlePanelResultMessageData(result, forceCommon);
         return data != null ? data.voiceId ?? "" : "";
     }
 
     private BattlePanelResultMessageData ResolveBattlePanelResultMessageData(
-        BattlePanel.BattleResult result)
+        BattlePanel.BattleResult result,
+        bool forceCommon = false)
     {
         BattlePanel.BattleResultType resultType = result != null
             ? result.resultType
             : BattlePanel.BattleResultType.None;
         BattlePanelResultMessageType messageType = ConvertBattlePanelResultMessageType(resultType);
+        if (forceCommon)
+        {
+            return ResolveBattlePanelResultMessageFromSource(
+                GetCommonBattlePanelResultMessages(),
+                messageType);
+        }
+
         BattlePanelResultMessageData data = ResolveBattlePanelResultMessageFromSource(
             GetBattlePanelResultMessages(),
             messageType);

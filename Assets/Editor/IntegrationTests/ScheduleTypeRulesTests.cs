@@ -1,5 +1,6 @@
 #if UNITY_INCLUDE_TESTS
 using NUnit.Framework;
+using UnityEditor;
 
 public class ScheduleTypeRulesTests
 {
@@ -23,6 +24,19 @@ public class ScheduleTypeRulesTests
         ScheduleType scheduleType)
     {
         Assert.That(ScheduleManager.IsSoloSchedule(scheduleType), Is.False);
+    }
+
+    [TestCase("SoloVictory")]
+    [TestCase("SoloDefeat")]
+    public void CommonSoloBattleResult_UsesScheduleSpeaker(string assetName)
+    {
+        BattleResultEventData data =
+            AssetDatabase.LoadAssetAtPath<BattleResultEventData>(
+                "Assets/Resources/BattleResultEvents/" + assetName + ".asset");
+
+        Assert.That(data, Is.Not.Null);
+        Assert.That(data.speakerType,
+            Is.EqualTo(ScheduledEventSpeakerType.Schedule));
     }
 }
 #endif
