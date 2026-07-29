@@ -719,7 +719,7 @@ UI は Canvas 配下へ手動配置し、`panelRoot`、一覧親、ボタン Pre
 `ActionId` は既存の `ActionData` と分けて、予約実行専用の内部 ID として扱っている。
 予定イベント本文の話者は `eventSpeakerType` で `Heroine` / `System` / `Schedule` / `Outfit` から選べる。
 翌朝は予定の準備メッセージだけを表示し、イベント本体は `triggerTimeSlot` に到達した時点で発動する。
-イベント直前には、必要に応じて `このまま出発` / `着替える` を選べる。
+イベント直前には、必要に応じて `このまま出発` / `着替える` を選べる。ただし主人公単独の `SoloForest` / `SoloCave` / `SoloLake` / `SoloShopping` ではヒロインが同行しないため、衣装確認を表示せず予定イベントを直接開始する。データ側で衣装変更可に設定されていても単独判定を優先する。
 
 | `ScheduleType` | `ActionId` | 現在の発動時間 | 用途 |
 | ---- | ---- | ---- | ---- |

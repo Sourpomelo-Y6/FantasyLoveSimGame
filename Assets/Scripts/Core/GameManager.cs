@@ -6696,6 +6696,12 @@ public class GameManager : MonoBehaviour
             return false;
         }
 
+        // 単独外出ではヒロインが同行しないため、ヒロインの衣装確認を挟まない。
+        if (ScheduleManager.IsSoloSchedule(scheduledEvent.ScheduleType))
+        {
+            return false;
+        }
+
         if (outfitManager == null)
         {
             return true;
@@ -8548,10 +8554,10 @@ public class GameManager : MonoBehaviour
                     ScheduleType.SoloForest,
                     "AutoWalkForest",
                     TimeSlot.Noon,
-                    true,
+                    false,
                     ScheduledEventOutfitPromptMode.Conditional,
                     ScheduledEventSpeakerType.Heroine,
-                    "今日は昼に森へ出かける予定です。出発までに服装を整えられます。",
+                    "今日は昼に一人で森へ出かける予定です。",
                     "森の中をゆっくり歩きました。木漏れ日の下で、少し気持ちが軽くなります。",
                     1
                 );
@@ -8561,10 +8567,10 @@ public class GameManager : MonoBehaviour
                     ScheduleType.SoloCave,
                     "AutoWalkCave",
                     TimeSlot.Noon,
-                    true,
+                    false,
                     ScheduledEventOutfitPromptMode.Conditional,
                     ScheduledEventSpeakerType.Heroine,
-                    "今日は昼に洞窟へ向かう予定です。動きやすい服にしておくとよさそうです。",
+                    "今日は昼に一人で洞窟へ向かう予定です。",
                     "洞窟の入口まで足を運びました。ひんやりした空気に、少し冒険の気配を感じます。",
                     1
                 );
@@ -8574,10 +8580,10 @@ public class GameManager : MonoBehaviour
                     ScheduleType.SoloLake,
                     "AutoWalkLake",
                     TimeSlot.Noon,
-                    true,
+                    false,
                     ScheduledEventOutfitPromptMode.Conditional,
                     ScheduledEventSpeakerType.Heroine,
-                    "今日は昼に湖へ行く予定です。水辺に合う服を選ぶ余裕があります。",
+                    "今日は昼に一人で湖へ行く予定です。",
                     "湖畔で静かな時間を過ごしました。水面を眺めていると、心が落ち着きます。",
                     1
                 );
@@ -8587,10 +8593,10 @@ public class GameManager : MonoBehaviour
                     ScheduleType.SoloShopping,
                     "AutoWalkShopping",
                     TimeSlot.Noon,
-                    true,
+                    false,
                     ScheduledEventOutfitPromptMode.Conditional,
                     ScheduledEventSpeakerType.Heroine,
-                    "今日は昼に買い物へ行く予定です。街に出る服を選んでおけます。",
+                    "今日は昼に一人で買い物へ行く予定です。",
                     "街で買い物をしました。店先を見て回るだけでも、少し気分が華やぎます。",
                     1
                 );

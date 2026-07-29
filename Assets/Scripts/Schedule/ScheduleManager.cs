@@ -323,6 +323,20 @@ public class ScheduleManager : MonoBehaviour
         }
     }
 
+    public static bool IsSoloSchedule(ScheduleType scheduleType)
+    {
+        switch (scheduleType)
+        {
+            case ScheduleType.SoloForest:
+            case ScheduleType.SoloCave:
+            case ScheduleType.SoloLake:
+            case ScheduleType.SoloShopping:
+                return true;
+            default:
+                return false;
+        }
+    }
+
     public string GetTodayScheduleDisplayName()
     {
         return GetScheduleDisplayName(TodaySchedule);
