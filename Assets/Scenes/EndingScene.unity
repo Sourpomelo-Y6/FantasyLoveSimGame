@@ -1168,7 +1168,7 @@ RectTransform:
   m_GameObject: {fileID: 1070527097}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 0.52494997, y: 0.52494997, z: 0.52494997}
+  m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 1026849645}
@@ -1178,11 +1178,11 @@ RectTransform:
   m_Father: {fileID: 1000172237}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0.5, y: 0.5}
-  m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0, y: 0}
+  m_AnchorMin: {x: 0.5, y: 1}
+  m_AnchorMax: {x: 0.5, y: 1}
+  m_AnchoredPosition: {x: 0, y: -512}
   m_SizeDelta: {x: 1024, y: 1024}
-  m_Pivot: {x: 0.5, y: 0.62}
+  m_Pivot: {x: 0.5, y: 0.5}
 --- !u!1 &1115834731
 GameObject:
   m_ObjectHideFlags: 0
@@ -1807,6 +1807,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   titleButton: {fileID: 989688346}
   nextButton: {fileID: 964458201}
+  voiceReplayButton: {fileID: 0}
   speakerNameText: {fileID: 907214560}
   endingText: {fileID: 1251237307}
   stillImage: {fileID: 445484179}
