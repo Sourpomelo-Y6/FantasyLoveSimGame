@@ -16693,6 +16693,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: SaveLoadPanel
       objectReference: {fileID: 0}
+    - target: {fileID: 2366681744524511441, guid: 3f5c5cbe39b4b2145b1769370730dac6, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 2501197243152095167, guid: 3f5c5cbe39b4b2145b1769370730dac6, type: 3}
       propertyPath: m_AnchorMax.y
       value: 0
