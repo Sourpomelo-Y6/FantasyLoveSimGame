@@ -153,7 +153,240 @@ public static class GameplayDataValidator
                 ValidateTrainingReference(trainingId, "スキルツリー", ids, node, report);
         }
 
+        ValidateTrainingAvailabilityConditions(
+            trainings,
+            skillTreeNodes ?? new SkillTreeNodeData[0],
+            ids,
+            report);
         return report;
+    }
+
+    private static void ValidateTrainingAvailabilityConditions(
+        TrainingData[] trainings,
+        SkillTreeNodeData[] skillTreeNodes,
+        HashSet<string> knownIds,
+        GameplayDataValidationReport report)
+    {
+        Dictionary<string, TrainingData> uniqueTrainings =
+            new Dictionary<string, TrainingData>(StringComparer.Ordinal);
+        HashSet<string> skillTreeUnlockIds = new HashSet<string>(StringComparer.Ordinal);
+        foreach (SkillTreeNodeData node in skillTreeNodes.Where(value => value != null))
+        {
+            if (node.unlockedTrainingIds == null) continue;
+            foreach (string trainingId in node.unlockedTrainingIds)
+            {
+                if (!string.IsNullOrWhiteSpace(trainingId))
+                    skillTreeUnlockIds.Add(trainingId);
+            }
+        }
+
+        foreach (TrainingData training in trainings.Where(value => value != null))
+        {
+            if (!string.IsNullOrWhiteSpace(training.trainingId) &&
+                !uniqueTrainings.ContainsKey(training.trainingId))
+            {
+                uniqueTrainings.Add(training.trainingId, training);
+            }
+
+            ValidateConditionRankList(
+                training.visibleConditionRanks,
+                "visibleConditionRanks",
+                training,
+                report);
+            ValidateConditionRankList(
+                training.executableConditionRanks,
+                "executableConditionRanks",
+                training,
+                report);
+            ValidateConditionRankCompatibility(training, report);
+            ValidatePrerequisites(training, knownIds, report);
+
+            bool hasPrerequisite = training.requiredCompletedTrainingIds != null &&
+                training.requiredCompletedTrainingIds.Any(
+                    value => !string.IsNullOrWhiteSpace(value));
+            if (!training.unlockedByDefault &&
+                !skillTreeUnlockIds.Contains(training.trainingId ?? string.Empty) &&
+                !hasPrerequisite)
+            {
+                report.Warn(
+                    "恒久的な解放経路がありません: " + training.trainingId,
+                    training);
+            }
+            if (training.hideAfterCompletion &&
+                training.occurrenceType != TrainingOccurrenceType.OncePerSave)
+            {
+                report.Warn(
+                    "hideAfterCompletion は OncePerSave の訓練だけに設定してください: " +
+                    training.trainingId,
+                    training);
+            }
+        }
+
+        DetectTrainingPrerequisiteCycles(uniqueTrainings, report);
+    }
+
+    private static void ValidateConditionRankList(
+        TrainingConditionRank[] ranks,
+        string fieldName,
+        TrainingData training,
+        GameplayDataValidationReport report)
+    {
+        if (ranks == null) return;
+        HashSet<TrainingConditionRank> seen = new HashSet<TrainingConditionRank>();
+        foreach (TrainingConditionRank rank in ranks)
+        {
+            if (!Enum.IsDefined(typeof(TrainingConditionRank), rank))
+            {
+                report.Warn(
+                    fieldName + " に未定義の調子があります: " + (int)rank,
+                    training);
+            }
+            else if (!seen.Add(rank))
+            {
+                report.Warn(
+                    fieldName + " に同じ調子が重複しています: " + rank,
+                    training);
+            }
+        }
+    }
+
+    private static void ValidateConditionRankCompatibility(
+        TrainingData training,
+        GameplayDataValidationReport report)
+    {
+        TrainingConditionRank[] visible = training.visibleConditionRanks;
+        TrainingConditionRank[] executable = training.executableConditionRanks;
+        if (visible == null || visible.Length == 0 ||
+            executable == null || executable.Length == 0)
+        {
+            return;
+        }
+
+        HashSet<TrainingConditionRank> visibleSet =
+            new HashSet<TrainingConditionRank>(visible);
+        foreach (TrainingConditionRank rank in executable.Distinct())
+        {
+            if (!visibleSet.Contains(rank))
+            {
+                report.Warn(
+                    "実行可能な調子が表示条件に含まれていません: " +
+                    training.trainingId + " / " + rank,
+                    training);
+            }
+        }
+    }
+
+    private static void ValidatePrerequisites(
+        TrainingData training,
+        HashSet<string> knownIds,
+        GameplayDataValidationReport report)
+    {
+        if (training.requiredCompletedTrainingIds == null) return;
+        HashSet<string> seen = new HashSet<string>(StringComparer.Ordinal);
+        foreach (string prerequisiteId in training.requiredCompletedTrainingIds)
+        {
+            report.ReferenceCount++;
+            if (string.IsNullOrWhiteSpace(prerequisiteId))
+            {
+                report.Warn(
+                    "requiredCompletedTrainingIds に空のIDがあります: " +
+                    training.trainingId,
+                    training);
+            }
+            else if (!knownIds.Contains(prerequisiteId))
+            {
+                report.Warn(
+                    "存在しない前提訓練IDを参照しています: " + prerequisiteId,
+                    training);
+            }
+            else if (string.Equals(
+                training.trainingId,
+                prerequisiteId,
+                StringComparison.Ordinal))
+            {
+                report.Warn(
+                    "自分自身を前提訓練に指定しています: " + training.trainingId,
+                    training);
+            }
+            else if (!seen.Add(prerequisiteId))
+            {
+                report.Warn(
+                    "前提訓練IDが重複しています: " + prerequisiteId,
+                    training);
+            }
+        }
+    }
+
+    private static void DetectTrainingPrerequisiteCycles(
+        Dictionary<string, TrainingData> trainings,
+        GameplayDataValidationReport report)
+    {
+        Dictionary<string, int> states = new Dictionary<string, int>(StringComparer.Ordinal);
+        List<string> path = new List<string>();
+        HashSet<string> reportedCycles = new HashSet<string>(StringComparer.Ordinal);
+        foreach (string trainingId in trainings.Keys)
+        {
+            VisitTrainingPrerequisites(
+                trainingId,
+                trainings,
+                states,
+                path,
+                reportedCycles,
+                report);
+        }
+    }
+
+    private static void VisitTrainingPrerequisites(
+        string trainingId,
+        Dictionary<string, TrainingData> trainings,
+        Dictionary<string, int> states,
+        List<string> path,
+        HashSet<string> reportedCycles,
+        GameplayDataValidationReport report)
+    {
+        if (states.TryGetValue(trainingId, out int state))
+        {
+            if (state == 2) return;
+            if (state == 1)
+            {
+                int cycleStart = path.IndexOf(trainingId);
+                List<string> cycle = cycleStart >= 0
+                    ? path.GetRange(cycleStart, path.Count - cycleStart)
+                    : new List<string> { trainingId };
+                cycle.Add(trainingId);
+                string description = string.Join(" -> ", cycle.ToArray());
+                if (reportedCycles.Add(description))
+                {
+                    report.Warn(
+                        "前提訓練が循環しています: " + description,
+                        trainings[trainingId]);
+                }
+            }
+            return;
+        }
+
+        states[trainingId] = 1;
+        path.Add(trainingId);
+        TrainingData training = trainings[trainingId];
+        if (training.requiredCompletedTrainingIds != null)
+        {
+            foreach (string prerequisiteId in training.requiredCompletedTrainingIds)
+            {
+                if (!string.IsNullOrWhiteSpace(prerequisiteId) &&
+                    trainings.ContainsKey(prerequisiteId))
+                {
+                    VisitTrainingPrerequisites(
+                        prerequisiteId,
+                        trainings,
+                        states,
+                        path,
+                        reportedCycles,
+                        report);
+                }
+            }
+        }
+        path.RemoveAt(path.Count - 1);
+        states[trainingId] = 2;
     }
 
     private static void ValidateTrainingReference(

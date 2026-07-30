@@ -66,6 +66,60 @@ public class GameplayDataValidatorTests
     }
 
     [Test]
+    public void ValidateTrainingForTests_DetectsConditionalTrainingErrors()
+    {
+        TrainingData first = ValidTraining("First");
+        first.visibleConditionRanks = new[] { TrainingConditionRank.Excellent };
+        first.executableConditionRanks = new[]
+        {
+            TrainingConditionRank.Excellent,
+            TrainingConditionRank.Poor
+        };
+        first.requiredCompletedTrainingIds = new[] { "Second", "Missing" };
+
+        TrainingData second = ValidTraining("Second");
+        second.requiredCompletedTrainingIds = new[] { "First" };
+
+        TrainingData unreachable = ValidTraining("Unreachable");
+        unreachable.unlockedByDefault = false;
+        unreachable.hideAfterCompletion = true;
+
+        GameplayDataValidationReport report =
+            GameplayDataValidator.ValidateTrainingForTests(
+                new[] { first, second, unreachable },
+                null,
+                null,
+                null);
+
+        string[] warnings = report.Warnings.Select(value => value.Message).ToArray();
+        Assert.That(warnings.Any(value => value.Contains("表示条件")), Is.True);
+        Assert.That(warnings.Any(value => value.Contains("存在しない前提訓練ID")), Is.True);
+        Assert.That(warnings.Any(value => value.Contains("循環")), Is.True);
+        Assert.That(warnings.Any(value => value.Contains("解放経路")), Is.True);
+        Assert.That(warnings.Any(value => value.Contains("OncePerSave")), Is.True);
+    }
+
+    [Test]
+    public void ValidateTrainingForTests_AcceptsCompletionUnlockChain()
+    {
+        TrainingData first = ValidTraining("First");
+        first.occurrenceType = TrainingOccurrenceType.OncePerSave;
+
+        TrainingData followUp = ValidTraining("FollowUp");
+        followUp.unlockedByDefault = false;
+        followUp.requiredCompletedTrainingIds = new[] { "First" };
+
+        GameplayDataValidationReport report =
+            GameplayDataValidator.ValidateTrainingForTests(
+                new[] { first, followUp },
+                null,
+                null,
+                null);
+
+        Assert.That(report.Warnings.Select(value => value.Message), Is.Empty);
+    }
+
+    [Test]
     public void ValidateEnemyForTests_DetectsInvalidStatusSkillsAndMissingExplorationEnemy()
     {
         EnemyData enemy = Create<EnemyData>();
@@ -193,6 +247,18 @@ public class GameplayDataValidatorTests
         T value = ScriptableObject.CreateInstance<T>();
         createdObjects.Add(value);
         return value;
+    }
+
+    private TrainingData ValidTraining(string id)
+    {
+        TrainingData training = Create<TrainingData>();
+        training.trainingId = id;
+        training.trainingCategoryId = "Test";
+        training.displayName = id;
+        training.description = "Test training";
+        training.initialPlayerLp = 1;
+        training.initialHeroineLp = 1;
+        return training;
     }
 }
 #endif
