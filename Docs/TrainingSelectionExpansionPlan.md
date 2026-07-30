@@ -9,8 +9,10 @@
 - 不調・絶不調の日は一覧に表示するが実行できない訓練
 - スキルツリー、前提訓練、実績など複数の条件を持つ訓練
 
-この文書は将来計画であり、現時点の正本は `TrainingData`、`TrainingPanel`、
-`GameManager.IsTrainingUnlocked(...)` とする。
+この文書は段階実装計画であり、現時点の正本は `TrainingData`、`TrainingPanel`、
+`GameManager.IsTrainingUnlocked(...)` とする。一覧の選択・詳細・開始分離、
+実行可能フィルター、安定ソート、選択枠のコード接続は実装済み。
+Scene上のScrollRectと詳細UI配置、調子・一回限定・前提完了条件は未実装である。
 
 ## 現状
 
@@ -278,6 +280,8 @@ AssetToolはゲームバランスを編集せず、`training_catalog_from_unity.
 ## 実装順
 
 1. `ScrollRect`、詳細欄、絞り込みを追加し、既存データだけで大量表示へ対応する
+   - コード接続、実行可能フィルター、安定ソート、選択枠は実装済み
+   - Scene上のUI配置と参照設定は未実施
 2. `TrainingAvailabilityEvaluator` と調子による表示・実行条件を追加する
 3. 完了レコードをセーブし、一回限定と前提訓練チェーンを追加する
 4. Validator、セーブ回帰テスト、評価ロジックテストを追加する

@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -14,6 +15,16 @@ public class TrainingPanel : MonoBehaviour
     [SerializeField] private Transform trainingListParent;
     [SerializeField] private Button trainingButtonPrefab;
     [SerializeField] private TextMeshProUGUI emptyText;
+    [SerializeField] private Toggle availableOnlyToggle;
+
+    [Header("Training Details")]
+    [SerializeField] private TextMeshProUGUI detailNameText;
+    [SerializeField] private TextMeshProUGUI detailDescriptionText;
+    [SerializeField] private TextMeshProUGUI detailCostText;
+    [SerializeField] private TextMeshProUGUI detailRewardText;
+    [SerializeField] private TextMeshProUGUI detailRequirementText;
+    [SerializeField] private Button startButton;
+    [SerializeField] private Color selectedTrainingOutlineColor = new Color(1f, 0.82f, 0.2f, 1f);
 
     [Header("Status")]
     [SerializeField] private TextMeshProUGUI trainingNameText;
@@ -41,12 +52,15 @@ public class TrainingPanel : MonoBehaviour
 
     private readonly List<TrainingData> trainings = new List<TrainingData>();
     private readonly List<GameObject> trainingButtons = new List<GameObject>();
+    private readonly Dictionary<TrainingData, Outline> trainingButtonOutlines =
+        new Dictionary<TrainingData, Outline>();
     private readonly List<string> logLines = new List<string>();
     private readonly List<SkillData> activePlayerTrainingSkills = new List<SkillData>();
     private readonly List<SkillData> activeHeroineTrainingSkills = new List<SkillData>();
     private BattleStatusData playerBattleStatus;
     private BattleStatusData heroineBattleStatus;
     private TrainingData currentTraining;
+    private TrainingData selectedTraining;
     private TrainingSessionState currentState;
     private TrainingStepModifiers activeTrainingSkillModifiers =
         new TrainingStepModifiers();
@@ -113,6 +127,7 @@ public class TrainingPanel : MonoBehaviour
         currentTrainingCondition = TrainingConditionResolver.Resolve(
             gameManager != null ? gameManager.CurrentDay : 1);
         currentTraining = null;
+        selectedTraining = null;
         currentState = null;
         trainingImageData = LoadTrainingImageData();
         trainingDialogueData = LoadTrainingDialogueData();
@@ -129,6 +144,7 @@ public class TrainingPanel : MonoBehaviour
 
         PanelRoot.SetActive(true);
         RefreshTrainingList();
+        SelectInitialTrainingForDetails();
         RefreshStatus();
     }
 
@@ -197,6 +213,26 @@ public class TrainingPanel : MonoBehaviour
             ? TrainingVisualState.SelectedAfterFirstStep
             : TrainingVisualState.SelectedBeforeFirstStep);
         RefreshStatus();
+        RefreshTrainingButtonSelection();
+    }
+
+    private void SelectTrainingForDetails(TrainingData training)
+    {
+        selectedTraining = training;
+        RefreshTrainingDetails();
+        RefreshTrainingButtonSelection();
+        RefreshStatus();
+    }
+
+    private void StartSelectedTraining()
+    {
+        if (selectedTraining == null || !IsTrainingAvailable(selectedTraining))
+        {
+            RefreshTrainingDetails();
+            return;
+        }
+
+        SelectTraining(selectedTraining);
     }
 
     private void AddTrainingPreviewLogs(TrainingData training)
@@ -564,11 +600,18 @@ public class TrainingPanel : MonoBehaviour
         ClearTrainingButtons();
         HideTemplateButton();
 
-        bool hasTrainings = trainings.Count > 0;
+        bool availableOnly = availableOnlyToggle != null && availableOnlyToggle.isOn;
+        List<TrainingData> displayTrainings = TrainingListPresentation.CreateDisplayList(
+            trainings,
+            IsTrainingAvailable,
+            availableOnly);
+        bool hasTrainings = displayTrainings.Count > 0;
         if (emptyText != null)
         {
             emptyText.gameObject.SetActive(!hasTrainings);
-            emptyText.text = emptyMessage;
+            emptyText.text = availableOnly && trainings.Count > 0
+                ? "現在実行できる訓練がありません。"
+                : emptyMessage;
         }
 
         if (!hasTrainings || trainingListParent == null || trainingButtonPrefab == null)
@@ -581,10 +624,17 @@ public class TrainingPanel : MonoBehaviour
             return;
         }
 
-        for (int i = 0; i < trainings.Count; i++)
+        for (int i = 0; i < displayTrainings.Count; i++)
         {
-            CreateTrainingButton(trainings[i]);
+            CreateTrainingButton(displayTrainings[i]);
         }
+
+        if (selectedTraining != null && !displayTrainings.Contains(selectedTraining))
+        {
+            selectedTraining = null;
+        }
+        RefreshTrainingButtonSelection();
+        RefreshTrainingDetails();
     }
 
     private void CreateTrainingButton(TrainingData training)
@@ -593,7 +643,7 @@ public class TrainingPanel : MonoBehaviour
         button.gameObject.SetActive(true);
         trainingButtons.Add(button.gameObject);
 
-        bool isUnlocked = gameManager == null || gameManager.IsTrainingUnlocked(training);
+        bool isUnlocked = IsTrainingAvailable(training);
 
         TMP_Text buttonText = button.GetComponentInChildren<TMP_Text>();
         if (buttonText != null)
@@ -611,11 +661,27 @@ public class TrainingPanel : MonoBehaviour
         }
 
         button.onClick.RemoveAllListeners();
-        button.interactable = isUnlocked;
-        if (isUnlocked)
+        bool useDetails = startButton != null;
+        button.interactable = useDetails || isUnlocked;
+        if (useDetails)
+        {
+            button.onClick.AddListener(() => SelectTrainingForDetails(training));
+        }
+        else if (isUnlocked)
         {
             button.onClick.AddListener(() => SelectTraining(training));
         }
+
+        Outline outline = button.GetComponent<Outline>();
+        if (outline == null)
+        {
+            outline = button.gameObject.AddComponent<Outline>();
+        }
+        outline.effectColor = selectedTrainingOutlineColor;
+        outline.effectDistance = new Vector2(3f, -3f);
+        outline.useGraphicAlpha = true;
+        outline.enabled = false;
+        trainingButtonOutlines[training] = outline;
     }
 
     private void RefreshStatus()
@@ -680,7 +746,134 @@ public class TrainingPanel : MonoBehaviour
             quitButton.interactable = canAdvance;
         }
 
+        RefreshTrainingDetails();
         RefreshVoiceReplayButton();
+    }
+
+    private bool IsTrainingAvailable(TrainingData training)
+    {
+        return training != null &&
+            (gameManager == null || gameManager.IsTrainingUnlocked(training));
+    }
+
+    private void SelectInitialTrainingForDetails()
+    {
+        if (startButton == null)
+        {
+            return;
+        }
+
+        List<TrainingData> displayTrainings = TrainingListPresentation.CreateDisplayList(
+            trainings,
+            IsTrainingAvailable,
+            availableOnlyToggle != null && availableOnlyToggle.isOn);
+        selectedTraining = displayTrainings.Count > 0 ? displayTrainings[0] : null;
+        RefreshTrainingButtonSelection();
+        RefreshTrainingDetails();
+    }
+
+    private void RefreshTrainingButtonSelection()
+    {
+        foreach (KeyValuePair<TrainingData, Outline> pair in trainingButtonOutlines)
+        {
+            if (pair.Value != null)
+            {
+                pair.Value.enabled = pair.Key == selectedTraining;
+            }
+        }
+    }
+
+    private void RefreshTrainingDetails()
+    {
+        TrainingData training = selectedTraining;
+        bool available = IsTrainingAvailable(training);
+        if (detailNameText != null)
+        {
+            detailNameText.text = training != null
+                ? FormatTrainingNameWithProficiency(training)
+                : noTrainingLabel;
+        }
+        if (detailDescriptionText != null)
+        {
+            detailDescriptionText.text = training != null &&
+                !string.IsNullOrWhiteSpace(training.description)
+                ? training.description
+                : "説明はありません。";
+        }
+        if (detailCostText != null)
+        {
+            detailCostText.text = training != null
+                ? BuildTrainingCostDetails(training)
+                : "消費: -";
+        }
+        if (detailRewardText != null)
+        {
+            detailRewardText.text = training != null
+                ? BuildTrainingRewardDetails(training)
+                : "報酬: -";
+        }
+        if (detailRequirementText != null)
+        {
+            detailRequirementText.text = training == null
+                ? "訓練を選択してください。"
+                : available
+                    ? "実行可能"
+                    : "未解放: " + (gameManager != null
+                        ? gameManager.GetTrainingUnlockRequirementLabel(training)
+                        : "条件を確認できません");
+        }
+        if (startButton != null)
+        {
+            bool canStart = training != null &&
+                available &&
+                (currentState == null ||
+                    (!currentState.isFinished && currentTraining != training));
+            startButton.interactable = canStart;
+            TMP_Text label = startButton.GetComponentInChildren<TMP_Text>();
+            if (label != null)
+            {
+                label.text = currentState == null ? "この訓練を開始" : "この訓練に切替";
+            }
+        }
+    }
+
+    private string BuildTrainingCostDetails(TrainingData training)
+    {
+        TrainingStepModifiers modifiers = TrainingStepModifiers.Create(
+            training,
+            activePlayerTrainingSkills,
+            activeHeroineTrainingSkills);
+        modifiers.condition = currentTrainingCondition;
+        TrainingStepResult preview = TrainingSessionState.CalculateStepResult(
+            training,
+            modifiers);
+        int displayedMaxSteps = currentState != null
+            ? currentState.maxSteps
+            : training.maxSteps;
+        return "1ステップ消費: 主人公HP " + preview.playerHpCost +
+            " / ヒロインHP " + preview.heroineHpCost +
+            "\n初期LP: 主人公 " + Mathf.Max(0, training.initialPlayerLp) +
+            " / ヒロイン " + Mathf.Max(0, training.initialHeroineLp) +
+            "\n最大ステップ（開始時固定）: " +
+            (displayedMaxSteps > 0 ? displayedMaxSteps.ToString() : "制限なし");
+    }
+
+    private string BuildTrainingRewardDetails(TrainingData training)
+    {
+        TrainingStepModifiers modifiers = TrainingStepModifiers.Create(
+            training,
+            activePlayerTrainingSkills,
+            activeHeroineTrainingSkills);
+        modifiers.condition = currentTrainingCondition;
+        TrainingStepResult preview = TrainingSessionState.CalculateStepResult(
+            training,
+            modifiers);
+        return "ステップ報酬: 好感度 " + preview.affectionReward +
+            " / 熟練度 " + preview.trainingProficiencyReward +
+            "\n完了報酬: 好感度 " + Mathf.Max(0, training.affectionReward) +
+            " / 熟練度 " + Mathf.Max(0, training.trainingProficiencyReward) +
+            "\nスキルポイント: 主人公 " + Mathf.Max(0, training.playerSkillPointReward) +
+            " / ヒロイン " + Mathf.Max(0, training.heroineSkillPointReward);
     }
 
     private void AddLog(string message)
@@ -789,6 +982,7 @@ public class TrainingPanel : MonoBehaviour
         }
 
         trainingButtons.Clear();
+        trainingButtonOutlines.Clear();
     }
 
     private void HideTemplateButton()
@@ -833,6 +1027,22 @@ public class TrainingPanel : MonoBehaviour
         {
             emptyText = FindText("EmptyText");
         }
+
+        if (availableOnlyToggle == null)
+        {
+            Transform toggleTransform = FindChildRecursive(transform, "AvailableOnlyToggle");
+            if (toggleTransform != null)
+            {
+                availableOnlyToggle = toggleTransform.GetComponent<Toggle>();
+            }
+        }
+
+        if (detailNameText == null) detailNameText = FindText("TrainingDetailNameText");
+        if (detailDescriptionText == null) detailDescriptionText = FindText("TrainingDescriptionText");
+        if (detailCostText == null) detailCostText = FindText("TrainingCostText");
+        if (detailRewardText == null) detailRewardText = FindText("TrainingRewardText");
+        if (detailRequirementText == null) detailRequirementText = FindText("TrainingRequirementText");
+        if (startButton == null) startButton = FindButton("TrainingStartButton");
 
         if (trainingNameText == null)
         {
@@ -918,6 +1128,18 @@ public class TrainingPanel : MonoBehaviour
             advanceButton.onClick.AddListener(AdvanceStep);
         }
 
+        if (startButton != null)
+        {
+            startButton.onClick.RemoveListener(StartSelectedTraining);
+            startButton.onClick.AddListener(StartSelectedTraining);
+        }
+
+        if (availableOnlyToggle != null)
+        {
+            availableOnlyToggle.onValueChanged.RemoveListener(OnAvailableOnlyChanged);
+            availableOnlyToggle.onValueChanged.AddListener(OnAvailableOnlyChanged);
+        }
+
         if (quitButton != null)
         {
             quitButton.onClick.RemoveListener(InterruptTraining);
@@ -934,6 +1156,15 @@ public class TrainingPanel : MonoBehaviour
         {
             voiceReplayButton.onClick.RemoveListener(ReplayCurrentVoice);
             voiceReplayButton.onClick.AddListener(ReplayCurrentVoice);
+        }
+    }
+
+    private void OnAvailableOnlyChanged(bool value)
+    {
+        RefreshTrainingList();
+        if (selectedTraining == null)
+        {
+            SelectInitialTrainingForDetails();
         }
     }
 
@@ -972,5 +1203,64 @@ public class TrainingPanel : MonoBehaviour
         }
 
         return null;
+    }
+}
+
+public static class TrainingListPresentation
+{
+    public static List<TrainingData> CreateDisplayList(
+        IEnumerable<TrainingData> source,
+        Func<TrainingData, bool> isAvailable,
+        bool availableOnly)
+    {
+        List<TrainingData> result = new List<TrainingData>();
+        if (source != null)
+        {
+            foreach (TrainingData training in source)
+            {
+                if (training == null)
+                {
+                    continue;
+                }
+
+                bool available = isAvailable == null || isAvailable(training);
+                if (!availableOnly || available)
+                {
+                    result.Add(training);
+                }
+            }
+        }
+
+        result.Sort((left, right) =>
+        {
+            bool leftAvailable = isAvailable == null || isAvailable(left);
+            bool rightAvailable = isAvailable == null || isAvailable(right);
+            int availableComparison = rightAvailable.CompareTo(leftAvailable);
+            if (availableComparison != 0)
+            {
+                return availableComparison;
+            }
+
+            int orderComparison = left.sortOrder.CompareTo(right.sortOrder);
+            if (orderComparison != 0)
+            {
+                return orderComparison;
+            }
+
+            int nameComparison = string.Compare(
+                left.GetDisplayName(),
+                right.GetDisplayName(),
+                StringComparison.Ordinal);
+            if (nameComparison != 0)
+            {
+                return nameComparison;
+            }
+
+            return string.Compare(
+                left.trainingId,
+                right.trainingId,
+                StringComparison.Ordinal);
+        });
+        return result;
     }
 }

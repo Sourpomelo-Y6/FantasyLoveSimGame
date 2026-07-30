@@ -7,6 +7,8 @@ public class TrainingData : ScriptableObject
     public string trainingId = "Training";
     public string trainingCategoryId = "General";
     public string displayName = "訓練";
+    [Tooltip("訓練一覧内の表示順。小さい値を先に表示します。")]
+    public int sortOrder;
     [Tooltip("スキルツリーノードを取得しなくても最初から選択できる訓練。")]
     public bool unlockedByDefault = true;
 
