@@ -2433,19 +2433,43 @@ public class GameManager : MonoBehaviour
 
     public void CaptureSaveThumbnailPreview()
     {
+        CaptureSaveThumbnailPreview(null);
+    }
+
+    public void CaptureSaveThumbnailPreview(Action onCompleted)
+    {
+        StartCoroutine(CaptureSaveThumbnailPreviewAtEndOfFrame(onCompleted));
+    }
+
+    private IEnumerator CaptureSaveThumbnailPreviewAtEndOfFrame(Action onCompleted)
+    {
+        // ScreenCapture は描画途中に呼ぶと、Game View と Render Target のサイズが
+        // 一致せず失敗することがあるため、必ずフレーム末尾まで待つ。
+        yield return new WaitForEndOfFrame();
+
         ClearPendingSaveThumbnail();
 
-        Texture2D screenshot = ScreenCapture.CaptureScreenshotAsTexture();
-        if (screenshot == null)
+        Texture2D screenshot = null;
+        try
         {
-            return;
+            screenshot = ScreenCapture.CaptureScreenshotAsTexture();
+            if (screenshot != null)
+            {
+                pendingSaveThumbnail = CreateScaledTexture(
+                    screenshot,
+                    SaveThumbnailWidth,
+                    SaveThumbnailHeight);
+            }
         }
+        finally
+        {
+            if (screenshot != null)
+            {
+                Destroy(screenshot);
+            }
 
-        pendingSaveThumbnail = CreateScaledTexture(
-            screenshot,
-            SaveThumbnailWidth,
-            SaveThumbnailHeight);
-        Destroy(screenshot);
+            onCompleted?.Invoke();
+        }
     }
 
     public void ClearSaveThumbnailPreview()

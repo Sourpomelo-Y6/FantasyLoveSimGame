@@ -92,9 +92,16 @@ public class SaveLoadPanel : MonoBehaviour
 
         if (gameManager != null)
         {
-            gameManager.CaptureSaveThumbnailPreview();
+            // 保存パネルがサムネイルへ写り込まないよう、撮影完了後に開く。
+            gameManager.CaptureSaveThumbnailPreview(OpenSavePanel);
+            return;
         }
 
+        OpenSavePanel();
+    }
+
+    private void OpenSavePanel()
+    {
         currentMode = SaveLoadPanelMode.Save;
         ClearPendingAction();
         ApplyModeVisuals();
