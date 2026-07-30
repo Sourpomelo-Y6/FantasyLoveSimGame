@@ -89,7 +89,12 @@ public class EndingManager : MonoBehaviour
         }
         if (stillImage != null)
         {
-            Sprite sprite = page != null ? page.stillSprite : null;
+            Sprite sprite = ResolveCurrentStill(page);
+            if (currentEnding != null &&
+                currentEnding.visualMode == EndingVisualMode.PortraitOnly)
+            {
+                sprite = null;
+            }
             stillImage.sprite = sprite;
             stillImage.gameObject.SetActive(sprite != null);
             stillImage.preserveAspect = true;
@@ -204,7 +209,35 @@ public class EndingManager : MonoBehaviour
         }
 
         layeredSpriteView.SetData(layeredSpriteData);
-        layeredSpriteView.SetVisible(true);
+        bool showPortrait = currentEnding == null ||
+            currentEnding.visualMode == EndingVisualMode.Auto ||
+            currentEnding.visualMode == EndingVisualMode.StillWithPortrait ||
+            currentEnding.visualMode == EndingVisualMode.PortraitOnly;
+        layeredSpriteView.SetVisible(showPortrait);
+    }
+
+    private Sprite ResolveCurrentStill(EndingPageData page)
+    {
+        if (page != null && page.stillSprite != null)
+        {
+            return page.stillSprite;
+        }
+
+        if (currentEnding == null || !currentEnding.keepStillAcrossPages)
+        {
+            return null;
+        }
+
+        for (int i = Mathf.Min(currentPageIndex - 1, currentPages.Count - 1); i >= 0; i--)
+        {
+            EndingPageData previousPage = currentPages[i];
+            if (previousPage != null && previousPage.stillSprite != null)
+            {
+                return previousPage.stillSprite;
+            }
+        }
+
+        return currentEnding.stillSprite;
     }
 
     private EndingData FindSelectedEndingData()

@@ -2535,6 +2535,8 @@ public static class HeroineAssetImporter
         ending.displayName = string.IsNullOrWhiteSpace(item.title) ? item.id : item.title;
         ending.message = JoinLineTexts(item.lines);
         ending.stillSprite = ResolveFirstSprite(item.imageAssetIds, spritesByAssetId, report);
+        ending.visualMode = ParseEnumOrDefault(item.visualMode, EndingVisualMode.Auto);
+        ending.keepStillAcrossPages = item.keepStillAcrossPages;
         ending.pages = CreateEndingPages(item, spritesByAssetId, report);
         ending.requiredAffection = Math.Max(0, conditions.minAffection);
         ending.costumeId = conditions.costumeId ?? string.Empty;
@@ -3155,6 +3157,8 @@ public static class HeroineAssetImporter
         public EndingExportConditions conditions;
         public ConversationExportLine[] lines;
         public string[] imageAssetIds;
+        public string visualMode;
+        public bool keepStillAcrossPages;
         public int priority;
         public string memo;
     }

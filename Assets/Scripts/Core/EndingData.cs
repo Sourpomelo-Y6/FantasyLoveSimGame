@@ -2,6 +2,14 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 
+public enum EndingVisualMode
+{
+    Auto,
+    StillOnly,
+    StillWithPortrait,
+    PortraitOnly
+}
+
 [Serializable]
 public class EndingPageData
 {
@@ -31,6 +39,11 @@ public class EndingData : ScriptableObject
     public string message = "好感度MAXエンドです。あなたと過ごした日々を、私は忘れません。";
 
     public Sprite stillSprite;
+
+    [Header("Visual")]
+    public EndingVisualMode visualMode = EndingVisualMode.Auto;
+    [Tooltip("ページ個別のスチルが空の場合も、直前または代表スチルを継続表示します。")]
+    public bool keepStillAcrossPages;
 
     [Header("Pages")]
     [Tooltip("1件以上あればこちらを使用します。空の場合は旧message/stillSpriteを1ページとして表示します。")]

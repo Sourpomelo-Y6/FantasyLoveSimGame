@@ -719,6 +719,8 @@ public static class HeroineUnityDataExporter
             },
             lines = CreateEndingLines(ending),
             imageAssetIds = CreateEndingImageAssetIds(ending, report),
+            visualMode = ending.visualMode.ToString(),
+            keepStillAcrossPages = ending.keepStillAcrossPages,
             priority = ending.requiredAffection,
             requiredAffection = ending.requiredAffection,
             requiredShownEventIds = CreateStringArrayList(ending.requiredShownEventIds),
@@ -1736,6 +1738,8 @@ public static class HeroineUnityDataExporter
         public EndingFromUnityConditions conditions;
         public List<FromUnityLine> lines;
         public List<string> imageAssetIds;
+        public string visualMode;
+        public bool keepStillAcrossPages;
         public int priority;
         public int requiredAffection;
         public List<string> requiredShownEventIds;
