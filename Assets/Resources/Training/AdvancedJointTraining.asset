@@ -1,0 +1,40 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 52205cafcff744758cf5fcfe24ba5b92, type: 3}
+  m_Name: AdvancedJointTraining
+  m_EditorClassIdentifier:
+  trainingId: AdvancedJointTraining
+  trainingCategoryId: Coordination
+  displayName: "\u9023\u643A\u5F37\u5316\u8A13\u7DF4"
+  sortOrder: -90
+  unlockedByDefault: 0
+  description: "\u521D\u3081\u3066\u306E\u5408\u540C\u8A13\u7DF4\u3092\u6210\u529F\u5B8C\u4E86\u3057\u305F\u5F8C\u306B\u89E3\u653E\u3055\u308C\u308B\u3001\u4E8C\u4EBA\u306E\u9023\u643A\u3092\u9AD8\u3081\u308B\u53CD\u5FA9\u53EF\u80FD\u306A\u8A13\u7DF4\u3002"
+  visibleConditionRanks: []
+  executableConditionRanks: []
+  occurrenceType: 0
+  requiredCompletedTrainingIds:
+  - FirstJointTraining
+  requireAllCompletedTrainings: 1
+  hideUntilPrerequisitesMet: 1
+  hideAfterCompletion: 0
+  playerHpCostPerStep: 11
+  heroineHpCostPerStep: 11
+  initialPlayerLp: 2
+  initialHeroineLp: 2
+  maxSteps: 15
+  affectionRewardPerStep: 1
+  affectionReward: 15
+  trainingProficiencyRewardPerStep: 1
+  trainingProficiencyReward: 3
+  playerSkillPointReward: 2
+  heroineSkillPointReward: 2
+  simultaneousKnockoutBonus: 15
