@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 
 [Serializable]
 public enum TrainingConditionRank
@@ -152,5 +153,166 @@ public static class TrainingConditionResolver
         }
 
         return condition;
+    }
+}
+
+public enum TrainingAvailabilityState
+{
+    Hidden,
+    Disabled,
+    Available
+}
+
+/// <summary>
+/// 訓練の表示・実行可否。UIへ依存しないため、予定画面や検証でも共有できる。
+/// </summary>
+public sealed class TrainingAvailability
+{
+    public TrainingAvailabilityState state;
+    public readonly List<string> reasons = new List<string>();
+
+    public bool IsVisible
+    {
+        get { return state != TrainingAvailabilityState.Hidden; }
+    }
+
+    public bool CanExecute
+    {
+        get { return state == TrainingAvailabilityState.Available; }
+    }
+
+    public string ReasonText
+    {
+        get { return string.Join(" / ", reasons.ToArray()); }
+    }
+}
+
+public static class TrainingAvailabilityEvaluator
+{
+    public static TrainingAvailability Evaluate(
+        TrainingData training,
+        TrainingConditionRank conditionRank,
+        bool permanentlyUnlocked,
+        Func<string, bool> isTrainingCompleted)
+    {
+        TrainingAvailability result = new TrainingAvailability
+        {
+            state = TrainingAvailabilityState.Available
+        };
+        if (training == null)
+        {
+            result.state = TrainingAvailabilityState.Hidden;
+            result.reasons.Add("訓練データがありません");
+            return result;
+        }
+
+        if (!ContainsOrUnrestricted(training.visibleConditionRanks, conditionRank))
+        {
+            result.state = TrainingAvailabilityState.Hidden;
+            result.reasons.Add("本日の調子では出現しません");
+            return result;
+        }
+
+        bool prerequisitesMet = ArePrerequisitesMet(training, isTrainingCompleted);
+        if (!prerequisitesMet && training.hideUntilPrerequisitesMet)
+        {
+            result.state = TrainingAvailabilityState.Hidden;
+            result.reasons.Add("前提訓練が未完了です");
+            return result;
+        }
+
+        bool completed = IsCompleted(training.trainingId, isTrainingCompleted);
+        if (training.occurrenceType == TrainingOccurrenceType.OncePerSave &&
+            completed &&
+            training.hideAfterCompletion)
+        {
+            result.state = TrainingAvailabilityState.Hidden;
+            result.reasons.Add("完了済みです");
+            return result;
+        }
+
+        if (!permanentlyUnlocked)
+        {
+            result.reasons.Add("恒久解放条件を満たしていません");
+        }
+        if (!prerequisitesMet)
+        {
+            result.reasons.Add("前提訓練が未完了です");
+        }
+        if (training.occurrenceType == TrainingOccurrenceType.OncePerSave && completed)
+        {
+            result.reasons.Add("一回限定訓練は完了済みです");
+        }
+        if (!ContainsOrUnrestricted(training.executableConditionRanks, conditionRank))
+        {
+            result.reasons.Add("本日の調子では実行できません");
+        }
+
+        if (result.reasons.Count > 0)
+        {
+            result.state = TrainingAvailabilityState.Disabled;
+        }
+        return result;
+    }
+
+    private static bool ArePrerequisitesMet(
+        TrainingData training,
+        Func<string, bool> isTrainingCompleted)
+    {
+        string[] requiredIds = training.requiredCompletedTrainingIds;
+        if (requiredIds == null || requiredIds.Length == 0)
+        {
+            return true;
+        }
+
+        bool foundValidId = false;
+        for (int i = 0; i < requiredIds.Length; i++)
+        {
+            if (string.IsNullOrWhiteSpace(requiredIds[i]))
+            {
+                continue;
+            }
+
+            foundValidId = true;
+            bool completed = IsCompleted(requiredIds[i], isTrainingCompleted);
+            if (training.requireAllCompletedTrainings && !completed)
+            {
+                return false;
+            }
+            if (!training.requireAllCompletedTrainings && completed)
+            {
+                return true;
+            }
+        }
+
+        return training.requireAllCompletedTrainings || !foundValidId;
+    }
+
+    private static bool IsCompleted(
+        string trainingId,
+        Func<string, bool> isTrainingCompleted)
+    {
+        return !string.IsNullOrWhiteSpace(trainingId) &&
+            isTrainingCompleted != null &&
+            isTrainingCompleted(trainingId);
+    }
+
+    private static bool ContainsOrUnrestricted(
+        TrainingConditionRank[] ranks,
+        TrainingConditionRank value)
+    {
+        if (ranks == null || ranks.Length == 0)
+        {
+            return true;
+        }
+
+        for (int i = 0; i < ranks.Length; i++)
+        {
+            if (ranks[i] == value)
+            {
+                return true;
+            }
+        }
+        return false;
     }
 }

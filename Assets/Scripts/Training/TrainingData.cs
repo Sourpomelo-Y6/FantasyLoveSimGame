@@ -1,5 +1,11 @@
 using UnityEngine;
 
+public enum TrainingOccurrenceType
+{
+    Repeatable,
+    OncePerSave
+}
+
 [CreateAssetMenu(menuName = "LoveSim/Training Data")]
 public class TrainingData : ScriptableObject
 {
@@ -14,6 +20,23 @@ public class TrainingData : ScriptableObject
 
     [TextArea(2, 5)]
     public string description;
+
+    [Header("Availability")]
+    [Tooltip("空の場合は、すべての調子で一覧に表示します。")]
+    public TrainingConditionRank[] visibleConditionRanks =
+        new TrainingConditionRank[0];
+    [Tooltip("空の場合は、すべての調子で実行できます。")]
+    public TrainingConditionRank[] executableConditionRanks =
+        new TrainingConditionRank[0];
+    public TrainingOccurrenceType occurrenceType = TrainingOccurrenceType.Repeatable;
+    [Tooltip("成功完了している必要がある訓練ID。")]
+    public string[] requiredCompletedTrainingIds = new string[0];
+    [Tooltip("オンならすべて、オフならいずれか1つの前提完了を要求します。")]
+    public bool requireAllCompletedTrainings = true;
+    [Tooltip("前提未達の間、一覧から隠します。")]
+    public bool hideUntilPrerequisitesMet = true;
+    [Tooltip("一回限定の成功完了後、一覧から隠します。")]
+    public bool hideAfterCompletion;
 
     [Header("Step Cost")]
     public int playerHpCostPerStep = 10;

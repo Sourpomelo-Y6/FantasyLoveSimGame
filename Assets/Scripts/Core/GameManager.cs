@@ -3115,8 +3115,53 @@ public class GameManager : MonoBehaviour
 
     public bool ShouldShowTraining(TrainingData training)
     {
-        return training != null &&
-            (training.unlockedByDefault || GetTrainingUnlockNodes(training.trainingId).Count > 0);
+        if (training == null)
+        {
+            return false;
+        }
+
+        bool hasPermanentUnlockPath =
+            training.unlockedByDefault ||
+            GetTrainingUnlockNodes(training.trainingId).Count > 0 ||
+            (training.requiredCompletedTrainingIds != null &&
+                training.requiredCompletedTrainingIds.Length > 0);
+        return hasPermanentUnlockPath &&
+            EvaluateTrainingAvailability(training).IsVisible;
+    }
+
+    public TrainingAvailability EvaluateTrainingAvailability(TrainingData training)
+    {
+        TrainingCondition condition = TrainingConditionResolver.Resolve(CurrentDay);
+        bool hasCompletionUnlockPath = training != null &&
+            training.requiredCompletedTrainingIds != null &&
+            training.requiredCompletedTrainingIds.Length > 0;
+        return TrainingAvailabilityEvaluator.Evaluate(
+            training,
+            condition.rank,
+            IsTrainingUnlocked(training) || hasCompletionUnlockPath,
+            IsTrainingCompleted);
+    }
+
+    public bool IsTrainingCompleted(string trainingId)
+    {
+        if (string.IsNullOrWhiteSpace(trainingId) ||
+            skillProgressStats.trainingCompletionRecords == null)
+        {
+            return false;
+        }
+
+        for (int i = 0; i < skillProgressStats.trainingCompletionRecords.Count; i++)
+        {
+            TrainingCompletionRecord record =
+                skillProgressStats.trainingCompletionRecords[i];
+            if (record != null &&
+                record.completionCount > 0 &&
+                string.Equals(record.trainingId, trainingId, StringComparison.Ordinal))
+            {
+                return true;
+            }
+        }
+        return false;
     }
 
     public bool IsTrainingUnlocked(TrainingData training)
@@ -4585,6 +4630,48 @@ public class GameManager : MonoBehaviour
             "[SkillProgress] Training=" + skillProgressStats.totalTrainingCount +
             " / PlayerLp=" + skillProgressStats.playerLpConsumedCount +
             " / OpponentLp=" + skillProgressStats.opponentLpConsumedCount);
+
+        RecordTrainingCompletion(result);
+    }
+
+    private void RecordTrainingCompletion(TrainingResult result)
+    {
+        if (result == null ||
+            result.elapsedSteps <= 0 ||
+            !result.isFinished ||
+            result.wasInterrupted ||
+            string.IsNullOrWhiteSpace(result.trainingId))
+        {
+            return;
+        }
+
+        TrainingCompletionRecord record = null;
+        for (int i = 0; i < skillProgressStats.trainingCompletionRecords.Count; i++)
+        {
+            TrainingCompletionRecord candidate =
+                skillProgressStats.trainingCompletionRecords[i];
+            if (candidate != null && string.Equals(
+                candidate.trainingId,
+                result.trainingId,
+                StringComparison.Ordinal))
+            {
+                record = candidate;
+                break;
+            }
+        }
+
+        if (record == null)
+        {
+            record = new TrainingCompletionRecord
+            {
+                trainingId = result.trainingId,
+                firstCompletedDay = Mathf.Max(1, CurrentDay)
+            };
+            skillProgressStats.trainingCompletionRecords.Add(record);
+        }
+
+        record.completionCount++;
+        record.lastCompletedDay = Mathf.Max(1, CurrentDay);
     }
 
     private TrainingProgressStatEntry GetOrCreateTrainingProgressStat(string trainingId)

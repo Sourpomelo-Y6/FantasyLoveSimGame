@@ -4,7 +4,7 @@ using System.Collections.Generic;
 [Serializable]
 public class SaveData
 {
-    public const int CurrentVersion = 19;
+    public const int CurrentVersion = 20;
     public int saveVersion = CurrentVersion;
     public int saveSlotIndex;
     public string savedAt;
@@ -100,6 +100,8 @@ public class SkillProgressStats
     public List<TrainingCategoryProgressStatEntry> trainingCategoryStats =
         new List<TrainingCategoryProgressStatEntry>();
     public List<EnemyDefeatStatEntry> enemyDefeatStats = new List<EnemyDefeatStatEntry>();
+    public List<TrainingCompletionRecord> trainingCompletionRecords =
+        new List<TrainingCompletionRecord>();
 
     public SkillProgressStats Clone()
     {
@@ -114,6 +116,7 @@ public class SkillProgressStats
         CopyTrainingStats(trainingStats, copy.trainingStats);
         CopyCategoryStats(trainingCategoryStats, copy.trainingCategoryStats);
         CopyEnemyStats(enemyDefeatStats, copy.enemyDefeatStats);
+        CopyCompletionRecords(trainingCompletionRecords, copy.trainingCompletionRecords);
         return copy;
     }
 
@@ -126,6 +129,7 @@ public class SkillProgressStats
         trainingStats.Clear();
         trainingCategoryStats.Clear();
         enemyDefeatStats.Clear();
+        trainingCompletionRecords.Clear();
         if (source == null)
         {
             return;
@@ -134,6 +138,7 @@ public class SkillProgressStats
         CopyTrainingStats(source.trainingStats, trainingStats);
         CopyCategoryStats(source.trainingCategoryStats, trainingCategoryStats);
         CopyEnemyStats(source.enemyDefeatStats, enemyDefeatStats);
+        CopyCompletionRecords(source.trainingCompletionRecords, trainingCompletionRecords);
     }
 
     private static void CopyTrainingStats(
@@ -190,6 +195,34 @@ public class SkillProgressStats
             });
         }
     }
+
+    private static void CopyCompletionRecords(
+        List<TrainingCompletionRecord> source,
+        List<TrainingCompletionRecord> destination)
+    {
+        if (source == null) return;
+        for (int i = 0; i < source.Count; i++)
+        {
+            TrainingCompletionRecord entry = source[i];
+            if (entry == null || string.IsNullOrEmpty(entry.trainingId)) continue;
+            destination.Add(new TrainingCompletionRecord
+            {
+                trainingId = entry.trainingId,
+                completionCount = Math.Max(0, entry.completionCount),
+                firstCompletedDay = Math.Max(0, entry.firstCompletedDay),
+                lastCompletedDay = Math.Max(0, entry.lastCompletedDay)
+            });
+        }
+    }
+}
+
+[Serializable]
+public class TrainingCompletionRecord
+{
+    public string trainingId;
+    public int completionCount;
+    public int firstCompletedDay;
+    public int lastCompletedDay;
 }
 
 [Serializable]

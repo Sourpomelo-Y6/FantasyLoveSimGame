@@ -183,6 +183,14 @@ public class TrainingPanel : MonoBehaviour
         {
             return;
         }
+        if (currentState != null &&
+            currentState.elapsedSteps > 0 &&
+            currentTraining != training)
+        {
+            AddLog("訓練開始後は別の訓練へ切り替えられません。");
+            RefreshStatus();
+            return;
+        }
 
         currentTraining = training;
         activeTrainingSkillModifiers = TrainingStepModifiers.Create(
@@ -643,31 +651,31 @@ public class TrainingPanel : MonoBehaviour
         button.gameObject.SetActive(true);
         trainingButtons.Add(button.gameObject);
 
-        bool isUnlocked = IsTrainingAvailable(training);
+        TrainingAvailability availability = EvaluateTrainingAvailability(training);
+        bool isAvailable = availability.CanExecute;
 
         TMP_Text buttonText = button.GetComponentInChildren<TMP_Text>();
         if (buttonText != null)
         {
-            if (isUnlocked)
+            if (isAvailable)
             {
                 buttonText.text = FormatTrainingNameWithProficiency(training);
             }
             else
             {
-                string requirement = gameManager.GetTrainingUnlockRequirementLabel(training);
                 buttonText.text = FormatTrainingNameWithProficiency(training) +
-                    "\n[未解放：" + requirement + "]";
+                    "\n[" + GetAvailabilityReason(training, availability) + "]";
             }
         }
 
         button.onClick.RemoveAllListeners();
         bool useDetails = startButton != null;
-        button.interactable = useDetails || isUnlocked;
+        button.interactable = useDetails || isAvailable;
         if (useDetails)
         {
             button.onClick.AddListener(() => SelectTrainingForDetails(training));
         }
-        else if (isUnlocked)
+        else if (isAvailable)
         {
             button.onClick.AddListener(() => SelectTraining(training));
         }
@@ -752,8 +760,42 @@ public class TrainingPanel : MonoBehaviour
 
     private bool IsTrainingAvailable(TrainingData training)
     {
-        return training != null &&
-            (gameManager == null || gameManager.IsTrainingUnlocked(training));
+        return EvaluateTrainingAvailability(training).CanExecute;
+    }
+
+    private TrainingAvailability EvaluateTrainingAvailability(TrainingData training)
+    {
+        if (gameManager != null)
+        {
+            return gameManager.EvaluateTrainingAvailability(training);
+        }
+
+        return TrainingAvailabilityEvaluator.Evaluate(
+            training,
+            currentTrainingCondition != null
+                ? currentTrainingCondition.rank
+                : TrainingConditionRank.Normal,
+            true,
+            null);
+    }
+
+    private string GetAvailabilityReason(
+        TrainingData training,
+        TrainingAvailability availability)
+    {
+        if (availability != null && !string.IsNullOrEmpty(availability.ReasonText))
+        {
+            return availability.ReasonText;
+        }
+        if (gameManager != null && training != null)
+        {
+            string unlockReason = gameManager.GetTrainingUnlockRequirementLabel(training);
+            if (!string.IsNullOrEmpty(unlockReason))
+            {
+                return "未解放：" + unlockReason;
+            }
+        }
+        return "実行できません";
     }
 
     private void SelectInitialTrainingForDetails()
@@ -818,9 +860,9 @@ public class TrainingPanel : MonoBehaviour
                 ? "訓練を選択してください。"
                 : available
                     ? "実行可能"
-                    : "未解放: " + (gameManager != null
-                        ? gameManager.GetTrainingUnlockRequirementLabel(training)
-                        : "条件を確認できません");
+                    : GetAvailabilityReason(
+                        training,
+                        EvaluateTrainingAvailability(training));
         }
         if (startButton != null)
         {
