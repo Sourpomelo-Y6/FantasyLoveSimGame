@@ -628,6 +628,10 @@ LP と訓練用 HP は訓練画面内の一時値から始める。
 訓練結果は `ShowSystemMessage(...)` で画面に表示し、メッセージログにも残す。1 ステップ以上進めた訓練は、完了/中断に関わらず時間を 1 段階進める。
 訓練熟練度は `SaveData.trainingProficiencies` に `trainingId` ごとの値として保存する。有効な 1 ステップごとに `trainingProficiencyRewardPerStep` を加算し、初期訓練はすべて `1`。中断してもステップ分は保持し、完了かつ非中断の場合だけ従来の `trainingProficiencyReward` を倍率変更なしで完了ボーナスとして追加する。完了ボーナスは軽い稽古 `1`、実戦形式 `2`、持久訓練 `3`。訓練を途中で切り替えた場合は、各ステップで実際に選択していた `trainingId` へ熟練度を加算する。訓練ごとの熟練度上限は `999999`。熟練度と訓練実績はスキルを直接解放せず、スキルツリーノードの取得条件として評価する。
 `TrainingPanel` は訓練ボタンと選択中タイトルに現在の熟練度を表示する。
+訓練数の増加に備えたスクロール一覧、詳細欄、絞り込みと、調子限定、一回限定、
+成功完了による後続訓練解放は将来拡張とする。表示条件と実行条件を分け、
+中断も含む既存の訓練回数とは別に成功完了記録を保存する。
+詳細は `Docs/TrainingSelectionExpansionPlan.md` を参照する。
 訓練の最大ステップ数は実装済み。`TrainingData.maxSteps` をセッション開始時に `TrainingSessionState.maxSteps` へ固定し、`TrainingEndReason` で HP / LP 終了、最大ステップ到達、途中終了を区別する。初期3訓練はすべて最大20ステップ。`StepCountText` が配置されていれば専用欄へ、未配置なら訓練名欄へ現在値と上限を表示する。結果メッセージにも終了理由を表示し、最大ステップ到達は通常完了として完了報酬とスキルポイントを付与する。
 訓練画面の画像切替は実装済み。訓練ボタンを押した時点で、現在の訓練画面を開いてから `elapsedSteps == 0` なら開始前画像、`elapsedSteps > 0` なら進行後画像を表示する。途中で訓練を切り替えてもステップ数はリセットしない。ステップ実行時に主人公だけ、ヒロインだけ、双方同時のいずれかで LP を消費した場合は、それぞれ別の画像へ切り替える。同時消費を個別消費より優先し、次の通常ステップでは進行後画像へ戻す。判定は累計実績ではなく、そのステップ直前・直後の LP 差分を使う。
 画像は共通 `TrainingData` に直接持たせず、ヒロイン別 `HeroineTrainingImageData` で `trainingId` と表示状態を Sprite に対応させ、既存の `TrainingPanel.heroineImage` を更新する。訓練別画像、状態別共通画像、現在画像の順にフォールバックし、未設定や参照切れでも訓練処理を停止しない。画像状態、初期3訓練×5状態の標準15枚、AssetToolの `usage = Training` と `training_images_export.json` は `Docs/Extra_FantasyLoveSimAssetTool/TrainingImagePlan.md` を正とする。TestHeroineの初期3訓練は設定済みで、`CooperativeDrill` とDefaultHeroineの画像は未設定。画像解決とLP消費状態判定は副作用のない処理として分離し、専用EditMode Testで確認する。

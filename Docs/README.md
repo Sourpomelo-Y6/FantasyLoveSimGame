@@ -16,6 +16,7 @@
 - [`JapaneseFontSetup.md`](JapaneseFontSetup.md): TextMeshPro日本語フォントのローカル設定
 - [`ScheduleUiExpansionPlan.md`](ScheduleUiExpansionPlan.md): 週間・月間予定とテンプレート
 - [`StatusAndAchievementUiReorganizationPlan.md`](StatusAndAchievementUiReorganizationPlan.md): 状態・実績画面
+- [`TrainingSelectionExpansionPlan.md`](TrainingSelectionExpansionPlan.md): 訓練一覧UI、調子限定、一回限定、前提訓練による解放
 - [`GameEventDataGuide.md`](GameEventDataGuide.md): ゲームイベントのトリガーとデータ契約
 - [`SaveDataAndLocalFiles.md`](SaveDataAndLocalFiles.md): セーブデータと端末共通ファイル
 - [`DisplayAndResolutionPlan.md`](DisplayAndResolutionPlan.md): 解像度、画面比率、Canvas設定の方針
