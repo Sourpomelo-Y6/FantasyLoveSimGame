@@ -268,7 +268,7 @@ public static class HeroineUnityDataExporter
             .ToList();
     }
 
-    private static void ExportTrainingCatalog(
+    internal static void ExportTrainingCatalog(
         HeroineProfileData profile,
         string outputFolder,
         HeroineUnityExportReport report)
@@ -326,7 +326,11 @@ public static class HeroineUnityDataExporter
                 }
             }
 
-            if (!training.unlockedByDefault && unlockNodeIds.Count == 0)
+            bool hasTrainingPrerequisites = training.requiredCompletedTrainingIds != null &&
+                training.requiredCompletedTrainingIds.Any(id => !string.IsNullOrWhiteSpace(id));
+            if (!training.unlockedByDefault &&
+                unlockNodeIds.Count == 0 &&
+                !hasTrainingPrerequisites)
             {
                 continue;
             }
@@ -337,6 +341,14 @@ public static class HeroineUnityDataExporter
                 displayName = training.GetDisplayName(),
                 trainingCategoryId = training.trainingCategoryId,
                 unlockedByDefault = training.unlockedByDefault,
+                sortOrder = training.sortOrder,
+                occurrenceType = training.occurrenceType.ToString(),
+                visibleConditionRanks = ToNames(training.visibleConditionRanks),
+                executableConditionRanks = ToNames(training.executableConditionRanks),
+                requiredCompletedTrainingIds = CleanIds(training.requiredCompletedTrainingIds),
+                requireAllCompletedTrainings = training.requireAllCompletedTrainings,
+                hideUntilPrerequisitesMet = training.hideUntilPrerequisitesMet,
+                hideAfterCompletion = training.hideAfterCompletion,
                 unlockNodeIds = unlockNodeIds,
                 unlockNodeNames = unlockNodeNames
             });
@@ -344,6 +356,24 @@ public static class HeroineUnityDataExporter
 
         report.trainingCatalogCount = export.items.Count;
         WriteJson(Path.Combine(outputFolder, "training_catalog_from_unity.json"), export);
+    }
+
+    private static List<string> ToNames<T>(IEnumerable<T> values)
+    {
+        return (values ?? Enumerable.Empty<T>())
+            .Select(value => value != null ? value.ToString() : string.Empty)
+            .Where(value => !string.IsNullOrWhiteSpace(value))
+            .Distinct(StringComparer.Ordinal)
+            .ToList();
+    }
+
+    private static List<string> CleanIds(IEnumerable<string> values)
+    {
+        return (values ?? Enumerable.Empty<string>())
+            .Where(value => !string.IsNullOrWhiteSpace(value))
+            .Select(value => value.Trim())
+            .Distinct(StringComparer.Ordinal)
+            .ToList();
     }
 
     internal static void ExportActions(
@@ -1562,6 +1592,14 @@ public static class HeroineUnityDataExporter
         public string displayName;
         public string trainingCategoryId;
         public bool unlockedByDefault;
+        public int sortOrder;
+        public string occurrenceType;
+        public List<string> visibleConditionRanks;
+        public List<string> executableConditionRanks;
+        public List<string> requiredCompletedTrainingIds;
+        public bool requireAllCompletedTrainings;
+        public bool hideUntilPrerequisitesMet;
+        public bool hideAfterCompletion;
         public List<string> unlockNodeIds;
         public List<string> unlockNodeNames;
     }

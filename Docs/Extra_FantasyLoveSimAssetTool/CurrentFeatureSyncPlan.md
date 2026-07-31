@@ -170,6 +170,7 @@ Tool側へ必要なのは、これらのIDを参照候補として読み込む�
 5. `battleSkills` の往復に対応済み。
 6. ヒロイン別スキル・ノードのexportに対応済み。
 7. TestHeroineの初期3訓練はUnity側の15画像枠へ接続済み。`CooperativeDrill` とDefaultHeroineの画像展開は残作業。
+8. Unityの訓練カタログは一回限定、調子条件、前提訓練、表示規則を出力し、前提完了で将来解放される訓練も制作対象へ含める。AssetTool側の条件表示と参照警告は残作業。
 
 ## 完了条件
 
