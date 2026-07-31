@@ -201,17 +201,36 @@ public class SkillProgressStats
         List<TrainingCompletionRecord> destination)
     {
         if (source == null) return;
+        Dictionary<string, TrainingCompletionRecord> records =
+            new Dictionary<string, TrainingCompletionRecord>(StringComparer.Ordinal);
         for (int i = 0; i < source.Count; i++)
         {
             TrainingCompletionRecord entry = source[i];
             if (entry == null || string.IsNullOrEmpty(entry.trainingId)) continue;
-            destination.Add(new TrainingCompletionRecord
+            if (!records.TryGetValue(entry.trainingId, out TrainingCompletionRecord copy))
             {
-                trainingId = entry.trainingId,
-                completionCount = Math.Max(0, entry.completionCount),
-                firstCompletedDay = Math.Max(0, entry.firstCompletedDay),
-                lastCompletedDay = Math.Max(0, entry.lastCompletedDay)
-            });
+                copy = new TrainingCompletionRecord { trainingId = entry.trainingId };
+                records.Add(entry.trainingId, copy);
+            }
+
+            copy.completionCount = Math.Max(
+                copy.completionCount,
+                Math.Max(0, entry.completionCount));
+            int firstDay = Math.Max(0, entry.firstCompletedDay);
+            if (firstDay > 0 && (copy.firstCompletedDay == 0 || firstDay < copy.firstCompletedDay))
+            {
+                copy.firstCompletedDay = firstDay;
+            }
+            copy.lastCompletedDay = Math.Max(
+                copy.lastCompletedDay,
+                Math.Max(0, entry.lastCompletedDay));
+        }
+
+        List<string> ids = new List<string>(records.Keys);
+        ids.Sort(StringComparer.Ordinal);
+        for (int i = 0; i < ids.Count; i++)
+        {
+            destination.Add(records[ids[i]]);
         }
     }
 }
@@ -223,6 +242,63 @@ public class TrainingCompletionRecord
     public int completionCount;
     public int firstCompletedDay;
     public int lastCompletedDay;
+}
+
+public static class TrainingCompletionTracker
+{
+    /// <summary>
+    /// 中断ではなく成功終了した訓練だけを完了履歴へ記録する。
+    /// </summary>
+    public static bool Record(SkillProgressStats stats, TrainingResult result, int currentDay)
+    {
+        if (stats == null ||
+            result == null ||
+            result.elapsedSteps <= 0 ||
+            !result.isFinished ||
+            result.wasInterrupted ||
+            string.IsNullOrWhiteSpace(result.trainingId))
+        {
+            return false;
+        }
+
+        if (stats.trainingCompletionRecords == null)
+        {
+            stats.trainingCompletionRecords = new List<TrainingCompletionRecord>();
+        }
+
+        TrainingCompletionRecord record = null;
+        for (int i = 0; i < stats.trainingCompletionRecords.Count; i++)
+        {
+            TrainingCompletionRecord candidate = stats.trainingCompletionRecords[i];
+            if (candidate != null && string.Equals(
+                candidate.trainingId,
+                result.trainingId,
+                StringComparison.Ordinal))
+            {
+                record = candidate;
+                break;
+            }
+        }
+
+        int safeDay = Math.Max(1, currentDay);
+        if (record == null)
+        {
+            record = new TrainingCompletionRecord
+            {
+                trainingId = result.trainingId,
+                firstCompletedDay = safeDay
+            };
+            stats.trainingCompletionRecords.Add(record);
+        }
+
+        record.completionCount = Math.Max(0, record.completionCount) + 1;
+        if (record.firstCompletedDay <= 0)
+        {
+            record.firstCompletedDay = safeDay;
+        }
+        record.lastCompletedDay = safeDay;
+        return true;
+    }
 }
 
 [Serializable]

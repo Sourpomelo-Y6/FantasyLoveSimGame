@@ -11,27 +11,29 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: cb5097099197776438840c7469e425ca, type: 3}
   m_Name: Conv_Adventure_Friendly_01
-  m_EditorClassIdentifier:
+  m_EditorClassIdentifier: 
   heroineId: TestHeroine
   items: []
   conversationId: Conv_Adventure_Friendly_01
   genre: 2
   type: 0
-  heroineLine: この前より足取りがましになったじゃない。あんたが遅れないなら、もう少し奥まで付き合ってあげてもいいわ。
+  heroineLine: "\u3053\u306E\u524D\u3088\u308A\u8DB3\u53D6\u308A\u304C\u307E\u3057\u306B\u306A\u3063\u305F\u3058\u3083\u306A\u3044\u3002\u3042\u3093\u305F\u304C\u9045\u308C\u306A\u3044\u306A\u3089\u3001\u3082\u3046\u5C11\u3057\u5965\u307E\u3067\u4ED8\u304D\u5408\u3063\u3066\u3042\u3052\u3066\u3082\u3044\u3044\u308F\u3002"
   expressionId: Smile
+  voiceId: 
   lines:
   - speaker: Heroine
-    text: この前より足取りがましになったじゃない。あんたが遅れないなら、もう少し奥まで付き合ってあげてもいいわ。
+    text: "\u3053\u306E\u524D\u3088\u308A\u8DB3\u53D6\u308A\u304C\u307E\u3057\u306B\u306A\u3063\u305F\u3058\u3083\u306A\u3044\u3002\u3042\u3093\u305F\u304C\u9045\u308C\u306A\u3044\u306A\u3089\u3001\u3082\u3046\u5C11\u3057\u5965\u307E\u3067\u4ED8\u304D\u5408\u3063\u3066\u3042\u3052\u3066\u3082\u3044\u3044\u308F\u3002"
     expressionId: Smile
+    voiceId: 
   choices: []
   priority: 100
   showOnce: 0
   minAffection: 200
   maxAffection: 599
-  costumeId:
+  costumeId: 
   anyTimeSlot: 1
-  allowedTimeSlots:
+  allowedTimeSlots: 
   anySeason: 1
-  allowedSeasons:
+  allowedSeasons: 
   anyWeather: 1
-  allowedWeathers:
+  allowedWeathers: 

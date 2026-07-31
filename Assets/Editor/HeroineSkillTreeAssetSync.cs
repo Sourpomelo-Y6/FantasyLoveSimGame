@@ -198,8 +198,11 @@ public static class HeroineSkillTreeAssetSync
             node.sortOrder = item.sortOrder;
             node.skillPointCost = Math.Max(0, item.skillPointCost);
             node.unlockedTrainingIds = CleanIds(item.unlockedTrainingIds);
-            node.unlockEventHeroineId = heroineId;
             node.unlockEventId = item.unlockEventId ?? string.Empty;
+            // イベントIDがないノードには対象ヒロインだけを残さない。
+            node.unlockEventHeroineId = string.IsNullOrWhiteSpace(node.unlockEventId)
+                ? string.Empty
+                : heroineId;
             node.unlockConditions = (item.unlockConditions ?? Array.Empty<ConditionItem>()).Where(x => x != null)
                 .Select(x => new SkillTreeUnlockCondition
                 {

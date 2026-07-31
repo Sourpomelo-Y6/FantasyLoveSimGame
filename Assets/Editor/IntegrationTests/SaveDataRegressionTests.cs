@@ -35,6 +35,14 @@ public class SaveDataRegressionTests
             enemyId = "Slime",
             defeatCount = 3
         });
+        source.skillProgressStats.trainingCompletionRecords.Add(
+            new TrainingCompletionRecord
+            {
+                trainingId = "FirstJointTraining",
+                completionCount = 1,
+                firstCompletedDay = 7,
+                lastCompletedDay = 7
+            });
 
         SaveData restored = SaveDataNormalizer.Normalize(
             JsonUtility.FromJson<SaveData>(JsonUtility.ToJson(source)));
@@ -55,6 +63,11 @@ public class SaveDataRegressionTests
         Assert.That(restored.scheduleEntries.Single().day, Is.EqualTo(7));
         Assert.That(restored.skillProgressStats.totalTrainingCount, Is.EqualTo(9));
         Assert.That(restored.skillProgressStats.enemyDefeatStats.Single().defeatCount, Is.EqualTo(3));
+        TrainingCompletionRecord completion =
+            restored.skillProgressStats.trainingCompletionRecords.Single();
+        Assert.That(completion.trainingId, Is.EqualTo("FirstJointTraining"));
+        Assert.That(completion.completionCount, Is.EqualTo(1));
+        Assert.That(completion.firstCompletedDay, Is.EqualTo(7));
     }
 
     [Test]
@@ -189,6 +202,100 @@ public class SaveDataRegressionTests
     }
 
     [Test]
+    public void Normalize_OldSaveWithoutCompletionRecords_CreatesEmptyCollection()
+    {
+        SaveData restored = SaveDataNormalizer.Normalize(
+            JsonUtility.FromJson<SaveData>(
+                "{\"saveVersion\":19,\"heroineId\":\"TestHeroine\",\"day\":1," +
+                "\"skillProgressStats\":{\"totalTrainingCount\":2}}"));
+
+        Assert.That(restored.skillProgressStats, Is.Not.Null);
+        Assert.That(restored.skillProgressStats.trainingCompletionRecords, Is.Not.Null);
+        Assert.That(restored.skillProgressStats.trainingCompletionRecords, Is.Empty);
+    }
+
+    [Test]
+    public void Normalize_MergesDuplicateCompletionRecords()
+    {
+        SaveData data = CreateValidSaveData();
+        data.skillProgressStats.trainingCompletionRecords =
+            new List<TrainingCompletionRecord>
+            {
+                new TrainingCompletionRecord
+                {
+                    trainingId = "FirstJointTraining",
+                    completionCount = 1,
+                    firstCompletedDay = 8,
+                    lastCompletedDay = 8
+                },
+                new TrainingCompletionRecord
+                {
+                    trainingId = "FirstJointTraining",
+                    completionCount = 2,
+                    firstCompletedDay = 5,
+                    lastCompletedDay = 12
+                }
+            };
+
+        SaveDataNormalizer.Normalize(data);
+
+        TrainingCompletionRecord record =
+            data.skillProgressStats.trainingCompletionRecords.Single();
+        Assert.That(record.completionCount, Is.EqualTo(2));
+        Assert.That(record.firstCompletedDay, Is.EqualTo(5));
+        Assert.That(record.lastCompletedDay, Is.EqualTo(12));
+    }
+
+    [Test]
+    public void CompletionTracker_InterruptedTrainingDoesNotConsumeOneTimeTraining()
+    {
+        SkillProgressStats stats = new SkillProgressStats();
+        TrainingResult interrupted = CreateTrainingResult(wasInterrupted: true);
+
+        bool recorded = TrainingCompletionTracker.Record(stats, interrupted, 4);
+
+        Assert.That(recorded, Is.False);
+        Assert.That(stats.trainingCompletionRecords, Is.Empty);
+    }
+
+    [Test]
+    public void CompletionTracker_SuccessPersistsAndRestoresAvailabilityChain()
+    {
+        SaveData source = CreateValidSaveData();
+        bool recorded = TrainingCompletionTracker.Record(
+            source.skillProgressStats,
+            CreateTrainingResult(wasInterrupted: false),
+            7);
+
+        SaveData restored = SaveDataNormalizer.Normalize(
+            JsonUtility.FromJson<SaveData>(JsonUtility.ToJson(source)));
+        System.Func<string, bool> isCompleted = id =>
+            restored.skillProgressStats.trainingCompletionRecords.Any(
+                record => record.trainingId == id && record.completionCount > 0);
+        TrainingData once = CreateTrainingData("FirstJointTraining");
+        once.occurrenceType = TrainingOccurrenceType.OncePerSave;
+        TrainingData followUp = CreateTrainingData("AdvancedJointTraining");
+        followUp.requiredCompletedTrainingIds = new[] { "FirstJointTraining" };
+
+        TrainingAvailability onceAvailability = TrainingAvailabilityEvaluator.Evaluate(
+            once,
+            TrainingConditionRank.Normal,
+            true,
+            isCompleted);
+        TrainingAvailability followUpAvailability = TrainingAvailabilityEvaluator.Evaluate(
+            followUp,
+            TrainingConditionRank.Normal,
+            true,
+            isCompleted);
+
+        Object.DestroyImmediate(once);
+        Object.DestroyImmediate(followUp);
+        Assert.That(recorded, Is.True);
+        Assert.That(onceAvailability.state, Is.EqualTo(TrainingAvailabilityState.Disabled));
+        Assert.That(followUpAvailability.state, Is.EqualTo(TrainingAvailabilityState.Available));
+    }
+
+    [Test]
     public void Validator_AcceptsNormalizedSaveData()
     {
         SaveData data = SaveDataNormalizer.Normalize(CreateValidSaveData());
@@ -240,6 +347,27 @@ public class SaveDataRegressionTests
         ItemQuantityEntry entry = data.itemQuantities.SingleOrDefault(
             value => value != null && value.itemId == itemId);
         return entry != null ? entry.quantity : 0;
+    }
+
+    private static TrainingResult CreateTrainingResult(bool wasInterrupted)
+    {
+        return new TrainingResult
+        {
+            trainingId = "FirstJointTraining",
+            elapsedSteps = 1,
+            isFinished = true,
+            wasInterrupted = wasInterrupted,
+            endReason = wasInterrupted
+                ? TrainingEndReason.Interrupted
+                : TrainingEndReason.StepLimitReached
+        };
+    }
+
+    private static TrainingData CreateTrainingData(string trainingId)
+    {
+        TrainingData training = ScriptableObject.CreateInstance<TrainingData>();
+        training.trainingId = trainingId;
+        return training;
     }
 }
 #endif

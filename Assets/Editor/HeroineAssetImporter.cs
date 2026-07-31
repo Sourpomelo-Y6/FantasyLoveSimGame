@@ -2281,6 +2281,13 @@ public static class HeroineAssetImporter
 
             string actionId = item.conditions.actionId;
             ActionData action = LoadOrCreateAction(actionId, item, actionFolderPath, actionsById);
+            if (action.executionType != ActionExecutionType.SimpleAction)
+            {
+                // 会話・着替えなどの専用処理は別データを使うため、汎用反応を取り込まない。
+                report.Warn($"専用処理のActionDataへの行動反応をスキップしました: {actionId} / {item.id}");
+                continue;
+            }
+
             if (resetActionIds.Add(actionId))
             {
                 action.reactions.Clear();

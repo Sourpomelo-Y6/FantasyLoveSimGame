@@ -11,27 +11,29 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: cb5097099197776438840c7469e425ca, type: 3}
   m_Name: Conv_Love_Friendly_01
-  m_EditorClassIdentifier:
+  m_EditorClassIdentifier: 
   heroineId: TestHeroine
   items: []
   conversationId: Conv_Love_Friendly_01
   genre: 3
   type: 0
-  heroineLine: あんたがほかの子と楽しそうにしてると、少しだけ気になるの。少しだけよ。……だから、今はこっちを見てなさい。
+  heroineLine: "\u3042\u3093\u305F\u304C\u307B\u304B\u306E\u5B50\u3068\u697D\u3057\u305D\u3046\u306B\u3057\u3066\u308B\u3068\u3001\u5C11\u3057\u3060\u3051\u6C17\u306B\u306A\u308B\u306E\u3002\u5C11\u3057\u3060\u3051\u3088\u3002\u2026\u2026\u3060\u304B\u3089\u3001\u4ECA\u306F\u3053\u3063\u3061\u3092\u898B\u3066\u306A\u3055\u3044\u3002"
   expressionId: Angry
+  voiceId: 
   lines:
   - speaker: Heroine
-    text: あんたがほかの子と楽しそうにしてると、少しだけ気になるの。少しだけよ。……だから、今はこっちを見てなさい。
+    text: "\u3042\u3093\u305F\u304C\u307B\u304B\u306E\u5B50\u3068\u697D\u3057\u305D\u3046\u306B\u3057\u3066\u308B\u3068\u3001\u5C11\u3057\u3060\u3051\u6C17\u306B\u306A\u308B\u306E\u3002\u5C11\u3057\u3060\u3051\u3088\u3002\u2026\u2026\u3060\u304B\u3089\u3001\u4ECA\u306F\u3053\u3063\u3061\u3092\u898B\u3066\u306A\u3055\u3044\u3002"
     expressionId: Angry
+    voiceId: 
   choices: []
   priority: 100
   showOnce: 0
   minAffection: 200
   maxAffection: 599
-  costumeId:
+  costumeId: 
   anyTimeSlot: 1
-  allowedTimeSlots:
+  allowedTimeSlots: 
   anySeason: 1
-  allowedSeasons:
+  allowedSeasons: 
   anyWeather: 1
-  allowedWeathers:
+  allowedWeathers: 

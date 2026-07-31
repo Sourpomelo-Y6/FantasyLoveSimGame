@@ -19,6 +19,18 @@ MonoBehaviour:
   defaultHeroineLpConsumedSprite: {fileID: 0}
   defaultSimultaneousLpConsumedSprite: {fileID: 0}
   entries:
+  - trainingId: CooperativeDrill
+    selectedBeforeFirstStepSprite: {fileID: 0}
+    selectedAfterFirstStepSprite: {fileID: 0}
+    playerLpConsumedSprite: {fileID: 0}
+    heroineLpConsumedSprite: {fileID: 0}
+    simultaneousLpConsumedSprite: {fileID: 0}
+  - trainingId: EnduranceTraining
+    selectedBeforeFirstStepSprite: {fileID: 21300000, guid: 8591015ed79e0a34fab5fbb07a09e39a, type: 3}
+    selectedAfterFirstStepSprite: {fileID: 21300000, guid: a1b0fac69b605bf4a89293c1cb811234, type: 3}
+    playerLpConsumedSprite: {fileID: 21300000, guid: 2e74c4816737de2448484138b82f9aa6, type: 3}
+    heroineLpConsumedSprite: {fileID: 21300000, guid: a6c740a7df756274290427625e54d0a9, type: 3}
+    simultaneousLpConsumedSprite: {fileID: 21300000, guid: b28f785285fea1549bbada4391a56fbc, type: 3}
   - trainingId: LightPractice
     selectedBeforeFirstStepSprite: {fileID: 21300000, guid: ccdd224a0951a004f9752ab902a1de5e, type: 3}
     selectedAfterFirstStepSprite: {fileID: 21300000, guid: f81f5a11ab17b9048833868d2d97a94a, type: 3}
@@ -31,15 +43,3 @@ MonoBehaviour:
     playerLpConsumedSprite: {fileID: 21300000, guid: c42a92d0c52533b4d9424cd401fd2360, type: 3}
     heroineLpConsumedSprite: {fileID: 21300000, guid: 13fdd0ee8615b954cae00da935cebe02, type: 3}
     simultaneousLpConsumedSprite: {fileID: 21300000, guid: 7cf9c7f22f924b649a2b6a6b353e3107, type: 3}
-  - trainingId: EnduranceTraining
-    selectedBeforeFirstStepSprite: {fileID: 21300000, guid: 8591015ed79e0a34fab5fbb07a09e39a, type: 3}
-    selectedAfterFirstStepSprite: {fileID: 21300000, guid: a1b0fac69b605bf4a89293c1cb811234, type: 3}
-    playerLpConsumedSprite: {fileID: 21300000, guid: 2e74c4816737de2448484138b82f9aa6, type: 3}
-    heroineLpConsumedSprite: {fileID: 21300000, guid: a6c740a7df756274290427625e54d0a9, type: 3}
-    simultaneousLpConsumedSprite: {fileID: 21300000, guid: b28f785285fea1549bbada4391a56fbc, type: 3}
-  - trainingId: CooperativeDrill
-    selectedBeforeFirstStepSprite: {fileID: 0}
-    selectedAfterFirstStepSprite: {fileID: 0}
-    playerLpConsumedSprite: {fileID: 0}
-    heroineLpConsumedSprite: {fileID: 0}
-    simultaneousLpConsumedSprite: {fileID: 0}

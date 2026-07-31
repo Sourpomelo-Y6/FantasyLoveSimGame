@@ -11,27 +11,29 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: cb5097099197776438840c7469e425ca, type: 3}
   m_Name: Conv_Food_Trust_01
-  m_EditorClassIdentifier:
+  m_EditorClassIdentifier: 
   heroineId: TestHeroine
   items: []
   conversationId: Conv_Food_Trust_01
   genre: 1
   type: 0
-  heroineLine: 一人で食べるより、あんたと一緒の方がおいしく感じるのよね。……今のは料理の話よ。変な顔しないで。
+  heroineLine: "\u4E00\u4EBA\u3067\u98DF\u3079\u308B\u3088\u308A\u3001\u3042\u3093\u305F\u3068\u4E00\u7DD2\u306E\u65B9\u304C\u304A\u3044\u3057\u304F\u611F\u3058\u308B\u306E\u3088\u306D\u3002\u2026\u2026\u4ECA\u306E\u306F\u6599\u7406\u306E\u8A71\u3088\u3002\u5909\u306A\u9854\u3057\u306A\u3044\u3067\u3002"
   expressionId: Shy
+  voiceId: 
   lines:
   - speaker: Heroine
-    text: 一人で食べるより、あんたと一緒の方がおいしく感じるのよね。……今のは料理の話よ。変な顔しないで。
+    text: "\u4E00\u4EBA\u3067\u98DF\u3079\u308B\u3088\u308A\u3001\u3042\u3093\u305F\u3068\u4E00\u7DD2\u306E\u65B9\u304C\u304A\u3044\u3057\u304F\u611F\u3058\u308B\u306E\u3088\u306D\u3002\u2026\u2026\u4ECA\u306E\u306F\u6599\u7406\u306E\u8A71\u3088\u3002\u5909\u306A\u9854\u3057\u306A\u3044\u3067\u3002"
     expressionId: Shy
+    voiceId: 
   choices: []
   priority: 100
   showOnce: 0
   minAffection: 600
   maxAffection: 9999
-  costumeId:
+  costumeId: 
   anyTimeSlot: 1
-  allowedTimeSlots:
+  allowedTimeSlots: 
   anySeason: 1
-  allowedSeasons:
+  allowedSeasons: 
   anyWeather: 1
-  allowedWeathers:
+  allowedWeathers: 

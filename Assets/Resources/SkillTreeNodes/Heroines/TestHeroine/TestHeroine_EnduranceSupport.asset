@@ -20,6 +20,10 @@ MonoBehaviour:
   targetHeroineId: TestHeroine
   grantedHeroineSkillId: 
   unlockedTrainingIds: []
+  unlocksOutfitPromptMode: 0
+  unlockedOutfitPromptMode: 0
+  unlockEventHeroineId: 
+  unlockEventId: 
   skillPointCost: 2
   prerequisiteNodes:
   - {fileID: 11400000, guid: be7c752ec2b43ec448fcb1ea36e1b0f3, type: 2}

@@ -85,7 +85,7 @@ public static class HeroineBattleMessageAssetSync
             BattleResultEventData asset = AssetDatabase.LoadAssetAtPath<BattleResultEventData>(path);
             if (asset == null) { asset = ScriptableObject.CreateInstance<BattleResultEventData>(); AssetDatabase.CreateAsset(asset, path); summary.addedCount++; }
             else summary.updatedCount++;
-            asset.battleResultEventType = Parse(item.resultType, BattleResultEventType.SoloVictory);
+            asset.battleResultEventType = ParseBattleResultEventType(item.resultType, item.eventId);
             asset.battleContextId = item.battleContextId ?? string.Empty;
             asset.speakerType = Parse(item.speakerType, ScheduledEventSpeakerType.Heroine);
             asset.speakerName = item.speakerName ?? string.Empty;
@@ -160,6 +160,23 @@ public static class HeroineBattleMessageAssetSync
         }
         return "Assets/Resources/" + normalized;
     }
+
+    private static BattleResultEventType ParseBattleResultEventType(string value, string eventId)
+    {
+        string normalized = (value ?? string.Empty).Trim();
+        foreach (BattleResultEventType candidate in Enum.GetValues(typeof(BattleResultEventType)))
+        {
+            if (string.Equals(normalized, candidate.ToString(), StringComparison.OrdinalIgnoreCase))
+            {
+                return candidate;
+            }
+        }
+
+        Debug.LogWarning(
+            $"戦闘結果イベントのresultTypeが不正なためSoloVictoryとしてImportします: {eventId} / {value}");
+        return BattleResultEventType.SoloVictory;
+    }
+
     private static T Parse<T>(string value, T fallback) where T : struct => Enum.TryParse(value, true, out T parsed) ? parsed : fallback;
     private static List<string> CleanIds(IEnumerable<string> ids) => (ids ?? Enumerable.Empty<string>()).Where(x => !string.IsNullOrWhiteSpace(x)).Select(x => x.Trim()).Distinct(StringComparer.Ordinal).ToList();
     private static string SafeFileName(string value) => string.Concat(value.Select(c => Path.GetInvalidFileNameChars().Contains(c) ? '_' : c));

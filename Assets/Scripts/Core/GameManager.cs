@@ -4636,42 +4636,7 @@ public class GameManager : MonoBehaviour
 
     private void RecordTrainingCompletion(TrainingResult result)
     {
-        if (result == null ||
-            result.elapsedSteps <= 0 ||
-            !result.isFinished ||
-            result.wasInterrupted ||
-            string.IsNullOrWhiteSpace(result.trainingId))
-        {
-            return;
-        }
-
-        TrainingCompletionRecord record = null;
-        for (int i = 0; i < skillProgressStats.trainingCompletionRecords.Count; i++)
-        {
-            TrainingCompletionRecord candidate =
-                skillProgressStats.trainingCompletionRecords[i];
-            if (candidate != null && string.Equals(
-                candidate.trainingId,
-                result.trainingId,
-                StringComparison.Ordinal))
-            {
-                record = candidate;
-                break;
-            }
-        }
-
-        if (record == null)
-        {
-            record = new TrainingCompletionRecord
-            {
-                trainingId = result.trainingId,
-                firstCompletedDay = Mathf.Max(1, CurrentDay)
-            };
-            skillProgressStats.trainingCompletionRecords.Add(record);
-        }
-
-        record.completionCount++;
-        record.lastCompletedDay = Mathf.Max(1, CurrentDay);
+        TrainingCompletionTracker.Record(skillProgressStats, result, CurrentDay);
     }
 
     private TrainingProgressStatEntry GetOrCreateTrainingProgressStat(string trainingId)

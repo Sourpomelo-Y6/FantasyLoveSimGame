@@ -15,14 +15,7 @@ MonoBehaviour:
   heroineId: TestHeroine
   defaultCostumeId: Default
   defaultExpressionId: Neutral
-  baseBodyLayers:
-  - assetId: Heroine_BaseBody
-    layerKind: BaseBody
-    costumeId: 
-    expressionId: 
-    displayName: "\u30EC\u30A4\u30E4\u30FC: \u30D9\u30FC\u30B9\u4F53"
-    drawOrder: 0
-    sprite: {fileID: 21300000, guid: c469d79811cb2b54392c983e706a690e, type: 3}
+  baseBodyLayers: []
   costumeLayers:
   - assetId: Costume_Default
     layerKind: Costume

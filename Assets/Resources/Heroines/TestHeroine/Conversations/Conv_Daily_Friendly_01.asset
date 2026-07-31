@@ -11,27 +11,29 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: cb5097099197776438840c7469e425ca, type: 3}
   m_Name: Conv_Daily_Friendly_01
-  m_EditorClassIdentifier:
+  m_EditorClassIdentifier: 
   heroineId: TestHeroine
   items: []
   conversationId: Conv_Daily_Friendly_01
   genre: 0
   type: 0
-  heroineLine: あんたと話すのにも、だいぶ慣れてきたわ。最初よりは気を使わなくて済むし……別に、毎日でも困らないってだけよ。
+  heroineLine: "\u3042\u3093\u305F\u3068\u8A71\u3059\u306E\u306B\u3082\u3001\u3060\u3044\u3076\u6163\u308C\u3066\u304D\u305F\u308F\u3002\u6700\u521D\u3088\u308A\u306F\u6C17\u3092\u4F7F\u308F\u306A\u304F\u3066\u6E08\u3080\u3057\u2026\u2026\u5225\u306B\u3001\u6BCE\u65E5\u3067\u3082\u56F0\u3089\u306A\u3044\u3063\u3066\u3060\u3051\u3088\u3002"
   expressionId: Smile
+  voiceId: 
   lines:
   - speaker: Heroine
-    text: あんたと話すのにも、だいぶ慣れてきたわ。最初よりは気を使わなくて済むし……別に、毎日でも困らないってだけよ。
+    text: "\u3042\u3093\u305F\u3068\u8A71\u3059\u306E\u306B\u3082\u3001\u3060\u3044\u3076\u6163\u308C\u3066\u304D\u305F\u308F\u3002\u6700\u521D\u3088\u308A\u306F\u6C17\u3092\u4F7F\u308F\u306A\u304F\u3066\u6E08\u3080\u3057\u2026\u2026\u5225\u306B\u3001\u6BCE\u65E5\u3067\u3082\u56F0\u3089\u306A\u3044\u3063\u3066\u3060\u3051\u3088\u3002"
     expressionId: Smile
+    voiceId: 
   choices: []
   priority: 100
   showOnce: 0
   minAffection: 200
   maxAffection: 599
-  costumeId:
+  costumeId: 
   anyTimeSlot: 1
-  allowedTimeSlots:
+  allowedTimeSlots: 
   anySeason: 1
-  allowedSeasons:
+  allowedSeasons: 
   anyWeather: 1
-  allowedWeathers:
+  allowedWeathers: 
