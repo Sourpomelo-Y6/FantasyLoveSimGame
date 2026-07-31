@@ -1,0 +1,42 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 52205cafcff744758cf5fcfe24ba5b92, type: 3}
+  m_Name: HighIntensityTraining
+  m_EditorClassIdentifier:
+  trainingId: HighIntensityTraining
+  trainingCategoryId: Endurance
+  displayName: "\u9AD8\u8CA0\u8377\u8A13\u7DF4"
+  sortOrder: -70
+  unlockedByDefault: 1
+  description: "\u4E8C\u4EBA\u306E\u4F53\u529B\u3092\u5927\u304D\u304F\u4F7F\u3046\u9AD8\u8CA0\u8377\u8A13\u7DF4\u3002\u8ABF\u5B50\u304C\u4E0D\u8ABF\u307E\u305F\u306F\u7D76\u4E0D\u8ABF\u306E\u65E5\u306F\u5B9F\u884C\u3067\u304D\u306A\u3044\u3002"
+  visibleConditionRanks: []
+  executableConditionRanks:
+  - 0
+  - 1
+  - 2
+  occurrenceType: 0
+  requiredCompletedTrainingIds: []
+  requireAllCompletedTrainings: 1
+  hideUntilPrerequisitesMet: 1
+  hideAfterCompletion: 0
+  playerHpCostPerStep: 16
+  heroineHpCostPerStep: 16
+  initialPlayerLp: 2
+  initialHeroineLp: 2
+  maxSteps: 15
+  affectionRewardPerStep: 2
+  affectionReward: 20
+  trainingProficiencyRewardPerStep: 2
+  trainingProficiencyReward: 4
+  playerSkillPointReward: 3
+  heroineSkillPointReward: 3
+  simultaneousKnockoutBonus: 20
