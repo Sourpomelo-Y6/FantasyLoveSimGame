@@ -85,6 +85,52 @@ Heroine_NightDress.png
 Heroine_Raincoat.png
 ```
 
+### Stable Diffusion制作時の立ち絵レイヤー方針
+
+Stable Diffusionで生成した画像は、頭、前髪、目、口などを同じ位置と輪郭のまま
+安全に分離することが難しい。そのため、顔・髪・表情の分割を本番素材の必須条件にはしない。
+基本方式は、背景を含まない完成済みのキャラクター立ち絵を、表情または衣装ごとに差し替える方式とする。
+
+```text
+Heroine_Normal.png
+Heroine_Smile.png
+Heroine_Sad.png
+Heroine_Angry.png
+```
+
+衣装と表情を組み合わせて管理する必要がある場合も、生成と加工が安定しない間は
+完成画像として用意する。
+
+```text
+Heroine_Default_Normal.png
+Heroine_Default_Smile.png
+Heroine_Summer_Normal.png
+Heroine_Summer_Smile.png
+```
+
+この方式は画像数と容量が増える一方、パーツ境界のずれ、髪や顔の分断、衣装と腕の
+重なり不良を避けやすく、UnityとAssetToolの表示処理も単純にできる。
+表情IDは、対応する完成立ち絵のAsset IDを選ぶための論理的な識別子として扱える。
+
+透過レイヤー制作が可能な素材だけは、次の順序を候補とする。
+
+1. 背景
+2. 後アクセサリー
+3. 後ろ髪
+4. 衣装・身体
+5. 頭・髪・表情
+6. 前アクセサリー
+7. 前腕・手
+8. エフェクト
+
+ただし、この8階層への分割も必須ではない。最低限は背景、キャラクター全体、
+前景エフェクトの3区分でよい。背景はキャラクターPrefabやキャラクター固有レイヤーへ
+埋め込まず、画面側の背景として管理する。前腕、アクセサリー、エフェクトは必要な画像だけ追加する。
+
+Unity側の `HeroineLayeredSpriteView` と `sprite_layers_export.json` は、分割素材を
+用意できる場合の任意機能として残す。分割できないヒロインは代表立ち絵と完成差分を使用し、
+`BaseBody`、`Costume`、`Expression` の個別画像がないことだけを理由に制作を止めない。
+
 ### イベントスチル
 
 ```text

@@ -297,8 +297,9 @@ AssetTool の `sprite_layers_export.json` は importer で `HeroineLayeredSprite
 - `endingResourcePath` に、そのヒロイン用の `Endings` フォルダを設定する
 - `defaultHeroineSprite` に代表立ち絵を設定する
 - `HeroineAssetCatalog.asset` に画像の `assetId` と Sprite 参照が入っているか確認する
-- 透過レイヤー方式を使う場合は `HeroineLayeredSpriteData.asset` に `BaseBody`、`Default` 衣装、`Neutral` 表情が入っているか確認する
-- `HeroineLayeredSpriteView` の `BaseBodyImage`、`CostumeImage`、`ExpressionImage`、`AccessoryImage` が同じ親の下にあり、表情会話で `Neutral`、`Smile`、`Sad` などが切り替わるか確認する
+- Stable Diffusion素材では完成立ち絵の差し替えを基本とし、頭、前髪、目、口などの分離を必須にしない。詳細は `Docs/CharacterAssetGenerationToolSpec.md` の「Stable Diffusion制作時の立ち絵レイヤー方針」を参照する
+- 透過レイヤー方式を任意で使う場合だけ、`HeroineLayeredSpriteData.asset` に `BaseBody`、`Default` 衣装、`Neutral` 表情が入っているか確認する
+- 透過レイヤー方式を使う場合だけ、`HeroineLayeredSpriteView` の `BaseBodyImage`、`CostumeImage`、`ExpressionImage`、`AccessoryImage` が同じ親の下にあり、表情会話で `Neutral`、`Smile`、`Sad` などが切り替わるか確認する
 - `Actions` には行動名、行動結果、行動反応、行動スチルを用意する
 - `Conversations/` にはジャンル会話、好感度条件会話、天候・時間帯・季節条件会話を個別 `ConversationData` として用意する
 - `GameEvents` には `GameStart`、`DayStart`、`Manual` 確認用イベントを用意する
