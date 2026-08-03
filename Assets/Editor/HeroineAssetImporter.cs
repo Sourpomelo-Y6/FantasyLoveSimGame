@@ -910,6 +910,14 @@ public static class HeroineAssetImporter
 
         EnsureLayerLists(layeredSpriteData);
         layeredSpriteData.heroineId = heroineId;
+        layeredSpriteData.backgroundLayers.Clear();
+        layeredSpriteData.backAccessoryLayers.Clear();
+        layeredSpriteData.backHairLayers.Clear();
+        layeredSpriteData.costumeBodyLayers.Clear();
+        layeredSpriteData.headExpressionLayers.Clear();
+        layeredSpriteData.frontAccessoryLayers.Clear();
+        layeredSpriteData.frontArmLayers.Clear();
+        layeredSpriteData.effectLayers.Clear();
         layeredSpriteData.baseBodyLayers.Clear();
         layeredSpriteData.costumeLayers.Clear();
         layeredSpriteData.expressionLayers.Clear();
@@ -934,6 +942,14 @@ public static class HeroineAssetImporter
         SortLayerEntries(layeredSpriteData);
         ValidateLayeredSpriteData(layeredSpriteData, report);
         report.layerCount =
+            layeredSpriteData.backgroundLayers.Count +
+            layeredSpriteData.backAccessoryLayers.Count +
+            layeredSpriteData.backHairLayers.Count +
+            layeredSpriteData.costumeBodyLayers.Count +
+            layeredSpriteData.headExpressionLayers.Count +
+            layeredSpriteData.frontAccessoryLayers.Count +
+            layeredSpriteData.frontArmLayers.Count +
+            layeredSpriteData.effectLayers.Count +
             layeredSpriteData.baseBodyLayers.Count +
             layeredSpriteData.costumeLayers.Count +
             layeredSpriteData.expressionLayers.Count +
@@ -944,6 +960,15 @@ public static class HeroineAssetImporter
 
     private static void EnsureLayerLists(HeroineLayeredSpriteData data)
     {
+        if (data.backgroundLayers == null) data.backgroundLayers = new List<LayerEntry>();
+        if (data.backAccessoryLayers == null) data.backAccessoryLayers = new List<LayerEntry>();
+        if (data.backHairLayers == null) data.backHairLayers = new List<LayerEntry>();
+        if (data.costumeBodyLayers == null) data.costumeBodyLayers = new List<LayerEntry>();
+        if (data.headExpressionLayers == null) data.headExpressionLayers = new List<LayerEntry>();
+        if (data.frontAccessoryLayers == null) data.frontAccessoryLayers = new List<LayerEntry>();
+        if (data.frontArmLayers == null) data.frontArmLayers = new List<LayerEntry>();
+        if (data.effectLayers == null) data.effectLayers = new List<LayerEntry>();
+
         if (data.baseBodyLayers == null)
         {
             data.baseBodyLayers = new List<LayerEntry>();
@@ -1025,17 +1050,20 @@ public static class HeroineAssetImporter
             return false;
         }
 
-        if (string.Equals(layer.layerKind, "Costume", StringComparison.OrdinalIgnoreCase)
+        string normalizedLayerKind = NormalizeLayerKind(layer.layerKind);
+        if ((normalizedLayerKind == HeroineVisualLayerKinds.LegacyCostume ||
+            normalizedLayerKind == HeroineVisualLayerKinds.CostumeBody)
             && string.IsNullOrWhiteSpace(layer.costumeId))
         {
-            report.Warn("Costume なのに costumeId が空の sprite layer をスキップしました: " + layer.assetId);
+            report.Warn(normalizedLayerKind + " なのに costumeId が空の sprite layer をスキップしました: " + layer.assetId);
             return false;
         }
 
-        if (string.Equals(layer.layerKind, "Expression", StringComparison.OrdinalIgnoreCase)
+        if ((normalizedLayerKind == HeroineVisualLayerKinds.LegacyExpression ||
+            normalizedLayerKind == HeroineVisualLayerKinds.HeadExpression)
             && string.IsNullOrWhiteSpace(layer.expressionId))
         {
-            report.Warn("Expression なのに expressionId が空の sprite layer をスキップしました: " + layer.assetId);
+            report.Warn(normalizedLayerKind + " なのに expressionId が空の sprite layer をスキップしました: " + layer.assetId);
             return false;
         }
 
@@ -1051,32 +1079,43 @@ public static class HeroineAssetImporter
     private static bool IsKnownLayerKind(string layerKind)
     {
         string normalizedLayerKind = NormalizeLayerKind(layerKind);
-        return normalizedLayerKind == "BaseBody"
-            || normalizedLayerKind == "Costume"
-            || normalizedLayerKind == "Expression"
-            || normalizedLayerKind == "Accessory";
+        return normalizedLayerKind == HeroineVisualLayerKinds.Background ||
+            normalizedLayerKind == HeroineVisualLayerKinds.BackAccessory ||
+            normalizedLayerKind == HeroineVisualLayerKinds.BackHair ||
+            normalizedLayerKind == HeroineVisualLayerKinds.CostumeBody ||
+            normalizedLayerKind == HeroineVisualLayerKinds.HeadExpression ||
+            normalizedLayerKind == HeroineVisualLayerKinds.FrontAccessory ||
+            normalizedLayerKind == HeroineVisualLayerKinds.FrontArm ||
+            normalizedLayerKind == HeroineVisualLayerKinds.Effect ||
+            normalizedLayerKind == HeroineVisualLayerKinds.LegacyBaseBody ||
+            normalizedLayerKind == HeroineVisualLayerKinds.LegacyCostume ||
+            normalizedLayerKind == HeroineVisualLayerKinds.LegacyExpression ||
+            normalizedLayerKind == HeroineVisualLayerKinds.LegacyAccessory;
     }
 
     private static string NormalizeLayerKind(string layerKind)
     {
-        if (string.Equals(layerKind, "BaseBody", StringComparison.OrdinalIgnoreCase))
+        string[] knownKinds =
         {
-            return "BaseBody";
-        }
-
-        if (string.Equals(layerKind, "Costume", StringComparison.OrdinalIgnoreCase))
+            HeroineVisualLayerKinds.Background,
+            HeroineVisualLayerKinds.BackAccessory,
+            HeroineVisualLayerKinds.BackHair,
+            HeroineVisualLayerKinds.CostumeBody,
+            HeroineVisualLayerKinds.HeadExpression,
+            HeroineVisualLayerKinds.FrontAccessory,
+            HeroineVisualLayerKinds.FrontArm,
+            HeroineVisualLayerKinds.Effect,
+            HeroineVisualLayerKinds.LegacyBaseBody,
+            HeroineVisualLayerKinds.LegacyCostume,
+            HeroineVisualLayerKinds.LegacyExpression,
+            HeroineVisualLayerKinds.LegacyAccessory
+        };
+        foreach (string knownKind in knownKinds)
         {
-            return "Costume";
-        }
-
-        if (string.Equals(layerKind, "Expression", StringComparison.OrdinalIgnoreCase))
-        {
-            return "Expression";
-        }
-
-        if (string.Equals(layerKind, "Accessory", StringComparison.OrdinalIgnoreCase))
-        {
-            return "Accessory";
+            if (string.Equals(layerKind, knownKind, StringComparison.OrdinalIgnoreCase))
+            {
+                return knownKind;
+            }
         }
 
         return layerKind;
@@ -1116,16 +1155,40 @@ public static class HeroineAssetImporter
     {
         switch (entry.layerKind)
         {
-            case "BaseBody":
+            case HeroineVisualLayerKinds.Background:
+                data.backgroundLayers.Add(entry);
+                break;
+            case HeroineVisualLayerKinds.BackAccessory:
+                data.backAccessoryLayers.Add(entry);
+                break;
+            case HeroineVisualLayerKinds.BackHair:
+                data.backHairLayers.Add(entry);
+                break;
+            case HeroineVisualLayerKinds.CostumeBody:
+                data.costumeBodyLayers.Add(entry);
+                break;
+            case HeroineVisualLayerKinds.HeadExpression:
+                data.headExpressionLayers.Add(entry);
+                break;
+            case HeroineVisualLayerKinds.FrontAccessory:
+                data.frontAccessoryLayers.Add(entry);
+                break;
+            case HeroineVisualLayerKinds.FrontArm:
+                data.frontArmLayers.Add(entry);
+                break;
+            case HeroineVisualLayerKinds.Effect:
+                data.effectLayers.Add(entry);
+                break;
+            case HeroineVisualLayerKinds.LegacyBaseBody:
                 data.baseBodyLayers.Add(entry);
                 break;
-            case "Costume":
+            case HeroineVisualLayerKinds.LegacyCostume:
                 data.costumeLayers.Add(entry);
                 break;
-            case "Expression":
+            case HeroineVisualLayerKinds.LegacyExpression:
                 data.expressionLayers.Add(entry);
                 break;
-            case "Accessory":
+            case HeroineVisualLayerKinds.LegacyAccessory:
                 data.accessoryLayers.Add(entry);
                 break;
             default:
@@ -1137,6 +1200,14 @@ public static class HeroineAssetImporter
     private static void SortLayerEntries(HeroineLayeredSpriteData data)
     {
         Comparison<LayerEntry> comparison = (left, right) => left.drawOrder.CompareTo(right.drawOrder);
+        data.backgroundLayers.Sort(comparison);
+        data.backAccessoryLayers.Sort(comparison);
+        data.backHairLayers.Sort(comparison);
+        data.costumeBodyLayers.Sort(comparison);
+        data.headExpressionLayers.Sort(comparison);
+        data.frontAccessoryLayers.Sort(comparison);
+        data.frontArmLayers.Sort(comparison);
+        data.effectLayers.Sort(comparison);
         data.baseBodyLayers.Sort(comparison);
         data.costumeLayers.Sort(comparison);
         data.expressionLayers.Sort(comparison);
@@ -1147,6 +1218,36 @@ public static class HeroineAssetImporter
         HeroineLayeredSpriteData data,
         HeroineImportReport report)
     {
+        if (data.HasEightLayerData())
+        {
+            bool hasCharacterLayer = data.backHairLayers.Count > 0 ||
+                data.costumeBodyLayers.Count > 0 ||
+                data.headExpressionLayers.Count > 0;
+            if (!hasCharacterLayer)
+            {
+                report.Warn("8階層データに BackHair / CostumeBody / HeadExpression がありません。");
+            }
+
+            bool hasDefaultCostumeBody = data.costumeBodyLayers.Count == 0 ||
+                data.costumeBodyLayers.Exists(layer =>
+                    string.IsNullOrEmpty(layer.costumeId) ||
+                    string.Equals(layer.costumeId, data.defaultCostumeId, StringComparison.Ordinal));
+            if (!hasDefaultCostumeBody)
+            {
+                report.Warn("8階層データに Default の CostumeBody がありません。");
+            }
+
+            bool hasNeutralHead = data.headExpressionLayers.Count == 0 ||
+                data.headExpressionLayers.Exists(layer =>
+                    string.IsNullOrEmpty(layer.expressionId) ||
+                    string.Equals(layer.expressionId, data.defaultExpressionId, StringComparison.Ordinal));
+            if (!hasNeutralHead)
+            {
+                report.Warn("8階層データに Neutral の HeadExpression がありません。");
+            }
+            return;
+        }
+
         if (data.baseBodyLayers.Count == 0)
         {
             report.Warn("HeroineLayeredSpriteData に BaseBody がありません。");
@@ -2112,7 +2213,12 @@ public static class HeroineAssetImporter
         HeroineImportReport report)
     {
         ScheduledEventExportConditions conditions = item.conditions ?? new ScheduledEventExportConditions();
-        string actionId = FirstNonEmpty(conditions.actionId, item.actionId, item.id, scheduleType.ToString());
+        string actionId = FirstNonEmpty(
+            conditions.actionId,
+            item.actionId,
+            GetDefaultScheduledEventActionId(scheduleType),
+            item.id,
+            scheduleType.ToString());
         string title = string.IsNullOrWhiteSpace(item.title) ? actionId : item.title;
         string stillId = GetFirstImageAssetId(item.imageAssetIds);
 

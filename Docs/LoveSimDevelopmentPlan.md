@@ -280,9 +280,9 @@ Assets/Images/Heroines/DefaultHeroine/Ending/
 `MainScene` の `GameManager.heroineProfile` に `TestHeroineProfile` を割り当てると、ヒロイン名、開始イベント、会話、エンディングの読み込み元が切り替わるか確認できる。
 `HeroineProfileData.defaultHeroineSprite` は通常衣装 `Normal` の立ち絵として `OutfitManager` に渡し、通常衣装以外は衣装側の `heroineSprite` を優先する。
 AssetTool の `assets_export.json` は importer で `HeroineAssetCatalog.asset` に変換し、画像の `assetId`、用途、Unity asset path、Sprite 参照を保持する。
-AssetTool の `sprite_layers_export.json` は importer で `HeroineLayeredSpriteData.asset` に変換し、表情、衣装、ベース、小物の透過レイヤー定義を保持する。
+AssetTool の `sprite_layers_export.json` は importer で `HeroineLayeredSpriteData.asset` に変換し、背景、後アクセサリー、後ろ髪、衣装・身体、頭・表情、前アクセサリー、前腕、エフェクトの8階層を保持する。旧4階層Exportも互換読み込みする。
 実際の表示に使う `HeroineLayeredSpriteView` は追加済み。
-現在衣装の `costumeId` と会話行の `expressionId` から `BaseBody`、`Costume`、`Expression`、条件一致 `Accessory` を選び、指定がない場合は `Default` 衣装と `Neutral` 表情へ fallback する。
+現在衣装の `costumeId` と会話行の `expressionId` から `CostumeBody`、頭と表情を一体化した `HeadExpression`、条件一致するその他レイヤーを選び、指定がない場合は `Default` 衣装と `Neutral` 表情へ fallback する。新8階層データがなければ旧4階層表示を継続する。
 会話 import は `lines[]` を保持し、実行時に `expression` を表情レイヤー切り替えへ渡す。
 今後は会話とイベントだけでなく、衣装変更時のヒロインメッセージと `衣装を見る` 実行後のヒロイン反応にも `expressionId` を持たせる。
 `HeroineProfileData.outfitMessageOverrides` と `outfitReactionMessageOverrides` に表情指定を追加し、衣装変更成功時、未解放時、褒める/嫌う/退屈/着替える反応時に `HeroineLayeredSpriteView` の表情を切り替えられるようにする。
@@ -299,7 +299,7 @@ AssetTool の `sprite_layers_export.json` は importer で `HeroineLayeredSprite
 - `HeroineAssetCatalog.asset` に画像の `assetId` と Sprite 参照が入っているか確認する
 - Stable Diffusion素材では完成立ち絵の差し替えを基本とし、頭、前髪、目、口などの分離を必須にしない。詳細は `Docs/CharacterAssetGenerationToolSpec.md` の「Stable Diffusion制作時の立ち絵レイヤー方針」を参照する
 - 透過レイヤー方式を任意で使う場合だけ、`HeroineLayeredSpriteData.asset` に `BaseBody`、`Default` 衣装、`Neutral` 表情が入っているか確認する
-- 透過レイヤー方式を使う場合だけ、`HeroineLayeredSpriteView` の `BaseBodyImage`、`CostumeImage`、`ExpressionImage`、`AccessoryImage` が同じ親の下にあり、表情会話で `Neutral`、`Smile`、`Sad` などが切り替わるか確認する
+- 8階層方式を使う場合は、`HeroineLayeredSpriteView` が生成する各Imageで`CostumeBody`と`HeadExpression`が切り替わり、前後アクセサリー、腕、エフェクトが正しいDrawOrderになるか確認する。旧4階層データでは既存Imageを継続利用する
 - `Actions` には行動名、行動結果、行動反応、行動スチルを用意する
 - `Conversations/` にはジャンル会話、好感度条件会話、天候・時間帯・季節条件会話を個別 `ConversationData` として用意する
 - `GameEvents` には `GameStart`、`DayStart`、`Manual` 確認用イベントを用意する

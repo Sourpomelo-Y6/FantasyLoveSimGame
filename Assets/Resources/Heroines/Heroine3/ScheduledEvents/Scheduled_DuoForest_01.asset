@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: "\u68EE\u3078\u306E\u540C\u884C"
   m_EditorClassIdentifier: 
   scheduleType: 5
-  actionId: Scheduled_DuoForest_01
+  actionId: AutoDuoForest
   triggerTimeSlot: 1
   allowOutfitChangeBeforeStart: 1
   outfitPromptMode: 1

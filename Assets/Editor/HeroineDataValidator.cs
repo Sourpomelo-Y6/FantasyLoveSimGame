@@ -397,6 +397,14 @@ public static class HeroineDataValidator
                 data.heroineId);
         }
 
+        ValidateLayerEntries(data.backgroundLayers, report.HeroineId, "backgroundLayers", report);
+        ValidateLayerEntries(data.backAccessoryLayers, report.HeroineId, "backAccessoryLayers", report);
+        ValidateLayerEntries(data.backHairLayers, report.HeroineId, "backHairLayers", report);
+        ValidateLayerEntries(data.costumeBodyLayers, report.HeroineId, "costumeBodyLayers", report);
+        ValidateLayerEntries(data.headExpressionLayers, report.HeroineId, "headExpressionLayers", report);
+        ValidateLayerEntries(data.frontAccessoryLayers, report.HeroineId, "frontAccessoryLayers", report);
+        ValidateLayerEntries(data.frontArmLayers, report.HeroineId, "frontArmLayers", report);
+        ValidateLayerEntries(data.effectLayers, report.HeroineId, "effectLayers", report);
         ValidateLayerEntries(data.baseBodyLayers, report.HeroineId, "baseBodyLayers", report);
         ValidateLayerEntries(data.costumeLayers, report.HeroineId, "costumeLayers", report);
         ValidateLayerEntries(data.expressionLayers, report.HeroineId, "expressionLayers", report);
@@ -532,16 +540,18 @@ public static class HeroineDataValidator
     {
         HeroineLayeredSpriteData data = Resources.Load<HeroineLayeredSpriteData>(
             "Heroines/" + profile.heroineId + "/HeroineLayeredSpriteData");
-        if (data == null || data.expressionLayers == null)
+        if (data == null)
         {
             return new HashSet<string>(StringComparer.Ordinal);
         }
 
-        return new HashSet<string>(
-            data.expressionLayers
-                .Where(layer => layer != null && !string.IsNullOrWhiteSpace(layer.expressionId))
-                .Select(layer => layer.expressionId),
-            StringComparer.Ordinal);
+        IEnumerable<LayerEntry> legacyExpressions =
+            data.expressionLayers ?? new List<LayerEntry>();
+        IEnumerable<LayerEntry> headExpressions =
+            data.headExpressionLayers ?? new List<LayerEntry>();
+        return new HashSet<string>(legacyExpressions.Concat(headExpressions)
+            .Where(layer => layer != null && !string.IsNullOrWhiteSpace(layer.expressionId))
+            .Select(layer => layer.expressionId), StringComparer.Ordinal);
     }
 
     private static void ValidateExpressionId(

@@ -163,18 +163,50 @@ public static class HeroineBattleMessageAssetSync
 
     private static BattleResultEventType ParseBattleResultEventType(string value, string eventId)
     {
-        string normalized = (value ?? string.Empty).Trim();
-        foreach (BattleResultEventType candidate in Enum.GetValues(typeof(BattleResultEventType)))
+        if (TryParseBattleResultEventType(value, out BattleResultEventType resultType))
         {
-            if (string.Equals(normalized, candidate.ToString(), StringComparison.OrdinalIgnoreCase))
-            {
-                return candidate;
-            }
+            return resultType;
+        }
+
+        // 旧データで resultType が欠落していても、標準形式の eventId から復元する。
+        string eventTypePrefix = (eventId ?? string.Empty).Split('_')[0];
+        if (TryParseBattleResultEventType(eventTypePrefix, out resultType))
+        {
+            return resultType;
         }
 
         Debug.LogWarning(
             $"戦闘結果イベントのresultTypeが不正なためSoloVictoryとしてImportします: {eventId} / {value}");
         return BattleResultEventType.SoloVictory;
+    }
+
+    private static bool TryParseBattleResultEventType(string value, out BattleResultEventType resultType)
+    {
+        string normalized = (value ?? string.Empty).Trim();
+        switch (normalized.ToLowerInvariant())
+        {
+            case "solovictory":
+                resultType = BattleResultEventType.SoloVictory;
+                return true;
+            case "duovictory":
+                resultType = BattleResultEventType.DuoVictory;
+                return true;
+            case "solodefeat":
+                resultType = BattleResultEventType.SoloDefeat;
+                return true;
+            case "duodefeat":
+                resultType = BattleResultEventType.DuoDefeat;
+                return true;
+            case "soloescape":
+                resultType = BattleResultEventType.SoloEscape;
+                return true;
+            case "duoescape":
+                resultType = BattleResultEventType.DuoEscape;
+                return true;
+        }
+
+        resultType = BattleResultEventType.SoloVictory;
+        return false;
     }
 
     private static T Parse<T>(string value, T fallback) where T : struct => Enum.TryParse(value, true, out T parsed) ? parsed : fallback;

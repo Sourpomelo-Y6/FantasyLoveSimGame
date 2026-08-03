@@ -13,6 +13,16 @@ public class HeroineLayeredSpriteView : MonoBehaviour
     [SerializeField] private Image expressionImage;
     [SerializeField] private Image accessoryImage;
 
+    [Header("Eight Layer Composition")]
+    [SerializeField] private Image backgroundImage;
+    [SerializeField] private Image backAccessoryImage;
+    [SerializeField] private Image backHairImage;
+    [SerializeField] private Image costumeBodyImage;
+    [SerializeField] private Image headExpressionImage;
+    [SerializeField] private Image frontAccessoryImage;
+    [SerializeField] private Image frontArmImage;
+    [SerializeField] private Image effectImage;
+
     public bool HasData => layeredSpriteData != null;
 
     private bool warnedMissingBaseBody = false;
@@ -24,6 +34,7 @@ public class HeroineLayeredSpriteView : MonoBehaviour
         ConfigureLayerImage(costumeImage);
         ConfigureLayerImage(expressionImage);
         ConfigureLayerImage(accessoryImage);
+        ConfigureEightLayerImages();
     }
 
     public void SetData(HeroineLayeredSpriteData data)
@@ -31,6 +42,10 @@ public class HeroineLayeredSpriteView : MonoBehaviour
         layeredSpriteData = data;
         warnedMissingBaseBody = false;
         ResolveImageReferences();
+        if (layeredSpriteData != null && layeredSpriteData.HasEightLayerData())
+        {
+            EnsureEightLayerImages();
+        }
         Refresh(
             GetDefaultCostumeId(),
             GetDefaultExpressionId());
@@ -45,6 +60,14 @@ public class HeroineLayeredSpriteView : MonoBehaviour
             ClearAll();
             return false;
         }
+
+        if (layeredSpriteData.HasEightLayerData())
+        {
+            ClearLegacyLayers();
+            return RefreshEightLayers(costumeId, expressionId);
+        }
+
+        ClearEightLayers();
 
         LayerEntry baseBodyLayer = GetFirstValidLayer(layeredSpriteData.baseBodyLayers);
         LayerEntry costumeLayer = FindLayerByCostumeId(costumeId);
@@ -82,10 +105,28 @@ public class HeroineLayeredSpriteView : MonoBehaviour
 
     public void ClearAll()
     {
+        ClearLegacyLayers();
+        ClearEightLayers();
+    }
+
+    private void ClearLegacyLayers()
+    {
         ClearLayer(baseBodyImage);
         ClearLayer(costumeImage);
         ClearLayer(expressionImage);
         ClearLayer(accessoryImage);
+    }
+
+    private void ClearEightLayers()
+    {
+        ClearLayer(backgroundImage);
+        ClearLayer(backAccessoryImage);
+        ClearLayer(backHairImage);
+        ClearLayer(costumeBodyImage);
+        ClearLayer(headExpressionImage);
+        ClearLayer(frontAccessoryImage);
+        ClearLayer(frontArmImage);
+        ClearLayer(effectImage);
     }
 
     public void SetVisible(bool visible)
@@ -114,6 +155,181 @@ public class HeroineLayeredSpriteView : MonoBehaviour
         {
             accessoryImage = FindChildImage("AccessoryImage");
         }
+
+        if (backgroundImage == null) backgroundImage = FindChildImage("BackgroundImage");
+        if (backAccessoryImage == null) backAccessoryImage = FindChildImage("BackAccessoryImage");
+        if (backHairImage == null) backHairImage = FindChildImage("BackHairImage");
+        if (costumeBodyImage == null) costumeBodyImage = FindChildImage("CostumeBodyImage");
+        if (headExpressionImage == null) headExpressionImage = FindChildImage("HeadExpressionImage");
+        if (frontAccessoryImage == null) frontAccessoryImage = FindChildImage("FrontAccessoryImage");
+        if (frontArmImage == null) frontArmImage = FindChildImage("FrontArmImage");
+        if (effectImage == null) effectImage = FindChildImage("EffectImage");
+    }
+
+    private void ConfigureEightLayerImages()
+    {
+        ConfigureLayerImage(backgroundImage);
+        ConfigureLayerImage(backAccessoryImage);
+        ConfigureLayerImage(backHairImage);
+        ConfigureLayerImage(costumeBodyImage);
+        ConfigureLayerImage(headExpressionImage);
+        ConfigureLayerImage(frontAccessoryImage);
+        ConfigureLayerImage(frontArmImage);
+        ConfigureLayerImage(effectImage);
+    }
+
+    private void EnsureEightLayerImages()
+    {
+        backgroundImage = EnsureLayerImage(backgroundImage, "BackgroundImage");
+        backAccessoryImage = EnsureLayerImage(backAccessoryImage, "BackAccessoryImage");
+        backHairImage = EnsureLayerImage(backHairImage, "BackHairImage");
+        costumeBodyImage = EnsureLayerImage(costumeBodyImage, "CostumeBodyImage");
+        headExpressionImage = EnsureLayerImage(headExpressionImage, "HeadExpressionImage");
+        frontAccessoryImage = EnsureLayerImage(frontAccessoryImage, "FrontAccessoryImage");
+        frontArmImage = EnsureLayerImage(frontArmImage, "FrontArmImage");
+        effectImage = EnsureLayerImage(effectImage, "EffectImage");
+        ConfigureEightLayerImages();
+    }
+
+    private Image EnsureLayerImage(Image image, string childName)
+    {
+        if (image != null)
+        {
+            return image;
+        }
+
+        Image existing = FindChildImage(childName);
+        if (existing != null)
+        {
+            return existing;
+        }
+
+        GameObject child = new GameObject(
+            childName,
+            typeof(RectTransform),
+            typeof(CanvasRenderer),
+            typeof(Image));
+        RectTransform rectTransform = child.GetComponent<RectTransform>();
+        rectTransform.SetParent(transform, false);
+        rectTransform.anchorMin = Vector2.zero;
+        rectTransform.anchorMax = Vector2.one;
+        rectTransform.offsetMin = Vector2.zero;
+        rectTransform.offsetMax = Vector2.zero;
+        Image created = child.GetComponent<Image>();
+        ClearLayer(created);
+        return created;
+    }
+
+    private bool RefreshEightLayers(string costumeId, string expressionId)
+    {
+        string resolvedCostumeId = string.IsNullOrEmpty(costumeId)
+            ? GetDefaultCostumeId()
+            : costumeId;
+        string resolvedExpressionId = string.IsNullOrEmpty(expressionId)
+            ? GetDefaultExpressionId()
+            : expressionId;
+
+        LayerEntry background = FindBestConditionalLayer(
+            layeredSpriteData.backgroundLayers, resolvedCostumeId, resolvedExpressionId, false, false);
+        LayerEntry backAccessory = FindBestConditionalLayer(
+            layeredSpriteData.backAccessoryLayers, resolvedCostumeId, resolvedExpressionId, false, false);
+        LayerEntry backHair = FindBestConditionalLayer(
+            layeredSpriteData.backHairLayers, resolvedCostumeId, resolvedExpressionId, false, false);
+        LayerEntry costumeBody = FindBestConditionalLayer(
+            layeredSpriteData.costumeBodyLayers, resolvedCostumeId, resolvedExpressionId, true, false);
+        LayerEntry headExpression = FindBestConditionalLayer(
+            layeredSpriteData.headExpressionLayers, resolvedCostumeId, resolvedExpressionId, false, true);
+        LayerEntry frontAccessory = FindBestConditionalLayer(
+            layeredSpriteData.frontAccessoryLayers, resolvedCostumeId, resolvedExpressionId, false, false);
+        LayerEntry frontArm = FindBestConditionalLayer(
+            layeredSpriteData.frontArmLayers, resolvedCostumeId, resolvedExpressionId, false, false);
+        LayerEntry effect = FindBestConditionalLayer(
+            layeredSpriteData.effectLayers, resolvedCostumeId, resolvedExpressionId, false, false);
+
+        ApplyLayer(backgroundImage, background);
+        ApplyLayer(backAccessoryImage, backAccessory);
+        ApplyLayer(backHairImage, backHair);
+        ApplyLayer(costumeBodyImage, costumeBody);
+        ApplyLayer(headExpressionImage, headExpression);
+        ApplyLayer(frontAccessoryImage, frontAccessory);
+        ApplyLayer(frontArmImage, frontArm);
+        ApplyLayer(effectImage, effect);
+
+        List<LayerImagePair> pairs = new List<LayerImagePair>
+        {
+            new LayerImagePair(backgroundImage, background),
+            new LayerImagePair(backAccessoryImage, backAccessory),
+            new LayerImagePair(backHairImage, backHair),
+            new LayerImagePair(costumeBodyImage, costumeBody),
+            new LayerImagePair(headExpressionImage, headExpression),
+            new LayerImagePair(frontAccessoryImage, frontAccessory),
+            new LayerImagePair(frontArmImage, frontArm),
+            new LayerImagePair(effectImage, effect)
+        };
+        ApplyLayerSiblingOrder(pairs);
+
+        bool hasVisibleLayer = pairs.Exists(pair => pair.HasVisibleLayer);
+        if (!hasVisibleLayer && !warnedMissingBaseBody)
+        {
+            Debug.LogWarning("HeroineLayeredSpriteView: 8階層に表示可能なSpriteがありません。");
+            warnedMissingBaseBody = true;
+        }
+
+        return hasVisibleLayer;
+    }
+
+    private LayerEntry FindBestConditionalLayer(
+        List<LayerEntry> layers,
+        string costumeId,
+        string expressionId,
+        bool preferCostume,
+        bool preferExpression)
+    {
+        if (layers == null)
+        {
+            return null;
+        }
+
+        LayerEntry best = null;
+        int bestScore = int.MinValue;
+        foreach (LayerEntry layer in layers)
+        {
+            if (!HasVisibleLayer(layer))
+            {
+                continue;
+            }
+
+            bool costumeMatches = string.IsNullOrEmpty(layer.costumeId) || layer.costumeId == costumeId;
+            bool expressionMatches = string.IsNullOrEmpty(layer.expressionId) || layer.expressionId == expressionId;
+            if (!costumeMatches || !expressionMatches)
+            {
+                continue;
+            }
+
+            int score = 0;
+            if (!string.IsNullOrEmpty(layer.costumeId)) score += preferCostume ? 4 : 2;
+            if (!string.IsNullOrEmpty(layer.expressionId)) score += preferExpression ? 4 : 2;
+            if (best == null || score > bestScore ||
+                (score == bestScore && layer.drawOrder < best.drawOrder))
+            {
+                best = layer;
+                bestScore = score;
+            }
+        }
+
+        if (best == null && preferCostume && costumeId != GetDefaultCostumeId())
+        {
+            return FindBestConditionalLayer(
+                layers, GetDefaultCostumeId(), expressionId, false, preferExpression);
+        }
+
+        if (best == null && preferExpression && expressionId != GetDefaultExpressionId())
+        {
+            return FindBestConditionalLayer(
+                layers, costumeId, GetDefaultExpressionId(), preferCostume, false);
+        }
+
+        return best;
     }
 
     private Image FindChildImage(string childName)
@@ -277,6 +493,11 @@ public class HeroineLayeredSpriteView : MonoBehaviour
             new LayerImagePair(accessory, accessoryLayer)
         };
 
+        ApplyLayerSiblingOrder(pairs);
+    }
+
+    private static void ApplyLayerSiblingOrder(List<LayerImagePair> pairs)
+    {
         pairs.Sort((a, b) => a.DrawOrder.CompareTo(b.DrawOrder));
 
         int siblingIndex = 0;
@@ -296,6 +517,7 @@ public class HeroineLayeredSpriteView : MonoBehaviour
     {
         public readonly Image Image;
         public readonly int DrawOrder;
+        public bool HasVisibleLayer => Image != null && Image.enabled && Image.sprite != null;
 
         public LayerImagePair(Image image, LayerEntry layer)
         {

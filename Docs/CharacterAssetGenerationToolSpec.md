@@ -416,8 +416,8 @@ Unity 側の現行 UI は選択肢 3 件までのため、4 件以上ある場�
 実行時は複数行会話として表示し、`lines[].expression` を `HeroineLayeredSpriteView` の表情レイヤー切り替えに使う。
 旧 `Conversations.asset` container は互換用に残せるが、通常の profile は `Heroines/<HeroineId>/Conversations` を読み込み、container と個別 asset を同時に読む構成にはしない。
 `Data/sprite_layers_export.json` が存在する場合は、`Assets/Resources/Heroines/<HeroineId>/HeroineLayeredSpriteData.asset` を生成、更新する。
-レイヤーは `BaseBody` / `Costume` / `Expression` / `Accessory` に分類し、`assetId` から `HeroineAssetCatalog` の Sprite を参照する。
-`BaseBody` なし、`Default` 衣装なし、`Neutral` 表情なし、未知 `layerKind`、Sprite 解決失敗は Import warning に残す。
+新規レイヤーは `Background / BackAccessory / BackHair / CostumeBody / HeadExpression / FrontAccessory / FrontArm / Effect` に分類し、`assetId` から `HeroineAssetCatalog` の Sprite を参照する。頭、顔、前髪、表情は `HeadExpression` 一枚にまとめてよい。
+旧 `BaseBody / Costume / Expression / Accessory` は既存Export互換用としてImportできる。表示可能な中心レイヤーなし、`Default` 衣装なし、`Neutral` 表情なし、未知 `layerKind`、Sprite 解決失敗は Import warning に残す。
 `HeroineLayeredSpriteView` は実装済みで、現在衣装の `costumeId` と会話行の `expressionId` から表示レイヤーを選ぶ。
 指定衣装がなければ `Default`、指定表情がなければ `Neutral` へ fallback する。
 `Data/game_events_export.json` が存在する場合は、`Assets/Resources/Heroines/<HeroineId>/GameEvents/<EventId>.asset` を生成、更新する。

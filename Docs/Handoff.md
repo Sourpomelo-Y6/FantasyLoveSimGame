@@ -486,10 +486,10 @@ EditorWindowのScene・Prefab一括適用はローカル確認専用。適用後
 通常衣装以外は衣装側の `heroineSprite` を優先し、衣装画像がない場合だけ profile の代表立ち絵へフォールバックする。
 AssetTool の `assets_export.json` を importer で取り込むと、`Assets/Resources/Heroines/<HeroineId>/HeroineAssetCatalog.asset` に `assetId` と Sprite 参照の対応が保存される。
 Importer は完了時に copied images、catalog assets、layers、conversations、game events、warning 件数を summary 表示する。
-`sprite_layers_export.json` がある場合は、`HeroineLayeredSpriteData.asset` に `BaseBody` / `Costume` / `Expression` / `Accessory` の各レイヤーを import する。
+`sprite_layers_export.json` がある場合は、`HeroineLayeredSpriteData.asset` に `Background / BackAccessory / BackHair / CostumeBody / HeadExpression / FrontAccessory / FrontArm / Effect` の8階層をimportする。旧 `BaseBody / Costume / Expression / Accessory` も互換用に読み込める。
 レイヤーの実表示を行う `HeroineLayeredSpriteView` は実装済み。
 `OutfitManager` が現在衣装を `costumeId` として渡し、会話表示時は `ConversationData.lines[].expressionId` を表情切り替えに使う。
-指定表情がない場合は `Neutral`、指定衣装がない場合は `Default` へ fallback する。
+指定表情がない場合は `Neutral`、指定衣装がない場合は `Default` へ fallback する。新8階層用Imageは未配置でも実行時生成し、8階層データがなければ旧4階層表示を使う。
 `game_events_export.json` がある場合は、`GameEvents/<EventId>.asset` を作成、更新し、`lines[]` を `GameEventData.pages` に変換する。トップレベルの `affectionChange` は全ページ表示完了時の好感度変化として `GameEventData.affectionChange` と往復する。
 イベントページの `expressionId` も会話と同じ表情切り替えに使う。
 追加の `TestHeroine` 画像は容量節約のためコミットしない。

@@ -393,12 +393,14 @@ public static class EndingDataValidator
             .Select(AssetDatabase.LoadAssetAtPath<HeroineLayeredSpriteData>)
             .Where(data => data != null && !string.IsNullOrWhiteSpace(data.heroineId)))
         {
+            IEnumerable<LayerEntry> legacyExpressions =
+                data.expressionLayers ?? new List<LayerEntry>();
+            IEnumerable<LayerEntry> headExpressions =
+                data.headExpressionLayers ?? new List<LayerEntry>();
             result[data.heroineId] = new HashSet<string>(
-                data.expressionLayers == null
-                    ? new string[0]
-                    : data.expressionLayers
-                        .Where(layer => layer != null && !string.IsNullOrWhiteSpace(layer.expressionId))
-                        .Select(layer => layer.expressionId),
+                legacyExpressions.Concat(headExpressions)
+                    .Where(layer => layer != null && !string.IsNullOrWhiteSpace(layer.expressionId))
+                    .Select(layer => layer.expressionId),
                 StringComparer.Ordinal);
         }
         return result;
