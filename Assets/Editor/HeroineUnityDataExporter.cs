@@ -65,6 +65,7 @@ public static class HeroineUnityDataExporter
         ExportGameEvents(profile, outputFolder, report);
         ExportScheduledEvents(profile, outputFolder, report);
         ExportEndings(profile, outputFolder, report);
+        ExportLayeredSprites(profile, outputFolder, report);
         ExportTrainingCatalog(profile, outputFolder, report);
         ExportTrainingDialogues(profile, outputFolder, report);
         HeroineSkillTreeAssetSync.Export(profile.heroineId, outputFolder);
@@ -84,6 +85,8 @@ public static class HeroineUnityDataExporter
             report.scheduledEventCount +
             " / endings: " +
             report.endingCount +
+            " / layered sprites: " +
+            report.layeredSpriteCount +
             " / training dialogues: " +
             report.trainingDialogueEntryCount +
             " / trainings: " +
@@ -159,6 +162,85 @@ public static class HeroineUnityDataExporter
 
         WriteJson(Path.Combine(outputFolder, "heroine_profile_from_unity.json"), export);
         report.profileExported = true;
+    }
+
+    internal static void ExportLayeredSprites(
+        HeroineProfileData profile,
+        string outputFolder,
+        HeroineUnityExportReport report)
+    {
+        string resourcePath = "Heroines/" + profile.heroineId + "/HeroineLayeredSpriteData";
+        HeroineLayeredSpriteData data = Resources.Load<HeroineLayeredSpriteData>(resourcePath);
+        LayeredSpritesFromUnityExport export = new LayeredSpritesFromUnityExport
+        {
+            schemaVersion = SchemaVersion,
+            heroineId = profile.heroineId,
+            source = "Unity",
+            defaultCostumeId = data != null ? data.defaultCostumeId : string.Empty,
+            defaultExpressionId = data != null ? data.defaultExpressionId : string.Empty,
+            items = new List<LayeredSpriteFromUnityItem>()
+        };
+
+        if (data == null)
+        {
+            report.Warn("HeroineLayeredSpriteData が見つかりません: " + resourcePath);
+        }
+        else
+        {
+            AddLayeredSpriteItems(export.items, data.backgroundLayers, HeroineVisualLayerKinds.Background);
+            AddLayeredSpriteItems(export.items, data.backAccessoryLayers, HeroineVisualLayerKinds.BackAccessory);
+            AddLayeredSpriteItems(export.items, data.backHairLayers, HeroineVisualLayerKinds.BackHair);
+            AddLayeredSpriteItems(export.items, data.costumeBodyLayers, HeroineVisualLayerKinds.CostumeBody);
+            AddLayeredSpriteItems(export.items, data.headExpressionLayers, HeroineVisualLayerKinds.HeadExpression);
+            AddLayeredSpriteItems(export.items, data.frontAccessoryLayers, HeroineVisualLayerKinds.FrontAccessory);
+            AddLayeredSpriteItems(export.items, data.frontArmLayers, HeroineVisualLayerKinds.FrontArm);
+            AddLayeredSpriteItems(export.items, data.effectLayers, HeroineVisualLayerKinds.Effect);
+            AddLayeredSpriteItems(export.items, data.baseBodyLayers, HeroineVisualLayerKinds.LegacyBaseBody);
+            AddLayeredSpriteItems(export.items, data.costumeLayers, HeroineVisualLayerKinds.LegacyCostume);
+            AddLayeredSpriteItems(export.items, data.expressionLayers, HeroineVisualLayerKinds.LegacyExpression);
+            AddLayeredSpriteItems(export.items, data.accessoryLayers, HeroineVisualLayerKinds.LegacyAccessory);
+        }
+
+        WriteJson(Path.Combine(outputFolder, "heroine_layered_sprites_from_unity.json"), export);
+        report.layeredSpriteCount = export.items.Count;
+    }
+
+    private static void AddLayeredSpriteItems(
+        List<LayeredSpriteFromUnityItem> destination,
+        List<LayerEntry> source,
+        string fallbackLayerKind)
+    {
+        if (source == null)
+        {
+            return;
+        }
+
+        foreach (LayerEntry layer in source)
+        {
+            if (layer == null || string.IsNullOrWhiteSpace(layer.assetId))
+            {
+                continue;
+            }
+
+            string imagePath = layer.sprite != null
+                ? AssetDatabase.GetAssetPath(layer.sprite)
+                : string.Empty;
+            destination.Add(new LayeredSpriteFromUnityItem
+            {
+                assetId = layer.assetId,
+                layerKind = string.IsNullOrWhiteSpace(layer.layerKind)
+                    ? fallbackLayerKind
+                    : layer.layerKind,
+                costumeId = layer.costumeId,
+                expressionId = layer.expressionId,
+                displayName = layer.displayName,
+                drawOrder = layer.drawOrder,
+                fileName = string.IsNullOrWhiteSpace(imagePath)
+                    ? string.Empty
+                    : Path.GetFileName(imagePath),
+                unityImagePath = imagePath
+            });
+        }
     }
 
     private static List<HeroineBattleSkillFromUnity> CreateHeroineBattleSkills(List<HeroineBattleSkillData> source)
@@ -1510,6 +1592,7 @@ public static class HeroineUnityDataExporter
             gameEventCount = report.gameEventCount,
             scheduledEventCount = report.scheduledEventCount,
             endingCount = report.endingCount,
+            layeredSpriteCount = report.layeredSpriteCount,
             trainingDialogueEntryCount = report.trainingDialogueEntryCount,
             trainingCatalogCount = report.trainingCatalogCount,
             warnings = report.warnings
@@ -1565,6 +1648,30 @@ public static class HeroineUnityDataExporter
         public int useChancePercent;
         public int priority;
         public int maxUsesPerBattle;
+    }
+
+    [Serializable]
+    private sealed class LayeredSpritesFromUnityExport
+    {
+        public int schemaVersion;
+        public string heroineId;
+        public string source;
+        public string defaultCostumeId;
+        public string defaultExpressionId;
+        public List<LayeredSpriteFromUnityItem> items;
+    }
+
+    [Serializable]
+    private sealed class LayeredSpriteFromUnityItem
+    {
+        public string assetId;
+        public string layerKind;
+        public string costumeId;
+        public string expressionId;
+        public string displayName;
+        public int drawOrder;
+        public string fileName;
+        public string unityImagePath;
     }
 
     [Serializable]
@@ -1920,6 +2027,7 @@ public static class HeroineUnityDataExporter
         public int gameEventCount;
         public int scheduledEventCount;
         public int endingCount;
+        public int layeredSpriteCount;
         public int trainingDialogueEntryCount;
         public int trainingCatalogCount;
         public List<string> warnings;
@@ -1932,6 +2040,7 @@ public static class HeroineUnityDataExporter
         public int gameEventCount;
         public int scheduledEventCount;
         public int endingCount;
+        public int layeredSpriteCount;
         public int trainingDialogueEntryCount;
         public int trainingCatalogCount;
         public bool profileExported;
@@ -1953,6 +2062,7 @@ public static class HeroineUnityDataExporter
                 "Game events: " + gameEventCount + "\n" +
                 "Scheduled events: " + scheduledEventCount + "\n" +
                 "Endings: " + endingCount + "\n" +
+                "Layered sprites: " + layeredSpriteCount + "\n" +
                 "Training dialogue entries: " + trainingDialogueEntryCount + "\n" +
                 "Trainings: " + trainingCatalogCount + "\n" +
                 "Warnings: " + warnings.Count;

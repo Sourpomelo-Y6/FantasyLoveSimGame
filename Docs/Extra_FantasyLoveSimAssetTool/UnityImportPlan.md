@@ -8,6 +8,18 @@ WPF ツールは画像と中間 JSON を出力し、Unity Editor 拡張が Unity
 Unity 側で手修正したデータを WPF Tool 側へ戻す場合は、正方向 Import とは分けて `Docs/Extra_FantasyLoveSimAssetTool/UnityToWpfSyncPlan.md` の FromUnity JSON 方針に従う。
 WPF Tool は Unity `.asset` YAML を直接読まない。
 
+### Unity レイヤーデータを AssetTool へ戻す
+
+Unity の `FantasyLoveSim > Export Heroine Unity Data` は、通常の FromUnity JSON に加えて
+`heroine_layered_sprites_from_unity.json` を出力する。このファイルには `HeroineLayeredSpriteData` の
+8階層および旧4階層、衣装・表情条件、描画順、Unityプロジェクト相対の画像パスが含まれる。
+
+AssetToolでは対象キャラクターを選択し、`差分定義 > Unityレイヤー読込` からこのJSONを指定する。
+旧 `Costume / Expression / BaseBody / Accessory` は、それぞれ
+`CostumeBody / HeadExpression / BackHair / FrontAccessory` へ正規化して取り込む。
+Toolに同じ `AssetId` の画像が既にあれば保持し、画像がない場合だけ設定済みUnityプロジェクトからコピーして
+Accepted素材として登録する。取り込み後は衣装・表情候補とレイヤープレビューを即時更新する。
+
 ## 基本方針
 
 - WPF ツールと Unity プロジェクトは、原則として別リポジトリのまま運用する。
