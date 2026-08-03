@@ -1,0 +1,35 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 12dcc5f9eb584ecf97ac2bbda68484a9, type: 3}
+  m_Name: Heroine3_SteadyGuard
+  m_EditorClassIdentifier: 
+  nodeId: Heroine3_SteadyGuard
+  displayName: "\u63FA\u308B\u304C\u306A\u3044\u5B88\u308A"
+  owner: 1
+  skill: {fileID: 0}
+  sortOrder: 30
+  targetHeroineId: Heroine3
+  grantedHeroineSkillId: SteadyGuard
+  unlockedTrainingIds: []
+  unlocksOutfitPromptMode: 0
+  unlockedOutfitPromptMode: 0
+  unlockEventHeroineId: 
+  unlockEventId: 
+  skillPointCost: 1
+  prerequisiteNodes:
+  - {fileID: 11400000, guid: 03f7fbbc004fa464c9aa509288726efb, type: 2}
+  unlockConditions:
+  - conditionType: 0
+    scope: 1
+    targetId: EnduranceTraining
+    requiredValue: 30
+  treePosition: {x: 280, y: -100}

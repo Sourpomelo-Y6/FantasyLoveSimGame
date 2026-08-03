@@ -1,0 +1,21 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 731ad188c9e14de995c52ac27aa0c9bf, type: 3}
+  m_Name: HeroineTrainingImageData
+  m_EditorClassIdentifier: 
+  heroineId: Heroine3
+  defaultBeforeFirstStepSprite: {fileID: 0}
+  defaultAfterFirstStepSprite: {fileID: 0}
+  defaultPlayerLpConsumedSprite: {fileID: 0}
+  defaultHeroineLpConsumedSprite: {fileID: 0}
+  defaultSimultaneousLpConsumedSprite: {fileID: 0}
+  entries: []
