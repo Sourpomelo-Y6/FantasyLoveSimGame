@@ -246,6 +246,39 @@ public class HeroineLayeredSpriteView : MonoBehaviour
         LayerEntry effect = FindBestConditionalLayer(
             layeredSpriteData.effectLayers, resolvedCostumeId, resolvedExpressionId, false, false);
 
+        // 8階層へ段階移行しているデータでは、未移行の衣装や表情だけ旧4階層から補う。
+        // 一部の8階層データがあるだけで全旧レイヤーを非表示にすると、未移行衣装が消えてしまう。
+        LayerEntry exactLegacyCostume = FindLayerById(
+            layeredSpriteData.costumeLayers, resolvedCostumeId);
+        if (HasVisibleLayer(exactLegacyCostume) &&
+            (costumeBody == null || costumeBody.costumeId != resolvedCostumeId))
+        {
+            costumeBody = exactLegacyCostume;
+        }
+        if (!HasVisibleLayer(costumeBody))
+        {
+            costumeBody = FindLayerByCostumeId(resolvedCostumeId);
+        }
+        if (!HasVisibleLayer(costumeBody))
+        {
+            costumeBody = GetFirstValidLayer(layeredSpriteData.baseBodyLayers);
+        }
+        LayerEntry exactLegacyExpression = FindLayerById(
+            layeredSpriteData.expressionLayers, resolvedExpressionId);
+        if (HasVisibleLayer(exactLegacyExpression) &&
+            (headExpression == null || headExpression.expressionId != resolvedExpressionId))
+        {
+            headExpression = exactLegacyExpression;
+        }
+        if (!HasVisibleLayer(headExpression))
+        {
+            headExpression = FindLayerByExpressionId(resolvedExpressionId);
+        }
+        if (!HasVisibleLayer(frontAccessory))
+        {
+            frontAccessory = FindAccessoryLayer(costumeBody, headExpression);
+        }
+
         ApplyLayer(backgroundImage, background);
         ApplyLayer(backAccessoryImage, backAccessory);
         ApplyLayer(backHairImage, backHair);

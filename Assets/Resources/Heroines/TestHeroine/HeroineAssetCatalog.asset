@@ -406,3 +406,27 @@ MonoBehaviour:
     sprite: {fileID: 21300000, guid: 7cf9c7f22f924b649a2b6a6b353e3107, type: 3}
     unityImagePath: Assets/Images/Heroines/TestHeroine/Training/Training_SparringPractice_SimultaneousLpConsumed.png
     exportPromptPath: Prompts/Training_SparringPractice_SimultaneousLpConsumed.prompt.json
+  - assetId: Accessory_Town_Front
+    usage: Sprites
+    status: Accepted
+    fileName: Accessory_Town_Front.png
+    memo:
+    sprite: {fileID: 21300000, guid: 171fcdc02df9d224d9754c12c8bf905d, type: 3}
+    unityImagePath: Assets/Images/Heroines/TestHeroine/Sprites/Accessory_Town_Front.png
+    exportPromptPath: Prompts/Accessory_Town_Front.prompt.json
+  - assetId: Accessory_Town_Back
+    usage: Sprites
+    status: Accepted
+    fileName: Accessory_Town_Back.png
+    memo:
+    sprite: {fileID: 21300000, guid: 7e8861cb1297db443873b524a8594219, type: 3}
+    unityImagePath: Assets/Images/Heroines/TestHeroine/Sprites/Accessory_Town_Back.png
+    exportPromptPath: Prompts/Accessory_Town_Back.prompt.json
+  - assetId: Accessory_Winter_Front
+    usage: Sprites
+    status: Accepted
+    fileName: Accessory_Winter_Front.png
+    memo:
+    sprite: {fileID: 21300000, guid: 6231d5f19fde7e541b5bf758ff852427, type: 3}
+    unityImagePath: Assets/Images/Heroines/TestHeroine/Sprites/Accessory_Winter_Front.png
+    exportPromptPath: Prompts/Accessory_Winter_Front.prompt.json

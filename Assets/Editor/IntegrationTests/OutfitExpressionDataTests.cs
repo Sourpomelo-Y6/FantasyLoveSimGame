@@ -155,6 +155,43 @@ public class OutfitExpressionDataTests
         Assert.That(headImage.transform.GetSiblingIndex(), Is.LessThan(effectImage.transform.GetSiblingIndex()));
     }
 
+    [Test]
+    public void LayeredSpriteView_UsesLegacyCostumeAndExpressionDuringEightLayerMigration()
+    {
+        GameObject root = new GameObject("MixedLayerView");
+        createdObjects.Add(root);
+        Image costumeImage = CreateLayerImage(root.transform, "CostumeBodyImage");
+        Image headImage = CreateLayerImage(root.transform, "HeadExpressionImage");
+        HeroineLayeredSpriteView view = root.AddComponent<HeroineLayeredSpriteView>();
+
+        HeroineLayeredSpriteData data = ScriptableObject.CreateInstance<HeroineLayeredSpriteData>();
+        createdObjects.Add(data);
+        data.defaultCostumeId = "Default";
+        data.defaultExpressionId = "Neutral";
+        Sprite defaultCostume = CreateSprite();
+        Sprite townCostume = CreateSprite();
+        Sprite summerCostume = CreateSprite();
+        Sprite newNeutralExpression = CreateSprite();
+        Sprite legacySmileExpression = CreateSprite();
+        data.costumeBodyLayers.Add(CreateLayer(
+            "Costume_Default", HeroineVisualLayerKinds.CostumeBody, "Default", "", 40, defaultCostume));
+        data.costumeBodyLayers.Add(CreateLayer(
+            "Costume_Town", HeroineVisualLayerKinds.CostumeBody, "Town", "", 40, townCostume));
+        data.headExpressionLayers.Add(CreateLayer(
+            "Head_Neutral", HeroineVisualLayerKinds.HeadExpression, "", "Neutral", 50, newNeutralExpression));
+        data.costumeLayers.Add(CreateLayer(
+            "Costume_Summer", HeroineVisualLayerKinds.LegacyCostume, "Summer", "", 10, summerCostume));
+        data.expressionLayers.Add(CreateLayer(
+            "Expression_Smile", HeroineVisualLayerKinds.LegacyExpression, "", "Smile", 20, legacySmileExpression));
+
+        view.SetData(data);
+        bool visible = view.Refresh("Summer", "Smile");
+
+        Assert.That(visible, Is.True);
+        Assert.That(costumeImage.sprite, Is.SameAs(summerCostume));
+        Assert.That(headImage.sprite, Is.SameAs(legacySmileExpression));
+    }
+
     private Image CreateLayerImage(Transform parent, string name)
     {
         GameObject layer = new GameObject(name, typeof(RectTransform), typeof(CanvasRenderer), typeof(Image));

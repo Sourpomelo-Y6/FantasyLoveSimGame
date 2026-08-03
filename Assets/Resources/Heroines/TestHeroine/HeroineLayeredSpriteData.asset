@@ -16,22 +16,50 @@ MonoBehaviour:
   defaultCostumeId: Default
   defaultExpressionId: Neutral
   backgroundLayers: []
-  backAccessoryLayers: []
+  backAccessoryLayers:
+  - assetId: Accessory_Town_Back
+    layerKind: BackAccessory
+    costumeId: Town
+    expressionId:
+    displayName: "\u5F8C\u308D\u30A2\u30AF\u30BB\u30B5\u30EA\u30FC: Town"
+    drawOrder: 10
+    sprite: {fileID: 21300000, guid: 7e8861cb1297db443873b524a8594219, type: 3}
   backHairLayers: []
-  costumeBodyLayers: []
+  costumeBodyLayers:
+  - assetId: Costume_Default
+    layerKind: CostumeBody
+    costumeId: Default
+    expressionId:
+    displayName: "\u8863\u88C5\u672C\u4F53: Default"
+    drawOrder: 40
+    sprite: {fileID: 21300000, guid: a132a23ad4b54ef42b0de72893febb47, type: 3}
+  - assetId: Costume_Winter
+    layerKind: CostumeBody
+    costumeId: Winter
+    expressionId:
+    displayName: "\u8863\u88C5\u672C\u4F53: Winter"
+    drawOrder: 40
+    sprite: {fileID: 21300000, guid: efa2ded0920196b419dea4ce0d04d117, type: 3}
+  - assetId: Costume_Town
+    layerKind: CostumeBody
+    costumeId: Town
+    expressionId:
+    displayName: "\u8863\u88C5\u672C\u4F53: Town"
+    drawOrder: 40
+    sprite: {fileID: 21300000, guid: 8c37d93a1e555ce439893db8029e38fc, type: 3}
   headExpressionLayers: []
-  frontAccessoryLayers: []
+  frontAccessoryLayers:
+  - assetId: Accessory_Town_Front
+    layerKind: FrontAccessory
+    costumeId: Town
+    expressionId:
+    displayName: "\u524D\u30A2\u30AF\u30BB\u30B5\u30EA\u30FC: Town"
+    drawOrder: 60
+    sprite: {fileID: 21300000, guid: 171fcdc02df9d224d9754c12c8bf905d, type: 3}
   frontArmLayers: []
   effectLayers: []
   baseBodyLayers: []
   costumeLayers:
-  - assetId: Costume_Default
-    layerKind: Costume
-    costumeId: Default
-    expressionId: 
-    displayName: "\u30EC\u30A4\u30E4\u30FC: \u901A\u5E38\u670D"
-    drawOrder: 10
-    sprite: {fileID: 21300000, guid: a132a23ad4b54ef42b0de72893febb47, type: 3}
   - assetId: Costume_Summer
     layerKind: Costume
     costumeId: Summer
@@ -60,20 +88,6 @@ MonoBehaviour:
     displayName: "\u30EC\u30A4\u30E4\u30FC: \u79CB\u670D"
     drawOrder: 10
     sprite: {fileID: 21300000, guid: 66fa10407a56132488a3264531c90b59, type: 3}
-  - assetId: Costume_Winter
-    layerKind: Costume
-    costumeId: Winter
-    expressionId: 
-    displayName: "\u30EC\u30A4\u30E4\u30FC: \u51AC\u670D"
-    drawOrder: 10
-    sprite: {fileID: 21300000, guid: efa2ded0920196b419dea4ce0d04d117, type: 3}
-  - assetId: Costume_Town
-    layerKind: Costume
-    costumeId: Town
-    expressionId: 
-    displayName: "\u30EC\u30A4\u30E4\u30FC: \u5916\u51FA\u7528\u8863\u88C5"
-    drawOrder: 10
-    sprite: {fileID: 21300000, guid: 8c37d93a1e555ce439893db8029e38fc, type: 3}
   - assetId: Costume_Raincoat
     layerKind: Costume
     costumeId: Raincoat
