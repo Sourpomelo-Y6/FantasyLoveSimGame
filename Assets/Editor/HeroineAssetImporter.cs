@@ -910,18 +910,6 @@ public static class HeroineAssetImporter
 
         EnsureLayerLists(layeredSpriteData);
         layeredSpriteData.heroineId = heroineId;
-        layeredSpriteData.backgroundLayers.Clear();
-        layeredSpriteData.backAccessoryLayers.Clear();
-        layeredSpriteData.backHairLayers.Clear();
-        layeredSpriteData.costumeBodyLayers.Clear();
-        layeredSpriteData.headExpressionLayers.Clear();
-        layeredSpriteData.frontAccessoryLayers.Clear();
-        layeredSpriteData.frontArmLayers.Clear();
-        layeredSpriteData.effectLayers.Clear();
-        layeredSpriteData.baseBodyLayers.Clear();
-        layeredSpriteData.costumeLayers.Clear();
-        layeredSpriteData.expressionLayers.Clear();
-        layeredSpriteData.accessoryLayers.Clear();
 
         HeroineAssetCatalog catalog = LoadOrCreateAssetCatalog(heroineId);
         Dictionary<string, Sprite> spritesByAssetId = CreateCatalogSpriteMap(catalog, report);
@@ -936,7 +924,15 @@ public static class HeroineAssetImporter
             }
 
             LayerEntry entry = CreateLayerEntry(layer, spritesByAssetId, report);
-            AddLayerEntry(layeredSpriteData, entry, report);
+            if (entry.sprite == null)
+            {
+                report.Warn(
+                    "Spriteを解決できないレイヤーは既存設定を保護するためスキップしました: " +
+                    entry.assetId);
+                continue;
+            }
+
+            MergeLayerEntry(layeredSpriteData, entry, report);
         }
 
         SortLayerEntries(layeredSpriteData);
@@ -1195,6 +1191,71 @@ public static class HeroineAssetImporter
                 report.Warn("未知の layerKind の LayerEntry をスキップしました: " + entry.layerKind);
                 break;
         }
+    }
+
+    internal static void MergeLayerEntry(
+        HeroineLayeredSpriteData data,
+        LayerEntry entry,
+        HeroineImportReport report = null)
+    {
+        if (data == null) throw new ArgumentNullException(nameof(data));
+        if (entry == null) throw new ArgumentNullException(nameof(entry));
+        EnsureLayerLists(data);
+
+        foreach (List<LayerEntry> list in GetLayerLists(data))
+        {
+            list.RemoveAll(existing => IsSameImportedLayerSlot(existing, entry));
+        }
+
+        AddLayerEntry(data, entry, report ?? new HeroineImportReport());
+    }
+
+    private static IEnumerable<List<LayerEntry>> GetLayerLists(
+        HeroineLayeredSpriteData data)
+    {
+        yield return data.backgroundLayers;
+        yield return data.backAccessoryLayers;
+        yield return data.backHairLayers;
+        yield return data.costumeBodyLayers;
+        yield return data.headExpressionLayers;
+        yield return data.frontAccessoryLayers;
+        yield return data.frontArmLayers;
+        yield return data.effectLayers;
+        yield return data.baseBodyLayers;
+        yield return data.costumeLayers;
+        yield return data.expressionLayers;
+        yield return data.accessoryLayers;
+    }
+
+    private static bool IsSameImportedLayerSlot(
+        LayerEntry existing,
+        LayerEntry imported)
+    {
+        if (existing == null) return false;
+        if (!string.IsNullOrWhiteSpace(imported.assetId) &&
+            string.Equals(existing.assetId, imported.assetId, StringComparison.OrdinalIgnoreCase))
+        {
+            return true;
+        }
+
+        return string.Equals(
+                GetCompatibleLayerKind(existing.layerKind),
+                GetCompatibleLayerKind(imported.layerKind),
+                StringComparison.OrdinalIgnoreCase) &&
+            string.Equals(existing.costumeId, imported.costumeId, StringComparison.OrdinalIgnoreCase) &&
+            string.Equals(existing.expressionId, imported.expressionId, StringComparison.OrdinalIgnoreCase);
+    }
+
+    private static string GetCompatibleLayerKind(string layerKind)
+    {
+        string normalized = NormalizeLayerKind(layerKind);
+        if (normalized == HeroineVisualLayerKinds.LegacyCostume)
+            return HeroineVisualLayerKinds.CostumeBody;
+        if (normalized == HeroineVisualLayerKinds.LegacyExpression)
+            return HeroineVisualLayerKinds.HeadExpression;
+        if (normalized == HeroineVisualLayerKinds.LegacyAccessory)
+            return HeroineVisualLayerKinds.FrontAccessory;
+        return normalized;
     }
 
     private static void SortLayerEntries(HeroineLayeredSpriteData data)

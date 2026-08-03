@@ -192,6 +192,36 @@ public class OutfitExpressionDataTests
         Assert.That(headImage.sprite, Is.SameAs(legacySmileExpression));
     }
 
+    [Test]
+    public void LayerImporter_MergesPresentSlotAndPreservesAbsentCostumes()
+    {
+        HeroineLayeredSpriteData data = ScriptableObject.CreateInstance<HeroineLayeredSpriteData>();
+        createdObjects.Add(data);
+        Sprite defaultSprite = CreateSprite();
+        Sprite oldTownSprite = CreateSprite();
+        Sprite newTownSprite = CreateSprite();
+        data.costumeLayers.Add(CreateLayer(
+            "Costume_Default", HeroineVisualLayerKinds.LegacyCostume, "Default", "", 10, defaultSprite));
+        data.costumeLayers.Add(CreateLayer(
+            "Costume_Town_Old", HeroineVisualLayerKinds.LegacyCostume, "Town", "", 10, oldTownSprite));
+
+        HeroineAssetImporter.MergeLayerEntry(
+            data,
+            CreateLayer(
+                "Costume_Town",
+                HeroineVisualLayerKinds.CostumeBody,
+                "Town",
+                "",
+                40,
+                newTownSprite));
+
+        Assert.That(data.costumeLayers.Count, Is.EqualTo(1));
+        Assert.That(data.costumeLayers[0].assetId, Is.EqualTo("Costume_Default"));
+        Assert.That(data.costumeBodyLayers.Count, Is.EqualTo(1));
+        Assert.That(data.costumeBodyLayers[0].assetId, Is.EqualTo("Costume_Town"));
+        Assert.That(data.costumeBodyLayers[0].sprite, Is.SameAs(newTownSprite));
+    }
+
     private Image CreateLayerImage(Transform parent, string name)
     {
         GameObject layer = new GameObject(name, typeof(RectTransform), typeof(CanvasRenderer), typeof(Image));
