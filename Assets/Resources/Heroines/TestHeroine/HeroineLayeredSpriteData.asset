@@ -15,6 +15,14 @@ MonoBehaviour:
   heroineId: TestHeroine
   defaultCostumeId: Default
   defaultExpressionId: Neutral
+  backgroundLayers: []
+  backAccessoryLayers: []
+  backHairLayers: []
+  costumeBodyLayers: []
+  headExpressionLayers: []
+  frontAccessoryLayers: []
+  frontArmLayers: []
+  effectLayers: []
   baseBodyLayers: []
   costumeLayers:
   - assetId: Costume_Default
