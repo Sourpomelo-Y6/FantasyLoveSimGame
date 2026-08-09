@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Gift
   m_EditorClassIdentifier: 
   actionId: Gift
-  displayName: Gift
+  displayName: "\u30D7\u30EC\u30BC\u30F3\u30C8"
   executionType: 0
   resultMessage: 
   unavailableMessage: "\u4ECA\u306F\u3053\u306E\u884C\u52D5\u306F\u3067\u304D\u307E\u305B\u3093\u3002"
@@ -97,8 +97,8 @@ MonoBehaviour:
     allowedWeathers: 
     anySeason: 1
     allowedSeasons: 
-  displayColumn: 0
-  sortOrder: 0
+  displayColumn: 1
+  sortOrder: 50
   isEnabled: 1
   anyTimeSlot: 1
   allowedTimeSlots: 

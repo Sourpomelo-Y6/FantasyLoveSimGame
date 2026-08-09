@@ -17,6 +17,7 @@ public static class HeroineAssetImporter
     private const string ConversationsJsonRelativePath = "Data/conversations_export.json";
     private const string GameEventsJsonRelativePath = "Data/game_events_export.json";
     private const string ScheduledEventsJsonRelativePath = "Data/scheduled_events_export.json";
+    private const string ActionsJsonRelativePath = "Data/actions_export.json";
     private const string ActionReactionsJsonRelativePath = "Data/action_reactions_export.json";
     private const string EndingsJsonRelativePath = "Data/endings_export.json";
     private const string DefaultHeroineSpriteAssetId = "Heroine_Normal";
@@ -100,6 +101,7 @@ public static class HeroineAssetImporter
         ImportConversations(exportFolder, profileExport.heroineId, report);
         ImportGameEvents(exportFolder, profileExport.heroineId, report);
         ImportScheduledEvents(exportFolder, profileExport.heroineId, report);
+        ImportMenuActions(exportFolder, profileExport.heroineId, report);
         ImportActionReactions(exportFolder, profileExport.heroineId, report);
         ImportEndings(exportFolder, profileExport.heroineId, report);
 
@@ -2468,6 +2470,103 @@ public static class HeroineAssetImporter
         report.actionReactionCount = importedCount;
     }
 
+    internal static void ImportMenuActions(
+        string exportFolder,
+        string heroineId,
+        HeroineImportReport report)
+    {
+        string actionsJsonPath = Path.Combine(exportFolder, ActionsJsonRelativePath);
+        if (!File.Exists(actionsJsonPath))
+        {
+            Debug.Log("actions_export.json が見つからないため、メニュー項目 import はスキップしました: " + actionsJsonPath);
+            return;
+        }
+
+        MenuActionsExport exported;
+        try
+        {
+            exported = JsonUtility.FromJson<MenuActionsExport>(File.ReadAllText(actionsJsonPath));
+        }
+        catch (Exception ex)
+        {
+            report.Warn("actions_export.json の読み込みに失敗しました: " + ex.Message);
+            return;
+        }
+
+        if (exported == null || exported.items == null)
+        {
+            report.Warn("actions_export.json に items がありません。");
+            return;
+        }
+
+        if (!string.IsNullOrWhiteSpace(exported.heroineId) &&
+            !string.Equals(exported.heroineId, heroineId, StringComparison.Ordinal))
+        {
+            report.Warn($"actions_export.json の heroineId が profile と一致しません: {exported.heroineId} / {heroineId}");
+        }
+
+        string actionFolderPath = $"Assets/Resources/Heroines/{heroineId}/Actions";
+        EnsureFolder(actionFolderPath);
+        Dictionary<string, ActionData> actionsById = LoadActionsById(actionFolderPath, report);
+        HashSet<string> importedIds = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        int importedCount = 0;
+
+        for (int i = 0; i < exported.items.Length; i++)
+        {
+            MenuActionExportItem item = exported.items[i];
+            if (item == null || string.IsNullOrWhiteSpace(item.actionId))
+            {
+                report.Warn("actionId が空の menu action item をスキップしました。");
+                continue;
+            }
+
+            string actionId = item.actionId.Trim();
+            if (!importedIds.Add(actionId))
+            {
+                report.Warn("actions_export.json の actionId が重複しているためスキップしました: " + actionId);
+                continue;
+            }
+
+            if (!Enum.TryParse(item.executionType, false, out ActionExecutionType executionType))
+            {
+                report.Warn($"未対応の executionType のためスキップしました: {actionId} / {item.executionType}");
+                continue;
+            }
+
+            ActionData action;
+            if (!actionsById.TryGetValue(actionId, out action) || action == null)
+            {
+                string assetPath = $"{actionFolderPath}/{ToSafeAssetFileName(actionId)}Action.asset";
+                action = AssetDatabase.LoadAssetAtPath<ActionData>(assetPath);
+                if (action == null)
+                {
+                    action = ScriptableObject.CreateInstance<ActionData>();
+                    AssetDatabase.CreateAsset(action, assetPath);
+                }
+
+                action.name = actionId;
+                action.actionId = actionId;
+                actionsById[actionId] = action;
+            }
+
+            // Toolで管理する表示・遷移情報だけを更新し、反応・画像などUnity固有情報は維持する。
+            action.displayName = string.IsNullOrWhiteSpace(item.displayName) ? actionId : item.displayName;
+            action.displayColumn = (ActionButtonColumn)Mathf.Clamp(item.displayColumn, 0, 3);
+            action.executionType = executionType;
+            action.isEnabled = item.isEnabled;
+            action.sortOrder = (i + 1) * 10;
+            if (executionType != ActionExecutionType.SimpleAction)
+            {
+                action.advanceTime = false;
+            }
+
+            EditorUtility.SetDirty(action);
+            importedCount++;
+        }
+
+        report.menuActionCount = importedCount;
+    }
+
     private static bool CanImportActionReaction(
         ActionReactionExportItem item,
         HashSet<string> importedReactionIds,
@@ -3167,6 +3266,25 @@ public static class HeroineAssetImporter
     }
 
     [Serializable]
+    private sealed class MenuActionsExport
+    {
+        public int schemaVersion;
+        public string heroineId;
+        public MenuActionExportItem[] items;
+    }
+
+    [Serializable]
+    private sealed class MenuActionExportItem
+    {
+        public string actionId;
+        public string displayName;
+        public int displayColumn;
+        public string executionType;
+        public bool isEnabled;
+        public bool isRequired;
+    }
+
+    [Serializable]
     private sealed class EndingsExport
     {
         public string schemaVersion;
@@ -3386,6 +3504,7 @@ public static class HeroineAssetImporter
         public int conversationCount;
         public int gameEventCount;
         public int scheduledEventCount;
+        public int menuActionCount;
         public int actionReactionCount;
         public int endingCount;
         public int trainingImageCount;
@@ -3410,7 +3529,7 @@ public static class HeroineAssetImporter
         public void LogSummary(string assetPath)
         {
             Debug.Log(
-                $"Heroine export を import しました: {assetPath}, copied images: {copiedImageCount}, catalog assets: {catalogAssetCount}, training images: {trainingImageCount}, training entries: {trainingImageEntryCount}, training dialogues: {trainingDialogueEntryCount}, battle messages added/updated/deleted/skipped: {battleMessageAddedCount}/{battleMessageUpdatedCount}/{battleMessageDeletedCount}/{battleMessageSkippedCount}, training unresolved: {trainingImageUnresolvedCount}, training skipped: {trainingImageSkippedCount}, layers: {layerCount}, conversations: {conversationCount}, game events: {gameEventCount}, scheduled events: {scheduledEventCount}, action reactions: {actionReactionCount}, endings: {endingCount}, warnings: {warnings.Count}");
+                $"Heroine export を import しました: {assetPath}, copied images: {copiedImageCount}, catalog assets: {catalogAssetCount}, training images: {trainingImageCount}, training entries: {trainingImageEntryCount}, training dialogues: {trainingDialogueEntryCount}, battle messages added/updated/deleted/skipped: {battleMessageAddedCount}/{battleMessageUpdatedCount}/{battleMessageDeletedCount}/{battleMessageSkippedCount}, training unresolved: {trainingImageUnresolvedCount}, training skipped: {trainingImageSkippedCount}, layers: {layerCount}, conversations: {conversationCount}, game events: {gameEventCount}, scheduled events: {scheduledEventCount}, menu actions: {menuActionCount}, action reactions: {actionReactionCount}, endings: {endingCount}, warnings: {warnings.Count}");
         }
 
         public string CreateDialogMessage(string assetPath)
@@ -3431,6 +3550,7 @@ public static class HeroineAssetImporter
                 "Conversations: " + conversationCount + "\n" +
                 "Game events: " + gameEventCount + "\n" +
                 "Scheduled events: " + scheduledEventCount + "\n" +
+                "Menu actions: " + menuActionCount + "\n" +
                 "Action reactions: " + actionReactionCount + "\n" +
                 "Endings: " + endingCount + "\n" +
                 "Warnings: " + warnings.Count;

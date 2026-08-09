@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Rest
   m_EditorClassIdentifier: 
   actionId: Rest
-  displayName: Rest
+  displayName: "\u4F11\u3080"
   executionType: 0
   resultMessage: 
   unavailableMessage: "\u4ECA\u306F\u3053\u306E\u884C\u52D5\u306F\u3067\u304D\u307E\u305B\u3093\u3002"
@@ -98,7 +98,7 @@ MonoBehaviour:
     anySeason: 1
     allowedSeasons: 
   displayColumn: 0
-  sortOrder: 0
+  sortOrder: 30
   isEnabled: 1
   anyTimeSlot: 1
   allowedTimeSlots: 
