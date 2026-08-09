@@ -15,7 +15,134 @@ MonoBehaviour:
   heroineId: Heroine3
   defaultCostumeId: Default
   defaultExpressionId: Neutral
+  backgroundLayers: []
+  backAccessoryLayers: []
+  backHairLayers:
+  - assetId: Head_BackHair
+    layerKind: BackHair
+    costumeId: 
+    expressionId: 
+    displayName: "\u5F8C\u308D\u9AEA"
+    drawOrder: 10
+    sprite: {fileID: 21300000, guid: dde22c39d96bf1f4486150b49fca0d22, type: 3}
+  costumeBodyLayers:
+  - assetId: Costume_Winter
+    layerKind: CostumeBody
+    costumeId: Winter
+    expressionId: 
+    displayName: "\u8863\u88C5\u672C\u4F53: Winter"
+    drawOrder: 30
+    sprite: {fileID: 21300000, guid: 63ad9fe6da218db40b125b465d9f7eee, type: 3}
+  - assetId: Costume_Town
+    layerKind: CostumeBody
+    costumeId: Town
+    expressionId: 
+    displayName: "\u8863\u88C5\u672C\u4F53: Town"
+    drawOrder: 30
+    sprite: {fileID: 21300000, guid: 4a0bc18dee28eed42b73cbd66f1eb81e, type: 3}
+  - assetId: Costume_Default
+    layerKind: CostumeBody
+    costumeId: Default
+    expressionId: 
+    displayName: "\u8863\u88C5\u672C\u4F53: Default"
+    drawOrder: 40
+    sprite: {fileID: 21300000, guid: c48d930374ba59942bd19c956976cece, type: 3}
+  headExpressionLayers:
+  - assetId: HeadExpression_Neutral
+    layerKind: HeadExpression
+    costumeId: 
+    expressionId: Neutral
+    displayName: "\u8868\u60C5: Neutral"
+    drawOrder: 50
+    sprite: {fileID: 21300000, guid: f49a902f4c6dc574ab3fee201577cdfc, type: 3}
+  - assetId: HeadExpression_Angry
+    layerKind: HeadExpression
+    costumeId: 
+    expressionId: Angry
+    displayName: "\u8868\u60C5: Angry"
+    drawOrder: 50
+    sprite: {fileID: 21300000, guid: c0df41b08660faa4eb184760bbfa2278, type: 3}
+  - assetId: HeadExpression_Sad
+    layerKind: HeadExpression
+    costumeId: 
+    expressionId: Sad
+    displayName: "\u8868\u60C5: Sad"
+    drawOrder: 50
+    sprite: {fileID: 21300000, guid: 973b762af68f89547b0dc580341bd28a, type: 3}
+  - assetId: HeadExpression_Shy
+    layerKind: HeadExpression
+    costumeId: 
+    expressionId: Shy
+    displayName: "\u8868\u60C5: Shy"
+    drawOrder: 50
+    sprite: {fileID: 21300000, guid: 6c8bccb967becdb42a813c4bfc9db081, type: 3}
+  - assetId: HeadExpression_Smile
+    layerKind: HeadExpression
+    costumeId: 
+    expressionId: Smile
+    displayName: "\u8868\u60C5: Smile"
+    drawOrder: 50
+    sprite: {fileID: 21300000, guid: 1de1cf28b3a228547a73a95b7cea6e4f, type: 3}
+  - assetId: HeadExpression_Surprised
+    layerKind: HeadExpression
+    costumeId: 
+    expressionId: Surprised
+    displayName: "\u8868\u60C5: Surprised"
+    drawOrder: 50
+    sprite: {fileID: 21300000, guid: 1eba30f2dea9feb4fbda154f099e3293, type: 3}
+  frontAccessoryLayers: []
+  frontArmLayers: []
+  effectLayers: []
   baseBodyLayers: []
-  costumeLayers: []
+  costumeLayers:
+  - assetId: Costume_Summer
+    layerKind: Costume
+    costumeId: Summer
+    expressionId: 
+    displayName: "\u30EC\u30A4\u30E4\u30FC: \u590F\u670D"
+    drawOrder: 20
+    sprite: {fileID: 21300000, guid: 98e26c33e6f93424c9310e44a81219cf, type: 3}
+  - assetId: Costume_Spring
+    layerKind: Costume
+    costumeId: Spring
+    expressionId: 
+    displayName: "\u30EC\u30A4\u30E4\u30FC: \u6625\u670D"
+    drawOrder: 20
+    sprite: {fileID: 21300000, guid: 59feaf437cf3b9d479b8b8296a1f47c1, type: 3}
+  - assetId: Costume_Adventure
+    layerKind: Costume
+    costumeId: Adventure
+    expressionId: 
+    displayName: "\u30EC\u30A4\u30E4\u30FC: \u5192\u967A\u7528\u8863\u88C5"
+    drawOrder: 20
+    sprite: {fileID: 21300000, guid: c538900ba688bd449837484a7471915f, type: 3}
+  - assetId: Costume_Autumn
+    layerKind: Costume
+    costumeId: Autumn
+    expressionId: 
+    displayName: "\u30EC\u30A4\u30E4\u30FC: \u79CB\u670D"
+    drawOrder: 20
+    sprite: {fileID: 21300000, guid: cee063349d2ee3247bb71942f8183708, type: 3}
+  - assetId: Costume_Raincoat
+    layerKind: Costume
+    costumeId: Raincoat
+    expressionId: 
+    displayName: "\u30EC\u30A4\u30E4\u30FC: \u96E8\u5177"
+    drawOrder: 20
+    sprite: {fileID: 21300000, guid: d15740c01eefa6640a5d698980442e57, type: 3}
+  - assetId: Costume_Room
+    layerKind: Costume
+    costumeId: Room
+    expressionId: 
+    displayName: "\u30EC\u30A4\u30E4\u30FC: \u5BDD\u5DFB"
+    drawOrder: 20
+    sprite: {fileID: 21300000, guid: f82eb155378d72149aaa223994df0cd6, type: 3}
+  - assetId: Costume_Dress
+    layerKind: Costume
+    costumeId: Dress
+    expressionId: 
+    displayName: "\u30EC\u30A4\u30E4\u30FC: \u30C9\u30EC\u30B9"
+    drawOrder: 20
+    sprite: {fileID: 21300000, guid: 8f92d1ec4cdd47840ae37ccc5eadb8e2, type: 3}
   expressionLayers: []
   accessoryLayers: []

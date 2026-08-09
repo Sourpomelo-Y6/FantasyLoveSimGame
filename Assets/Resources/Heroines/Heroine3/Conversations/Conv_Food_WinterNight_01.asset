@@ -1,0 +1,39 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cb5097099197776438840c7469e425ca, type: 3}
+  m_Name: Conv_Food_WinterNight_01
+  m_EditorClassIdentifier: 
+  heroineId: Heroine3
+  items: []
+  conversationId: Conv_Food_WinterNight_01
+  genre: 1
+  type: 0
+  heroineLine: "\u51AC\u306E\u591C\u306F\u51B7\u3048\u308B\u306D\u3002\u6E29\u304B\u3044\u3082\u306E\u3092\u4F5C\u308B\u304B\u3089\u3001\u4E00\u7DD2\u306B\u98DF\u3079\u3088\u3046\u3002"
+  expressionId: Shy
+  voiceId: 
+  lines:
+  - speaker: Heroine
+    text: "\u51AC\u306E\u591C\u306F\u51B7\u3048\u308B\u306D\u3002\u6E29\u304B\u3044\u3082\u306E\u3092\u4F5C\u308B\u304B\u3089\u3001\u4E00\u7DD2\u306B\u98DF\u3079\u3088\u3046\u3002"
+    expressionId: Shy
+    voiceId: 
+  choices: []
+  priority: 200
+  showOnce: 0
+  minAffection: 0
+  maxAffection: 9999
+  costumeId: 
+  anyTimeSlot: 0
+  allowedTimeSlots: 02000000
+  anySeason: 0
+  allowedSeasons: 03000000
+  anyWeather: 1
+  allowedWeathers: 

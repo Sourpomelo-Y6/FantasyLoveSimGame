@@ -1,0 +1,39 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cb5097099197776438840c7469e425ca, type: 3}
+  m_Name: Conv_Adventure_Storm_01
+  m_EditorClassIdentifier: 
+  heroineId: Heroine3
+  items: []
+  conversationId: Conv_Adventure_Storm_01
+  genre: 2
+  type: 0
+  heroineLine: "\u5D50\u306E\u4E2D\u3092\u9032\u3080\u306E\u306F\u5371\u967A\u3060\u3088\u3002\u4ECA\u65E5\u306F\u5B89\u5168\u306A\u5834\u6240\u3067\u4F11\u3093\u3067\u3001\u6B21\u306B\u5099\u3048\u3088\u3046\u3002"
+  expressionId: Angry
+  voiceId: 
+  lines:
+  - speaker: Heroine
+    text: "\u5D50\u306E\u4E2D\u3092\u9032\u3080\u306E\u306F\u5371\u967A\u3060\u3088\u3002\u4ECA\u65E5\u306F\u5B89\u5168\u306A\u5834\u6240\u3067\u4F11\u3093\u3067\u3001\u6B21\u306B\u5099\u3048\u3088\u3046\u3002"
+    expressionId: Angry
+    voiceId: 
+  choices: []
+  priority: 200
+  showOnce: 0
+  minAffection: 0
+  maxAffection: 9999
+  costumeId: 
+  anyTimeSlot: 1
+  allowedTimeSlots: 
+  anySeason: 1
+  allowedSeasons: 
+  anyWeather: 0
+  allowedWeathers: 03000000

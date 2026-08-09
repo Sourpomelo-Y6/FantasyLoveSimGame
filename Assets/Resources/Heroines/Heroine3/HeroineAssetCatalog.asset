@@ -19,6 +19,142 @@ MonoBehaviour:
     status: Accepted
     fileName: Heroine_Normal.png
     memo: 
-    sprite: {fileID: 0}
+    sprite: {fileID: 21300000, guid: 347302deb826c9746821c306d3a26ef5, type: 3}
     unityImagePath: Assets/Images/Heroines/Heroine3/Sprites/Heroine_Normal.png
     exportPromptPath: Prompts/Heroine_Normal.prompt.json
+  - assetId: HeadExpression_Angry
+    usage: Sprites
+    status: Accepted
+    fileName: HeadExpression_Angry.png
+    memo: 
+    sprite: {fileID: 21300000, guid: c0df41b08660faa4eb184760bbfa2278, type: 3}
+    unityImagePath: Assets/Images/Heroines/Heroine3/Sprites/HeadExpression_Angry.png
+    exportPromptPath: Prompts/HeadExpression_Angry.prompt.json
+  - assetId: Costume_Default
+    usage: Sprites
+    status: Accepted
+    fileName: Costume_Default.png
+    memo: 
+    sprite: {fileID: 21300000, guid: c48d930374ba59942bd19c956976cece, type: 3}
+    unityImagePath: Assets/Images/Heroines/Heroine3/Sprites/Costume_Default.png
+    exportPromptPath: Prompts/Costume_Default.prompt.json
+  - assetId: HeadExpression_Neutral
+    usage: Sprites
+    status: Accepted
+    fileName: HeadExpression_Neutral.png
+    memo: 
+    sprite: {fileID: 21300000, guid: f49a902f4c6dc574ab3fee201577cdfc, type: 3}
+    unityImagePath: Assets/Images/Heroines/Heroine3/Sprites/HeadExpression_Neutral.png
+    exportPromptPath: Prompts/HeadExpression_Neutral.prompt.json
+  - assetId: Head_BackHair
+    usage: Sprites
+    status: Accepted
+    fileName: Head_BackHair.png
+    memo: 
+    sprite: {fileID: 21300000, guid: dde22c39d96bf1f4486150b49fca0d22, type: 3}
+    unityImagePath: Assets/Images/Heroines/Heroine3/Sprites/Head_BackHair.png
+    exportPromptPath: Prompts/Head_BackHair.prompt.json
+  - assetId: HeadExpression_Shy
+    usage: Sprites
+    status: Accepted
+    fileName: HeadExpression_Shy.png
+    memo: 
+    sprite: {fileID: 21300000, guid: 6c8bccb967becdb42a813c4bfc9db081, type: 3}
+    unityImagePath: Assets/Images/Heroines/Heroine3/Sprites/HeadExpression_Shy.png
+    exportPromptPath: Prompts/HeadExpression_Shy.prompt.json
+  - assetId: HeadExpression_Sad
+    usage: Sprites
+    status: Accepted
+    fileName: HeadExpression_Sad.png
+    memo: 
+    sprite: {fileID: 21300000, guid: 973b762af68f89547b0dc580341bd28a, type: 3}
+    unityImagePath: Assets/Images/Heroines/Heroine3/Sprites/HeadExpression_Sad.png
+    exportPromptPath: Prompts/HeadExpression_Sad.prompt.json
+  - assetId: HeadExpression_Smile
+    usage: Sprites
+    status: Accepted
+    fileName: HeadExpression_Smile.png
+    memo: 
+    sprite: {fileID: 21300000, guid: 1de1cf28b3a228547a73a95b7cea6e4f, type: 3}
+    unityImagePath: Assets/Images/Heroines/Heroine3/Sprites/HeadExpression_Smile.png
+    exportPromptPath: Prompts/HeadExpression_Smile.prompt.json
+  - assetId: HeadExpression_Surprised
+    usage: Sprites
+    status: Accepted
+    fileName: HeadExpression_Surprised.png
+    memo: 
+    sprite: {fileID: 21300000, guid: 1eba30f2dea9feb4fbda154f099e3293, type: 3}
+    unityImagePath: Assets/Images/Heroines/Heroine3/Sprites/HeadExpression_Surprised.png
+    exportPromptPath: Prompts/HeadExpression_Surprised.prompt.json
+  - assetId: Costume_Summer
+    usage: Sprites
+    status: Accepted
+    fileName: Costume_Summer.png
+    memo: 
+    sprite: {fileID: 21300000, guid: 98e26c33e6f93424c9310e44a81219cf, type: 3}
+    unityImagePath: Assets/Images/Heroines/Heroine3/Sprites/Costume_Summer.png
+    exportPromptPath: Prompts/Costume_Summer.prompt.json
+  - assetId: Costume_Spring
+    usage: Sprites
+    status: Accepted
+    fileName: Costume_Spring.png
+    memo: 
+    sprite: {fileID: 21300000, guid: 59feaf437cf3b9d479b8b8296a1f47c1, type: 3}
+    unityImagePath: Assets/Images/Heroines/Heroine3/Sprites/Costume_Spring.png
+    exportPromptPath: Prompts/Costume_Spring.prompt.json
+  - assetId: Costume_Adventure
+    usage: Sprites
+    status: Accepted
+    fileName: Costume_Adventure.png
+    memo: 
+    sprite: {fileID: 21300000, guid: c538900ba688bd449837484a7471915f, type: 3}
+    unityImagePath: Assets/Images/Heroines/Heroine3/Sprites/Costume_Adventure.png
+    exportPromptPath: Prompts/Costume_Adventure.prompt.json
+  - assetId: Costume_Autumn
+    usage: Sprites
+    status: Accepted
+    fileName: Costume_Autumn.png
+    memo: 
+    sprite: {fileID: 21300000, guid: cee063349d2ee3247bb71942f8183708, type: 3}
+    unityImagePath: Assets/Images/Heroines/Heroine3/Sprites/Costume_Autumn.png
+    exportPromptPath: Prompts/Costume_Autumn.prompt.json
+  - assetId: Costume_Winter
+    usage: Sprites
+    status: Accepted
+    fileName: Costume_Winter.png
+    memo: 
+    sprite: {fileID: 21300000, guid: 63ad9fe6da218db40b125b465d9f7eee, type: 3}
+    unityImagePath: Assets/Images/Heroines/Heroine3/Sprites/Costume_Winter.png
+    exportPromptPath: Prompts/Costume_Winter.prompt.json
+  - assetId: Costume_Town
+    usage: Sprites
+    status: Accepted
+    fileName: Costume_Town.png
+    memo: 
+    sprite: {fileID: 21300000, guid: 4a0bc18dee28eed42b73cbd66f1eb81e, type: 3}
+    unityImagePath: Assets/Images/Heroines/Heroine3/Sprites/Costume_Town.png
+    exportPromptPath: Prompts/Costume_Town.prompt.json
+  - assetId: Costume_Raincoat
+    usage: Sprites
+    status: Accepted
+    fileName: Costume_Raincoat.png
+    memo: 
+    sprite: {fileID: 21300000, guid: d15740c01eefa6640a5d698980442e57, type: 3}
+    unityImagePath: Assets/Images/Heroines/Heroine3/Sprites/Costume_Raincoat.png
+    exportPromptPath: Prompts/Costume_Raincoat.prompt.json
+  - assetId: Costume_Room
+    usage: Sprites
+    status: Accepted
+    fileName: Costume_Room.png
+    memo: 
+    sprite: {fileID: 21300000, guid: f82eb155378d72149aaa223994df0cd6, type: 3}
+    unityImagePath: Assets/Images/Heroines/Heroine3/Sprites/Costume_Room.png
+    exportPromptPath: Prompts/Costume_Room.prompt.json
+  - assetId: Costume_Dress
+    usage: Sprites
+    status: Accepted
+    fileName: Costume_Dress.png
+    memo: 
+    sprite: {fileID: 21300000, guid: 8f92d1ec4cdd47840ae37ccc5eadb8e2, type: 3}
+    unityImagePath: Assets/Images/Heroines/Heroine3/Sprites/Costume_Dress.png
+    exportPromptPath: Prompts/Costume_Dress.prompt.json
