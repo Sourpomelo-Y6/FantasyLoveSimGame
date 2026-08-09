@@ -2554,7 +2554,7 @@ public static class HeroineAssetImporter
             action.displayColumn = (ActionButtonColumn)Mathf.Clamp(item.displayColumn, 0, 3);
             action.executionType = executionType;
             action.isEnabled = item.isEnabled;
-            action.sortOrder = (i + 1) * 10;
+            action.sortOrder = item.sortOrder > 0 ? item.sortOrder : (i + 1) * 10;
             if (executionType != ActionExecutionType.SimpleAction)
             {
                 action.advanceTime = false;
@@ -3279,6 +3279,7 @@ public static class HeroineAssetImporter
         public string actionId;
         public string displayName;
         public int displayColumn;
+        public int sortOrder;
         public string executionType;
         public bool isEnabled;
         public bool isRequired;

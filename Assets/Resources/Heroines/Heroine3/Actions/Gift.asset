@@ -97,7 +97,7 @@ MonoBehaviour:
     allowedWeathers: 
     anySeason: 1
     allowedSeasons: 
-  displayColumn: 1
+  displayColumn: 2
   sortOrder: 50
   isEnabled: 1
   anyTimeSlot: 1

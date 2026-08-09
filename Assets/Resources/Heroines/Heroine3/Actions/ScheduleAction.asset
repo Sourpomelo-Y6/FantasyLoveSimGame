@@ -25,8 +25,8 @@ MonoBehaviour:
   heroineHpChange: 0
   advanceTime: 0
   reactions: []
-  displayColumn: 1
-  sortOrder: 80
+  displayColumn: 3
+  sortOrder: 70
   isEnabled: 1
   anyTimeSlot: 1
   allowedTimeSlots: 
