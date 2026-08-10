@@ -297,7 +297,7 @@ AssetTool の `sprite_layers_export.json` は importer で `HeroineLayeredSprite
 - `endingResourcePath` に、そのヒロイン用の `Endings` フォルダを設定する
 - `defaultHeroineSprite` に代表立ち絵を設定する
 - `HeroineAssetCatalog.asset` に画像の `assetId` と Sprite 参照が入っているか確認する
-- Stable Diffusion素材では完成立ち絵の差し替えを基本とし、頭、前髪、目、口などの分離を必須にしない。詳細は `Docs/CharacterAssetGenerationToolSpec.md` の「Stable Diffusion制作時の立ち絵レイヤー方針」を参照する
+- Stable Diffusion素材では完成立ち絵の差し替えを基本とし、頭、前髪、目、口などの分離を必須にしない。詳細は `FantasyLoveSimAssetTool/Docs/CharacterAssetGenerationToolSpec.md` の「Stable Diffusion制作時の立ち絵レイヤー方針」を参照する
 - 透過レイヤー方式を任意で使う場合だけ、`HeroineLayeredSpriteData.asset` に `BaseBody`、`Default` 衣装、`Neutral` 表情が入っているか確認する
 - 8階層方式を使う場合は、`HeroineLayeredSpriteView` が生成する各Imageで`CostumeBody`と`HeadExpression`が切り替わり、前後アクセサリー、腕、エフェクトが正しいDrawOrderになるか確認する。旧4階層データでは既存Imageを継続利用する
 - `Actions` には行動名、行動結果、行動反応、行動スチルを用意する
@@ -636,7 +636,7 @@ LP と訓練用 HP は訓練画面内の一時値から始める。
 詳細は `Docs/TrainingSelectionExpansionPlan.md` を参照する。
 訓練の最大ステップ数は実装済み。`TrainingData.maxSteps` をセッション開始時に `TrainingSessionState.maxSteps` へ固定し、`TrainingEndReason` で HP / LP 終了、最大ステップ到達、途中終了を区別する。初期3訓練はすべて最大20ステップ。`StepCountText` が配置されていれば専用欄へ、未配置なら訓練名欄へ現在値と上限を表示する。結果メッセージにも終了理由を表示し、最大ステップ到達は通常完了として完了報酬とスキルポイントを付与する。
 訓練画面の画像切替は実装済み。訓練ボタンを押した時点で、現在の訓練画面を開いてから `elapsedSteps == 0` なら開始前画像、`elapsedSteps > 0` なら進行後画像を表示する。途中で訓練を切り替えてもステップ数はリセットしない。ステップ実行時に主人公だけ、ヒロインだけ、双方同時のいずれかで LP を消費した場合は、それぞれ別の画像へ切り替える。同時消費を個別消費より優先し、次の通常ステップでは進行後画像へ戻す。判定は累計実績ではなく、そのステップ直前・直後の LP 差分を使う。
-画像は共通 `TrainingData` に直接持たせず、ヒロイン別 `HeroineTrainingImageData` で `trainingId` と表示状態を Sprite に対応させ、既存の `TrainingPanel.heroineImage` を更新する。訓練別画像、状態別共通画像、現在画像の順にフォールバックし、未設定や参照切れでも訓練処理を停止しない。画像状態、初期3訓練×5状態の標準15枚、AssetToolの `usage = Training` と `training_images_export.json` は `Docs/Extra_FantasyLoveSimAssetTool/TrainingImagePlan.md` を正とする。TestHeroineの初期3訓練は設定済みで、`CooperativeDrill` とDefaultHeroineの画像は未設定。画像解決とLP消費状態判定は副作用のない処理として分離し、専用EditMode Testで確認する。
+画像は共通 `TrainingData` に直接持たせず、ヒロイン別 `HeroineTrainingImageData` で `trainingId` と表示状態を Sprite に対応させ、既存の `TrainingPanel.heroineImage` を更新する。訓練別画像、状態別共通画像、現在画像の順にフォールバックし、未設定や参照切れでも訓練処理を停止しない。画像状態、初期3訓練×5状態の標準15枚、AssetToolの `usage = Training` と `training_images_export.json` は `FantasyLoveSimAssetTool/Docs/Extra/TrainingImagePlan.md` を正とする。TestHeroineの初期3訓練は設定済みで、`CooperativeDrill` とDefaultHeroineの画像は未設定。画像解決とLP消費状態判定は副作用のない処理として分離し、専用EditMode Testで確認する。
 訓練メニューの追加解放は、熟練度や日数だけで自動的に段階変化させず、スキルツリーで取得する「訓練解放ノード」の効果として実装した。`TrainingData.unlockedByDefault` と `SkillTreeNodeData.unlockedTrainingIds` を使い、戦闘・訓練補正用の `SkillData` を持たない解放専用ノードも取得できる。解放状態は新しい保存リストを正本にせず、取得済み主人公・ヒロインノード ID から導出する。ヒロインノードは `targetHeroineId` と現在ヒロインを照合するため、そのヒロインだけに有効な解放を表現できる。
 `TrainingPanel` は初期解放訓練を常時選択可能にし、現在ヒロインに解放経路がある未解放訓練を解放ノード名付きの無効ボタンで表示する。スキルツリー詳細には解放する訓練名を表示する。`SkillTreeDataValidator` は存在しない・空・重複した訓練 ID、初期解放済み訓練の指定、解放対象自身の実績を要求する直接的な到達不能条件を検出する。確認用データはTestHeroineの「連携演習の心得」と `CooperativeDrill`（連携演習）。
 

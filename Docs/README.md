@@ -17,7 +17,7 @@
 - [`ScheduleUiExpansionPlan.md`](ScheduleUiExpansionPlan.md): 週間・月間予定とテンプレート
 - [`StatusAndAchievementUiReorganizationPlan.md`](StatusAndAchievementUiReorganizationPlan.md): 状態・実績画面
 - [`TrainingSelectionExpansionPlan.md`](TrainingSelectionExpansionPlan.md): 訓練一覧UI、調子限定、一回限定、前提訓練による解放
-- [`GameEventDataGuide.md`](GameEventDataGuide.md): ゲームイベントのトリガーとデータ契約
+- [`AssetToolDocumentation.md`](AssetToolDocumentation.md): AssetTool側を正本とするデータ契約文書の参照先
 - [`SaveDataAndLocalFiles.md`](SaveDataAndLocalFiles.md): セーブデータと端末共通ファイル
 - [`DisplayAndResolutionPlan.md`](DisplayAndResolutionPlan.md): 解像度、画面比率、Canvas設定の方針
 - [`ReleaseChecklist.md`](ReleaseChecklist.md): 配布前の確認
@@ -27,16 +27,13 @@
 - [`TitleAndAudioPresentationPlan.md`](TitleAndAudioPresentationPlan.md): タイトル、免責、BGM、SE、ボイス、ユーザー説明書
 - [`UserManualScreenshotChecklist.md`](UserManualScreenshotChecklist.md): HTML説明書用画像の撮影・更新確認
 - [`AssetCredits.md`](AssetCredits.md): 画像・音声・フォント等の権利記録
-- [`CharacterAssetGenerationToolSpec.md`](CharacterAssetGenerationToolSpec.md): AssetToolとのデータ連携仕様
 - [`CodexUnityWorkflow.md`](CodexUnityWorkflow.md): Codexを使ったUnity開発手順
-- [`ConversationClassificationRules.md`](ConversationClassificationRules.md): 会話データの分類規則
 
 ## 外部AssetTool関連
 
-`Extra_FantasyLoveSimAssetTool` は別リポジトリの設計資料をUnity側から参照するための補助資料。
-実装状況はAssetTool本体のコードとテストを正本とし、UnityとのJSON契約は
-[`CharacterAssetGenerationToolSpec.md`](CharacterAssetGenerationToolSpec.md) と
-[`GameEventDataGuide.md`](GameEventDataGuide.md) の両方を確認する。
+AssetToolの操作、素材制作、Export／Import JSON契約は、別リポジトリ
+`FantasyLoveSimAssetTool` の文書を正本とする。参照先と文書の分担は
+[`AssetToolDocumentation.md`](AssetToolDocumentation.md) を確認する。
 
 ## 文書更新ルール
 

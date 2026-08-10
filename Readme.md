@@ -16,7 +16,7 @@ This project is licensed under the MIT License. See [LICENSE](LICENSE) for detai
 - ソースコードの作成には Codex `gpt-5.4` / `gpt-5.5` / `gpt-5.6` を使用しました
 - 画像の作成には ChatGPT Images 2.0 と Stable Diffusion を使用しました
 - Codex / ChatGPT を使った Unity 開発の進め方は [`Docs/CodexUnityWorkflow.md`](Docs/CodexUnityWorkflow.md) にまとめています
-- 別リポジトリで作るキャラクター素材生成ツール案は [`Docs/CharacterAssetGenerationToolSpec.md`](Docs/CharacterAssetGenerationToolSpec.md) にまとめています
+- 別リポジトリのキャラクター素材生成ツールに関する文書の参照先は [`Docs/AssetToolDocumentation.md`](Docs/AssetToolDocumentation.md) にまとめています
 
 ## 概要
 
