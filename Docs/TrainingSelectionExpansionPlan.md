@@ -293,7 +293,9 @@ AssetToolはゲームバランスを編集せず、`training_catalog_from_unity.
    - Unity側のFromUnityカタログは条件項目の出力まで実装済み
    - 一回限定、表示・実行可能な調子、前提訓練、前提のAND/OR、未達・完了後の表示方法を出力する
    - 初期解放やスキルツリー解放がなくても、前提訓練で将来解放される訓練は制作対象へ含める
-   - AssetTool側の読込・バッジ表示・参照ID警告は別リポジトリでの残作業
+   - AssetTool側の読込、条件バッジ、参照ID・自己参照・循環参照警告、条件編集、`training_catalog_export.json`出力に対応済み
+   - Unityの`FantasyLoveSim > Import Heroine Export`は既存`TrainingData`の回数・調子・前提・表示規則と、対象ヒロインの解放ノードを更新する。画像・HP消費・報酬はこのJSONから変更しない
+   - Import開始前に、共通`TrainingData`へ影響することを確認ダイアログで表示する
 6. 実データは絶好調限定、不調時不可、一回限定チェーンを各1件ずつ追加して確認する
    - 一回限定の `FirstJointTraining`（初めての合同訓練）を追加済み
    - その成功完了後に表示される反復可能な `AdvancedJointTraining`

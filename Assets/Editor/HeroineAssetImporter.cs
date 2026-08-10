@@ -33,6 +33,15 @@ public static class HeroineAssetImporter
             return;
         }
 
+        if (!EditorUtility.DisplayDialog(
+            "Heroine Export Import",
+            "プロフィール、会話、画像参照、訓練条件などをExport内容で更新します。\n" +
+            "training_catalog_export.json がある場合、共通TrainingDataと対象ヒロインの解放ノードも変更されます。\n\n続行しますか？",
+            "Import", "Cancel"))
+        {
+            return;
+        }
+
         ImportHeroineExport(exportFolder);
     }
 
@@ -89,9 +98,10 @@ public static class HeroineAssetImporter
         ApplyProfile(profile, profileExport);
         ImportImages(exportFolder, profileExport.heroineId, report);
         ApplyDefaultHeroineSprite(profile, report.defaultSpritePath, report);
+        HeroineSkillTreeAssetSync.Import(exportFolder, profileExport.heroineId);
+        TrainingCatalogAssetSync.Import(exportFolder, profileExport.heroineId, report);
         ImportTrainingImages(exportFolder, profileExport.heroineId, report);
         ImportTrainingDialogues(exportFolder, profileExport.heroineId, report);
-        HeroineSkillTreeAssetSync.Import(exportFolder, profileExport.heroineId);
         BattleMessageImportSummary battleMessageSummary = HeroineBattleMessageAssetSync.Import(exportFolder, profile);
         report.battleMessageAddedCount = battleMessageSummary.addedCount;
         report.battleMessageUpdatedCount = battleMessageSummary.updatedCount;
@@ -3513,6 +3523,8 @@ public static class HeroineAssetImporter
         public int trainingImageUnresolvedCount;
         public int trainingImageSkippedCount;
         public int trainingDialogueEntryCount;
+        public int trainingCatalogUpdatedCount;
+        public int trainingCatalogSkippedCount;
         public int battleMessageAddedCount;
         public int battleMessageUpdatedCount;
         public int battleMessageDeletedCount;
@@ -3530,7 +3542,7 @@ public static class HeroineAssetImporter
         public void LogSummary(string assetPath)
         {
             Debug.Log(
-                $"Heroine export を import しました: {assetPath}, copied images: {copiedImageCount}, catalog assets: {catalogAssetCount}, training images: {trainingImageCount}, training entries: {trainingImageEntryCount}, training dialogues: {trainingDialogueEntryCount}, battle messages added/updated/deleted/skipped: {battleMessageAddedCount}/{battleMessageUpdatedCount}/{battleMessageDeletedCount}/{battleMessageSkippedCount}, training unresolved: {trainingImageUnresolvedCount}, training skipped: {trainingImageSkippedCount}, layers: {layerCount}, conversations: {conversationCount}, game events: {gameEventCount}, scheduled events: {scheduledEventCount}, menu actions: {menuActionCount}, action reactions: {actionReactionCount}, endings: {endingCount}, warnings: {warnings.Count}");
+                $"Heroine export を import しました: {assetPath}, copied images: {copiedImageCount}, catalog assets: {catalogAssetCount}, training catalog updated/skipped: {trainingCatalogUpdatedCount}/{trainingCatalogSkippedCount}, training images: {trainingImageCount}, training entries: {trainingImageEntryCount}, training dialogues: {trainingDialogueEntryCount}, battle messages added/updated/deleted/skipped: {battleMessageAddedCount}/{battleMessageUpdatedCount}/{battleMessageDeletedCount}/{battleMessageSkippedCount}, training unresolved: {trainingImageUnresolvedCount}, training skipped: {trainingImageSkippedCount}, layers: {layerCount}, conversations: {conversationCount}, game events: {gameEventCount}, scheduled events: {scheduledEventCount}, menu actions: {menuActionCount}, action reactions: {actionReactionCount}, endings: {endingCount}, warnings: {warnings.Count}");
         }
 
         public string CreateDialogMessage(string assetPath)
@@ -3541,6 +3553,7 @@ public static class HeroineAssetImporter
                 "Copied images: " + copiedImageCount + "\n" +
                 "Catalog assets: " + catalogAssetCount + "\n" +
                 "Training images: " + trainingImageCount + "\n" +
+                "Training catalog updated/skipped: " + trainingCatalogUpdatedCount + "/" + trainingCatalogSkippedCount + "\n" +
                 "Training settings updated: " + (trainingImageSettingsUpdated ? "Yes" : "No") + "\n" +
                 "Training entries: " + trainingImageEntryCount + "\n" +
                 "Training dialogues: " + trainingDialogueEntryCount + "\n" +
