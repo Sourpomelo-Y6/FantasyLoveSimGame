@@ -788,6 +788,13 @@ Consoleの各警告には対象アセットが設定されるため、警告を�
 `Conv_<Genre>_<Context>_<NN>` を推奨するが、既存IDは表示済みセーブとの互換性のため維持する。
 詳細な分類とpriorityの運用は `FantasyLoveSimAssetTool/Docs/ConversationClassificationRules.md` を正本とする。
 
+ヒロイン単位のシナリオ導線は、Projectウィンドウで対象の `HeroineProfileData` を選択し、
+`FantasyLoveSim > Validation > Data > Heroine Scenario Flow` から確認できる。
+ゲーム開始イベント、通常会話、行動反応、予定イベント、エンディングを想定順にConsoleへ並べ、
+発生契機、一度限定、好感度・日数範囲、必要イベント・スキルなどを表示する。
+存在しない前提参照、必須と阻害の競合、条件範囲の逆転、開始導線・エンディングの欠落、
+本文や識別情報に残った `TestHeroine` 文字列を警告する。画像参照の有無はこの検証の対象外とする。
+
 1. 行動データの反応パターン追加
 2. 分類ルールに沿った会話データの追加
 3. エンディングデータと条件分岐パターンの追加
