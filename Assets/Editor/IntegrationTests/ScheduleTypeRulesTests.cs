@@ -60,5 +60,26 @@ public class ScheduleTypeRulesTests
                 assetName + ".asset"),
             Is.Null);
     }
+
+    [TestCase("SoloVictory", BattleResultEventType.SoloVictory, "Smile")]
+    [TestCase("SoloDefeat", BattleResultEventType.SoloDefeat, "Sad")]
+    public void Heroine3SoloResult_HasCharacterSpecificReturnReaction(
+        string assetName,
+        BattleResultEventType expectedType,
+        string expectedExpression)
+    {
+        HeroineProfileData profile = AssetDatabase.LoadAssetAtPath<HeroineProfileData>(
+            "Assets/Resources/Heroines/Heroine3Profile.asset");
+        SoloReturnReactionData reaction = AssetDatabase.LoadAssetAtPath<SoloReturnReactionData>(
+            "Assets/Resources/Heroines/Heroine3/SoloReturnReactions/" + assetName + ".asset");
+
+        Assert.That(profile, Is.Not.Null);
+        Assert.That(profile.soloReturnReactionResourcePath,
+            Is.EqualTo("Heroines/Heroine3/SoloReturnReactions"));
+        Assert.That(reaction, Is.Not.Null);
+        Assert.That(reaction.battleResultEventType, Is.EqualTo(expectedType));
+        Assert.That(reaction.message, Is.Not.Empty);
+        Assert.That(reaction.expressionId, Is.EqualTo(expectedExpression));
+    }
 }
 #endif

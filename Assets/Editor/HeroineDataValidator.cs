@@ -111,11 +111,54 @@ public static class HeroineDataValidator
         ValidateResourcePath("gameEventResourcePath", profile.gameEventResourcePath, heroineId, report);
         ValidateResourcePath("actionResourcePath", profile.actionResourcePath, heroineId, report);
         ValidateResourcePath("scheduledEventResourcePath", profile.scheduledEventResourcePath, heroineId, report);
+        ValidateResourcePath("battleResultEventResourcePath", profile.battleResultEventResourcePath, heroineId, report);
+        ValidateResourcePath("battlePanelResultMessageResourcePath", profile.battlePanelResultMessageResourcePath, heroineId, report);
+        ValidateResourcePath("soloReturnReactionResourcePath", profile.soloReturnReactionResourcePath, heroineId, report);
         ValidateResourcePath("endingResourcePath", profile.endingResourcePath, heroineId, report);
         HashSet<string> expressionIds = LoadExpressionIds(profile);
         ValidateSharedOutfitExpressions(expressionIds, report);
         ValidateOutfitMessageOverrides(profile, expressionIds, report);
         ValidateOutfitReactionMessageOverrides(profile, expressionIds, report);
+        ValidateSoloReturnReactions(profile, expressionIds, report);
+    }
+
+    private static void ValidateSoloReturnReactions(
+        HeroineProfileData profile,
+        HashSet<string> expressionIds,
+        ValidationReport report)
+    {
+        // DefaultHeroine は新規データ作成時の基底プロフィールであり、専用反応を必須にしない。
+        if (string.Equals(profile.heroineId, "DefaultHeroine", StringComparison.Ordinal))
+        {
+            return;
+        }
+
+        SoloReturnReactionData[] reactions = Resources.LoadAll<SoloReturnReactionData>(
+            Fallback(profile.soloReturnReactionResourcePath, "SoloReturnReactions"));
+        BattleResultEventType[] required =
+        {
+            BattleResultEventType.SoloVictory,
+            BattleResultEventType.SoloDefeat
+        };
+        foreach (BattleResultEventType resultType in required)
+        {
+            SoloReturnReactionData[] matches = reactions.Where(reaction =>
+                reaction != null && reaction.battleResultEventType == resultType &&
+                string.IsNullOrWhiteSpace(reaction.battleContextId)).ToArray();
+            if (matches.Length != 1)
+            {
+                report.Warn("SoloReturnReactionData の共通 " + resultType +
+                    " は1件必要です。現在: " + matches.Length);
+                continue;
+            }
+            SoloReturnReactionData reaction = matches[0];
+            ValidateResourceAssetOwner(reaction, report);
+            if (string.IsNullOrWhiteSpace(reaction.message))
+                report.Warn("SoloReturnReactionData.message が空です: " + AssetDatabase.GetAssetPath(reaction));
+            if (!string.IsNullOrWhiteSpace(reaction.expressionId) &&
+                !expressionIds.Contains(reaction.expressionId))
+                report.Warn("SoloReturnReactionData.expressionId の参照先がありません: " + reaction.expressionId);
+        }
     }
 
     private static void ValidateActions(HeroineProfileData profile, ValidationReport report)
