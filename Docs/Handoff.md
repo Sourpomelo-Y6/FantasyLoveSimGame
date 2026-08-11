@@ -760,8 +760,10 @@ AssetTool作業データに残っていたTestHeroine由来の注記は、Heroin
 主人公単独外出後の反応は、共通データではなく
 `Heroines/Heroine3/SoloReturnReactions` にHeroine3専用の勝利・敗北反応を置く。
 `HeroineDataValidator` はプロフィールの帰還後反応パス、勝利・敗北各1件、本文、
-ヒロインID、表情IDを検証する。AssetToolからプロフィールを再インポートしても、
-現状インポート対象外の `soloReturnReactionResourcePath` はUnity側の設定を維持する。
+ヒロインID、表情IDを検証する。AssetToolの「戦闘メッセージ」タブから本文、
+Voice ID、Still ID、表示方式、表情を編集でき、`solo_return_reactions_export.json` と
+`solo_return_reactions_from_unity.json` で双方向同期する。旧exportに専用JSONがない場合は、
+Unity側とAssetTool側の既存帰還反応を削除せず維持する。
 
 画面表示は `1920 x 1080` を基準とし、`1280 x 720`、`2560 x 1440`、`1920 x 1200`、
 `1600 x 900`、`1024 x 768` でも主要UIを確認する。

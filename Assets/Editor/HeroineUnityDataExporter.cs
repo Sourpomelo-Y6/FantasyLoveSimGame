@@ -157,6 +157,7 @@ public static class HeroineUnityDataExporter
             scheduledEventResourcePath = profile.scheduledEventResourcePath,
             battleResultEventResourcePath = profile.battleResultEventResourcePath,
             battlePanelResultMessageResourcePath = profile.battlePanelResultMessageResourcePath,
+            soloReturnReactionResourcePath = profile.soloReturnReactionResourcePath,
             endingResourcePath = profile.endingResourcePath
         };
 
@@ -1631,6 +1632,7 @@ public static class HeroineUnityDataExporter
         public string scheduledEventResourcePath;
         public string battleResultEventResourcePath;
         public string battlePanelResultMessageResourcePath;
+        public string soloReturnReactionResourcePath;
         public string endingResourcePath;
     }
 

@@ -21,6 +21,7 @@ public class BattleMessageAssetSyncIntegrationTests
         profile.heroineId = HeroineId;
         profile.battleResultEventResourcePath = ResourceRoot + "/BattleResultEvents";
         profile.battlePanelResultMessageResourcePath = ResourceRoot + "/BattlePanelResultMessages";
+        profile.soloReturnReactionResourcePath = ResourceRoot + "/SoloReturnReactions";
     }
 
     [TearDown]
@@ -44,11 +45,17 @@ public class BattleMessageAssetSyncIntegrationTests
         File.WriteAllText(Path.Combine(exchangeFolder, "Data", "battle_panel_result_messages_export.json"),
             "{\"schemaVersion\":1,\"heroineId\":\"" + HeroineId + "\",\"items\":[{" +
             "\"messageId\":\"Victory\",\"resultType\":\"Victory\",\"message\":\"勝利しました\",\"voiceId\":\"Battle/Victory01\"}]}" );
+        File.WriteAllText(Path.Combine(exchangeFolder, "Data", "solo_return_reactions_export.json"),
+            "{\"schemaVersion\":1,\"heroineId\":\"" + HeroineId + "\",\"items\":[{" +
+            "\"reactionId\":\"SoloDefeat\",\"resultType\":\"SoloDefeat\",\"battleContextId\":\"\"," +
+            "\"message\":\"帰ってきてくれてよかった\",\"voiceId\":\"Battle/ReturnDefeat01\"," +
+            "\"visualMode\":\"PortraitOnly\",\"expressionId\":\"Sad\"}]}" );
 
         HeroineBattleMessageAssetSync.Import(exchangeFolder, profile);
 
         BattleResultEventData result = Resources.Load<BattleResultEventData>(profile.battleResultEventResourcePath + "/DuoVictory_Forest");
         BattlePanelResultMessageData panel = Resources.Load<BattlePanelResultMessageData>(profile.battlePanelResultMessageResourcePath + "/Victory");
+        SoloReturnReactionData reaction = Resources.Load<SoloReturnReactionData>(profile.soloReturnReactionResourcePath + "/SoloDefeat");
         Assert.That(result, Is.Not.Null);
         Assert.That(result.battleResultEventType, Is.EqualTo(BattleResultEventType.DuoVictory));
         Assert.That(result.speakerName, Is.EqualTo("テストヒロイン"));
@@ -58,6 +65,11 @@ public class BattleMessageAssetSyncIntegrationTests
         Assert.That(result.unlockedOutfitIds, Is.EqualTo(new[] { "Formal", "Casual" }));
         Assert.That(panel.message, Is.EqualTo("勝利しました"));
         Assert.That(panel.voiceId, Is.EqualTo("Battle/Victory01"));
+        Assert.That(reaction, Is.Not.Null);
+        Assert.That(reaction.battleResultEventType, Is.EqualTo(BattleResultEventType.SoloDefeat));
+        Assert.That(reaction.message, Is.EqualTo("帰ってきてくれてよかった"));
+        Assert.That(reaction.voiceId, Is.EqualTo("Battle/ReturnDefeat01"));
+        Assert.That(reaction.expressionId, Is.EqualTo("Sad"));
 
         // Voice IDを持たない旧JSONでは、既存の音声設定を消さない。
         File.WriteAllText(Path.Combine(exchangeFolder, "Data", "battle_result_events_export.json"),
@@ -76,9 +88,12 @@ public class BattleMessageAssetSyncIntegrationTests
         HeroineBattleMessageAssetSync.Export(profile, output);
         string resultJson = File.ReadAllText(Path.Combine(output, "battle_result_events_from_unity.json"));
         string panelJson = File.ReadAllText(Path.Combine(output, "battle_panel_result_messages_from_unity.json"));
+        string returnJson = File.ReadAllText(Path.Combine(output, "solo_return_reactions_from_unity.json"));
         StringAssert.Contains("DuoVictory_Forest", resultJson);
         StringAssert.Contains("更新本文", resultJson);
         StringAssert.Contains("Battle/DuoVictoryForest01", resultJson);
         StringAssert.Contains("Battle/Victory01", panelJson);
+        StringAssert.Contains("SoloDefeat", returnJson);
+        StringAssert.Contains("Battle/ReturnDefeat01", returnJson);
     }
 }

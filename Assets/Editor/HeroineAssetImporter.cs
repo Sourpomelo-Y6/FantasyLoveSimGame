@@ -236,6 +236,7 @@ public static class HeroineAssetImporter
         profile.scheduledEventResourcePath = ResolveResourcePath(profileExport.scheduledEventResourcePath, profile.scheduledEventResourcePath, profileExport.heroineId, "ScheduledEvents");
         profile.battleResultEventResourcePath = ResolveResourcePath(profileExport.battleResultEventResourcePath, profile.battleResultEventResourcePath, profileExport.heroineId, "BattleResultEvents");
         profile.battlePanelResultMessageResourcePath = ResolveResourcePath(profileExport.battlePanelResultMessageResourcePath, profile.battlePanelResultMessageResourcePath, profileExport.heroineId, "BattlePanelResultMessages");
+        profile.soloReturnReactionResourcePath = ResolveResourcePath(profileExport.soloReturnReactionResourcePath, profile.soloReturnReactionResourcePath, profileExport.heroineId, "SoloReturnReactions");
         profile.endingResourcePath = ResolveResourcePath(profileExport.endingResourcePath, profile.endingResourcePath, profileExport.heroineId, "Endings");
     }
 
@@ -3143,6 +3144,7 @@ public static class HeroineAssetImporter
         public string scheduledEventResourcePath;
         public string battleResultEventResourcePath;
         public string battlePanelResultMessageResourcePath;
+        public string soloReturnReactionResourcePath;
         public string endingResourcePath;
     }
 

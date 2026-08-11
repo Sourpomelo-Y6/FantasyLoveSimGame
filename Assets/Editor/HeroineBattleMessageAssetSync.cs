@@ -10,8 +10,10 @@ public static class HeroineBattleMessageAssetSync
 {
     private const string ResultImportPath = "Data/battle_result_events_export.json";
     private const string PanelImportPath = "Data/battle_panel_result_messages_export.json";
+    private const string SoloReturnImportPath = "Data/solo_return_reactions_export.json";
     private const string ResultExportName = "battle_result_events_from_unity.json";
     private const string PanelExportName = "battle_panel_result_messages_from_unity.json";
+    private const string SoloReturnExportName = "solo_return_reactions_from_unity.json";
 
     public static BattleMessageImportSummary Import(string exportFolder, HeroineProfileData profile)
     {
@@ -19,6 +21,7 @@ public static class HeroineBattleMessageAssetSync
         if (profile == null) return summary;
         ImportResultEvents(Path.Combine(exportFolder, ResultImportPath), profile, summary);
         ImportPanelMessages(Path.Combine(exportFolder, PanelImportPath), profile, summary);
+        ImportSoloReturnReactions(Path.Combine(exportFolder, SoloReturnImportPath), profile, summary);
         AssetDatabase.SaveAssets();
         return summary;
     }
@@ -28,6 +31,7 @@ public static class HeroineBattleMessageAssetSync
         if (profile == null) return;
         BattleResultEventData[] events = Resources.LoadAll<BattleResultEventData>(profile.battleResultEventResourcePath);
         BattlePanelResultMessageData[] messages = Resources.LoadAll<BattlePanelResultMessageData>(profile.battlePanelResultMessageResourcePath);
+        SoloReturnReactionData[] returns = Resources.LoadAll<SoloReturnReactionData>(profile.soloReturnReactionResourcePath);
         ResultEventsFile resultFile = new ResultEventsFile
         {
             schemaVersion = 1,
@@ -62,8 +66,26 @@ public static class HeroineBattleMessageAssetSync
                     voiceId = x.voiceId
                 }).ToArray()
         };
+        SoloReturnReactionsFile soloReturnFile = new SoloReturnReactionsFile
+        {
+            schemaVersion = 1,
+            heroineId = profile.heroineId,
+            items = returns.Where(x => x != null).OrderBy(x => x.battleResultEventType).ThenBy(x => x.battleContextId)
+                .Select(x => new SoloReturnReactionItem
+                {
+                    reactionId = GetAssetId(x, CreateSoloReturnId(x)),
+                    resultType = x.battleResultEventType.ToString(),
+                    battleContextId = x.battleContextId,
+                    message = x.message,
+                    voiceId = x.voiceId,
+                    stillId = x.stillId,
+                    visualMode = x.visualMode.ToString(),
+                    expressionId = x.expressionId
+                }).ToArray()
+        };
         File.WriteAllText(Path.Combine(outputFolder, ResultExportName), JsonUtility.ToJson(resultFile, true));
         File.WriteAllText(Path.Combine(outputFolder, PanelExportName), JsonUtility.ToJson(panelFile, true));
+        File.WriteAllText(Path.Combine(outputFolder, SoloReturnExportName), JsonUtility.ToJson(soloReturnFile, true));
     }
 
     private static void ImportResultEvents(string jsonPath, HeroineProfileData profile, BattleMessageImportSummary summary)
@@ -130,6 +152,39 @@ public static class HeroineBattleMessageAssetSync
         summary.deletedCount += DeleteMissing<BattlePanelResultMessageData>(folder, keep);
     }
 
+    private static void ImportSoloReturnReactions(string jsonPath, HeroineProfileData profile, BattleMessageImportSummary summary)
+    {
+        // 旧AssetTool exportにはこのファイルがないため、未存在時は既存assetを維持する。
+        if (!File.Exists(jsonPath)) return;
+        string json = File.ReadAllText(jsonPath);
+        SoloReturnReactionsFile data = JsonUtility.FromJson<SoloReturnReactionsFile>(json);
+        bool hasVoiceIdField = json.IndexOf("\"voiceId\"", StringComparison.Ordinal) >= 0;
+        if (!CanImport(data?.schemaVersion ?? 0, data?.heroineId, profile.heroineId, Path.GetFileName(jsonPath))) { summary.skippedCount++; return; }
+        if (data.items == null) return;
+        string folder = ToHeroineAssetFolder(profile.soloReturnReactionResourcePath, profile.heroineId);
+        if (folder == null) return;
+        EnsureFolder(folder);
+        HashSet<string> keep = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        foreach (SoloReturnReactionItem item in data.items)
+        {
+            if (item == null || string.IsNullOrWhiteSpace(item.reactionId)) { summary.skippedCount++; continue; }
+            string path = $"{folder}/{SafeFileName(item.reactionId.Trim())}.asset";
+            SoloReturnReactionData asset = AssetDatabase.LoadAssetAtPath<SoloReturnReactionData>(path);
+            if (asset == null) { asset = ScriptableObject.CreateInstance<SoloReturnReactionData>(); AssetDatabase.CreateAsset(asset, path); summary.addedCount++; }
+            else summary.updatedCount++;
+            asset.battleResultEventType = ParseBattleResultEventType(item.resultType, item.reactionId);
+            asset.battleContextId = item.battleContextId ?? string.Empty;
+            asset.message = item.message ?? string.Empty;
+            if (hasVoiceIdField) asset.voiceId = item.voiceId ?? string.Empty;
+            asset.stillId = item.stillId ?? string.Empty;
+            asset.visualMode = Parse(item.visualMode, BattleResultVisualMode.Auto);
+            asset.expressionId = item.expressionId ?? string.Empty;
+            EditorUtility.SetDirty(asset);
+            keep.Add(path);
+        }
+        summary.deletedCount += DeleteMissing<SoloReturnReactionData>(folder, keep);
+    }
+
     private static bool CanImport(int version, string jsonHeroineId, string expectedHeroineId, string fileName)
     {
         if (version != 1) { Debug.LogWarning(fileName + " のschemaVersionを確認してください。"); return false; }
@@ -139,6 +194,12 @@ public static class HeroineBattleMessageAssetSync
     }
 
     private static string CreateEventId(BattleResultEventData data)
+    {
+        string id = data.battleResultEventType.ToString();
+        if (!string.IsNullOrWhiteSpace(data.battleContextId)) id += "_" + data.battleContextId.Trim();
+        return id;
+    }
+    private static string CreateSoloReturnId(SoloReturnReactionData data)
     {
         string id = data.battleResultEventType.ToString();
         if (!string.IsNullOrWhiteSpace(data.battleContextId)) id += "_" + data.battleContextId.Trim();
@@ -229,6 +290,8 @@ public static class HeroineBattleMessageAssetSync
     [Serializable] private class ResultEventItem { public string eventId; public string resultType; public string battleContextId; public string speakerType; public string speakerName; public string message; public string voiceId; public string stillId; public string visualMode; public string expressionId; public int affectionChange; public string[] unlockedOutfitIds; }
     [Serializable] private class PanelMessagesFile { public int schemaVersion; public string heroineId; public PanelMessageItem[] items; }
     [Serializable] private class PanelMessageItem { public string messageId; public string resultType; public string message; public string voiceId; }
+    [Serializable] private class SoloReturnReactionsFile { public int schemaVersion; public string heroineId; public SoloReturnReactionItem[] items; }
+    [Serializable] private class SoloReturnReactionItem { public string reactionId; public string resultType; public string battleContextId; public string message; public string voiceId; public string stillId; public string visualMode; public string expressionId; }
 }
 
 public sealed class BattleMessageImportSummary
