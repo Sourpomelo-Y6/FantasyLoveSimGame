@@ -18,4 +18,28 @@ MonoBehaviour:
   defaultPlayerLpConsumedSprite: {fileID: 0}
   defaultHeroineLpConsumedSprite: {fileID: 0}
   defaultSimultaneousLpConsumedSprite: {fileID: 0}
-  entries: []
+  entries:
+  - trainingId: CooperativeDrill
+    selectedBeforeFirstStepSprite: {fileID: 21300000, guid: 0f63e91c7d5944e7ac9311e868aae782, type: 3}
+    selectedAfterFirstStepSprite: {fileID: 21300000, guid: 9f05391889bd4b3380b59c4057283e93, type: 3}
+    playerLpConsumedSprite: {fileID: 21300000, guid: e405ddb02dc04d78ad7a650f5e6912c6, type: 3}
+    heroineLpConsumedSprite: {fileID: 21300000, guid: c2ee8acf111f4509a3b4a62bbc3b42f1, type: 3}
+    simultaneousLpConsumedSprite: {fileID: 21300000, guid: e2c2516e40944c0bb6d51bde79e16c26, type: 3}
+  - trainingId: EnduranceTraining
+    selectedBeforeFirstStepSprite: {fileID: 21300000, guid: 9afd42976f5943eb8e19ea8440fd9187, type: 3}
+    selectedAfterFirstStepSprite: {fileID: 21300000, guid: f44da879816c488f9de8125f707be22e, type: 3}
+    playerLpConsumedSprite: {fileID: 21300000, guid: 33284e3f15204726ba8fbc62d182d7a9, type: 3}
+    heroineLpConsumedSprite: {fileID: 21300000, guid: 589f06f0d77b4072a925720e69c0430e, type: 3}
+    simultaneousLpConsumedSprite: {fileID: 21300000, guid: edd44dea7b6641579aa305968a14bc3f, type: 3}
+  - trainingId: LightPractice
+    selectedBeforeFirstStepSprite: {fileID: 21300000, guid: d5e17a5e2dcaa9547b65e25e81812d9a, type: 3}
+    selectedAfterFirstStepSprite: {fileID: 21300000, guid: 2b3d6402b406490fbde81d9866197ae5, type: 3}
+    playerLpConsumedSprite: {fileID: 21300000, guid: 055ab8edc4e04721b161e14eaac72a2c, type: 3}
+    heroineLpConsumedSprite: {fileID: 21300000, guid: 3520b0fbf9b74daf8a61408867f4b2b5, type: 3}
+    simultaneousLpConsumedSprite: {fileID: 21300000, guid: b498b3ff25e6452d9eb49b6666ba0ae8, type: 3}
+  - trainingId: SparringPractice
+    selectedBeforeFirstStepSprite: {fileID: 21300000, guid: d0c7816c2cc24147bafe392888ab8091, type: 3}
+    selectedAfterFirstStepSprite: {fileID: 21300000, guid: e426ecd973e041bf8bf483708bcfc80b, type: 3}
+    playerLpConsumedSprite: {fileID: 21300000, guid: 73a3de1f3e094a1ab33c3d0943a58ded, type: 3}
+    heroineLpConsumedSprite: {fileID: 21300000, guid: 6c3b1ea9e5a04a43ac44a877ad963653, type: 3}
+    simultaneousLpConsumedSprite: {fileID: 21300000, guid: fe956e9eddc64198909d4b6e5cd9dc0e, type: 3}

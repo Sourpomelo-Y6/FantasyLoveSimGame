@@ -15,17 +15,17 @@ MonoBehaviour:
   endingId: NormalEnding
   displayName: "\u7A4F\u3084\u304B\u306A\u660E\u65E5"
   message: "\u7279\u5225\u306A\u7D04\u675F\u304C\u306A\u304F\u3066\u3082\u3001\u660E\u65E5\u3082\u3042\u306A\u305F\u306B\u4F1A\u3048\u308B\u3002\u305D\u308C\u3060\u3051\u3067\u3001\u4ECA\u306F\u5341\u5206\u3057\u3042\u308F\u305B\u3002"
-  stillSprite: {fileID: 0}
-  visualMode: 3
-  keepStillAcrossPages: 0
+  stillSprite: {fileID: 21300000, guid: d63a83e89c334ce4b8bcf1845867bc46, type: 3}
+  visualMode: 1
+  keepStillAcrossPages: 1
   pages:
   - speakerType: 0
     speakerName: 
     message: "\u7279\u5225\u306A\u7D04\u675F\u304C\u306A\u304F\u3066\u3082\u3001\u660E\u65E5\u3082\u3042\u306A\u305F\u306B\u4F1A\u3048\u308B\u3002\u305D\u308C\u3060\u3051\u3067\u3001\u4ECA\u306F\u5341\u5206\u3057\u3042\u308F\u305B\u3002"
     expressionId: 
     voiceId: 
-    stillId: 
-    stillSprite: {fileID: 0}
+    stillId: NormalEnding_01
+    stillSprite: {fileID: 21300000, guid: d63a83e89c334ce4b8bcf1845867bc46, type: 3}
   requiredAffection: 0
   costumeId: 
   requiredShownEventIds: []

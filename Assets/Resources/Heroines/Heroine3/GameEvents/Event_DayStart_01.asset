@@ -39,8 +39,8 @@ MonoBehaviour:
     message: "\u4ECA\u65E5\u306F\u96E8\u307F\u305F\u3044\u3060\u306D\u3002"
     expressionId: Neutral
     voiceId: 
-    stillId: 
-    stillSprite: {fileID: 0}
+    stillId: DayStart_Rainy_01
+    stillSprite: {fileID: 21300000, guid: 1e8ea10db63a772439457db6b58dd81d, type: 3}
   - speakerType: 0
     speakerName: 
     message: "\u96E8\u3060\u306D\u3002\u5916\u3078\u51FA\u308B\u306A\u3089\u6C17\u3092\u3064\u3051\u3088\u3046\u3002\u308F\u305F\u3057\u3082\u305D\u3070\u306B\u3044\u308B\u3088\u3002"

@@ -30,8 +30,8 @@ MonoBehaviour:
     useHeroineNameAsSpeaker: 1
     expressionId: 
     voiceId: 
-    stillId: 
-    stillSprite: {fileID: 0}
+    stillId: Tea_01
+    stillSprite: {fileID: 21300000, guid: 69c2d5849bcf8f64686b2551c9e49216, type: 3}
     affectionChange: 0
     playerHpChange: 0
     heroineHpChange: 0
