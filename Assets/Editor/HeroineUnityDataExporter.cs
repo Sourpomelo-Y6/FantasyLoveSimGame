@@ -1441,6 +1441,7 @@ public static class HeroineUnityDataExporter
             {
                 outfitId = item.outfitId,
                 lockedMessage = item.lockedMessage ?? string.Empty,
+                lockedExpressionId = item.lockedExpressionId ?? string.Empty,
                 changedMessage = item.changedMessage ?? string.Empty,
                 changedExpressionId = item.changedExpressionId ?? string.Empty
             });
@@ -1734,6 +1735,7 @@ public static class HeroineUnityDataExporter
     {
         public string outfitId;
         public string lockedMessage;
+        public string lockedExpressionId;
         public string changedMessage;
         public string changedExpressionId;
     }

@@ -19,6 +19,9 @@ public class OutfitData : ScriptableObject
     [TextArea(2, 4)]
     public string lockedMessage = "それはまだ少し恥ずかしいようです。";
 
+    [Tooltip("未解放メッセージ表示時のヒロイン表情ID。空なら現在の表情を維持します。")]
+    public string lockedExpressionId = "";
+
     [TextArea(2, 4)]
     public string changedMessage = "";
 

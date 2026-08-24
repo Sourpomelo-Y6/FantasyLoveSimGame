@@ -518,6 +518,11 @@ public static class HeroineDataValidator
             ValidateRequiredId(messageOverride.outfitId, "OutfitMessageOverride.outfitId", profile, report);
             ValidateDuplicateId(ids, messageOverride.outfitId, "OutfitMessageOverride.outfitId", profile, report);
             ValidateExpressionId(
+                messageOverride.lockedExpressionId,
+                "OutfitMessageOverride.lockedExpressionId: " + messageOverride.outfitId,
+                expressionIds,
+                report);
+            ValidateExpressionId(
                 messageOverride.changedExpressionId,
                 "OutfitMessageOverride.changedExpressionId: " + messageOverride.outfitId,
                 expressionIds,
@@ -536,6 +541,11 @@ public static class HeroineDataValidator
                 continue;
             }
 
+            ValidateExpressionId(
+                outfit.lockedExpressionId,
+                "OutfitData.lockedExpressionId: " + outfit.outfitId,
+                expressionIds,
+                report);
             ValidateExpressionId(
                 outfit.changedExpressionId,
                 "OutfitData.changedExpressionId: " + outfit.outfitId,

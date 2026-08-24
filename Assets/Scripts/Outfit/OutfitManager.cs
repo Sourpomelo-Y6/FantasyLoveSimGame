@@ -402,6 +402,17 @@ public class OutfitManager : MonoBehaviour
         return outfit != null ? outfit.lockedMessage : "";
     }
 
+    public string GetLockedExpressionId(OutfitData outfit)
+    {
+        OutfitMessageOverride messageOverride = FindMessageOverride(outfit);
+        if (messageOverride != null && !string.IsNullOrEmpty(messageOverride.lockedExpressionId))
+        {
+            return messageOverride.lockedExpressionId;
+        }
+
+        return outfit != null ? outfit.lockedExpressionId : "";
+    }
+
     private string GetChangedMessage(OutfitData outfit)
     {
         OutfitMessageOverride messageOverride = FindMessageOverride(outfit);

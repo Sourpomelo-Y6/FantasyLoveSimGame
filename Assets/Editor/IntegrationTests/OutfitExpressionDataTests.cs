@@ -1,5 +1,6 @@
 #if UNITY_INCLUDE_TESTS
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using NUnit.Framework;
 using UnityEngine;
@@ -38,11 +39,70 @@ public class OutfitExpressionDataTests
             new OutfitMessageOverride
             {
                 outfitId = "Dress",
+                lockedExpressionId = "Concerned",
                 changedExpressionId = "Shy"
             }
         });
 
+        Assert.That(manager.GetLockedExpressionId(outfit), Is.EqualTo("Concerned"));
         Assert.That(manager.GetChangedExpressionId(outfit), Is.EqualTo("Shy"));
+    }
+
+    [Test]
+    public void AssetToolProfileJson_ImportsAndExportsAllOutfitMessageFields()
+    {
+        HeroineProfileData profile = ScriptableObject.CreateInstance<HeroineProfileData>();
+        createdObjects.Add(profile);
+        string json = "{\"heroineId\":\"RoundTripHeroine\",\"outfitMessageOverrides\":[" +
+            "{\"outfitId\":\"Formal\",\"lockedMessage\":\"locked\",\"lockedExpressionId\":\"Concerned\"," +
+            "\"changedMessage\":\"changed\",\"changedExpressionId\":\"Smile\"}]," +
+            "\"outfitReactionMessageOverrides\":[" +
+            "{\"reactionType\":\"Praise\",\"message\":\"praise\",\"expressionId\":\"Smile\"}," +
+            "{\"reactionType\":\"Dislike\",\"message\":\"dislike\",\"expressionId\":\"Angry\"}," +
+            "{\"reactionType\":\"Bored\",\"message\":\"bored\",\"expressionId\":\"Neutral\"}," +
+            "{\"reactionType\":\"Change\",\"message\":\"change\",\"expressionId\":\"Shy\"}]}";
+
+        HeroineAssetImporter.ApplyProfileJsonForTests(profile, json);
+
+        Assert.That(profile.outfitMessageOverrides.Count, Is.EqualTo(1));
+        OutfitMessageOverride outfit = profile.outfitMessageOverrides[0];
+        Assert.That(outfit.outfitId, Is.EqualTo("Formal"));
+        Assert.That(outfit.lockedMessage, Is.EqualTo("locked"));
+        Assert.That(outfit.lockedExpressionId, Is.EqualTo("Concerned"));
+        Assert.That(outfit.changedMessage, Is.EqualTo("changed"));
+        Assert.That(outfit.changedExpressionId, Is.EqualTo("Smile"));
+        Assert.That(profile.outfitReactionMessageOverrides.Select(item => item.reactionType),
+            Is.EqualTo(new[]
+            {
+                OutfitReactionType.Praise,
+                OutfitReactionType.Dislike,
+                OutfitReactionType.Bored,
+                OutfitReactionType.Change
+            }));
+
+        string outputFolder = Path.Combine(Path.GetFullPath("Temp"),
+            "OutfitExpressionDataTests", System.Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(outputFolder);
+        try
+        {
+            HeroineUnityDataExporter.ExportProfile(
+                profile,
+                outputFolder,
+                new HeroineUnityDataExporter.HeroineUnityExportReport());
+            string exported = File.ReadAllText(Path.Combine(outputFolder, "heroine_profile_from_unity.json"));
+
+            StringAssert.Contains("\"lockedExpressionId\": \"Concerned\"", exported);
+            StringAssert.Contains("\"changedExpressionId\": \"Smile\"", exported);
+            StringAssert.Contains("\"reactionType\": \"Praise\"", exported);
+            StringAssert.Contains("\"reactionType\": \"Dislike\"", exported);
+            StringAssert.Contains("\"reactionType\": \"Bored\"", exported);
+            StringAssert.Contains("\"reactionType\": \"Change\"", exported);
+            StringAssert.Contains("\"expressionId\": \"Shy\"", exported);
+        }
+        finally
+        {
+            if (Directory.Exists(outputFolder)) Directory.Delete(outputFolder, true);
+        }
     }
 
     [Test]

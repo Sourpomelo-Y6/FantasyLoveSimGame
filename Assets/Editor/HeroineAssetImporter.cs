@@ -337,6 +337,7 @@ public static class HeroineAssetImporter
             {
                 outfitId = item.outfitId,
                 lockedMessage = item.lockedMessage ?? string.Empty,
+                lockedExpressionId = item.lockedExpressionId ?? string.Empty,
                 changedMessage = item.changedMessage ?? string.Empty,
                 changedExpressionId = item.changedExpressionId ?? string.Empty
             });
@@ -3169,6 +3170,7 @@ public static class HeroineAssetImporter
     {
         public string outfitId;
         public string lockedMessage;
+        public string lockedExpressionId;
         public string changedMessage;
         public string changedExpressionId;
     }

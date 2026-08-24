@@ -6425,7 +6425,9 @@ public class GameManager : MonoBehaviour
 
         ShowHeroineDialogue(
             message,
-            success ? outfitManager.GetChangedExpressionId(outfit) : "");
+            success
+                ? outfitManager.GetChangedExpressionId(outfit)
+                : outfitManager.GetLockedExpressionId(outfit));
 
         if (pendingScheduledEvent != null)
         {
